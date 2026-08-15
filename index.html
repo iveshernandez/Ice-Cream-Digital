@@ -857,7 +857,7 @@ async function renderSingle(item,onProg){
       const cStream=canvas.captureStream(FPS);
       // Solo video del canvas, audio solo de voz (dest) - video original silenciado 100%
       const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-      const rec=new MediaRecorder(combined,{mimeType:mimeMP4, videoBitsPerSecond:2500000, audioBitsPerSecond:128000});
+      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 8000000, mimeType:mimeMP4, videoBitsPerSecond: 8000000, audioBitsPerSecond:128000});
       const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
       const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:'video/mp4'})) );
 
@@ -1782,6 +1782,20 @@ document.getElementById('addUserBtn').onclick = async ()=>{
     renderUsers();
   }
 };
+</script>
+
+
+<script>
+// V21 EXPORT FLUIDO - descarga igual que preview
+(function(){
+  console.log('V21 Fix: 60fps 8Mbps activo');
+  try{
+    const orig = HTMLCanvasElement.prototype.captureStream;
+    if(orig){
+      HTMLCanvasElement.prototype.captureStream = function(){ return orig.call(this, 60); };
+    }
+  }catch(e){}
+})();
 </script>
 
 </body></html>
