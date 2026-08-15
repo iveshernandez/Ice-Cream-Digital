@@ -221,14 +221,24 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 
 
 <style>
-#authOverlay{position:fixed;inset:0;z-index:999999;background:radial-gradient(1200px 600px at 50% -10%, #1a1a1e 0%, #070709 90%);display:flex;align-items:center;justify-content:center;padding:20px}
-.authCard{width:100%;max-width:420px;background:#141418;border:1px solid #222;border-radius:20px;padding:28px 28px 22px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
-.authLogo{display:flex;align-items:center;gap:10px;margin-bottom:18px}
-.authLogo b{font-size:22px;font-family:'Anton',sans-serif;letter-spacing:.5px}
-.authBadge{display:inline-flex;background:rgba(255,235,0,.12);border:1px solid #FFEB00;color:#FFEB00;font-size:9px;font-weight:900;padding:4px 8px;border-radius:20px;letter-spacing:.8px;margin-bottom:14px}
-.authCard h1{font-size:28px;font-weight:800;margin:0 0 8px;letter-spacing:-.5px}
-.authBtn{width:100%;background:#FFEB00;color:#000;border:0;border-radius:12px;padding:14px;font-weight:900;font-size:13px;letter-spacing:.4px;cursor:pointer;margin-top:12px;transition:.2s}
-.authBtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,235,0,.25)}
+#authOverlay{position:fixed;inset:0;z-index:999999;background:radial-gradient(1200px 600px at 50% -10%, #1a1a1e 0%, #070709 95%);display:flex;align-items:center;justify-content:center;padding:20px}
+.authCard{width:100%;max-width:440px;background:#141418;border:1px solid #222;border-radius:22px;padding:28px;box-shadow:0 20px 80px rgba(0,0,0,.7)}
+.authLogo{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.authLogo b{font-size:22px;font-family:'Anton',sans-serif}
+.authBadge{display:inline-flex;background:rgba(255,235,0,.12);border:1px solid #FFEB00;color:#FFEB00;font-size:9px;font-weight:900;padding:5px 10px;border-radius:20px;letter-spacing:.8px;margin-bottom:12px}
+.authCard h1{font-size:28px;font-weight:800;margin:0 0 6px}
+.authCard p{color:#888;font-size:12.5px;line-height:1.5;margin:0 0 16px}
+.authInput{width:100%;background:#0a0a0c;border:1.5px solid #222;border-radius:12px;padding:13px 14px;font-size:14px;color:#fff;outline:none}
+.authInput:focus{border-color:#FFEB00}
+.authBtn{width:100%;background:#FFEB00;color:#000;border:0;border-radius:12px;padding:13px;font-weight:900;font-size:13px;cursor:pointer;margin-top:10px}
+.authBtn2{width:100%;background:#1e1e22;color:#fff;border:1px solid #2a2a2e;border-radius:12px;padding:12px;font-weight:700;font-size:12px;cursor:pointer;margin-top:8px}
+#authMsg{font-size:11px;margin-top:10px;min-height:16px;text-align:center}
+#adminPanel{position:fixed;inset:0;z-index:999998;background:#070709;display:none;overflow:auto;padding:24px}
+.adminHeader{display:flex;justify-content:space-between;align-items:center;max-width:1000px;margin:0 auto 20px}
+.adminCard{max-width:1000px;margin:0 auto;background:#141418;border:1px solid #222;border-radius:16px;padding:18px}
+.userRow{display:grid;grid-template-columns:1fr 120px 90px 80px;gap:10px;align-items:center;padding:10px;border-bottom:1px solid #1e1e22;font-size:13px}
+.tagActive{background:#0f2a18;color:#4ade80;border:1px solid #1a4a2a;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:800}
+.tagOff{background:#2a1515;color:#ff6b6b;border:1px solid #4a1a1a;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:800}
 </style>
 
 </head>
@@ -237,15 +247,43 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 <div id="authOverlay">
   <div class="authCard">
     <div class="authLogo"><div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div><b>ICE CREAM DIGITAL</b></div>
-    <div class="authBadge">BETA • USO LIBRE POR TIEMPO LIMITADO</div>
-    <h1 style="font-size:30px;font-weight:800;margin:0 0 10px;letter-spacing:-.5px">Entra en 1 click</h1>
-    <p style="color:#888;font-size:13px;line-height:1.5;margin:0 0 22px">Usa tu cuenta de Google para guardar tus proyectos. Como CapCut, inicio automático la próxima vez. Pronto versión Pro.</p>
-    <button id="googleBtn" class="authBtn" style="background:#fff;color:#000;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #222">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px;height:18px"> Continuar con Google
-    </button>
-    <button id="emailBtn" style="width:100%;background:transparent;color:#666;border:1px dashed #2a2a2e;border-radius:12px;padding:12px;font-size:11px;font-weight:700;margin-top:10px;cursor:pointer">Usar correo en modo beta (sin Google)</button>
-    <div id="authMsg" style="font-size:12px;margin-top:14px;min-height:18px;text-align:center"></div>
-    <div style="margin-top:18px;text-align:center;color:#555;font-size:10px;line-height:1.4">Al continuar aceptas los términos beta.<br>En el futuro el uso será de pago.</div>
+    <div class="authBadge">PANEL PRIVADO • ACCESO CONTROLADO POR ADMIN</div>
+    <h1>Iniciar sesión</h1>
+    <p>El acceso lo otorga el administrador. Si no tienes usuario, contacta al admin. Versión Beta libre controlada.</p>
+    <input id="loginUser" class="authInput" placeholder="Usuario" autocomplete="username" />
+    <input id="loginPass" class="authInput" type="password" placeholder="Contraseña" style="margin-top:10px" autocomplete="current-password" />
+    <button id="loginBtn" class="authBtn">ENTRAR →</button>
+    <button id="adminBtn" class="authBtn2">Soy Administrador</button>
+    <div id="authMsg"></div>
+    <div style="margin-top:14px;color:#444;font-size:10px;text-align:center">Admin por defecto: <b style="color:#666">admin / admin123</b> (cámbialo luego)</div>
+  </div>
+</div>
+
+<div id="adminPanel">
+  <div class="adminHeader">
+    <div><b style="font-size:22px">Panel de Administrador</b><br><span style="color:#666;font-size:12px">Gestiona quién entra a tu app. Tú das y quitas accesos.</span></div>
+    <div style="display:flex;gap:8px">
+      <button id="closeAdmin" style="background:#1e1e22;border:1px solid #2a2a2e;color:#fff;padding:10px 16px;border-radius:10px;cursor:pointer">Volver al editor</button>
+      <button id="logoutAdmin" style="background:#FFEB00;border:0;color:#000;padding:10px 16px;border-radius:10px;font-weight:900;cursor:pointer">Salir</button>
+    </div>
+  </div>
+  <div class="adminCard">
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:18px">
+      <input id="newUser" class="authInput" placeholder="Nuevo usuario (ej: cliente1)" />
+      <input id="newPass" class="authInput" placeholder="Contraseña (ej: 123456)" />
+      <button id="addUserBtn" class="authBtn" style="margin:0;padding:13px 18px">+ AGREGAR</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 120px 90px 80px;gap:10px;padding:8px 10px;color:#555;font-size:10px;font-weight:800;letter-spacing:.8px">
+      <div>USUARIO</div><div>ESTADO</div><div>CREADO</div><div>ACCIÓN</div>
+    </div>
+    <div id="usersList"></div>
+    <div style="margin-top:16px;background:#0a0a0c;border:1px dashed #222;border-radius:12px;padding:12px;color:#666;font-size:11px;line-height:1.5">
+      <b style="color:#888">Cómo funciona:</b><br>
+      1. Agrega un usuario y contraseña aquí.<br>
+      2. Pásale esos datos a tu cliente. Solo con eso entra.<br>
+      3. Si deja de pagar, dale a <b style="color:#ff6b6b">DESACTIVAR</b> o <b>ELIMINAR</b> y ya no podrá entrar.<br>
+      4. Todo se guarda en tu navegador (y en GitHub si sincronizas). En el futuro lo pasamos a base de datos para que no se borre.
+    </div>
   </div>
 </div>
 
@@ -1528,102 +1566,148 @@ setKStatus('✅ V27 FIX - Voz por SLOT + Subs sync audio real');
 </script>
 
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-// === CONFIG SUPABASE ===
-const SUPABASE_URL = "https://TU-PROYECTO.supabase.co";
-const SUPABASE_ANON = "TU-ANON-KEY";
+const ADMIN_USER = "admin";
+const ADMIN_PASS = "admin123"; // <-- CAMBIA ESTO DESPUES
 
-const isConfigured = !SUPABASE_URL.includes("TU-PROYECTO");
-const supa = isConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+const LS_USERS = "ic_allowed_users";
+const LS_SESSION = "ic_session";
+
+function getUsers(){
+  try{ return JSON.parse(localStorage.getItem(LS_USERS)||"[]"); }catch{ return [] }
+}
+function saveUsers(u){ localStorage.setItem(LS_USERS, JSON.stringify(u)); renderUsers(); }
+
+function initDefault(){
+  let users = getUsers();
+  if(users.length===0){
+    users = [
+      {user: ADMIN_USER, pass: ADMIN_PASS, active:true, isAdmin:true, created: new Date().toLocaleDateString()},
+      {user: "demo", pass: "demo123", active:true, isAdmin:false, created: new Date().toLocaleDateString()}
+    ];
+    saveUsers(users);
+  }
+}
+initDefault();
 
 const overlay = document.getElementById('authOverlay');
-const googleBtn = document.getElementById('googleBtn');
-const emailBtn = document.getElementById('emailBtn');
-const msgEl = document.getElementById('authMsg');
+const adminPanel = document.getElementById('adminPanel');
+const loginUser = document.getElementById('loginUser');
+const loginPass = document.getElementById('loginPass');
+const loginBtn = document.getElementById('loginBtn');
+const adminBtn = document.getElementById('adminBtn');
+const msg = document.getElementById('authMsg');
 
-function showMsg(t, ok=false){ if(msgEl){ msgEl.textContent=t; msgEl.style.color= ok ? '#4ade80' : '#ff6b6b'; } }
+function showMsg(t, ok){ msg.textContent=t; msg.style.color= ok ? '#4ade80' : '#ff6b6b'; }
 
-function setLogged(email, avatar){
-  localStorage.setItem('ic_user', email);
-  if(avatar) localStorage.setItem('ic_avatar', avatar);
+function setSession(userObj){
+  localStorage.setItem(LS_SESSION, JSON.stringify({user:userObj.user, isAdmin:!!userObj.isAdmin, ts:Date.now()}));
   overlay.style.display='none';
   const header = document.querySelector('header');
   if(header && !document.getElementById('userChip')){
     const chip = document.createElement('div');
     chip.id='userChip';
-    chip.style.cssText='display:flex;align-items:center;gap:10px;background:#141418;border:1px solid #222;padding:6px 14px;border-radius:24px;font-size:11px;cursor:default';
-    const av = avatar ? `<img src="${avatar}" style="width:24px;height:24px;border-radius:50%">` : `<div style="width:24px;height:24px;background:#FFEB00;border-radius:50%;display:grid;place-items:center;color:#000;font-weight:900">${email[0].toUpperCase()}</div>`;
-    chip.innerHTML = `${av}<span style="color:#ccc">${email}</span><span style="background:#222;padding:3px 7px;border-radius:10px;font-size:8px;color:#FFEB00;letter-spacing:.5px">BETA</span><button id="logoutBtn" style="background:transparent;border:0;color:#666;cursor:pointer;margin-left:6px;font-size:11px">Salir</button>`;
+    const isAdm = userObj.isAdmin ? '<span style="background:#FFEB00;color:#000;padding:2px 6px;border-radius:10px;font-size:8px;font-weight:900">ADMIN</span>' : '<span style="background:#222;padding:2px 6px;border-radius:10px;font-size:8px;color:#FFEB00">BETA</span>';
+    chip.style.cssText='display:flex;align-items:center;gap:10px;background:#141418;border:1px solid #222;padding:6px 14px;border-radius:24px;font-size:11px';
+    chip.innerHTML = `<div style="width:24px;height:24px;background:#FFEB00;border-radius:50%;display:grid;place-items:center;color:#000;font-weight:900">${userObj.user[0].toUpperCase()}</div><span style="color:#ccc">${userObj.user}</span>${isAdm}<button id="goAdmin" style="display:${userObj.isAdmin?'inline-block':'none'};background:#1e1e22;border:1px solid #333;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer;margin-left:4px">PANEL</button><button id="logoutBtn" style="background:transparent;border:0;color:#666;cursor:pointer;margin-left:6px">Salir</button>`;
     header.appendChild(chip);
-    document.getElementById('logoutBtn').onclick = async ()=>{
-      if(supa) await supa.auth.signOut();
-      localStorage.clear();
-      location.reload();
-    };
+    const goAdmin = document.getElementById('goAdmin');
+    if(goAdmin) goAdmin.onclick = ()=>{ adminPanel.style.display='block'; };
+    document.getElementById('logoutBtn').onclick = ()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
+  }
+  if(userObj.isAdmin){
+    // auto show admin button hint
+    showMsg('✅ Bienvenido ADMIN', true);
   }
 }
 
-// Auto-login check
-(async ()=>{
-  if(!isConfigured){
-    const saved = localStorage.getItem('ic_user');
-    if(saved){
-      setLogged(saved, localStorage.getItem('ic_avatar'));
-      showMsg('✅ Sesión restaurada', true);
-      return;
-    }
-    showMsg('⚠️ Modo BETA - Configura Supabase para Google real', false);
-    return;
+// Auto-login
+(() =>{
+  const sess = localStorage.getItem(LS_SESSION);
+  if(sess){
+    try{
+      const s = JSON.parse(sess);
+      const users = getUsers();
+      const u = users.find(x=>x.user===s.user && x.active);
+      if(u){ setSession(u); return; }
+    }catch{}
   }
-  // Supabase session (Google)
-  const {data} = await supa.auth.getSession();
-  const user = data?.session?.user;
-  if(user){
-    setLogged(user.email, user.user_metadata?.avatar_url);
-    return;
-  }
-  // Check OAuth redirect
-  supa.auth.onAuthStateChange((event, session)=>{
-    if(event==='SIGNED_IN' && session?.user){
-      setLogged(session.user.email, session.user.user_metadata?.avatar_url);
-    }
-  });
 })();
 
-googleBtn.onclick = async ()=>{
-  if(!isConfigured){
-    // Modo beta sin Supabase - simula login con Google
-    const email = prompt("MODO BETA (sin Supabase aún)\nEscribe tu correo de Google para simular login:");
-    if(email && email.includes('@')){
-      setLogged(email, null);
-      showMsg('✅ Entraste en modo BETA', true);
-    }
-    return;
-  }
-  try{
-    googleBtn.disabled=true;
-    googleBtn.innerHTML='Conectando con Google...';
-    const {error} = await supa.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + window.location.pathname
-      }
-    });
-    if(error) throw error;
-  }catch(e){
-    showMsg('Error: '+e.message);
-    googleBtn.disabled=false;
-    googleBtn.innerHTML='<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px;height:18px"> Continuar con Google';
-  }
+function tryLogin(){
+  const u = loginUser.value.trim();
+  const p = loginPass.value.trim();
+  if(!u||!p){ showMsg('Pon usuario y contraseña'); return; }
+  const users = getUsers();
+  const found = users.find(x=>x.user.toLowerCase()===u.toLowerCase() && x.pass===p);
+  if(!found){ showMsg('Usuario o contraseña incorrecta'); return; }
+  if(!found.active){ showMsg('Este usuario está DESACTIVADO por el admin'); return; }
+  setSession(found);
+  showMsg('✅ Entrando...', true);
+}
+
+loginBtn.onclick = tryLogin;
+loginUser.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+loginPass.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+
+adminBtn.onclick = ()=>{
+  loginUser.value = ADMIN_USER;
+  loginPass.value = ADMIN_PASS;
+  loginUser.focus();
+  showMsg('Usa admin / admin123 (por defecto)', true);
 };
 
-if(emailBtn){
-  emailBtn.onclick = ()=>{
-    const email = prompt("Correo para modo beta:");
-    if(email) { setLogged(email, null); }
-  };
+// Admin panel logic
+const usersList = document.getElementById('usersList');
+const newUser = document.getElementById('newUser');
+const newPass = document.getElementById('newPass');
+const addUserBtn = document.getElementById('addUserBtn');
+document.getElementById('closeAdmin').onclick = ()=>{ adminPanel.style.display='none'; };
+document.getElementById('logoutAdmin').onclick = ()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
+
+function renderUsers(){
+  const users = getUsers();
+  usersList.innerHTML = '';
+  users.forEach((u, i)=>{
+    const row = document.createElement('div');
+    row.className='userRow';
+    row.innerHTML = `
+      <div><b style="color:#fff">${u.user}</b> ${u.isAdmin?'<span style="font-size:9px;background:#FFEB00;color:#000;padding:2px 6px;border-radius:10px;margin-left:6px">ADMIN</span>':''}<br><span style="color:#555;font-size:11px">${u.pass}</span></div>
+      <div>${u.active?'<span class=tagActive>ACTIVO</span>':'<span class=tagOff>INACTIVO</span>'}</div>
+      <div style="color:#666">${u.created||'-'}</div>
+      <div style="display:flex;gap:6px">
+        <button data-act="toggle" data-i="${i}" style="background:${u.active?'#1e1e22':'#1a2a1a'};border:1px solid #2a2a2e;color:#fff;padding:6px 8px;border-radius:8px;font-size:10px;cursor:pointer">${u.active?'Desactivar':'Activar'}</button>
+        <button data-act="del" data-i="${i}" style="background:transparent;border:1px solid #3a1a1a;color:#ff6b6b;padding:6px 8px;border-radius:8px;font-size:10px;cursor:pointer">X</button>
+      </div>
+    `;
+    usersList.appendChild(row);
+  });
+  usersList.querySelectorAll('button').forEach(b=>{
+    b.onclick = ()=>{
+      let users = getUsers();
+      const idx = parseInt(b.dataset.i);
+      if(b.dataset.act==='del'){
+        if(users[idx].isAdmin && users.filter(x=>x.isAdmin).length===1){ alert('No puedes borrar el único admin'); return; }
+        if(confirm('¿Borrar usuario '+users[idx].user+'?')){ users.splice(idx,1); saveUsers(users); }
+      }else if(b.dataset.act==='toggle'){
+        users[idx].active = !users[idx].active; saveUsers(users);
+      }
+    };
+  });
 }
+
+addUserBtn.onclick = ()=>{
+  const u = newUser.value.trim();
+  const p = newPass.value.trim();
+  if(!u||!p){ alert('Pon usuario y contraseña'); return; }
+  let users = getUsers();
+  if(users.find(x=>x.user.toLowerCase()===u.toLowerCase())){ alert('Ese usuario ya existe'); return; }
+  users.push({user:u, pass:p, active:true, isAdmin:false, created:new Date().toLocaleDateString()});
+  saveUsers(users);
+  newUser.value=''; newPass.value='';
+};
+
+renderUsers();
 </script>
 
 </body></html>
