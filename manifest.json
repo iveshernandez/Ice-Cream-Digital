@@ -1,0 +1,17 @@
+{
+  "name": "Ice Cream Digital V13",
+  "short_name": "IceCream",
+  "description": "Editor 6x6 paralelo - Fondo Incrustado",
+  "display": "standalone",
+  "background_color": "#070709",
+  "theme_color": "#FFEB00",
+  "start_url": "/",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
