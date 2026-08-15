@@ -227,14 +227,8 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 .authLogo b{font-size:22px;font-family:'Anton',sans-serif;letter-spacing:.5px}
 .authBadge{display:inline-flex;background:rgba(255,235,0,.12);border:1px solid #FFEB00;color:#FFEB00;font-size:9px;font-weight:900;padding:4px 8px;border-radius:20px;letter-spacing:.8px;margin-bottom:14px}
 .authCard h1{font-size:28px;font-weight:800;margin:0 0 8px;letter-spacing:-.5px}
-.authCard p{color:#888;font-size:13px;line-height:1.5;margin:0 0 18px}
-.authInput{width:100%;background:#0a0a0c;border:1.5px solid #222;border-radius:12px;padding:14px 14px;font-size:14px;color:#fff;outline:none;transition:.2s}
-.authInput:focus{border-color:#FFEB00}
 .authBtn{width:100%;background:#FFEB00;color:#000;border:0;border-radius:12px;padding:14px;font-weight:900;font-size:13px;letter-spacing:.4px;cursor:pointer;margin-top:12px;transition:.2s}
 .authBtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,235,0,.25)}
-.authBtn:disabled{opacity:.6;pointer-events:none}
-.authFooter{margin-top:14px;text-align:center;color:#555;font-size:11px}
-#authMsg{font-size:12px;margin-top:10px;min-height:18px}
 </style>
 
 </head>
@@ -244,13 +238,14 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
   <div class="authCard">
     <div class="authLogo"><div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div><b>ICE CREAM DIGITAL</b></div>
     <div class="authBadge">BETA • USO LIBRE POR TIEMPO LIMITADO</div>
-    <h1>Bienvenido</h1>
-    <p>Inicia sesión con tu correo para usar el editor. Como CapCut, guardamos tu progreso por correo. Pronto versión Pro.</p>
-    <input id="authEmail" class="authInput" type="email" placeholder="tu@email.com" />
-    <input id="authPass" class="authInput" type="password" placeholder="Contraseña (mín 6 caracteres)" style="margin-top:10px" />
-    <button id="authBtn" class="authBtn">CONTINUAR →</button>
-    <div id="authMsg"></div>
-    <div class="authFooter">Al continuar aceptas que esto está en beta. En el futuro será de pago.<br><span style="color:#777">¿Ya tienes cuenta? Pon tu mismo correo y contraseña.</span></div>
+    <h1 style="font-size:30px;font-weight:800;margin:0 0 10px;letter-spacing:-.5px">Entra en 1 click</h1>
+    <p style="color:#888;font-size:13px;line-height:1.5;margin:0 0 22px">Usa tu cuenta de Google para guardar tus proyectos. Como CapCut, inicio automático la próxima vez. Pronto versión Pro.</p>
+    <button id="googleBtn" class="authBtn" style="background:#fff;color:#000;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #222">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px;height:18px"> Continuar con Google
+    </button>
+    <button id="emailBtn" style="width:100%;background:transparent;color:#666;border:1px dashed #2a2a2e;border-radius:12px;padding:12px;font-size:11px;font-weight:700;margin-top:10px;cursor:pointer">Usar correo en modo beta (sin Google)</button>
+    <div id="authMsg" style="font-size:12px;margin-top:14px;min-height:18px;text-align:center"></div>
+    <div style="margin-top:18px;text-align:center;color:#555;font-size:10px;line-height:1.4">Al continuar aceptas los términos beta.<br>En el futuro el uso será de pago.</div>
   </div>
 </div>
 
@@ -1535,78 +1530,100 @@ setKStatus('✅ V27 FIX - Voz por SLOT + Subs sync audio real');
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-// === CONFIG SUPABASE - REEMPLAZA ESTO DESPUES DE CREAR PROYECTO ===
+// === CONFIG SUPABASE ===
 const SUPABASE_URL = "https://TU-PROYECTO.supabase.co";
 const SUPABASE_ANON = "TU-ANON-KEY";
-// Si aun no has creado Supabase, el login funcionará en modo BETA local (sin backend)
 
-const supa = (SUPABASE_URL.includes("TU-PROYECTO")) ? null : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const isConfigured = !SUPABASE_URL.includes("TU-PROYECTO");
+const supa = isConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
 
 const overlay = document.getElementById('authOverlay');
-const emailEl = document.getElementById('authEmail');
-const passEl = document.getElementById('authPass');
-const btnEl = document.getElementById('authBtn');
+const googleBtn = document.getElementById('googleBtn');
+const emailBtn = document.getElementById('emailBtn');
 const msgEl = document.getElementById('authMsg');
 
-function showMsg(t, ok=false){ msgEl.textContent=t; msgEl.style.color= ok ? '#4ade80' : '#ff6b6b'; }
-function setLogged(email){
+function showMsg(t, ok=false){ if(msgEl){ msgEl.textContent=t; msgEl.style.color= ok ? '#4ade80' : '#ff6b6b'; } }
+
+function setLogged(email, avatar){
   localStorage.setItem('ic_user', email);
+  if(avatar) localStorage.setItem('ic_avatar', avatar);
   overlay.style.display='none';
   const header = document.querySelector('header');
   if(header && !document.getElementById('userChip')){
     const chip = document.createElement('div');
     chip.id='userChip';
-    chip.style.cssText='display:flex;align-items:center;gap:10px;background:#141418;border:1px solid #222;padding:6px 12px;border-radius:20px;font-size:11px';
-    chip.innerHTML = `<span style="width:24px;height:24px;background:#FFEB00;border-radius:50%;display:grid;place-items:center;color:#000;font-weight:900">${email[0].toUpperCase()}</span><span style="color:#ccc">${email}</span><span style="background:#222;padding:2px 6px;border-radius:10px;font-size:8px;color:#FFEB00">BETA</span><button id="logoutBtn" style="background:transparent;border:0;color:#666;cursor:pointer;margin-left:6px">Salir</button>`;
+    chip.style.cssText='display:flex;align-items:center;gap:10px;background:#141418;border:1px solid #222;padding:6px 14px;border-radius:24px;font-size:11px;cursor:default';
+    const av = avatar ? `<img src="${avatar}" style="width:24px;height:24px;border-radius:50%">` : `<div style="width:24px;height:24px;background:#FFEB00;border-radius:50%;display:grid;place-items:center;color:#000;font-weight:900">${email[0].toUpperCase()}</div>`;
+    chip.innerHTML = `${av}<span style="color:#ccc">${email}</span><span style="background:#222;padding:3px 7px;border-radius:10px;font-size:8px;color:#FFEB00;letter-spacing:.5px">BETA</span><button id="logoutBtn" style="background:transparent;border:0;color:#666;cursor:pointer;margin-left:6px;font-size:11px">Salir</button>`;
     header.appendChild(chip);
     document.getElementById('logoutBtn').onclick = async ()=>{
       if(supa) await supa.auth.signOut();
-      localStorage.removeItem('ic_user');
+      localStorage.clear();
       location.reload();
     };
   }
 }
 
-// Check existing session
+// Auto-login check
 (async ()=>{
-  const saved = localStorage.getItem('ic_user');
-  if(supa){
-    const {data} = await supa.auth.getSession();
-    if(data?.session?.user?.email){ setLogged(data.session.user.email); return; }
-  }
-  if(saved && SUPABASE_URL.includes("TU-PROYECTO")){
-    // Modo beta sin backend
-    setLogged(saved);
-  }
-})();
-
-btnEl.onclick = async ()=>{
-  const email = emailEl.value.trim();
-  const pass = passEl.value.trim();
-  if(!email || !pass || pass.length < 6){ showMsg('Pon email válido y contraseña de 6+ caracteres'); return; }
-  btnEl.disabled=true; btnEl.textContent='ENTRANDO...';
-
-  if(!supa){
-    // MODO BETA LOCAL - sin Supabase configurado
-    setTimeout(()=>{ showMsg('✅ Entrando en modo BETA libre', true); setLogged(email); }, 600);
+  if(!isConfigured){
+    const saved = localStorage.getItem('ic_user');
+    if(saved){
+      setLogged(saved, localStorage.getItem('ic_avatar'));
+      showMsg('✅ Sesión restaurada', true);
+      return;
+    }
+    showMsg('⚠️ Modo BETA - Configura Supabase para Google real', false);
     return;
   }
-
-  try{
-    // Intenta login, si no existe crea cuenta
-    let {data, error} = await supa.auth.signInWithPassword({email, password: pass});
-    if(error){
-      const {data: signUpData, error: signUpError} = await supa.auth.signUp({email, password: pass});
-      if(signUpError) throw signUpError;
-      data = signUpData;
+  // Supabase session (Google)
+  const {data} = await supa.auth.getSession();
+  const user = data?.session?.user;
+  if(user){
+    setLogged(user.email, user.user_metadata?.avatar_url);
+    return;
+  }
+  // Check OAuth redirect
+  supa.auth.onAuthStateChange((event, session)=>{
+    if(event==='SIGNED_IN' && session?.user){
+      setLogged(session.user.email, session.user.user_metadata?.avatar_url);
     }
-    showMsg('✅ Sesión iniciada: '+data.user.email, true);
-    setLogged(data.user.email);
+  });
+})();
+
+googleBtn.onclick = async ()=>{
+  if(!isConfigured){
+    // Modo beta sin Supabase - simula login con Google
+    const email = prompt("MODO BETA (sin Supabase aún)\nEscribe tu correo de Google para simular login:");
+    if(email && email.includes('@')){
+      setLogged(email, null);
+      showMsg('✅ Entraste en modo BETA', true);
+    }
+    return;
+  }
+  try{
+    googleBtn.disabled=true;
+    googleBtn.innerHTML='Conectando con Google...';
+    const {error} = await supa.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname
+      }
+    });
+    if(error) throw error;
   }catch(e){
-    showMsg('Error: '+ (e.message || 'no se pudo iniciar'), false);
-    btnEl.disabled=false; btnEl.textContent='CONTINUAR →';
+    showMsg('Error: '+e.message);
+    googleBtn.disabled=false;
+    googleBtn.innerHTML='<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px;height:18px"> Continuar con Google';
   }
 };
+
+if(emailBtn){
+  emailBtn.onclick = ()=>{
+    const email = prompt("Correo para modo beta:");
+    if(email) { setLogged(email, null); }
+  };
+}
 </script>
 
 </body></html>
