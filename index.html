@@ -229,7 +229,6 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 .authInput{width:100%;background:#0a0a0c;border:1.5px solid #222;border-radius:12px;padding:13px 14px;font-size:14px;color:#fff;outline:none}
 .authInput:focus{border-color:#FFEB00}
 .authBtn{width:100%;background:#FFEB00;color:#000;border:0;border-radius:12px;padding:13px;font-weight:900;font-size:13px;cursor:pointer;margin-top:12px;transition:.2s}
-.authBtn:hover{transform:translateY(-1px)}
 #authMsg{font-size:11px;margin-top:12px;min-height:16px;text-align:center;color:#ff6b6b}
 #adminPanel{position:fixed;inset:0;z-index:999998;background:#070709;display:none;overflow:auto;padding:24px}
 .adminHeader{display:flex;justify-content:space-between;align-items:center;max-width:1000px;margin:0 auto 20px;flex-wrap:wrap;gap:12px}
@@ -238,7 +237,6 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 .tagActive{background:#0f2a18;color:#4ade80;border:1px solid #1a4a2a;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:800}
 .tagOff{background:#2a1515;color:#ff6b6b;border:1px solid #4a1a1a;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:800}
 .smallBtn{background:#1e1e22;border:1px solid #2a2a2e;color:#fff;padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer}
-.smallBtn:hover{background:#2a2a2e}
 .dangerBtn{background:transparent;border:1px solid #3a1a1a;color:#ff6b6b;padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer}
 </style>
 
@@ -248,19 +246,20 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 <div id="authOverlay">
   <div class="authCard">
     <div class="authLogo"><div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div><b>ICE CREAM DIGITAL</b></div>
-    <div class="authBadge">BETA • ACCESO PRIVADO</div>
+    <div class="authBadge">MULTIUSUARIO • TIEMPO REAL</div>
     <h1 style="font-size:26px;font-weight:800;margin:0 0 6px">Iniciar sesión</h1>
-    <p style="color:#888;font-size:12.5px;line-height:1.5;margin:0 0 18px">Ingresa con el usuario y contraseña proporcionados por el administrador.</p>
+    <p style="color:#888;font-size:12.5px;line-height:1.5;margin:0 0 18px">Acceso privado. Varias personas pueden usar la app a la vez.</p>
     <input id="loginUser" class="authInput" placeholder="Usuario" autocomplete="username" />
     <input id="loginPass" class="authInput" type="password" placeholder="Contraseña" style="margin-top:10px" autocomplete="current-password" />
     <button id="loginBtn" class="authBtn">ENTRAR →</button>
     <div id="authMsg"></div>
+    <div id="supabaseStatus" style="margin-top:10px;font-size:10px;color:#555;text-align:center"></div>
   </div>
 </div>
 
 <div id="adminPanel">
   <div class="adminHeader">
-    <div><b style="font-size:22px">Panel de Administrador</b><br><span style="color:#666;font-size:12px">Usuario: Icecreamdigital | Control total de accesos</span></div>
+    <div><b style="font-size:22px">Panel de Administrador</b><br><span style="color:#666;font-size:12px">Multiusuario real - Usuarios en la nube (Supabase)</span></div>
     <div style="display:flex;gap:8px">
       <button id="closeAdmin" style="background:#1e1e22;border:1px solid #2a2a2e;color:#fff;padding:10px 16px;border-radius:10px;cursor:pointer">Volver al editor</button>
       <button id="logoutAdmin" style="background:#FFEB00;border:0;color:#000;padding:10px 16px;border-radius:10px;font-weight:900;cursor:pointer">Salir</button>
@@ -272,13 +271,14 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
       <input id="newPass" class="authInput" type="password" placeholder="Nueva contraseña" />
       <button id="addUserBtn" class="authBtn" style="margin:0;padding:13px 18px">+ AGREGAR</button>
     </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="color:#888;font-size:11px">Usuarios conectados a la misma base de datos - Uso simultáneo ilimitado</div>
+      <button id="refreshBtn" class="smallBtn">↻ Actualizar lista</button>
+    </div>
     <div style="display:grid;grid-template-columns:1.2fr 100px 110px 200px;gap:10px;padding:8px 10px;color:#555;font-size:10px;font-weight:800;letter-spacing:.8px">
       <div>USUARIO</div><div>ESTADO</div><div>CREADO</div><div>ACCIONES</div>
     </div>
     <div id="usersList"></div>
-    <div style="margin-top:16px;background:#0a0a0c;border:1px dashed #222;border-radius:12px;padding:12px;color:#666;font-size:11px;line-height:1.5">
-      <b style="color:#888">Instrucciones:</b> Aquí creas usuarios y contraseñas. Si alguien deja de pagar, desactívalo. Puedes editar la contraseña en cualquier momento con el botón "Cambiar clave".
-    </div>
   </div>
 </div>
 
@@ -1561,48 +1561,20 @@ setKStatus('✅ V27 FIX - Voz por SLOT + Subs sync audio real');
 </script>
 
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
+// === CONFIG SUPABASE - REEMPLAZA CON TUS DATOS ===
+const SUPABASE_URL = "https://gouzcooqqwflcggxnaqe.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc";
+const isSupabaseConfigured = !SUPABASE_URL.includes("TU-PROYECTO");
+
+const supa = isSupabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
 const ADMIN_USER = "Icecreamdigital";
 const ADMIN_PASS = "Ives2020.";
 
 const LS_USERS = "ic_allowed_users_v18";
-const LS_SESSION = "ic_session_v18";
-
-function getUsers(){
-  try{
-    const raw = localStorage.getItem(LS_USERS);
-    if(!raw) return [];
-    return JSON.parse(raw);
-  }catch{ return [] }
-}
-function saveUsers(u){ localStorage.setItem(LS_USERS, JSON.stringify(u)); renderUsers(); }
-
-function initDefault(){
-  let users = getUsers();
-  if(users.length===0){
-    users = [
-      {user: ADMIN_USER, pass: ADMIN_PASS, active:true, isAdmin:true, created: new Date().toLocaleDateString()},
-      {user: "demo", pass: "demo123", active:true, isAdmin:false, created: new Date().toLocaleDateString()}
-    ];
-    saveUsers(users);
-  } else {
-    // Ensure admin exists with correct credentials (update if old admin present)
-    let admin = users.find(x=>x.isAdmin);
-    if(!admin){
-      users.unshift({user: ADMIN_USER, pass: ADMIN_PASS, active:true, isAdmin:true, created: new Date().toLocaleDateString()});
-    } else {
-      // force update to requested credentials if previous admin was different
-      admin.user = ADMIN_USER;
-      admin.pass = ADMIN_PASS;
-      admin.active = true;
-      admin.isAdmin = true;
-    }
-    // remove old admin entries if any duplicate
-    users = users.filter((v,i,a)=>a.findIndex(t=>t.user.toLowerCase()===v.user.toLowerCase())===i);
-    localStorage.setItem(LS_USERS, JSON.stringify(users));
-  }
-}
-initDefault();
+const LS_SESSION = "ic_session_v19";
 
 const overlay = document.getElementById('authOverlay');
 const adminPanel = document.getElementById('adminPanel');
@@ -1610,49 +1582,140 @@ const loginUser = document.getElementById('loginUser');
 const loginPass = document.getElementById('loginPass');
 const loginBtn = document.getElementById('loginBtn');
 const msg = document.getElementById('authMsg');
+const statusEl = document.getElementById('supabaseStatus');
 
 function showMsg(t){ msg.textContent=t; }
+function setStatus(){
+  if(!isSupabaseConfigured){
+    statusEl.innerHTML = '⚠️ Modo local (sin nube) - Crea Supabase para multiusuario real<br><span style="font-size:9px">Varios usuarios NO se comparten aún</span>';
+    statusEl.style.color='#f59e0b';
+  } else {
+    statusEl.innerHTML = '✅ Conectado a la nube - Multiusuario real activo';
+    statusEl.style.color='#4ade80';
+  }
+}
+setStatus();
+
+// Local fallback functions
+function getLocalUsers(){
+  try{ return JSON.parse(localStorage.getItem(LS_USERS)||"[]"); }catch{ return [] }
+}
+function saveLocalUsers(u){ localStorage.setItem(LS_USERS, JSON.stringify(u)); }
+
+// Supabase functions
+async function supaGetUsers(){
+  if(!supa) return getLocalUsers();
+  const {data, error} = await supa.from('app_users').select('*').order('created_at', {ascending:false});
+  if(error){ console.error(error); showMsg('Error cargando usuarios'); return []; }
+  return data.map(d=>({id:d.id, user:d.username, pass:d.password, active:d.active, isAdmin:d.is_admin, created:new Date(d.created_at).toLocaleDateString()}));
+}
+
+async function supaAddUser(username, password){
+  if(!supa){
+    let users = getLocalUsers();
+    if(users.find(x=>x.user.toLowerCase()===username.toLowerCase())){ alert('Ya existe'); return false; }
+    users.push({user:username, pass:password, active:true, isAdmin:false, created:new Date().toLocaleDateString()});
+    saveLocalUsers(users); return true;
+  }
+  const {error} = await supa.from('app_users').insert({username, password, active:true, is_admin:false});
+  if(error){ alert('Error: '+error.message); return false; }
+  return true;
+}
+
+async function supaToggleUser(id, active){
+  if(!supa){
+    let users = getLocalUsers();
+    const u = users.find(x=>x.user===id || x.id===id);
+    if(u){ u.active = !u.active; saveLocalUsers(users); }
+    return;
+  }
+  const {error} = await supa.from('app_users').update({active}).eq('id', id);
+  if(error) alert(error.message);
+}
+
+async function supaDeleteUser(id, username){
+  if(!supa){
+    let users = getLocalUsers();
+    users = users.filter(x=>x.user!==username);
+    saveLocalUsers(users); return;
+  }
+  const {error} = await supa.from('app_users').delete().eq('id', id);
+  if(error) alert(error.message);
+}
+
+async function supaUpdatePass(id, newPass){
+  if(!supa){
+    let users = getLocalUsers();
+    const u = users.find(x=>x.id===id || x.user===id);
+    if(u){ u.pass=newPass; saveLocalUsers(users); }
+    return;
+  }
+  const {error} = await supa.from('app_users').update({password:newPass}).eq('id', id);
+  if(error) alert(error.message);
+}
+
+async function tryLoginCloud(username, password){
+  if(!supa){
+    // local mode
+    const users = getLocalUsers();
+    // ensure admin exists locally
+    if(users.length===0){
+      users.push({user:ADMIN_USER, pass:ADMIN_PASS, active:true, isAdmin:true, created:new Date().toLocaleDateString()});
+      saveLocalUsers(users);
+    }
+    const found = users.find(x=>x.user.toLowerCase()===username.toLowerCase() && x.pass===password && x.active);
+    return found || null;
+  }
+  const {data, error} = await supa.from('app_users').select('*').eq('username', username).eq('password', password).eq('active', true).maybeSingle();
+  if(error){ console.error(error); return null; }
+  if(!data) return null;
+  return {id:data.id, user:data.username, pass:data.password, active:data.active, isAdmin:data.is_admin};
+}
 
 function setSession(userObj){
-  localStorage.setItem(LS_SESSION, JSON.stringify({user:userObj.user, isAdmin:!!userObj.isAdmin, ts:Date.now()}));
+  localStorage.setItem(LS_SESSION, JSON.stringify({user:userObj.user, isAdmin:!!userObj.isAdmin, id:userObj.id||userObj.user, ts:Date.now()}));
   overlay.style.display='none';
   const header = document.querySelector('header');
   if(header && !document.getElementById('userChip')){
     const chip = document.createElement('div');
     chip.id='userChip';
-    const isAdm = userObj.isAdmin ? '<span style="background:#FFEB00;color:#000;padding:2px 6px;border-radius:10px;font-size:8px;font-weight:900">ADMIN</span>' : '<span style="background:#222;padding:2px 6px;border-radius:10px;font-size:8px;color:#FFEB00">BETA</span>';
+    const isAdm = userObj.isAdmin ? '<span style="background:#FFEB00;color:#000;padding:2px 6px;border-radius:10px;font-size:8px;font-weight:900">ADMIN</span>' : '<span style="background:#222;padding:2px 6px;border-radius:10px;font-size:8px;color:#FFEB00">MULTI</span>';
     chip.style.cssText='display:flex;align-items:center;gap:10px;background:#141418;border:1px solid #222;padding:6px 14px;border-radius:24px;font-size:11px';
     chip.innerHTML = `<div style="width:24px;height:24px;background:#FFEB00;border-radius:50%;display:grid;place-items:center;color:#000;font-weight:900">${userObj.user[0].toUpperCase()}</div><span style="color:#ccc">${userObj.user}</span>${isAdm}<button id="goAdmin" style="display:${userObj.isAdmin?'inline-block':'none'};background:#1e1e22;border:1px solid #333;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer;margin-left:4px">PANEL</button><button id="logoutBtn" style="background:transparent;border:0;color:#666;cursor:pointer;margin-left:6px">Salir</button>`;
     header.appendChild(chip);
-    const goAdmin = document.getElementById('goAdmin');
-    if(goAdmin) goAdmin.onclick = ()=>{ adminPanel.style.display='block'; renderUsers(); };
+    document.getElementById('goAdmin')?.addEventListener('click', ()=>{ adminPanel.style.display='block'; renderUsers(); });
     document.getElementById('logoutBtn').onclick = ()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
   }
 }
 
 // Auto-login
-(()=>{ 
+(async ()=>{
   const sess = localStorage.getItem(LS_SESSION);
   if(sess){
     try{
       const s = JSON.parse(sess);
-      const users = getUsers();
-      const u = users.find(x=>x.user.toLowerCase()===s.user.toLowerCase() && x.active);
-      if(u){ setSession(u); return; }
+      // validate still active
+      let user = null;
+      if(isSupabaseConfigured){
+        const {data} = await supa.from('app_users').select('*').eq('username', s.user).eq('active', true).maybeSingle();
+        if(data) user = {id:data.id, user:data.username, isAdmin:data.is_admin};
+      } else {
+        const users = getLocalUsers();
+        user = users.find(x=>x.user.toLowerCase()===s.user.toLowerCase() && x.active);
+      }
+      if(user){ setSession(user); return; }
     }catch{}
   }
 })();
 
-function tryLogin(){
+async function tryLogin(){
   const u = loginUser.value.trim();
   const p = loginPass.value.trim();
   if(!u||!p){ showMsg('Usuario o contraseña invalido'); return; }
-  const users = getUsers();
-  const found = users.find(x=>x.user.toLowerCase()===u.toLowerCase() && x.pass===p && x.active);
-  if(!found){
-    showMsg('Usuario o contraseña invalido');
-    return;
-  }
+  loginBtn.disabled=true; loginBtn.textContent='Verificando...';
+  const found = await tryLoginCloud(u, p);
+  loginBtn.disabled=false; loginBtn.textContent='ENTRAR →';
+  if(!found){ showMsg('Usuario o contraseña invalido'); return; }
   setSession(found);
 }
 
@@ -1660,18 +1723,13 @@ loginBtn.onclick = tryLogin;
 loginUser.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
 loginPass.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
 
-// Admin panel
+// Admin panel rendering
 const usersList = document.getElementById('usersList');
-const newUser = document.getElementById('newUser');
-const newPass = document.getElementById('newPass');
-const addUserBtn = document.getElementById('addUserBtn');
-document.getElementById('closeAdmin').onclick = ()=>{ adminPanel.style.display='none'; };
-document.getElementById('logoutAdmin').onclick = ()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
-
-function renderUsers(){
-  const users = getUsers();
-  usersList.innerHTML = '';
-  users.forEach((u,i)=>{
+async function renderUsers(){
+  usersList.innerHTML='<div style="padding:12px;color:#666">Cargando...</div>';
+  const users = await supaGetUsers();
+  usersList.innerHTML='';
+  users.forEach((u)=>{
     const row = document.createElement('div');
     row.className='userRow';
     row.innerHTML = `
@@ -1679,50 +1737,51 @@ function renderUsers(){
       <div>${u.active?'<span class=tagActive>ACTIVO</span>':'<span class=tagOff>INACTIVO</span>'}</div>
       <div style="color:#666">${u.created||'-'}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="smallBtn" data-act="edit" data-i="${i}">Cambiar clave</button>
-        <button class="smallBtn" data-act="toggle" data-i="${i}">${u.active?'Desactivar':'Activar'}</button>
-        <button class="dangerBtn" data-act="del" data-i="${i}">X</button>
+        <button class="smallBtn" data-act="edit" data-id="${u.id||u.user}" data-user="${u.user}">Cambiar clave</button>
+        <button class="smallBtn" data-act="toggle" data-id="${u.id||u.user}" data-active="${!u.active}">${u.active?'Desactivar':'Activar'}</button>
+        <button class="dangerBtn" data-act="del" data-id="${u.id||u.user}" data-user="${u.user}">X</button>
       </div>
     `;
     usersList.appendChild(row);
   });
   usersList.querySelectorAll('button').forEach(b=>{
-    b.onclick = ()=>{
-      let users = getUsers();
-      const idx = parseInt(b.dataset.i);
+    b.onclick = async ()=>{
+      const id = b.dataset.id;
+      const user = b.dataset.user;
       if(b.dataset.act==='del'){
-        if(users[idx].isAdmin && users.filter(x=>x.isAdmin).length===1){ alert('No puedes borrar el único admin'); return; }
-        if(confirm('¿Borrar usuario '+users[idx].user+'?')){
-          users.splice(idx,1); saveUsers(users);
-        }
+        if(user.toLowerCase()===ADMIN_USER.toLowerCase()){ alert('No puedes borrar al admin principal'); return; }
+        if(!confirm('¿Borrar '+user+'?')) return;
+        await supaDeleteUser(id, user);
+        renderUsers();
       }else if(b.dataset.act==='toggle'){
-        users[idx].active = !users[idx].active; saveUsers(users);
+        const active = b.dataset.active==='true';
+        await supaToggleUser(id, active);
+        renderUsers();
       }else if(b.dataset.act==='edit'){
-        const nueva = prompt('Nueva contraseña para '+users[idx].user+':', '');
+        const nueva = prompt('Nueva contraseña para '+user+':');
         if(nueva && nueva.trim().length>=3){
-          users[idx].pass = nueva.trim();
-          saveUsers(users);
+          await supaUpdatePass(id, nueva.trim());
           alert('Contraseña actualizada');
-        } else if(nueva!==null){
-          alert('La contraseña debe tener al menos 3 caracteres');
+          renderUsers();
         }
       }
     };
   });
 }
 
-addUserBtn.onclick = ()=>{
-  const u = newUser.value.trim();
-  const p = newPass.value.trim();
+document.getElementById('closeAdmin').onclick = ()=>{ adminPanel.style.display='none'; };
+document.getElementById('logoutAdmin').onclick = ()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
+document.getElementById('refreshBtn').onclick = renderUsers;
+document.getElementById('addUserBtn').onclick = async ()=>{
+  const u = document.getElementById('newUser').value.trim();
+  const p = document.getElementById('newPass').value.trim();
   if(!u||!p){ alert('Pon usuario y contraseña'); return; }
-  let users = getUsers();
-  if(users.find(x=>x.user.toLowerCase()===u.toLowerCase())){ alert('Ese usuario ya existe'); return; }
-  users.push({user:u, pass:p, active:true, isAdmin:false, created:new Date().toLocaleDateString()});
-  saveUsers(users);
-  newUser.value=''; newPass.value='';
+  const ok = await supaAddUser(u,p);
+  if(ok){
+    document.getElementById('newUser').value=''; document.getElementById('newPass').value='';
+    renderUsers();
+  }
 };
-
-renderUsers();
 </script>
 
 </body></html>
