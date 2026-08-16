@@ -1786,7 +1786,7 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 
 
 <style>
-#beta-badge {
+#beta-badge { display: none; 
   position: fixed; top: 14px; right: 14px; z-index: 1000000;
   background: #FFD60A; color: #000; font-size: 10px; font-weight: 900;
   padding: 5px 10px; border-radius: 20px; letter-spacing: 1px;
@@ -1849,7 +1849,7 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 @media(max-width: 800px){ #precios-grid { grid-template-columns: 1fr; } .precio-card.popular { transform: scale(1); } }
 </style>
 
-<div id="beta-badge">MODO BETA</div>
+<div id="beta-badge" style="display:none">MODO BETA</div>
 
 <script>
 (function(){
@@ -1993,5 +1993,50 @@ document.getElementById('addUserBtn').onclick = async ()=>{
   };
 })();
 </script>
+
+
+<script>
+(function(){
+  function updateHeaderVisibility(){
+    const loginInput = document.querySelector('input[type="password"]');
+    const app = document.getElementById('app') || document.querySelector('[class*="editor"]') || document.querySelector('main');
+    const isAppVisible = app && window.getComputedStyle(app).display !== 'none' && app.offsetHeight > 200;
+    const isLoginVisible = loginInput && window.getComputedStyle(loginInput).display !== 'none' && loginInput.offsetParent !== null;
+    
+    const elementsToToggle = [
+      document.getElementById('pro-brand-login'),
+      document.getElementById('login-tabs'),
+      document.getElementById('precios-panel'),
+      document.getElementById('beta-badge')
+    ];
+    
+    // If app is visible, hide login header elements
+    if(isAppVisible){
+      elementsToToggle.forEach(el=>{ if(el) el.style.display='none'; });
+    } else if(isLoginVisible){
+      // Show login elements if login visible
+      const brand = document.getElementById('pro-brand-login');
+      const tabs = document.getElementById('login-tabs');
+      const badge = document.getElementById('beta-badge');
+      if(brand) brand.style.display='flex';
+      if(tabs) tabs.style.display='flex';
+      if(badge) badge.style.display='block';
+    }
+  }
+  setInterval(updateHeaderVisibility, 500);
+  setTimeout(updateHeaderVisibility, 1000);
+})();
+</script>
+<style>
+/* Make login header only for login screen - not overlap editor */
+#pro-brand-login, #login-tabs, #precios-panel, #beta-badge { display: none; 
+  /* These are only for login */
+}
+#app { position: relative; z-index: 10; }
+/* Ensure login screen has proper background covering everything */
+body:has(input[type="password"]:not([style*="display: none"])) #pro-brand-login {
+  display: flex !important;
+}
+</style>
 
 </body></html>
