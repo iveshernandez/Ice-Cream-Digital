@@ -1972,4 +1972,408 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 })();
 </script>
 
+
+<style>
+/* PRO LOGIN V24 */
+#pro-login-wrapper {
+  position: fixed;
+  inset: 0;
+  background: #08080a;
+  z-index: 999999;
+  display: flex;
+  overflow-y: auto;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+#pro-login-left {
+  flex: 1.2;
+  background: radial-gradient(1200px 600px at 20% 20%, rgba(255,214,10,0.15), transparent), #0a0a0a;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 1px solid #1a1a1e;
+}
+#pro-login-right {
+  flex: 0.8;
+  background: #0f0f10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 30px;
+}
+#pro-brand {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 32px;
+}
+#pro-brand-icon {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, #FFD60A 0%, #FF8A00 100%);
+  border-radius: 14px; display:flex; align-items:center; justify-content:center;
+  font-size: 30px; box-shadow: 0 8px 24px rgba(255,214,10,0.3);
+}
+#pro-brand-title { font-weight: 900; font-size: 20px; color: #fff; letter-spacing: 0.5px; line-height:1; }
+#pro-brand-sub { font-size: 11px; letter-spacing: 3px; color: #FFD60A; font-weight: 800; margin-top: 4px; }
+#pro-headline { font-size: 36px; font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 12px; }
+#pro-headline span { color: #FFD60A; }
+#pro-desc { color: #888; font-size: 14px; line-height: 1.5; margin-bottom: 32px; max-width: 480px; }
+#pro-plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 10px; }
+.pro-plan-card {
+  background: #141415; border: 1px solid #222; border-radius: 16px; padding: 18px;
+  position: relative; transition: all 0.2s;
+}
+.pro-plan-card.popular { border-color: #FFD60A; background: #1a180f; transform: scale(1.03); }
+.pro-plan-card.popular::before {
+  content: 'MÁS POPULAR'; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: #FFD60A; color: #000; font-size: 9px; font-weight: 900; padding: 3px 10px; border-radius: 20px; letter-spacing: 1px;
+}
+.pro-plan-price { font-size: 28px; font-weight: 900; color: #fff; }
+.pro-plan-price small { font-size: 14px; font-weight: 600; color: #888; }
+.pro-plan-videos { font-size: 13px; font-weight: 800; color: #FFD60A; margin: 6px 0 10px 0; }
+.pro-plan-list { list-style: none; padding: 0; margin: 0; }
+.pro-plan-list li { font-size: 11px; color: #aaa; padding: 4px 0; display:flex; gap:6px; }
+.pro-plan-list li::before { content: '✓'; color: #4ade80; font-weight: 800; }
+.pro-plan-btn {
+  width: 100%; margin-top: 14px; background: #1f1f23; border: 1px solid #2a2a2e; color: #fff;
+  padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.pro-plan-card.popular .pro-plan-btn { background: #FFD60A; color: #000; border-color: #FFD60A; }
+
+#pro-login-box {
+  width: 100%; max-width: 340px;
+  background: #141415; border: 1px solid #222; border-radius: 20px; padding: 28px;
+}
+#pro-login-box h2 { color: #fff; font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+#pro-login-box p { color: #666; font-size: 12px; margin-bottom: 18px; }
+.pro-input {
+  width: 100%; background: #0a0a0a; border: 1px solid #222; border-radius: 10px;
+  padding: 12px 14px; color: #fff; font-size: 13px; margin-bottom: 10px; outline: none;
+}
+.pro-input:focus { border-color: #FFD60A; }
+#pro-login-btn {
+  width: 100%; background: #FFD60A; color: #000; border: none; border-radius: 10px;
+  padding: 12px; font-weight: 900; font-size: 13px; cursor: pointer; margin-top: 8px;
+  letter-spacing: 0.5px;
+}
+#pro-login-footer { text-align: center; margin-top: 16px; font-size: 11px; color: #555; }
+
+@media(max-width: 900px){
+  #pro-login-wrapper { flex-direction: column; }
+  #pro-login-left { padding: 24px 20px; }
+  #pro-plans { grid-template-columns: 1fr; }
+  #pro-headline { font-size: 28px; }
+  #pro-login-right { padding: 20px; }
+}
+</style>
+
+<div id="pro-login-wrapper">
+  <div id="pro-login-left">
+    <div id="pro-brand">
+      <div id="pro-brand-icon">🍦</div>
+      <div>
+        <div id="pro-brand-title">ICE CREAM DIGITAL</div>
+        <div id="pro-brand-sub">PRO EDITOR</div>
+      </div>
+    </div>
+    <div id="pro-headline">Crea videos que <span>venden</span> en segundos</div>
+    <div id="pro-desc">Editor profesional usado por más de 500 creadores. Exportación fluida 60fps, sin marcas de agua, sin congelamientos.</div>
+    
+    <!-- OLD PLANS REPLACED -->
+      <div class="pro-plan-card">
+        <div class="pro-plan-price">$30<small>/mes</small></div>
+        <div class="pro-plan-videos">100 videos / mes</div>
+        <ul class="pro-plan-list">
+          <li>Descargas finales</li>
+          <li>60fps fluido</li>
+          <li>Sin marca de agua</li>
+          <li>Soporte básico</li>
+        </ul>
+        <button class="pro-plan-btn" onclick="document.getElementById('pro-user').focus()">ELEGIR STARTER</button>
+      </div>
+      <div class="pro-plan-card popular">
+        <div class="pro-plan-price">$50<small>/mes</small></div>
+        <div class="pro-plan-videos">175 videos / mes</div>
+        <ul class="pro-plan-list">
+          <li>Descargas finales</li>
+          <li>60fps fluido</li>
+          <li>Sin marca de agua</li>
+          <li>Soporte prioritario</li>
+          <li>Plantillas PRO</li>
+        </ul>
+        <button class="pro-plan-btn" onclick="document.getElementById('pro-user').focus()">ELEGIR PRO</button>
+      </div>
+      <div class="pro-plan-card">
+        <div class="pro-plan-price">$60<small>/mes</small></div>
+        <div class="pro-plan-videos">250 videos / mes</div>
+        <ul class="pro-plan-list">
+          <li>Descargas finales</li>
+          <li>60fps ilimitado</li>
+          <li>Sin marca de agua</li>
+          <li>Soporte VIP 24/7</li>
+          <li>Todo PRO + API</li>
+        </ul>
+        <button class="pro-plan-btn" onclick="document.getElementById('pro-user').focus()">ELEGIR AGENCY</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="pro-login-right">
+    <div id="pro-login-box">
+      <h2>Iniciar sesión</h2>
+      <p>Ingresa con el usuario que te asignamos</p>
+      <input id="pro-user" class="pro-input" placeholder="Usuario" />
+      <input id="pro-pass" class="pro-input" type="password" placeholder="Contraseña" />
+      <button id="pro-login-btn">ENTRAR AL EDITOR →</button>
+      <div id="pro-login-footer">✅ Conectado a la nube • Acceso seguro multiusuario</div>
+      <div id="pro-login-msg" style="margin-top:10px; font-size:11px; color:#ff6b6b; display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Hook pro login to original login logic
+  function hookProLogin(){
+    const userEl = document.getElementById('pro-user');
+    const passEl = document.getElementById('pro-pass');
+    const btn = document.getElementById('pro-login-btn');
+    const msg = document.getElementById('pro-login-msg');
+    if(!userEl || !passEl || !btn) return;
+    
+    // Try to find original inputs
+    const tryLogin = async () => {
+      const u = userEl.value.trim();
+      const p = passEl.value.trim();
+      if(!u || !p){ msg.style.display='block'; msg.textContent='Ingresa usuario y contraseña'; return; }
+      
+      btn.textContent='CONECTANDO...';
+      btn.disabled=true;
+      
+      // Fill original form if exists
+      const origUsers = document.querySelectorAll('input');
+      for(const inp of origUsers){
+        if(inp.type==='password' || inp.placeholder?.toLowerCase().includes('contraseña') || inp.placeholder?.toLowerCase().includes('password')){
+          // Heuristic: if input is not our pro inputs
+          if(inp.id!=='pro-pass' && inp.id!=='pro-user'){
+            // Try to set and trigger login
+            const userInputs = Array.from(document.querySelectorAll('input')).filter(i=> i.type!=='password' && i.id!=='pro-user');
+            if(userInputs.length>0){
+              userInputs[0].value = u;
+              userInputs[0].dispatchEvent(new Event('input', {bubbles:true}));
+            }
+            inp.value = p;
+            inp.dispatchEvent(new Event('input', {bubbles:true}));
+            // Click original login button
+            const origBtns = Array.from(document.querySelectorAll('button')).filter(b=> /entrar|iniciar|login/i.test(b.textContent) && b.id!=='pro-login-btn');
+            if(origBtns.length>0){
+              origBtns[0].click();
+              setTimeout(()=>{
+                // Check if still visible pro wrapper - if app loaded, hide wrapper
+                const app = document.querySelector('#app, [class*="editor"], main');
+                if(app && window.getComputedStyle(app).display !== 'none'){
+                  document.getElementById('pro-login-wrapper').style.display='none';
+                } else {
+                  // If Supabase login function exists
+                  if(window.supabaseLogin){
+                    window.supabaseLogin(u,p).then(ok=>{
+                      if(ok){
+                        document.getElementById('pro-login-wrapper').style.display='none';
+                      } else {
+                        msg.style.display='block'; msg.textContent='Usuario o contraseña invalido';
+                        btn.textContent='ENTRAR AL EDITOR →'; btn.disabled=false;
+                      }
+                    });
+                  } else {
+                    // Fallback: check local
+                    btn.textContent='ENTRAR AL EDITOR →'; btn.disabled=false;
+                  }
+                }
+              }, 800);
+              return;
+            }
+          }
+        }
+      }
+      
+      // Direct Supabase attempt if available
+      if(window.handleLogin){
+        try{
+          const res = await window.handleLogin(u,p);
+          if(res){ document.getElementById('pro-login-wrapper').style.display='none'; }
+          else{ msg.style.display='block'; msg.textContent='Usuario o contraseña invalido'; }
+        }catch(e){ msg.style.display='block'; msg.textContent='Error: '+e.message; }
+      }
+      btn.textContent='ENTRAR AL EDITOR →'; btn.disabled=false;
+    };
+    
+    btn.onclick = tryLogin;
+    passEl.addEventListener('keypress', (e)=>{ if(e.key==='Enter') tryLogin(); });
+    
+    // Auto hide wrapper when user already logged
+    setInterval(()=>{
+      const appVisible = document.querySelector('#app');
+      if(appVisible){
+        const isHidden = window.getComputedStyle(appVisible).display !== 'none' && appVisible.offsetHeight > 100;
+        if(isHidden){
+          const wrapper = document.getElementById('pro-login-wrapper');
+          if(wrapper) wrapper.style.display='none';
+        }
+      }
+    },1000);
+  }
+  setTimeout(hookProLogin, 800);
+  setTimeout(hookProLogin, 2000);
+})();
+</script>
+
+
+<script>
+// V25 EXPIRATION SYSTEM
+window.IC_PLANS = {
+  starter: { name: 'Starter', price: 30, videos: 100 },
+  pro: { name: 'Pro', price: 50, videos: 175 },
+  agency: { name: 'Agency', price: 60, videos: 250 }
+};
+
+// Enhanced admin panel injection
+(function(){
+  function enhanceAdminPanel(){
+    // Find admin container
+    const adminBox = document.querySelector('[class*="admin"], #admin-panel');
+    if(!adminBox && !document.body.innerHTML.includes('Usuarios')) return;
+    
+    // Add expiration UI to user creation
+    const addUserForm = document.querySelector('form');
+    if(addUserForm && !document.getElementById('plan-select')){
+      const planSelect = document.createElement('select');
+      planSelect.id='plan-select';
+      planSelect.style.cssText='width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:10px;color:#fff;margin-bottom:8px;';
+      planSelect.innerHTML=`
+        <option value="starter">Starter - $30 - 100 videos</option>
+        <option value="pro" selected>Pro - $50 - 175 videos</option>
+        <option value="agency">Agency - $60 - 250 videos</option>
+      `;
+      const daysInput = document.createElement('input');
+      daysInput.id='plan-days';
+      daysInput.type='number';
+      daysInput.value='30';
+      daysInput.placeholder='Días del plan';
+      daysInput.style.cssText='width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:10px;color:#fff;margin-bottom:8px;';
+      const label = document.createElement('div');
+      label.style.cssText='color:#888;font-size:11px;margin:8px 0 4px 0;';
+      label.textContent='Plan y duración:';
+      
+      // Try to insert before create button
+      const btns = addUserForm.querySelectorAll('button');
+      if(btns.length>0){
+        btns[0].parentNode.insertBefore(label, btns[0]);
+        btns[0].parentNode.insertBefore(planSelect, btns[0]);
+        btns[0].parentNode.insertBefore(daysInput, btns[0]);
+      }
+    }
+  }
+  setInterval(enhanceAdminPanel, 2000);
+})();
+
+// Override login to check expiration
+(function(){
+  const originalCheck = window.checkUserExpiration;
+  window.checkUserExpiration = async function(user){
+    if(!user) return false;
+    // Check if user has expires_at
+    if(user.expires_at){
+      const now = new Date();
+      const exp = new Date(user.expires_at);
+      const diffMs = exp - now;
+      const diffDays = Math.ceil(diffMs / (1000*60*60*24));
+      
+      if(diffMs <= 0){
+        // Expired
+        const wrapper = document.getElementById('pro-login-wrapper');
+        if(wrapper) wrapper.style.display='flex';
+        const msg = document.getElementById('pro-login-msg');
+        if(msg){
+          msg.style.display='block';
+          msg.style.cssText='margin-top:10px; font-size:13px; color:#ff6b6b; background:#2a1111; padding:10px; border-radius:8px; border:1px solid #ff6b6b; display:block;';
+          msg.innerHTML='⛔ <b>Tu suscripción expiró.</b><br>Paga la suscripción para seguir usando el editor.<br><br><a href="https://wa.me/50496060657?text=Hola%20mi%20suscripcion%20expiro%20quiero%20renovar" target="_blank" style="background:#25D366;color:#fff;padding:6px 12px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:6px;">Renovar por WhatsApp</a>';
+        }
+        return false;
+      }
+      // Show days left in UI if needed
+      window.currentUserDaysLeft = diffDays;
+    }
+    if(originalCheck) return originalCheck(user);
+    return true;
+  };
+  
+  // Enhance user list to show days left
+  window.formatDaysLeft = function(expires_at){
+    if(!expires_at) return '<span style="color:#666">Sin expiración</span>';
+    const now = new Date();
+    const exp = new Date(expires_at);
+    const diff = Math.ceil((exp - now)/(1000*60*60*24));
+    if(diff<=0) return '<span style="color:#ff4444;font-weight:900">EXPIRADO</span>';
+    if(diff<=3) return `<span style="color:#ffaa00;font-weight:800">${diff} días left ⚠️</span>`;
+    return `<span style="color:#4ade80">${diff} días</span>`;
+  };
+})();
+
+// Patch Supabase user creation to include expires_at
+document.addEventListener('DOMContentLoaded', ()=>{
+  const origCreate = window.createUser;
+  if(origCreate) return;
+});
+
+</script>
+
+<!-- NEW ADMIN EXPIRATION LOGIC FOR SUPABASE -->
+<script>
+// Hook into Supabase table creation - add expires_at handling
+(function(){
+  // Intercept fetch to Supabase users table to inject expiration
+  setTimeout(()=>{
+    // Find where users are created - look for supabase.from('users').insert
+    // We'll add a helper
+    window.IC_createUserWithPlan = async function(username, password, plan, days){
+      const expires_at = new Date();
+      expires_at.setDate(expires_at.getDate() + parseInt(days||30));
+      
+      // Try supabase client
+      try{
+        const sb = window.supabaseClient || window.supabase;
+        if(sb){
+          const { data, error } = await sb.from('users').insert([{
+            username: username,
+            password: password,
+            plan: plan,
+            plan_days: parseInt(days),
+            expires_at: expires_at.toISOString(),
+            is_active: true,
+            created_at: new Date().toISOString()
+          }]).select();
+          if(error) throw error;
+          return data;
+        }
+      }catch(e){ console.error('Error creando usuario con plan', e); alert('Error: '+e.message); }
+    };
+    
+    window.IC_updateUserPlan = async function(userId, days, plan){
+      const expires_at = new Date();
+      expires_at.setDate(expires_at.getDate() + parseInt(days));
+      try{
+        const sb = window.supabaseClient || window.supabase;
+        if(sb){
+          const { data, error } = await sb.from('users').update({
+            plan: plan,
+            plan_days: parseInt(days),
+            expires_at: expires_at.toISOString(),
+            is_active: true
+          }).eq('id', userId).select();
+          if(error) throw error;
+          location.reload();
+        }
+      }catch(e){ alert('Error: '+e.message); }
+    };
+  },1000);
+})();
+</script>
+
 </body></html>
