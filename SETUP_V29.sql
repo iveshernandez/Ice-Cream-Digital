@@ -1,0 +1,15 @@
+-- V29 FINAL - SOLO LOGIN + SUBS POR DIA - EDITOR INTACTO
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan TEXT DEFAULT 'pro';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_days INT DEFAULT 30;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS videos_used INT DEFAULT 0;
+
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all" ON users;
+CREATE POLICY "Allow all" ON users FOR ALL USING (true) WITH CHECK (true);
+
+-- Ver suscripciones
+SELECT username, plan, expires_at, 
+  CASE WHEN expires_at IS NULL THEN 'Sin expiración' WHEN expires_at < NOW() THEN 'EXPIRADO' ELSE CONCAT(CEIL(EXTRACT(EPOCH FROM (expires_at - NOW()))/86400)::INT, ' días restantes') END as estado,
+  is_active FROM users ORDER BY expires_at ASC NULLS LAST;

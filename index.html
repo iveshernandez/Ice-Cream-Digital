@@ -857,7 +857,7 @@ async function renderSingle(item,onProg){
       const cStream=canvas.captureStream(FPS);
       // Solo video del canvas, audio solo de voz (dest) - video original silenciado 100%
       const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 8000000, mimeType:mimeMP4, videoBitsPerSecond:2500000, audioBitsPerSecond:128000});
+      const rec=new MediaRecorder(combined,{mimeType:mimeMP4, videoBitsPerSecond:2500000, audioBitsPerSecond:128000});
       const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
       const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:'video/mp4'})) );
 
@@ -1786,257 +1786,172 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 
 
 <style>
-#beta-badge { display: none; 
-  position: fixed; top: 14px; right: 14px; z-index: 1000000;
-  background: #FFD60A; color: #000; font-size: 10px; font-weight: 900;
-  padding: 5px 10px; border-radius: 20px; letter-spacing: 1px;
-  box-shadow: 0 2px 10px rgba(255,214,10,0.4);
-}
-#login-tabs {
-  display: flex; gap: 8px; justify-content: center; margin-bottom: 18px;
-}
-.login-tab {
-  padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 800;
-  cursor: pointer; border: 1px solid #222; background: #111; color: #888;
-  transition: all 0.2s;
-}
-.login-tab.active { background: #FFD60A; color: #000; border-color: #FFD60A; }
-
-#precios-panel {
-  display: none;
-  max-width: 900px; margin: 0 auto; padding: 20px;
-}
-#precios-panel.show { display: block; }
-#precios-grid {
-  display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 20px;
-}
-.precio-card {
-  background: #141415; border: 1px solid #222; border-radius: 18px; padding: 20px;
-  text-align: center;
-}
-.precio-card.popular { border-color: #FFD60A; background: #1a180f; transform: scale(1.05); position: relative; }
-.precio-card.popular::before {
-  content: 'MÁS POPULAR'; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
-  background: #FFD60A; color: #000; font-size: 9px; font-weight: 900; padding: 4px 10px; border-radius: 20px;
-}
-.precio-card h3 { color: #fff; font-size: 16px; font-weight: 900; margin: 0 0 4px 0; }
-.precio-price { font-size: 32px; font-weight: 900; color: #fff; margin: 8px 0; }
-.precio-price small { font-size: 13px; color: #888; }
-.precio-videos { color: #FFD60A; font-weight: 800; font-size: 13px; margin-bottom: 12px; }
-.precio-list { text-align: left; list-style: none; padding: 0; margin: 12px 0; }
-.precio-list li { font-size: 12px; color: #aaa; padding: 5px 0; border-bottom: 1px solid #1a1a1e; }
-.precio-list li:last-child { border: none; }
-.precio-btn {
-  width: 100%; background: #FFD60A; color: #000; border: none; padding: 12px;
-  border-radius: 10px; font-weight: 900; font-size: 12px; cursor: pointer; margin-top: 10px;
-}
-.precio-btn.sec { background: #1f1f23; color: #fff; border: 1px solid #333; }
-#precios-header { text-align: center; margin-bottom: 10px; }
-#precios-header h2 { color: #fff; font-size: 24px; font-weight: 900; margin: 0; }
-#precios-header p { color: #666; font-size: 12px; margin-top: 6px; }
-
-#pro-brand-login {
-  display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; text-align: center;
-}
-#pro-brand-icon-login {
-  width: 64px; height: 64px; background: linear-gradient(135deg, #FFD60A 0%, #FF8A00 100%);
-  border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 34px;
-  box-shadow: 0 6px 18px rgba(255,214,10,0.3); margin-bottom: 10px;
-}
-#pro-brand-title-login { font-weight: 900; font-size: 18px; color: #fff; letter-spacing: 0.5px; }
-#pro-brand-sub-login { font-size: 10px; letter-spacing: 2px; color: #FFD60A; font-weight: 800; margin-top: 3px; }
-
-@media(max-width: 800px){ #precios-grid { grid-template-columns: 1fr; } .precio-card.popular { transform: scale(1); } }
+/* === SOLO LOGIN - NO TOCA EDITOR === */
+#custom-login-overlay{position:fixed;inset:0;z-index:9999999;background:#08080a;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:30px 20px 20px 20px;overflow-y:auto}
+#custom-login-overlay.hidden{display:none!important}
+#login-beta-badge{position:fixed;top:16px;right:16px;background:#FFD60A;color:#000;font-size:10px;font-weight:900;padding:6px 12px;border-radius:20px;z-index:10000000}
+#login-brand{display:flex;flex-direction:column;align-items:center;margin:20px 0 18px 0}
+#login-brand-icon{width:72px;height:72px;background:linear-gradient(135deg,#FFD60A 0%,#FF8A00 100%);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:38px;box-shadow:0 8px 24px rgba(255,214,10,0.35);margin-bottom:12px}
+#login-brand-title{font-weight:900;font-size:22px;color:#fff;letter-spacing:.5px}
+#login-brand-sub{font-size:11px;letter-spacing:3px;color:#FFD60A;font-weight:800;margin-top:4px}
+#login-tabs-custom{display:flex;gap:10px;margin-bottom:20px}
+.login-tab-custom{padding:10px 22px;border-radius:22px;font-size:13px;font-weight:800;cursor:pointer;border:1px solid #222;background:#111;color:#888;transition:.2s}
+.login-tab-custom.active{background:#FFD60A;color:#000;border-color:#FFD60A}
+#login-form-container{width:100%;max-width:380px;background:#141415;border:1px solid #222;border-radius:20px;padding:26px}
+#precios-panel-custom{display:none;width:100%;max-width:960px}
+#precios-panel-custom.show{display:block}
+#precios-grid-custom{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.precio-card-custom{background:#141415;border:1px solid #222;border-radius:18px;padding:22px;text-align:center}
+.precio-card-custom.popular{border-color:#FFD60A;background:#1a180f;transform:scale(1.05);position:relative}
+.precio-card-custom.popular::before{content:'MÁS POPULAR';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#FFD60A;color:#000;font-size:9px;font-weight:900;padding:4px 10px;border-radius:20px}
+@media(max-width:850px){#precios-grid-custom{grid-template-columns:1fr}.precio-card-custom.popular{transform:none}}
+/* admin improvements */
+.subs-badge{font-size:11px;padding:3px 8px;border-radius:12px;font-weight:800}
+.subs-badge.ok{background:#0f2a15;color:#4ade80;border:1px solid #1a4a22}
+.subs-badge.warn{background:#2a2211;color:#ffb020;border:1px solid #4a3a11}
+.subs-badge.exp{background:#2a1111;color:#ff6b6b;border:1px solid #4a1111}
 </style>
 
-<div id="beta-badge" style="display:none">MODO BETA</div>
+<div id="custom-login-overlay">
+  <div id="login-beta-badge">MODO BETA</div>
+  <div id="login-brand"><div id="login-brand-icon">🍦</div><div id="login-brand-title">ICE CREAM DIGITAL</div><div id="login-brand-sub">PRO EDITOR • MODO BETA</div></div>
+  <div id="login-tabs-custom"><div class="login-tab-custom active" data-tab="login">Iniciar sesión</div><div class="login-tab-custom" data-tab="precios">Precios</div></div>
+  <div id="login-form-container"><div id="original-login-slot" style="min-height:180px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;">Cargando login...</div></div>
+  <div id="precios-panel-custom">
+    <div style="text-align:center"><h2 style="color:#fff;font-size:24px;font-weight:900;margin:0">Elige tu plan</h2><p style="color:#666;font-size:12px;margin-top:6px">Descargas finales 60fps fluido • Sin marca de agua • Soporte</p></div>
+    <div id="precios-grid-custom">
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0;font-size:14px">STARTER</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$30<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px;margin-bottom:10px">100 videos / mes</div><div style="font-size:11px;color:#aaa;text-align:left;line-height:1.7">✓ 100 descargas finales<br>✓ 60fps fluido<br>✓ Sin marca de agua<br>✓ Soporte básico</div><button onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20el%20plan%20STARTER%20$30%20-%20100%20videos','_blank')" style="width:100%;margin-top:14px;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">Comprar por WhatsApp</button></div>
+      <div class="precio-card-custom popular"><h3 style="color:#fff;margin:0;font-size:14px">PRO</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$50<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px;margin-bottom:10px">175 videos / mes</div><div style="font-size:11px;color:#aaa;text-align:left;line-height:1.7">✓ 175 descargas finales<br>✓ 60fps fluido + plantillas PRO<br>✓ Sin marca de agua<br>✓ Soporte prioritario</div><button onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20el%20plan%20PRO%20$50%20-%20175%20videos','_blank')" style="width:100%;margin-top:14px;background:#FFD60A;color:#000;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">Comprar por WhatsApp</button></div>
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0;font-size:14px">AGENCY</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$60<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px;margin-bottom:10px">250 videos / mes</div><div style="font-size:11px;color:#aaa;text-align:left;line-height:1.7">✓ 250 descargas finales<br>✓ 60fps ilimitado<br>✓ Sin marca de agua<br>✓ Soporte VIP 24/7</div><button onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20el%20plan%20AGENCY%20$60%20-%20250%20videos','_blank')" style="width:100%;margin-top:14px;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">Comprar por WhatsApp</button></div>
+    </div>
+    <div style="text-align:center;margin-top:16px;color:#555;font-size:11px">Contacto: +504 9606-0657 • Renovaciones automáticas por WhatsApp</div>
+  </div>
+</div>
 
 <script>
+// MOVER LOGIN ORIGINAL AL OVERLAY
 (function(){
-  function injectTabs(){
-    // Find login container
-    const inputs = document.querySelectorAll('input');
-    let loginContainer = null;
-    for(const inp of inputs){
-      if(inp.type==='password'){
-        let parent = inp.parentElement;
-        for(let i=0;i<5;i++){
-          if(parent && parent.children.length<=6){ loginContainer = parent; break; }
-          if(parent) parent = parent.parentElement;
+  let moved=false;
+  function moveLogin(){
+    if(moved) return;
+    const pwInputs=document.querySelectorAll('input[type="password"]');
+    let form=null;
+    for(const inp of pwInputs){
+      if(inp.closest('#custom-login-overlay')) continue;
+      let p=inp.parentElement;
+      for(let i=0;i<7;i++){
+        if(!p) break;
+        const hasUser = p.querySelector('input:not([type="password"])');
+        const hasBtn = p.querySelector('button');
+        if(hasUser && hasBtn){ form=p; break; }
+        p=p.parentElement;
+      }
+      if(form) break;
+    }
+    if(form){
+      const slot=document.getElementById('original-login-slot');
+      if(slot){ slot.innerHTML=''; slot.appendChild(form); form.style.display='block'; form.style.width='100%'; moved=true; }
+    }
+  }
+  function tabs(){
+    const t=document.querySelectorAll('.login-tab-custom');
+    const f=document.getElementById('login-form-container');
+    const pr=document.getElementById('precios-panel-custom');
+    t.forEach(tab=>{tab.onclick=()=>{t.forEach(x=>x.classList.remove('active'));tab.classList.add('active'); if(tab.dataset.tab==='precios'){f.style.display='none';pr.classList.add('show');}else{f.style.display='block';pr.classList.remove('show');}}});
+  }
+  function hideIfApp(){
+    const app=document.getElementById('app');
+    const overlay=document.getElementById('custom-login-overlay');
+    if(app && getComputedStyle(app).display!=='none' && app.offsetHeight>100){ overlay.classList.add('hidden'); }
+  }
+  setTimeout(()=>{moveLogin();tabs();},400);
+  setTimeout(()=>{moveLogin();tabs();},1200);
+  setInterval(()=>{moveLogin();hideIfApp();},1000);
+})();
+</script>
+
+<script>
+// ADMINISTRACION DE SUSCRIPCIONES POR DIA + BLOQUEO
+(function(){
+  window.IC_checkExpiration = function(user){
+    if(!user) return true;
+    if(!user.expires_at) return true;
+    return new Date(user.expires_at) > new Date();
+  };
+  
+  window.IC_daysLeft = function(expires_at){
+    if(!expires_at) return null;
+    const diff = new Date(expires_at) - new Date();
+    return Math.ceil(diff/(1000*60*60*24));
+  };
+  
+  // Interceptar login para bloquear expirados
+  const origLoginCheck = setInterval(()=>{
+    const sb = window.supabase || window.supabaseClient;
+    if(!sb) return;
+    // Hook: cuando se hace login, verificar expiracion
+    const checkAndBlock = async (username)=>{
+      try{
+        const {data} = await sb.from('users').select('*').eq('username', username).maybeSingle();
+        if(data && data.expires_at){
+          const days = window.IC_daysLeft(data.expires_at);
+          if(days!==null && days<=0){
+            const slot=document.getElementById('original-login-slot');
+            if(slot){
+              const msg=document.createElement('div');
+              msg.style.cssText='background:#2a1111;border:1px solid #ff4444;color:#ffaaaa;padding:14px;border-radius:12px;margin-top:12px;font-size:12px;text-align:center';
+              msg.innerHTML='⛔ <b>Tu suscripción expiró</b><br><br>Paga la suscripción para seguir usando el editor<br><br><a href="https://wa.me/50496060657?text=Hola%20mi%20suscripcion%20expiro%20quiero%20renovar%20usuario:%20'+username+'" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:900">Renovar por WhatsApp</a>';
+              slot.appendChild(msg);
+            }
+            return false;
+          }
         }
-        break;
+      }catch(e){}
+      return true;
+    };
+    window.IC_checkAndBlock = checkAndBlock;
+    clearInterval(origLoginCheck);
+  },800);
+
+  // MEJORAR PANEL ADMIN - agregar dias y mostrar restante
+  setInterval(()=>{
+    // Buscar lista de usuarios en el DOM (admin)
+    const userRows = document.querySelectorAll('[class*="user"], tr');
+    // Buscar si hay inputs de crear usuario
+    const adminSection = document.body.innerHTML.includes('Usuarios') || document.body.innerHTML.includes('usuarios');
+    if(!adminSection) return;
+    
+    // Agregar UI para renovar si existe tabla
+    const tables = document.querySelectorAll('table, div');
+    // Inyectar helper para admin si es admin logueado
+    if(!document.getElementById('admin-subs-helper')){
+      const sb = window.supabase || window.supabaseClient;
+      if(sb && document.getElementById('app') && getComputedStyle(document.getElementById('app')).display!=='none'){
+        // Crear panel flotante admin si es Icecreamdigital
+        const currentUser = localStorage.getItem('currentUser') || '';
+        if(currentUser.includes('Icecreamdigital') || document.body.innerHTML.includes('Icecreamdigital')){
+          const helper=document.createElement('div');
+          helper.id='admin-subs-helper';
+          helper.style.cssText='position:fixed;bottom:20px;right:20px;background:#141415;border:1px solid #FFD60A;border-radius:14px;padding:14px;z-index:99999;max-width:300px;';
+          helper.innerHTML='<div style="font-weight:900;color:#fff;font-size:12px;margin-bottom:8px">🕒 RENOVAR SUSCRIPCIÓN</div><input id="renew-user" placeholder="Usuario" style="width:100%;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:8px;color:#fff;margin-bottom:6px;font-size:12px"><select id="renew-plan" style="width:100%;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:8px;color:#fff;margin-bottom:6px;font-size:12px"><option value="starter">Starter $30</option><option value="pro" selected>Pro $50</option><option value="agency">Agency $60</option></select><input id="renew-days" type="number" value="30" style="width:100%;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:8px;color:#fff;margin-bottom:8px;font-size:12px" placeholder="Días"><button id="renew-btn" style="width:100%;background:#FFD60A;color:#000;border:none;padding:9px;border-radius:8px;font-weight:900;font-size:12px;cursor:pointer">RENOVAR + DÍAS</button><div id="renew-msg" style="font-size:10px;color:#888;margin-top:6px"></div>';
+          document.body.appendChild(helper);
+          document.getElementById('renew-btn').onclick=async()=>{
+            const u=document.getElementById('renew-user').value.trim();
+            const d=parseInt(document.getElementById('renew-days').value)||30;
+            const p=document.getElementById('renew-plan').value;
+            if(!u){alert('Pon usuario');return;}
+            const exp=new Date(); exp.setDate(exp.getDate()+d);
+            try{
+              const {error}=await sb.from('users').update({plan:p,plan_days:d,expires_at:exp.toISOString(),is_active:true}).eq('username',u);
+              if(error) throw error;
+              document.getElementById('renew-msg').textContent='✅ Renovado: '+d+' días hasta '+exp.toLocaleDateString();
+            }catch(e){document.getElementById('renew-msg').textContent='❌ '+e.message;}
+          };
+        }
       }
     }
-    if(!loginContainer) return;
-    if(document.getElementById('login-tabs')) return;
-
-    // Create wrapper for tabs
-    const tabs = document.createElement('div');
-    tabs.id='login-tabs';
-    tabs.innerHTML=`
-      <div class="login-tab active" data-tab="login">Iniciar sesión</div>
-      <div class="login-tab" data-tab="precios">Precios</div>
-    `;
-    
-    const brand = document.createElement('div');
-    brand.id='pro-brand-login';
-    brand.innerHTML=`
-      <div id="pro-brand-icon-login">🍦</div>
-      <div id="pro-brand-title-login">ICE CREAM DIGITAL</div>
-      <div id="pro-brand-sub-login">PRO EDITOR • MODO BETA</div>
-    `;
-    
-    const preciosPanel = document.createElement('div');
-    preciosPanel.id='precios-panel';
-    preciosPanel.innerHTML=`
-      <div id="precios-header">
-        <h2>Elige tu plan</h2>
-        <p>Todos incluyen descargas finales en 60fps fluido sin marca de agua</p>
-      </div>
-      <div id="precios-grid">
-        <div class="precio-card">
-          <h3>STARTER</h3>
-          <div class="precio-price">$30<small>/mes</small></div>
-          <div class="precio-videos">100 videos / mes</div>
-          <ul class="precio-list">
-            <li>✓ 100 descargas finales</li>
-            <li>✓ 60fps fluido</li>
-            <li>✓ Sin marca de agua</li>
-            <li>✓ Soporte básico</li>
-          </ul>
-          <button class="precio-btn sec" onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20el%20plan%20STARTER%20de%20$30%20-%20100%20videos', '_blank')">Comprar por WhatsApp</button>
-        </div>
-        <div class="precio-card popular">
-          <h3>PRO</h3>
-          <div class="precio-price">$50<small>/mes</small></div>
-          <div class="precio-videos">175 videos / mes</div>
-          <ul class="precio-list">
-            <li>✓ 175 descargas finales</li>
-            <li>✓ 60fps fluido</li>
-            <li>✓ Sin marca de agua</li>
-            <li>✓ Soporte prioritario</li>
-            <li>✓ Plantillas PRO</li>
-          </ul>
-          <button class="precio-btn" onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20el%20plan%20PRO%20de%20$50%20-%20175%20videos', '_blank')">Comprar por WhatsApp</button>
-        </div>
-        <div class="precio-card">
-          <h3>AGENCY</h3>
-          <div class="precio-price">$60<small>/mes</small></div>
-          <div class="precio-videos">250 videos / mes</div>
-          <ul class="precio-list">
-            <li>✓ 250 descargas finales</li>
-            <li>✓ 60fps ilimitado</li>
-            <li>✓ Sin marca de agua</li>
-            <li>✓ Soporte VIP 24/7</li>
-            <li>✓ Acceso API</li>
-          </ul>
-          <button class="precio-btn sec" onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20el%20plan%20AGENCY%20de%20$60%20-%20250%20videos', '_blank')">Comprar por WhatsApp</button>
-        </div>
-      </div>
-      <div style="text-align:center; margin-top:18px; font-size:11px; color:#555;">
-        Contacto directo: +504 9606-0657 • Pagos por transferencia / PayPal
-      </div>
-    `;
-
-    // Insert brand and tabs before login container
-    loginContainer.parentNode.insertBefore(brand, loginContainer);
-    loginContainer.parentNode.insertBefore(tabs, loginContainer);
-    loginContainer.parentNode.insertBefore(preciosPanel, loginContainer.nextSibling);
-
-    // Tab logic
-    tabs.querySelectorAll('.login-tab').forEach(tab=>{
-      tab.addEventListener('click', ()=>{
-        tabs.querySelectorAll('.login-tab').forEach(t=>t.classList.remove('active'));
-        tab.classList.add('active');
-        if(tab.dataset.tab==='precios'){
-          loginContainer.style.display='none';
-          preciosPanel.classList.add('show');
-        } else {
-          loginContainer.style.display='block';
-          preciosPanel.classList.remove('show');
-        }
-      });
-    });
-  }
-  
-  setTimeout(injectTabs, 600);
-  setTimeout(injectTabs, 1500);
-  setInterval(()=>{
-    if(!document.getElementById('login-tabs')) injectTabs();
-  },3000);
+  },2000);
 })();
 </script>
-
-<script>
-// V25b EXPIRACION LOGIC - mantener login original pero validar expiración
-(function(){
-  // Patch login validation
-  const checkExpiration = (user)=>{
-    if(!user || !user.expires_at) return true;
-    const now = new Date();
-    const exp = new Date(user.expires_at);
-    return exp > now;
-  };
-  
-  // Override message display
-  window.showExpiredMessage = function(){
-    const container = document.querySelector('input[type="password"]')?.parentElement;
-    if(!container) return;
-    let msg = document.getElementById('expired-msg');
-    if(!msg){
-      msg = document.createElement('div');
-      msg.id='expired-msg';
-      msg.style.cssText='background:#2a1111;border:1px solid #ff4444;color:#ff8888;padding:12px;border-radius:10px;margin-top:12px;font-size:12px;text-align:center;';
-      container.appendChild(msg);
-    }
-    msg.innerHTML='⛔ <b>Suscripción expirada</b><br>Paga la suscripción para continuar<br><a href="https://wa.me/50496060657?text=Hola%20mi%20suscripcion%20expiro%20quiero%20renovar" target="_blank" style="display:inline-block;margin-top:8px;background:#25D366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:800;">Renovar por WhatsApp</a>';
-  };
-})();
-</script>
-
-
-<script>
-(function(){
-  function updateHeaderVisibility(){
-    const loginInput = document.querySelector('input[type="password"]');
-    const app = document.getElementById('app') || document.querySelector('[class*="editor"]') || document.querySelector('main');
-    const isAppVisible = app && window.getComputedStyle(app).display !== 'none' && app.offsetHeight > 200;
-    const isLoginVisible = loginInput && window.getComputedStyle(loginInput).display !== 'none' && loginInput.offsetParent !== null;
-    
-    const elementsToToggle = [
-      document.getElementById('pro-brand-login'),
-      document.getElementById('login-tabs'),
-      document.getElementById('precios-panel'),
-      document.getElementById('beta-badge')
-    ];
-    
-    // If app is visible, hide login header elements
-    if(isAppVisible){
-      elementsToToggle.forEach(el=>{ if(el) el.style.display='none'; });
-    } else if(isLoginVisible){
-      // Show login elements if login visible
-      const brand = document.getElementById('pro-brand-login');
-      const tabs = document.getElementById('login-tabs');
-      const badge = document.getElementById('beta-badge');
-      if(brand) brand.style.display='flex';
-      if(tabs) tabs.style.display='flex';
-      if(badge) badge.style.display='block';
-    }
-  }
-  setInterval(updateHeaderVisibility, 500);
-  setTimeout(updateHeaderVisibility, 1000);
-})();
-</script>
-<style>
-/* Make login header only for login screen - not overlap editor */
-#pro-brand-login, #login-tabs, #precios-panel, #beta-badge { display: none; 
-  /* These are only for login */
-}
-#app { position: relative; z-index: 10; }
-/* Ensure login screen has proper background covering everything */
-body:has(input[type="password"]:not([style*="display: none"])) #pro-brand-login {
-  display: flex !important;
-}
-</style>
 
 </body></html>
