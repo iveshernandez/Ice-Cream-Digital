@@ -243,90 +243,6 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 </head>
 <body>
 
-<style>
-#ice-header {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 62px;
-  background: #0a0a0a;
-  border-bottom: 1px solid #1f1f23;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 18px;
-  z-index: 100000;
-  backdrop-filter: blur(12px);
-}
-#ice-logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: 'Inter', system-ui, sans-serif;
-}
-#ice-logo-icon {
-  width: 38px; height: 38px;
-  background: linear-gradient(135deg, #FFD60A 0%, #FF8A00 100%);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px;
-  box-shadow: 0 2px 12px rgba(255,214,10,0.3);
-}
-#ice-logo-text {
-  display: flex; flex-direction: column; line-height: 1;
-}
-#ice-logo-title {
-  font-weight: 900;
-  font-size: 15px;
-  letter-spacing: 0.5px;
-  color: #fff;
-  text-transform: uppercase;
-}
-#ice-logo-sub {
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: #FFD60A;
-  font-weight: 700;
-  margin-top: 2px;
-}
-#ice-header-actions { display:flex; gap:8px; align-items:center; }
-</style>
-<div id="ice-header">
-  <div id="ice-logo">
-    <div id="ice-logo-icon">🍦</div>
-    <div id="ice-logo-text">
-      <div id="ice-logo-title">ICE CREAM DIGITAL</div>
-      <div id="ice-logo-sub">PRO EDITOR</div>
-    </div>
-  </div>
-  <div id="ice-header-actions"></div>
-</div>
-<script>
-(function(){
-  // Push body content down so header doesn't overlap
-  const style = document.createElement('style');
-  style.textContent = 'body{ padding-top:62px !important; } .login-container, #app, main{ margin-top:62px; }';
-  document.head.appendChild(style);
-  
-  // Move existing header buttons into new header if they exist
-  setTimeout(()=>{
-    const oldHeader = document.querySelector('header');
-    const actions = document.getElementById('ice-header-actions');
-    if(oldHeader && actions){
-      // Move any buttons from old header
-      const btns = oldHeader.querySelectorAll('button');
-      btns.forEach(b=> actions.appendChild(b));
-    }
-    // Also move memBtn if created later
-    setInterval(()=>{
-      const mb = document.getElementById('memBtn');
-      const act = document.getElementById('ice-header-actions');
-      if(mb && act && mb.parentElement !== act){ act.appendChild(mb); }
-    },1000);
-  },800);
-})();
-</script>
-
-
 <div id="authOverlay">
   <div class="authCard">
     <div class="authLogo"><div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div><b>ICE CREAM DIGITAL</b></div>
@@ -941,7 +857,7 @@ async function renderSingle(item,onProg){
       const cStream=canvas.captureStream(FPS);
       // Solo video del canvas, audio solo de voz (dest) - video original silenciado 100%
       const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 8000000, mimeType:mimeMP4, videoBitsPerSecond: 8000000, audioBitsPerSecond:128000});
+      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 8000000, mimeType:mimeMP4, videoBitsPerSecond:2500000, audioBitsPerSecond:128000});
       const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
       const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:'video/mp4'})) );
 
@@ -1869,510 +1785,212 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 </script>
 
 
-<script>
-// V21 EXPORT FLUIDO - descarga igual que preview
-(function(){
-  console.log('V21 Fix: 60fps 8Mbps activo');
-  try{
-    const orig = HTMLCanvasElement.prototype.captureStream;
-    if(orig){
-      HTMLCanvasElement.prototype.captureStream = function(){ return orig.call(this, 60); };
-    }
-  }catch(e){}
-})();
-</script>
-
-
 <style>
-#login-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 28px;
+#beta-badge {
+  position: fixed; top: 14px; right: 14px; z-index: 1000000;
+  background: #FFD60A; color: #000; font-size: 10px; font-weight: 900;
+  padding: 5px 10px; border-radius: 20px; letter-spacing: 1px;
+  box-shadow: 0 2px 10px rgba(255,214,10,0.4);
+}
+#login-tabs {
+  display: flex; gap: 8px; justify-content: center; margin-bottom: 18px;
+}
+.login-tab {
+  padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 800;
+  cursor: pointer; border: 1px solid #222; background: #111; color: #888;
+  transition: all 0.2s;
+}
+.login-tab.active { background: #FFD60A; color: #000; border-color: #FFD60A; }
+
+#precios-panel {
+  display: none;
+  max-width: 900px; margin: 0 auto; padding: 20px;
+}
+#precios-panel.show { display: block; }
+#precios-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 20px;
+}
+.precio-card {
+  background: #141415; border: 1px solid #222; border-radius: 18px; padding: 20px;
   text-align: center;
 }
-#login-logo-big {
-  width: 76px; height: 76px;
-  background: linear-gradient(135deg, #FFD60A 0%, #FF8A00 100%);
-  border-radius: 20px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 44px;
-  box-shadow: 0 8px 24px rgba(255,214,10,0.35);
-  margin-bottom: 14px;
-}
-#login-title {
-  font-weight: 900;
-  font-size: 22px;
-  letter-spacing: 1px;
-  color: #fff;
-  text-transform: uppercase;
-}
-#login-subtitle {
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: #FFD60A;
-  font-weight: 800;
-  margin-top: 6px;
-}
-#login-tagline {
-  font-size: 12px;
-  color: #777;
-  margin-top: 8px;
-}
-</style>
-<script>
-(function(){
-  function addLoginHeader(){
-    const loginBox = document.querySelector('.login-box, [class*="login"], form');
-    // Try to find login container
-    const possible = document.querySelectorAll('div');
-    for(const div of possible){
-      const text = div.textContent || '';
-      if(text.includes('Iniciar') || text.includes('Usuario') || div.querySelector('input[type="password"]')){
-        // Check if already has our header
-        if(div.querySelector('#login-header')) return;
-        // Look for its parent that is centered
-        let container = div;
-        while(container && container.parentElement){
-          const style = window.getComputedStyle(container);
-          if(container.children.length <= 5 && container.querySelector('input')){
-            break;
-          }
-          container = container.parentElement;
-          if(container === document.body) break;
-        }
-        
-        const header = document.createElement('div');
-        header.id = 'login-header';
-        header.innerHTML = `
-          <div id="login-logo-big">🍦</div>
-          <div id="login-title">ICE CREAM DIGITAL</div>
-          <div id="login-subtitle">PRO EDITOR</div>
-          <div id="login-tagline">Editor de video profesional</div>
-        `;
-        
-        // Insert at beginning of container
-        if(container && container.firstChild){
-          container.insertBefore(header, container.firstChild);
-        }
-        return;
-      }
-    }
-  }
-  
-  // Run multiple times
-  setTimeout(addLoginHeader, 500);
-  setTimeout(addLoginHeader, 1500);
-  setTimeout(addLoginHeader, 3000);
-  setInterval(addLoginHeader, 5000);
-  
-  // Also inject directly into body if login screen is visible
-  const observer = new MutationObserver(()=> addLoginHeader());
-  observer.observe(document.body, {childList:true, subtree:true});
-})();
-</script>
-
-
-<style>
-/* PRO LOGIN V24 */
-#pro-login-wrapper {
-  position: fixed;
-  inset: 0;
-  background: #08080a;
-  z-index: 999999;
-  display: flex;
-  overflow-y: auto;
-  font-family: 'Inter', system-ui, sans-serif;
-}
-#pro-login-left {
-  flex: 1.2;
-  background: radial-gradient(1200px 600px at 20% 20%, rgba(255,214,10,0.15), transparent), #0a0a0a;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  border-right: 1px solid #1a1a1e;
-}
-#pro-login-right {
-  flex: 0.8;
-  background: #0f0f10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 30px;
-}
-#pro-brand {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 32px;
-}
-#pro-brand-icon {
-  width: 52px; height: 52px;
-  background: linear-gradient(135deg, #FFD60A 0%, #FF8A00 100%);
-  border-radius: 14px; display:flex; align-items:center; justify-content:center;
-  font-size: 30px; box-shadow: 0 8px 24px rgba(255,214,10,0.3);
-}
-#pro-brand-title { font-weight: 900; font-size: 20px; color: #fff; letter-spacing: 0.5px; line-height:1; }
-#pro-brand-sub { font-size: 11px; letter-spacing: 3px; color: #FFD60A; font-weight: 800; margin-top: 4px; }
-#pro-headline { font-size: 36px; font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 12px; }
-#pro-headline span { color: #FFD60A; }
-#pro-desc { color: #888; font-size: 14px; line-height: 1.5; margin-bottom: 32px; max-width: 480px; }
-#pro-plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 10px; }
-.pro-plan-card {
-  background: #141415; border: 1px solid #222; border-radius: 16px; padding: 18px;
-  position: relative; transition: all 0.2s;
-}
-.pro-plan-card.popular { border-color: #FFD60A; background: #1a180f; transform: scale(1.03); }
-.pro-plan-card.popular::before {
+.precio-card.popular { border-color: #FFD60A; background: #1a180f; transform: scale(1.05); position: relative; }
+.precio-card.popular::before {
   content: 'MÁS POPULAR'; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
-  background: #FFD60A; color: #000; font-size: 9px; font-weight: 900; padding: 3px 10px; border-radius: 20px; letter-spacing: 1px;
+  background: #FFD60A; color: #000; font-size: 9px; font-weight: 900; padding: 4px 10px; border-radius: 20px;
 }
-.pro-plan-price { font-size: 28px; font-weight: 900; color: #fff; }
-.pro-plan-price small { font-size: 14px; font-weight: 600; color: #888; }
-.pro-plan-videos { font-size: 13px; font-weight: 800; color: #FFD60A; margin: 6px 0 10px 0; }
-.pro-plan-list { list-style: none; padding: 0; margin: 0; }
-.pro-plan-list li { font-size: 11px; color: #aaa; padding: 4px 0; display:flex; gap:6px; }
-.pro-plan-list li::before { content: '✓'; color: #4ade80; font-weight: 800; }
-.pro-plan-btn {
-  width: 100%; margin-top: 14px; background: #1f1f23; border: 1px solid #2a2a2e; color: #fff;
-  padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer;
+.precio-card h3 { color: #fff; font-size: 16px; font-weight: 900; margin: 0 0 4px 0; }
+.precio-price { font-size: 32px; font-weight: 900; color: #fff; margin: 8px 0; }
+.precio-price small { font-size: 13px; color: #888; }
+.precio-videos { color: #FFD60A; font-weight: 800; font-size: 13px; margin-bottom: 12px; }
+.precio-list { text-align: left; list-style: none; padding: 0; margin: 12px 0; }
+.precio-list li { font-size: 12px; color: #aaa; padding: 5px 0; border-bottom: 1px solid #1a1a1e; }
+.precio-list li:last-child { border: none; }
+.precio-btn {
+  width: 100%; background: #FFD60A; color: #000; border: none; padding: 12px;
+  border-radius: 10px; font-weight: 900; font-size: 12px; cursor: pointer; margin-top: 10px;
 }
-.pro-plan-card.popular .pro-plan-btn { background: #FFD60A; color: #000; border-color: #FFD60A; }
+.precio-btn.sec { background: #1f1f23; color: #fff; border: 1px solid #333; }
+#precios-header { text-align: center; margin-bottom: 10px; }
+#precios-header h2 { color: #fff; font-size: 24px; font-weight: 900; margin: 0; }
+#precios-header p { color: #666; font-size: 12px; margin-top: 6px; }
 
-#pro-login-box {
-  width: 100%; max-width: 340px;
-  background: #141415; border: 1px solid #222; border-radius: 20px; padding: 28px;
+#pro-brand-login {
+  display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; text-align: center;
 }
-#pro-login-box h2 { color: #fff; font-size: 18px; font-weight: 800; margin-bottom: 4px; }
-#pro-login-box p { color: #666; font-size: 12px; margin-bottom: 18px; }
-.pro-input {
-  width: 100%; background: #0a0a0a; border: 1px solid #222; border-radius: 10px;
-  padding: 12px 14px; color: #fff; font-size: 13px; margin-bottom: 10px; outline: none;
+#pro-brand-icon-login {
+  width: 64px; height: 64px; background: linear-gradient(135deg, #FFD60A 0%, #FF8A00 100%);
+  border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 34px;
+  box-shadow: 0 6px 18px rgba(255,214,10,0.3); margin-bottom: 10px;
 }
-.pro-input:focus { border-color: #FFD60A; }
-#pro-login-btn {
-  width: 100%; background: #FFD60A; color: #000; border: none; border-radius: 10px;
-  padding: 12px; font-weight: 900; font-size: 13px; cursor: pointer; margin-top: 8px;
-  letter-spacing: 0.5px;
-}
-#pro-login-footer { text-align: center; margin-top: 16px; font-size: 11px; color: #555; }
+#pro-brand-title-login { font-weight: 900; font-size: 18px; color: #fff; letter-spacing: 0.5px; }
+#pro-brand-sub-login { font-size: 10px; letter-spacing: 2px; color: #FFD60A; font-weight: 800; margin-top: 3px; }
 
-@media(max-width: 900px){
-  #pro-login-wrapper { flex-direction: column; }
-  #pro-login-left { padding: 24px 20px; }
-  #pro-plans { grid-template-columns: 1fr; }
-  #pro-headline { font-size: 28px; }
-  #pro-login-right { padding: 20px; }
-}
+@media(max-width: 800px){ #precios-grid { grid-template-columns: 1fr; } .precio-card.popular { transform: scale(1); } }
 </style>
 
-<div id="pro-login-wrapper">
-  <div id="pro-login-left">
-    <div id="pro-brand">
-      <div id="pro-brand-icon">🍦</div>
-      <div>
-        <div id="pro-brand-title">ICE CREAM DIGITAL</div>
-        <div id="pro-brand-sub">PRO EDITOR</div>
-      </div>
-    </div>
-    <div id="pro-headline">Crea videos que <span>venden</span> en segundos</div>
-    <div id="pro-desc">Editor profesional usado por más de 500 creadores. Exportación fluida 60fps, sin marcas de agua, sin congelamientos.</div>
-    
-    <!-- OLD PLANS REPLACED -->
-      <div class="pro-plan-card">
-        <div class="pro-plan-price">$30<small>/mes</small></div>
-        <div class="pro-plan-videos">100 videos / mes</div>
-        <ul class="pro-plan-list">
-          <li>Descargas finales</li>
-          <li>60fps fluido</li>
-          <li>Sin marca de agua</li>
-          <li>Soporte básico</li>
-        </ul>
-        <button class="pro-plan-btn" onclick="document.getElementById('pro-user').focus()">ELEGIR STARTER</button>
-      </div>
-      <div class="pro-plan-card popular">
-        <div class="pro-plan-price">$50<small>/mes</small></div>
-        <div class="pro-plan-videos">175 videos / mes</div>
-        <ul class="pro-plan-list">
-          <li>Descargas finales</li>
-          <li>60fps fluido</li>
-          <li>Sin marca de agua</li>
-          <li>Soporte prioritario</li>
-          <li>Plantillas PRO</li>
-        </ul>
-        <button class="pro-plan-btn" onclick="document.getElementById('pro-user').focus()">ELEGIR PRO</button>
-      </div>
-      <div class="pro-plan-card">
-        <div class="pro-plan-price">$60<small>/mes</small></div>
-        <div class="pro-plan-videos">250 videos / mes</div>
-        <ul class="pro-plan-list">
-          <li>Descargas finales</li>
-          <li>60fps ilimitado</li>
-          <li>Sin marca de agua</li>
-          <li>Soporte VIP 24/7</li>
-          <li>Todo PRO + API</li>
-        </ul>
-        <button class="pro-plan-btn" onclick="document.getElementById('pro-user').focus()">ELEGIR AGENCY</button>
-      </div>
-    </div>
-  </div>
-  
-  <div id="pro-login-right">
-    <div id="pro-login-box">
-      <h2>Iniciar sesión</h2>
-      <p>Ingresa con el usuario que te asignamos</p>
-      <input id="pro-user" class="pro-input" placeholder="Usuario" />
-      <input id="pro-pass" class="pro-input" type="password" placeholder="Contraseña" />
-      <button id="pro-login-btn">ENTRAR AL EDITOR →</button>
-      <div id="pro-login-footer">✅ Conectado a la nube • Acceso seguro multiusuario</div>
-      <div id="pro-login-msg" style="margin-top:10px; font-size:11px; color:#ff6b6b; display:none;"></div>
-    </div>
-  </div>
-</div>
+<div id="beta-badge">MODO BETA</div>
 
 <script>
 (function(){
-  // Hook pro login to original login logic
-  function hookProLogin(){
-    const userEl = document.getElementById('pro-user');
-    const passEl = document.getElementById('pro-pass');
-    const btn = document.getElementById('pro-login-btn');
-    const msg = document.getElementById('pro-login-msg');
-    if(!userEl || !passEl || !btn) return;
-    
-    // Try to find original inputs
-    const tryLogin = async () => {
-      const u = userEl.value.trim();
-      const p = passEl.value.trim();
-      if(!u || !p){ msg.style.display='block'; msg.textContent='Ingresa usuario y contraseña'; return; }
-      
-      btn.textContent='CONECTANDO...';
-      btn.disabled=true;
-      
-      // Fill original form if exists
-      const origUsers = document.querySelectorAll('input');
-      for(const inp of origUsers){
-        if(inp.type==='password' || inp.placeholder?.toLowerCase().includes('contraseña') || inp.placeholder?.toLowerCase().includes('password')){
-          // Heuristic: if input is not our pro inputs
-          if(inp.id!=='pro-pass' && inp.id!=='pro-user'){
-            // Try to set and trigger login
-            const userInputs = Array.from(document.querySelectorAll('input')).filter(i=> i.type!=='password' && i.id!=='pro-user');
-            if(userInputs.length>0){
-              userInputs[0].value = u;
-              userInputs[0].dispatchEvent(new Event('input', {bubbles:true}));
-            }
-            inp.value = p;
-            inp.dispatchEvent(new Event('input', {bubbles:true}));
-            // Click original login button
-            const origBtns = Array.from(document.querySelectorAll('button')).filter(b=> /entrar|iniciar|login/i.test(b.textContent) && b.id!=='pro-login-btn');
-            if(origBtns.length>0){
-              origBtns[0].click();
-              setTimeout(()=>{
-                // Check if still visible pro wrapper - if app loaded, hide wrapper
-                const app = document.querySelector('#app, [class*="editor"], main');
-                if(app && window.getComputedStyle(app).display !== 'none'){
-                  document.getElementById('pro-login-wrapper').style.display='none';
-                } else {
-                  // If Supabase login function exists
-                  if(window.supabaseLogin){
-                    window.supabaseLogin(u,p).then(ok=>{
-                      if(ok){
-                        document.getElementById('pro-login-wrapper').style.display='none';
-                      } else {
-                        msg.style.display='block'; msg.textContent='Usuario o contraseña invalido';
-                        btn.textContent='ENTRAR AL EDITOR →'; btn.disabled=false;
-                      }
-                    });
-                  } else {
-                    // Fallback: check local
-                    btn.textContent='ENTRAR AL EDITOR →'; btn.disabled=false;
-                  }
-                }
-              }, 800);
-              return;
-            }
-          }
+  function injectTabs(){
+    // Find login container
+    const inputs = document.querySelectorAll('input');
+    let loginContainer = null;
+    for(const inp of inputs){
+      if(inp.type==='password'){
+        let parent = inp.parentElement;
+        for(let i=0;i<5;i++){
+          if(parent && parent.children.length<=6){ loginContainer = parent; break; }
+          if(parent) parent = parent.parentElement;
         }
+        break;
       }
-      
-      // Direct Supabase attempt if available
-      if(window.handleLogin){
-        try{
-          const res = await window.handleLogin(u,p);
-          if(res){ document.getElementById('pro-login-wrapper').style.display='none'; }
-          else{ msg.style.display='block'; msg.textContent='Usuario o contraseña invalido'; }
-        }catch(e){ msg.style.display='block'; msg.textContent='Error: '+e.message; }
-      }
-      btn.textContent='ENTRAR AL EDITOR →'; btn.disabled=false;
-    };
+    }
+    if(!loginContainer) return;
+    if(document.getElementById('login-tabs')) return;
+
+    // Create wrapper for tabs
+    const tabs = document.createElement('div');
+    tabs.id='login-tabs';
+    tabs.innerHTML=`
+      <div class="login-tab active" data-tab="login">Iniciar sesión</div>
+      <div class="login-tab" data-tab="precios">Precios</div>
+    `;
     
-    btn.onclick = tryLogin;
-    passEl.addEventListener('keypress', (e)=>{ if(e.key==='Enter') tryLogin(); });
+    const brand = document.createElement('div');
+    brand.id='pro-brand-login';
+    brand.innerHTML=`
+      <div id="pro-brand-icon-login">🍦</div>
+      <div id="pro-brand-title-login">ICE CREAM DIGITAL</div>
+      <div id="pro-brand-sub-login">PRO EDITOR • MODO BETA</div>
+    `;
     
-    // Auto hide wrapper when user already logged
-    setInterval(()=>{
-      const appVisible = document.querySelector('#app');
-      if(appVisible){
-        const isHidden = window.getComputedStyle(appVisible).display !== 'none' && appVisible.offsetHeight > 100;
-        if(isHidden){
-          const wrapper = document.getElementById('pro-login-wrapper');
-          if(wrapper) wrapper.style.display='none';
+    const preciosPanel = document.createElement('div');
+    preciosPanel.id='precios-panel';
+    preciosPanel.innerHTML=`
+      <div id="precios-header">
+        <h2>Elige tu plan</h2>
+        <p>Todos incluyen descargas finales en 60fps fluido sin marca de agua</p>
+      </div>
+      <div id="precios-grid">
+        <div class="precio-card">
+          <h3>STARTER</h3>
+          <div class="precio-price">$30<small>/mes</small></div>
+          <div class="precio-videos">100 videos / mes</div>
+          <ul class="precio-list">
+            <li>✓ 100 descargas finales</li>
+            <li>✓ 60fps fluido</li>
+            <li>✓ Sin marca de agua</li>
+            <li>✓ Soporte básico</li>
+          </ul>
+          <button class="precio-btn sec" onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20el%20plan%20STARTER%20de%20$30%20-%20100%20videos', '_blank')">Comprar por WhatsApp</button>
+        </div>
+        <div class="precio-card popular">
+          <h3>PRO</h3>
+          <div class="precio-price">$50<small>/mes</small></div>
+          <div class="precio-videos">175 videos / mes</div>
+          <ul class="precio-list">
+            <li>✓ 175 descargas finales</li>
+            <li>✓ 60fps fluido</li>
+            <li>✓ Sin marca de agua</li>
+            <li>✓ Soporte prioritario</li>
+            <li>✓ Plantillas PRO</li>
+          </ul>
+          <button class="precio-btn" onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20el%20plan%20PRO%20de%20$50%20-%20175%20videos', '_blank')">Comprar por WhatsApp</button>
+        </div>
+        <div class="precio-card">
+          <h3>AGENCY</h3>
+          <div class="precio-price">$60<small>/mes</small></div>
+          <div class="precio-videos">250 videos / mes</div>
+          <ul class="precio-list">
+            <li>✓ 250 descargas finales</li>
+            <li>✓ 60fps ilimitado</li>
+            <li>✓ Sin marca de agua</li>
+            <li>✓ Soporte VIP 24/7</li>
+            <li>✓ Acceso API</li>
+          </ul>
+          <button class="precio-btn sec" onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20el%20plan%20AGENCY%20de%20$60%20-%20250%20videos', '_blank')">Comprar por WhatsApp</button>
+        </div>
+      </div>
+      <div style="text-align:center; margin-top:18px; font-size:11px; color:#555;">
+        Contacto directo: +504 9606-0657 • Pagos por transferencia / PayPal
+      </div>
+    `;
+
+    // Insert brand and tabs before login container
+    loginContainer.parentNode.insertBefore(brand, loginContainer);
+    loginContainer.parentNode.insertBefore(tabs, loginContainer);
+    loginContainer.parentNode.insertBefore(preciosPanel, loginContainer.nextSibling);
+
+    // Tab logic
+    tabs.querySelectorAll('.login-tab').forEach(tab=>{
+      tab.addEventListener('click', ()=>{
+        tabs.querySelectorAll('.login-tab').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        if(tab.dataset.tab==='precios'){
+          loginContainer.style.display='none';
+          preciosPanel.classList.add('show');
+        } else {
+          loginContainer.style.display='block';
+          preciosPanel.classList.remove('show');
         }
-      }
-    },1000);
+      });
+    });
   }
-  setTimeout(hookProLogin, 800);
-  setTimeout(hookProLogin, 2000);
+  
+  setTimeout(injectTabs, 600);
+  setTimeout(injectTabs, 1500);
+  setInterval(()=>{
+    if(!document.getElementById('login-tabs')) injectTabs();
+  },3000);
 })();
 </script>
 
-
 <script>
-// V25 EXPIRATION SYSTEM
-window.IC_PLANS = {
-  starter: { name: 'Starter', price: 30, videos: 100 },
-  pro: { name: 'Pro', price: 50, videos: 175 },
-  agency: { name: 'Agency', price: 60, videos: 250 }
-};
-
-// Enhanced admin panel injection
+// V25b EXPIRACION LOGIC - mantener login original pero validar expiración
 (function(){
-  function enhanceAdminPanel(){
-    // Find admin container
-    const adminBox = document.querySelector('[class*="admin"], #admin-panel');
-    if(!adminBox && !document.body.innerHTML.includes('Usuarios')) return;
-    
-    // Add expiration UI to user creation
-    const addUserForm = document.querySelector('form');
-    if(addUserForm && !document.getElementById('plan-select')){
-      const planSelect = document.createElement('select');
-      planSelect.id='plan-select';
-      planSelect.style.cssText='width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:10px;color:#fff;margin-bottom:8px;';
-      planSelect.innerHTML=`
-        <option value="starter">Starter - $30 - 100 videos</option>
-        <option value="pro" selected>Pro - $50 - 175 videos</option>
-        <option value="agency">Agency - $60 - 250 videos</option>
-      `;
-      const daysInput = document.createElement('input');
-      daysInput.id='plan-days';
-      daysInput.type='number';
-      daysInput.value='30';
-      daysInput.placeholder='Días del plan';
-      daysInput.style.cssText='width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:10px;color:#fff;margin-bottom:8px;';
-      const label = document.createElement('div');
-      label.style.cssText='color:#888;font-size:11px;margin:8px 0 4px 0;';
-      label.textContent='Plan y duración:';
-      
-      // Try to insert before create button
-      const btns = addUserForm.querySelectorAll('button');
-      if(btns.length>0){
-        btns[0].parentNode.insertBefore(label, btns[0]);
-        btns[0].parentNode.insertBefore(planSelect, btns[0]);
-        btns[0].parentNode.insertBefore(daysInput, btns[0]);
-      }
-    }
-  }
-  setInterval(enhanceAdminPanel, 2000);
-})();
-
-// Override login to check expiration
-(function(){
-  const originalCheck = window.checkUserExpiration;
-  window.checkUserExpiration = async function(user){
-    if(!user) return false;
-    // Check if user has expires_at
-    if(user.expires_at){
-      const now = new Date();
-      const exp = new Date(user.expires_at);
-      const diffMs = exp - now;
-      const diffDays = Math.ceil(diffMs / (1000*60*60*24));
-      
-      if(diffMs <= 0){
-        // Expired
-        const wrapper = document.getElementById('pro-login-wrapper');
-        if(wrapper) wrapper.style.display='flex';
-        const msg = document.getElementById('pro-login-msg');
-        if(msg){
-          msg.style.display='block';
-          msg.style.cssText='margin-top:10px; font-size:13px; color:#ff6b6b; background:#2a1111; padding:10px; border-radius:8px; border:1px solid #ff6b6b; display:block;';
-          msg.innerHTML='⛔ <b>Tu suscripción expiró.</b><br>Paga la suscripción para seguir usando el editor.<br><br><a href="https://wa.me/50496060657?text=Hola%20mi%20suscripcion%20expiro%20quiero%20renovar" target="_blank" style="background:#25D366;color:#fff;padding:6px 12px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:6px;">Renovar por WhatsApp</a>';
-        }
-        return false;
-      }
-      // Show days left in UI if needed
-      window.currentUserDaysLeft = diffDays;
-    }
-    if(originalCheck) return originalCheck(user);
-    return true;
-  };
-  
-  // Enhance user list to show days left
-  window.formatDaysLeft = function(expires_at){
-    if(!expires_at) return '<span style="color:#666">Sin expiración</span>';
+  // Patch login validation
+  const checkExpiration = (user)=>{
+    if(!user || !user.expires_at) return true;
     const now = new Date();
-    const exp = new Date(expires_at);
-    const diff = Math.ceil((exp - now)/(1000*60*60*24));
-    if(diff<=0) return '<span style="color:#ff4444;font-weight:900">EXPIRADO</span>';
-    if(diff<=3) return `<span style="color:#ffaa00;font-weight:800">${diff} días left ⚠️</span>`;
-    return `<span style="color:#4ade80">${diff} días</span>`;
+    const exp = new Date(user.expires_at);
+    return exp > now;
   };
-})();
-
-// Patch Supabase user creation to include expires_at
-document.addEventListener('DOMContentLoaded', ()=>{
-  const origCreate = window.createUser;
-  if(origCreate) return;
-});
-
-</script>
-
-<!-- NEW ADMIN EXPIRATION LOGIC FOR SUPABASE -->
-<script>
-// Hook into Supabase table creation - add expires_at handling
-(function(){
-  // Intercept fetch to Supabase users table to inject expiration
-  setTimeout(()=>{
-    // Find where users are created - look for supabase.from('users').insert
-    // We'll add a helper
-    window.IC_createUserWithPlan = async function(username, password, plan, days){
-      const expires_at = new Date();
-      expires_at.setDate(expires_at.getDate() + parseInt(days||30));
-      
-      // Try supabase client
-      try{
-        const sb = window.supabaseClient || window.supabase;
-        if(sb){
-          const { data, error } = await sb.from('users').insert([{
-            username: username,
-            password: password,
-            plan: plan,
-            plan_days: parseInt(days),
-            expires_at: expires_at.toISOString(),
-            is_active: true,
-            created_at: new Date().toISOString()
-          }]).select();
-          if(error) throw error;
-          return data;
-        }
-      }catch(e){ console.error('Error creando usuario con plan', e); alert('Error: '+e.message); }
-    };
-    
-    window.IC_updateUserPlan = async function(userId, days, plan){
-      const expires_at = new Date();
-      expires_at.setDate(expires_at.getDate() + parseInt(days));
-      try{
-        const sb = window.supabaseClient || window.supabase;
-        if(sb){
-          const { data, error } = await sb.from('users').update({
-            plan: plan,
-            plan_days: parseInt(days),
-            expires_at: expires_at.toISOString(),
-            is_active: true
-          }).eq('id', userId).select();
-          if(error) throw error;
-          location.reload();
-        }
-      }catch(e){ alert('Error: '+e.message); }
-    };
-  },1000);
+  
+  // Override message display
+  window.showExpiredMessage = function(){
+    const container = document.querySelector('input[type="password"]')?.parentElement;
+    if(!container) return;
+    let msg = document.getElementById('expired-msg');
+    if(!msg){
+      msg = document.createElement('div');
+      msg.id='expired-msg';
+      msg.style.cssText='background:#2a1111;border:1px solid #ff4444;color:#ff8888;padding:12px;border-radius:10px;margin-top:12px;font-size:12px;text-align:center;';
+      container.appendChild(msg);
+    }
+    msg.innerHTML='⛔ <b>Suscripción expirada</b><br>Paga la suscripción para continuar<br><a href="https://wa.me/50496060657?text=Hola%20mi%20suscripcion%20expiro%20quiero%20renovar" target="_blank" style="display:inline-block;margin-top:8px;background:#25D366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:800;">Renovar por WhatsApp</a>';
+  };
 })();
 </script>
 
