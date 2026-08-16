@@ -243,6 +243,90 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 </head>
 <body>
 
+<style>
+#ice-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 62px;
+  background: #0a0a0a;
+  border-bottom: 1px solid #1f1f23;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  z-index: 100000;
+  backdrop-filter: blur(12px);
+}
+#ice-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+#ice-logo-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, #FFD60A 0%, #FF8A00 100%);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 2px 12px rgba(255,214,10,0.3);
+}
+#ice-logo-text {
+  display: flex; flex-direction: column; line-height: 1;
+}
+#ice-logo-title {
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  color: #fff;
+  text-transform: uppercase;
+}
+#ice-logo-sub {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #FFD60A;
+  font-weight: 700;
+  margin-top: 2px;
+}
+#ice-header-actions { display:flex; gap:8px; align-items:center; }
+</style>
+<div id="ice-header">
+  <div id="ice-logo">
+    <div id="ice-logo-icon">🍦</div>
+    <div id="ice-logo-text">
+      <div id="ice-logo-title">ICE CREAM DIGITAL</div>
+      <div id="ice-logo-sub">PRO EDITOR</div>
+    </div>
+  </div>
+  <div id="ice-header-actions"></div>
+</div>
+<script>
+(function(){
+  // Push body content down so header doesn't overlap
+  const style = document.createElement('style');
+  style.textContent = 'body{ padding-top:62px !important; } .login-container, #app, main{ margin-top:62px; }';
+  document.head.appendChild(style);
+  
+  // Move existing header buttons into new header if they exist
+  setTimeout(()=>{
+    const oldHeader = document.querySelector('header');
+    const actions = document.getElementById('ice-header-actions');
+    if(oldHeader && actions){
+      // Move any buttons from old header
+      const btns = oldHeader.querySelectorAll('button');
+      btns.forEach(b=> actions.appendChild(b));
+    }
+    // Also move memBtn if created later
+    setInterval(()=>{
+      const mb = document.getElementById('memBtn');
+      const act = document.getElementById('ice-header-actions');
+      if(mb && act && mb.parentElement !== act){ act.appendChild(mb); }
+    },1000);
+  },800);
+})();
+</script>
+
+
 <div id="authOverlay">
   <div class="authCard">
     <div class="authLogo"><div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div><b>ICE CREAM DIGITAL</b></div>
@@ -1795,6 +1879,96 @@ document.getElementById('addUserBtn').onclick = async ()=>{
       HTMLCanvasElement.prototype.captureStream = function(){ return orig.call(this, 60); };
     }
   }catch(e){}
+})();
+</script>
+
+
+<style>
+#login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 28px;
+  text-align: center;
+}
+#login-logo-big {
+  width: 76px; height: 76px;
+  background: linear-gradient(135deg, #FFD60A 0%, #FF8A00 100%);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 44px;
+  box-shadow: 0 8px 24px rgba(255,214,10,0.35);
+  margin-bottom: 14px;
+}
+#login-title {
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 1px;
+  color: #fff;
+  text-transform: uppercase;
+}
+#login-subtitle {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #FFD60A;
+  font-weight: 800;
+  margin-top: 6px;
+}
+#login-tagline {
+  font-size: 12px;
+  color: #777;
+  margin-top: 8px;
+}
+</style>
+<script>
+(function(){
+  function addLoginHeader(){
+    const loginBox = document.querySelector('.login-box, [class*="login"], form');
+    // Try to find login container
+    const possible = document.querySelectorAll('div');
+    for(const div of possible){
+      const text = div.textContent || '';
+      if(text.includes('Iniciar') || text.includes('Usuario') || div.querySelector('input[type="password"]')){
+        // Check if already has our header
+        if(div.querySelector('#login-header')) return;
+        // Look for its parent that is centered
+        let container = div;
+        while(container && container.parentElement){
+          const style = window.getComputedStyle(container);
+          if(container.children.length <= 5 && container.querySelector('input')){
+            break;
+          }
+          container = container.parentElement;
+          if(container === document.body) break;
+        }
+        
+        const header = document.createElement('div');
+        header.id = 'login-header';
+        header.innerHTML = `
+          <div id="login-logo-big">🍦</div>
+          <div id="login-title">ICE CREAM DIGITAL</div>
+          <div id="login-subtitle">PRO EDITOR</div>
+          <div id="login-tagline">Editor de video profesional</div>
+        `;
+        
+        // Insert at beginning of container
+        if(container && container.firstChild){
+          container.insertBefore(header, container.firstChild);
+        }
+        return;
+      }
+    }
+  }
+  
+  // Run multiple times
+  setTimeout(addLoginHeader, 500);
+  setTimeout(addLoginHeader, 1500);
+  setTimeout(addLoginHeader, 3000);
+  setInterval(addLoginHeader, 5000);
+  
+  // Also inject directly into body if login screen is visible
+  const observer = new MutationObserver(()=> addLoginHeader());
+  observer.observe(document.body, {childList:true, subtree:true});
 })();
 </script>
 
