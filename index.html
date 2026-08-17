@@ -1786,9 +1786,9 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 
 
 <style>
-#custom-login-overlay{position:fixed;inset:0;z-index:9999999;background:#08080a;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:30px 20px;overflow-y:auto}
+#custom-login-overlay{position:fixed;inset:0;z-index:9998;background:#08080a;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:30px 20px;overflow-y:auto}
 #custom-login-overlay.hidden{display:none!important}
-#login-beta-badge{position:fixed;top:16px;right:16px;background:#FFD60A;color:#000;font-size:10px;font-weight:900;padding:6px 12px;border-radius:20px;z-index:10000000}
+#login-beta-badge{position:fixed;top:16px;right:16px;background:#FFD60A;color:#000;font-size:10px;font-weight:900;padding:6px 12px;border-radius:20px;z-index:10001}
 #login-brand{display:flex;flex-direction:column;align-items:center;margin:20px 0 18px 0}
 #login-brand-icon{width:72px;height:72px;background:linear-gradient(135deg,#FFD60A 0%,#FF8A00 100%);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:12px}
 #login-brand-title{font-weight:900;font-size:22px;color:#fff}
@@ -1807,6 +1807,12 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 .c-input{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:12px 14px;color:#fff;font-size:13px;margin-bottom:10px;outline:none}
 .c-input:focus{border-color:#FFD60A}
 .c-btn{width:100%;background:#FFD60A;color:#000;border:none;border-radius:10px;padding:12px;font-weight:900;font-size:13px;cursor:pointer;margin-top:6px}
+/* ADMIN FIX */
+#adminPanel{z-index:9999!important;position:fixed!important;inset:0!important;overflow-y:auto!important;background:#08080a!important;display:none}
+#adminPanel[style*="block"]{display:block!important}
+#admin-subs-helper{z-index:10000!important}
+#userChip{z-index:9999!important}
+header{z-index:9998!important}
 </style>
 
 <div id="custom-login-overlay">
@@ -1814,16 +1820,16 @@ document.getElementById('addUserBtn').onclick = async ()=>{
   <div id="login-brand"><div id="login-brand-icon">🍦</div><div id="login-brand-title">ICE CREAM DIGITAL</div><div id="login-brand-sub">PRO EDITOR • MODO BETA</div></div>
   <div id="login-tabs-custom"><div class="login-tab-custom active" data-tab="login">Iniciar sesión</div><div class="login-tab-custom" data-tab="precios">Precios</div></div>
   <div id="login-form-container">
-    <div style="color:#fff;font-weight:800;font-size:14px;margin-bottom:4px">Bienvenido de nuevo</div>
-    <div style="color:#666;font-size:11px;margin-bottom:14px">Usa tu usuario asignado</div>
-    <input id="c-loginUser" class="c-input" placeholder="Usuario" autocomplete="username">
-    <input id="c-loginPass" class="c-input" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <div style="color:#fff;font-weight:800;font-size:14px;margin-bottom:4px">Bienvenido</div>
+    <div style="color:#666;font-size:11px;margin-bottom:14px">Tus usuarios guardados siguen aquí</div>
+    <input id="c-loginUser" class="c-input" placeholder="Usuario (ej: Icecreamdigital)">
+    <input id="c-loginPass" class="c-input" type="password" placeholder="Contraseña">
     <button id="c-loginBtn" class="c-btn">ENTRAR AL EDITOR →</button>
     <div id="c-authMsg" style="margin-top:10px;font-size:12px;color:#ff6b6b;display:none"></div>
-    <div style="margin-top:10px;font-size:10px;color:#555;text-align:center" id="c-status">✅ Conectado a la nube - Multiusuario real</div>
+    <div style="margin-top:10px;font-size:10px;color:#555;text-align:center">✅ Nube activa - Usuarios en Supabase</div>
   </div>
   <div id="precios-panel-custom">
-    <div style="text-align:center"><h2 style="color:#fff;font-size:24px;font-weight:900;margin:0">Elige tu plan</h2><p style="color:#666;font-size:12px;margin-top:6px">100, 175 o 250 videos al mes • Descargas finales</p></div>
+    <div style="text-align:center"><h2 style="color:#fff;font-size:24px;font-weight:900;margin:0">Elige tu plan</h2><p style="color:#666;font-size:12px;margin-top:6px">100 • 175 • 250 videos/mes - Descargas finales</p></div>
     <div id="precios-grid-custom">
       <div class="precio-card-custom"><h3 style="color:#fff;margin:0">STARTER</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$30<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">100 videos / mes</div><div style="font-size:11px;color:#aaa;text-align:left;margin:12px 0;line-height:1.7">✓ 100 descargas finales<br>✓ 60fps fluido<br>✓ Sin marca de agua</div><button onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20STARTER%20$30','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">Comprar por WhatsApp</button></div>
       <div class="precio-card-custom popular"><h3 style="color:#fff;margin:0">PRO</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$50<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">175 videos / mes</div><div style="font-size:11px;color:#aaa;text-align:left;margin:12px 0;line-height:1.7">✓ 175 descargas finales<br>✓ 60fps + plantillas<br>✓ Soporte prioritario</div><button onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20PRO%20$50','_blank')" style="width:100%;background:#FFD60A;color:#000;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">Comprar por WhatsApp</button></div>
@@ -1833,10 +1839,9 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 </div>
 
 <script>
-// LOGIN INDEPENDIENTE QUE USA TUS MISMOS USUARIOS GUARDADOS
 (function(){
   const SUPABASE_URL = "https://gouzcooqqwflcggxnaqe.supabase.co";
-  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzA2NjMsImV4cCI6MjA3MDMwNjY2M30.Q6Z3KZxP3p4v3V5v6r7s8t9u0v1w2x3y4z5a6b7c8d9e0f";
+  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzA2NjMsImV4cCI6MjA3MDMwNjY2M30.Q6Z3KZxP3p4v3V5s8t9u0v1w2x3y4z5a6b7c8d9e0f";
   const ADMIN_USER = "Icecreamdigital";
   const ADMIN_PASS = "Ives2020.";
   const LS_USERS = "ic_allowed_users_v18";
@@ -1846,62 +1851,54 @@ document.getElementById('addUserBtn').onclick = async ()=>{
   
   async function loginLogic(username, password){
     const msgEl = document.getElementById('c-authMsg');
-    const showMsg = (t)=>{ msgEl.style.display='block'; msgEl.textContent=t; };
+    const showMsg = (t)=>{ msgEl.style.display='block'; msgEl.textContent=t; msgEl.style.color='#ff6b6b'; };
+    if(!username || !password){ showMsg('Ingresa usuario y contraseña'); return; }
     
-    // 1. Admin check
+    // Admin
     if(username===ADMIN_USER && password===ADMIN_PASS){
-      localStorage.setItem(LS_SESSION, JSON.stringify({username, isAdmin:true, time:Date.now()}));
+      localStorage.setItem(LS_SESSION, JSON.stringify({username, isAdmin:true, ts:Date.now()}));
       document.getElementById('custom-login-overlay').classList.add('hidden');
       const origOverlay=document.getElementById('authOverlay'); if(origOverlay) origOverlay.style.display='none';
-      const app=document.getElementById('app'); if(app) app.style.display='block';
-      // trigger original admin logic
-      setTimeout(()=>{ location.reload(); }, 200);
-      return true;
+      location.reload();
+      return;
     }
     
-    // 2. Supabase check
+    // Supabase users
     try{
       if(window.supabase){
         const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-        const {data, error} = await supa.from('users').select('*').eq('username', username).maybeSingle();
-        if(error) throw error;
+        const {data} = await supa.from('users').select('*').eq('username', username).maybeSingle();
         if(data){
-          if(data.password !== password){ showMsg('Contraseña incorrecta'); return false; }
-          // Check expiration
-          if(data.expires_at){
-            const exp = new Date(data.expires_at);
-            if(exp < new Date()){
-              showMsg('');
-              msgEl.innerHTML='⛔ <b>Suscripción expirada</b><br>Paga la suscripción<br><br><a href="https://wa.me/50496060657?text=Hola%20mi%20suscripcion%20expiro%20usuario:%20'+username+'" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:800;margin-top:6px">Renovar por WhatsApp</a>';
-              msgEl.style.display='block';
-              return false;
-            }
+          if(data.password !== password){ showMsg('Contraseña incorrecta'); return; }
+          if(data.expires_at && new Date(data.expires_at) < new Date()){
+            msgEl.innerHTML='⛔ <b>Suscripción expirada</b><br>Paga la suscripción<br><br><a href="https://wa.me/50496060657?text=Hola%20expiro%20usuario:%20'+username+'" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:800">Renovar por WhatsApp</a>';
+            msgEl.style.display='block'; return;
           }
-          // Success
-          localStorage.setItem(LS_SESSION, JSON.stringify({username, isAdmin:false, time:Date.now()}));
+          localStorage.setItem(LS_SESSION, JSON.stringify({username, isAdmin:false, ts:Date.now()}));
           document.getElementById('custom-login-overlay').classList.add('hidden');
-          const origOverlay=document.getElementById('authOverlay'); if(origOverlay) origOverlay.style.display='none';
-          const app=document.getElementById('app'); if(app) app.style.display='block';
-          setTimeout(()=>{ location.reload(); }, 200);
-          return true;
+          location.reload(); return;
+        }
+        // Try app_users table (old)
+        const {data: data2} = await supa.from('app_users').select('*').eq('username', username).maybeSingle();
+        if(data2){
+          if(data2.password !== password){ showMsg('Contraseña incorrecta'); return; }
+          localStorage.setItem(LS_SESSION, JSON.stringify({username, isAdmin:false, ts:Date.now()}));
+          document.getElementById('custom-login-overlay').classList.add('hidden');
+          location.reload(); return;
         }
       }
-    }catch(e){ console.log('supa error', e); }
+    }catch(e){ console.log(e); }
     
-    // 3. Local fallback
+    // Local fallback
     const localUsers = getLocalUsers();
-    const found = localUsers.find(u=> u.username===username && u.password===password);
+    const found = localUsers.find(u=> (u.user||u.username)===username && (u.pass||u.password)===password);
     if(found){
-      localStorage.setItem(LS_SESSION, JSON.stringify({username, isAdmin:false, time:Date.now()}));
+      localStorage.setItem(LS_SESSION, JSON.stringify({username, isAdmin:false, ts:Date.now()}));
       document.getElementById('custom-login-overlay').classList.add('hidden');
-      const origOverlay=document.getElementById('authOverlay'); if(origOverlay) origOverlay.style.display='none';
-      const app=document.getElementById('app'); if(app) app.style.display='block';
-      setTimeout(()=>{ location.reload(); }, 200);
-      return true;
+      location.reload(); return;
     }
     
-    showMsg('Usuario no encontrado. Verifica en Supabase');
-    return false;
+    showMsg('Usuario no encontrado. Revisa Supabase tabla users');
   }
   
   function setup(){
@@ -1910,9 +1907,8 @@ document.getElementById('addUserBtn').onclick = async ()=>{
     const pass=document.getElementById('c-loginPass');
     if(!btn) return;
     btn.onclick = ()=> loginLogic(user.value.trim(), pass.value.trim());
-    pass.addEventListener('keypress', (e)=>{ if(e.key==='Enter') loginLogic(user.value.trim(), pass.value.trim()); });
+    pass.addEventListener('keypress', e=>{ if(e.key==='Enter') loginLogic(user.value.trim(), pass.value.trim()); });
     
-    // tabs
     const tabs=document.querySelectorAll('.login-tab-custom');
     const formCont=document.getElementById('login-form-container');
     const precios=document.getElementById('precios-panel-custom');
@@ -1925,52 +1921,108 @@ document.getElementById('addUserBtn').onclick = async ()=>{
       };
     });
     
-    // If already logged, hide overlay
+    // If session exists, hide overlay
     try{
       const sess = JSON.parse(localStorage.getItem(LS_SESSION)||'null');
       if(sess && sess.username){
-        // Check if session still valid (not expired user)
         document.getElementById('custom-login-overlay').classList.add('hidden');
+        const origOverlay=document.getElementById('authOverlay'); if(origOverlay) origOverlay.style.display='none';
+      } else {
+        // No session, hide original overlay to show ours
+        const origOverlay=document.getElementById('authOverlay'); if(origOverlay) origOverlay.style.display='none';
       }
     }catch{}
-    
-    // Hide original overlay to avoid double login
-    const origOverlay=document.getElementById('authOverlay');
-    if(origOverlay){ origOverlay.style.display='none'; }
   }
   
-  setTimeout(setup, 500);
-  setTimeout(setup, 1500);
+  setTimeout(setup, 400);
+  setTimeout(setup, 1200);
 })();
 
-// ADMIN - RENOVAR SUSCRIPCION
-setInterval(()=>{
-  if(!document.getElementById('admin-subs-helper') && document.getElementById('app') && getComputedStyle(document.getElementById('app')).display!=='none'){
-    const sess = JSON.parse(localStorage.getItem('ic_session_v19')||'null');
-    if(sess && sess.isAdmin){
-      const helper=document.createElement('div');
-      helper.id='admin-subs-helper';
-      helper.style.cssText='position:fixed;bottom:20px;right:20px;background:#141415;border:1px solid #FFD60A;border-radius:14px;padding:14px;z-index:99999;width:280px;box-shadow:0 8px 24px rgba(0,0,0,0.5)';
-      helper.innerHTML='<div style="font-weight:900;color:#fff;font-size:12px;margin-bottom:8px">🕒 RENOVAR SUSCRIPCIÓN POR DÍAS</div><input id="renew-user" placeholder="Usuario a renovar" style="width:100%;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:8px;color:#fff;margin-bottom:6px;font-size:12px"><select id="renew-plan" style="width:100%;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:8px;color:#fff;margin-bottom:6px;font-size:12px"><option value="starter">Starter $30 - 100v</option><option value="pro" selected>Pro $50 - 175v</option><option value="agency">Agency $60 - 250v</option></select><input id="renew-days" type="number" value="30" style="width:100%;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:8px;color:#fff;margin-bottom:8px;font-size:12px" placeholder="Días (ej: 30)"><button id="renew-btn" style="width:100%;background:#FFD60A;color:#000;border:none;padding:9px;border-radius:8px;font-weight:900;font-size:12px;cursor:pointer">RENOVAR + ASIGNAR DÍAS</button><div id="renew-msg" style="font-size:10px;color:#888;margin-top:6px"></div><div style="font-size:9px;color:#555;margin-top:6px">Asigna días y se calculará expiración automática. Muestra días restantes.</div>';
-      document.body.appendChild(helper);
-      document.getElementById('renew-btn').onclick=async()=>{
-        const u=document.getElementById('renew-user').value.trim();
-        const d=parseInt(document.getElementById('renew-days').value)||30;
-        const p=document.getElementById('renew-plan').value;
-        if(!u){alert('Pon usuario');return;}
-        const exp=new Date(); exp.setDate(exp.getDate()+d);
-        try{
-          const supa = window.supabase.createClient("https://gouzcooqqwflcggxnaqe.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzA2NjMsImV4cCI6MjA3MDMwNjY2M30.Q6Z3KZxP3p4v3V5v5s8t9u0v1w2x3y4z5a6b7c8d9e0f");
-          const {error}=await supa.from('users').update({plan:p,plan_days:d,expires_at:exp.toISOString(),is_active:true}).eq('username',u);
-          if(error) throw error;
-          document.getElementById('renew-msg').innerHTML='✅ Renovado: <b>'+d+' días</b> hasta '+exp.toLocaleDateString()+'<br><small>Recarga la lista</small>';
-          // Refresh admin list if exists
-          const rb=document.getElementById('refreshBtn'); if(rb) rb.click();
-        }catch(e){document.getElementById('renew-msg').textContent='❌ '+e.message;}
-      };
+// ADMIN - RENOVAR + BOTONES VISIBLES
+(function(){
+  function ensureAdminButtons(){
+    const adminPanel = document.getElementById('adminPanel');
+    if(!adminPanel) return;
+    // Make close/logout always work
+    const closeBtn = document.getElementById('closeAdmin');
+    const logoutBtn = document.getElementById('logoutAdmin');
+    const goAdminBtn = document.getElementById('goAdmin');
+    const logoutBtn2 = document.getElementById('logoutBtn');
+    
+    if(closeBtn && !closeBtn.dataset.fixed){
+      closeBtn.dataset.fixed='1';
+      closeBtn.onclick = ()=>{ adminPanel.style.display='none'; };
+    }
+    if(logoutBtn && !logoutBtn.dataset.fixed){
+      logoutBtn.dataset.fixed='1';
+      logoutBtn.onclick = ()=>{ localStorage.removeItem('ic_session_v19'); location.reload(); };
+    }
+    if(goAdminBtn && !goAdminBtn.dataset.fixed){
+      goAdminBtn.dataset.fixed='1';
+      goAdminBtn.addEventListener('click', ()=>{
+        adminPanel.style.display='block';
+        adminPanel.style.zIndex='10002';
+        if(window.renderUsers) window.renderUsers();
+      });
+    }
+    if(logoutBtn2 && !logoutBtn2.dataset.fixed){
+      logoutBtn2.dataset.fixed='1';
+      logoutBtn2.onclick = ()=>{ localStorage.removeItem('ic_session_v19'); location.reload(); };
     }
   }
-},2000);
+  
+  function adminHelper(){
+    if(document.getElementById('admin-subs-helper')) return;
+    const app=document.getElementById('app');
+    if(!app || getComputedStyle(app).display==='none') return;
+    try{
+      const sess=JSON.parse(localStorage.getItem('ic_session_v19')||'null');
+      if(!sess || !sess.isAdmin) return;
+    }catch{ return; }
+    
+    const helper=document.createElement('div');
+    helper.id='admin-subs-helper';
+    helper.style.cssText='position:fixed;bottom:20px;right:20px;background:#141415;border:2px solid #FFD60A;border-radius:14px;padding:14px;z-index:10003;width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.6)';
+    helper.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-weight:900;color:#fff;font-size:12px">🕒 GESTIONAR SUSCRIPCIÓN</div>
+        <div style="cursor:pointer;color:#666" onclick="this.parentElement.parentElement.style.display='none'">✕</div>
+      </div>
+      <input id="renew-user" placeholder="Usuario (ej: cliente1)" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:8px;color:#fff;margin-bottom:6px;font-size:12px">
+      <select id="renew-plan" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:8px;color:#fff;margin-bottom:6px;font-size:12px">
+        <option value="starter">STARTER $30 - 100 videos</option>
+        <option value="pro" selected>PRO $50 - 175 videos</option>
+        <option value="agency">AGENCY $60 - 250 videos</option>
+      </select>
+      <input id="renew-days" type="number" value="30" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:8px;color:#fff;margin-bottom:8px;font-size:12px" placeholder="Días">
+      <button id="renew-btn" style="width:100%;background:#FFD60A;color:#000;border:none;padding:10px;border-radius:8px;font-weight:900;font-size:12px;cursor:pointer">ASIGNAR DÍAS + RENOVAR</button>
+      <div id="renew-msg" style="font-size:11px;color:#888;margin-top:8px;min-height:16px"></div>
+      <div style="font-size:9px;color:#555;margin-top:6px">• Asigna plan y días, calcula expiración automática<br>• Si expira muestra "Paga la suscripción"<br>• Días restantes visibles en lista</div>
+    `;
+    document.body.appendChild(helper);
+    document.getElementById('renew-btn').onclick=async()=>{
+      const u=document.getElementById('renew-user').value.trim();
+      const d=parseInt(document.getElementById('renew-days').value)||30;
+      const p=document.getElementById('renew-plan').value;
+      if(!u){alert('Escribe usuario');return;}
+      const exp=new Date(); exp.setDate(exp.getDate()+d);
+      try{
+        const supa = window.supabase.createClient("https://gouzcooqqwflcggxnaqe.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzA2NjMsImV4cCI6MjA3MDMwNjY2M30.Q6Z3KZxP3p4v3V5s8t9u0v1w2x3y4z5a6b7c8d9e0f");
+        // Try users table
+        let {error} = await supa.from('users').update({plan:p,plan_days:d,expires_at:exp.toISOString(),is_active:true}).eq('username',u);
+        if(error){
+          // Try app_users
+          const {error: error2} = await supa.from('app_users').update({plan:p,expires_at:exp.toISOString()}).eq('username',u);
+          if(error2) throw error;
+        }
+        document.getElementById('renew-msg').innerHTML='✅ <b>'+u+'</b> renovado<br>'+d+' días hasta '+exp.toLocaleDateString()+'<br><small style="color:#4ade80">Recarga la lista con ↻</small>';
+        const rb=document.getElementById('refreshBtn'); if(rb) rb.click();
+      }catch(e){document.getElementById('renew-msg').textContent='❌ '+e.message;}
+    };
+  }
+  
+  setInterval(()=>{ ensureAdminButtons(); adminHelper(); }, 1000);
+})();
 </script>
 
 </body></html>
