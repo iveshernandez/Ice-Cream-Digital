@@ -2063,4 +2063,58 @@ header{z-index:9998!important}
 })();
 </script>
 
+
+<script>
+window.IC_deleteUser = async function(id, username){
+  if(username.toLowerCase()==='icecreamdigital'){ alert('No puedes borrar admin'); return; }
+  if(!confirm('¿Borrar a '+username+'? Esta acción no se puede deshacer.')) return;
+  try{
+    const supa=window.supabase.createClient("https://gouzcooqqwflcggxnaqe.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzA2NjMsImV4cCI6MjA3MDMwNjY2M30.Q6Z3KZxP3p4v3V5s8t9u0v1w2x3y4z5a6b7c8d9e0f");
+    let {error}=await supa.from('users').delete().eq('username',username);
+    if(error){ 
+      let {error:e2}=await supa.from('users').delete().eq('id',id);
+      if(e2){ await supa.from('app_users').delete().eq('username',username); }
+    }
+    alert('✅ Usuario '+username+' borrado');
+    const rb=document.getElementById('refreshBtn'); if(rb) rb.click();
+    setTimeout(()=>location.reload(),600);
+  }catch(e){alert('Error: '+e.message);}
+};
+window.renderUsersPro = async function(){
+  try{
+    const supa=window.supabase.createClient("https://gouzcooqqwflcggxnaqe.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzA2NjMsImV4cCI6MjA3MDMwNjY2M30.Q6Z3KZxP3p4v3V5s8t9u0v1w2x3y4z5a6b7c8d9e0f");
+    const list=document.getElementById('usersList');
+    if(!list) return;
+    list.innerHTML='<div style="padding:12px;color:#666">Cargando usuarios...</div>';
+    const {data, error}=await supa.from('users').select('*').order('created_at',{ascending:false});
+    let users=data||[];
+    if(!users || users.length===0){
+      const {data:d2}=await supa.from('app_users').select('*');
+      if(d2) users=d2.map(x=>({username:x.username,id:x.id,expires_at:x.expires_at,plan:x.plan,plan_days:30,created_at:x.created_at}));
+    }
+    if(users.length===0){ list.innerHTML='<div style="padding:12px;color:#666">No hay usuarios</div>'; return; }
+    list.innerHTML='';
+    users.forEach(u=>{
+      const exp=u.expires_at?new Date(u.expires_at):null;
+      const diff=exp?Math.ceil((exp-new Date())/86400000):null;
+      let badge='<span style="color:#666;font-size:10px">Sin fecha</span>';
+      if(diff!==null){
+        if(diff<=0) badge='<span style="background:#2a1111;color:#ff6b6b;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">EXPIRADO</span>';
+        else if(diff<=3) badge='<span style="background:#2a2211;color:#ffb020;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días ⚠️</span>';
+        else badge='<span style="background:#0f2a15;color:#4ade80;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días</span>';
+      }
+      const row=document.createElement('div');
+      row.style.cssText='display:grid;grid-template-columns:1.2fr 0.7fr 1fr;gap:10px;padding:14px;border-bottom:1px solid #1e1e22;align-items:center';
+      row.innerHTML='<div><b style="color:#fff;font-size:13px">'+u.username+'</b><br><span style="color:#888;font-size:10px">'+(u.plan||'pro')+' • '+(u.plan_days||30)+'d • '+(exp?exp.toLocaleDateString():'sin fecha')+'</span></div><div>'+badge+'</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button onclick="const d=prompt(\'Días para '+u.username+':\',\'30\'); if(d){const ex=new Date(); ex.setDate(ex.getDate()+parseInt(d)); window.supabase.createClient(\'https://gouzcooqqwflcggxnaqe.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3MzA2NjMsImV4cCI6MjA3MDMwNjY2M30.Q6Z3KZxP3p4v3V5s8t9u0v1w2x3y4z5a6b7c8d9e0f\').from(\'users\').update({expires_at:ex.toISOString(),plan_days:parseInt(d)}).eq(\'username\',\''+u.username+'\').then(()=>{alert(\'Renovado\'); window.renderUsersPro();});}" style="background:#1e1e22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px">Renovar</button><button onclick="window.IC_deleteUser(\''+u.id+'\',\''+u.username+'\')" style="background:#2a1111;border:1px solid #4a1a1a;color:#ff6b6b;padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:900;font-size:11px">🗑 Borrar</button></div>';
+      list.appendChild(row);
+    });
+  }catch(e){ console.log(e); }
+};
+setInterval(()=>{
+  const go=document.getElementById('goAdmin');
+  if(go && !go.dataset.patched2){ go.dataset.patched2='1'; go.addEventListener('click',()=>{ setTimeout(()=>window.renderUsersPro(),600); }); }
+  const ref=document.getElementById('refreshBtn');
+  if(ref && !ref.dataset.patched2){ ref.dataset.patched2='1'; ref.onclick=()=>window.renderUsersPro(); }
+},1000);
+</script>
 </body></html>
