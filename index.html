@@ -2025,4 +2025,42 @@ header{z-index:9998!important}
 })();
 </script>
 
+
+<style>
+#user-session-bar{position:fixed;top:0;right:0;z-index:10005;background:#111;border:1px solid #222;border-top:0;border-right:0;padding:8px 12px;border-radius:0 0 0 12px;display:none;align-items:center;gap:10px;font-size:11px;color:#888}
+#user-session-bar b{color:#fff}
+#user-session-bar button{background:#FFD60A;color:#000;border:none;padding:6px 12px;border-radius:8px;font-weight:900;cursor:pointer;font-size:11px}
+#adminPanel{z-index:10002!important}
+</style>
+<div id="user-session-bar"><span>👤 <b id="sess-user">Usuario</b> <span id="sess-days" style="color:#4ade80;margin-left:6px"></span></span><button id="sess-logout">Salir</button></div>
+<script>
+(function(){
+  function showBar(){
+    try{
+      const sess=JSON.parse(localStorage.getItem('ic_session_v19')||'null');
+      if(!sess||!sess.username) return;
+      const bar=document.getElementById('user-session-bar');
+      const nameEl=document.getElementById('sess-user');
+      const daysEl=document.getElementById('sess-days');
+      const btn=document.getElementById('sess-logout');
+      bar.style.display='flex';
+      nameEl.textContent=sess.username+(sess.isAdmin?' (Admin)':'');
+      if(sess.expires_at){
+        const diff=Math.ceil((new Date(sess.expires_at)-new Date())/86400000);
+        if(diff>0) daysEl.textContent='• '+diff+' días';
+        else daysEl.textContent='• EXPIRADO';
+      }
+      btn.onclick=()=>{localStorage.removeItem('ic_session_v19');location.reload();};
+      // fix admin buttons
+      const ca=document.getElementById('closeAdmin'); if(ca) ca.onclick=()=>{document.getElementById('adminPanel').style.display='none';};
+      const la=document.getElementById('logoutAdmin'); if(la) la.onclick=()=>{localStorage.removeItem('ic_session_v19');location.reload();};
+      const ga=document.getElementById('goAdmin'); if(ga) ga.onclick=()=>{document.getElementById('adminPanel').style.display='block';};
+      const lo=document.getElementById('logoutBtn'); if(lo) lo.onclick=()=>{localStorage.removeItem('ic_session_v19');location.reload();};
+    }catch(e){}
+  }
+  setInterval(showBar,1000);
+  setTimeout(showBar,500);
+})();
+</script>
+
 </body></html>
