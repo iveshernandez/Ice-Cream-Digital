@@ -1798,4 +1798,374 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 })();
 </script>
 
+
+<style>
+#custom-login-overlay{position:fixed;inset:0;z-index:9998;background:#08080a;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:30px 20px;overflow-y:auto}
+#custom-login-overlay.hidden{display:none!important}
+#login-beta-badge{position:fixed;top:16px;right:16px;background:#FFD60A;color:#000;font-size:10px;font-weight:900;padding:6px 12px;border-radius:20px;z-index:10001}
+#login-brand{display:flex;flex-direction:column;align-items:center;margin:20px 0 18px 0}
+#login-brand-icon{width:72px;height:72px;background:linear-gradient(135deg,#FFD60A 0%,#FF8A00 100%);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:12px}
+#login-brand-title{font-weight:900;font-size:22px;color:#fff}
+#login-brand-sub{font-size:11px;letter-spacing:3px;color:#FFD60A;font-weight:800;margin-top:4px}
+#login-tabs-custom{display:flex;gap:10px;margin-bottom:20px}
+.login-tab-custom{padding:10px 22px;border-radius:22px;font-size:13px;font-weight:800;cursor:pointer;border:1px solid #222;background:#111;color:#888}
+.login-tab-custom.active{background:#FFD60A;color:#000;border-color:#FFD60A}
+#login-form-container{width:100%;max-width:380px;background:#141415;border:1px solid #222;border-radius:20px;padding:26px}
+#precios-panel-custom{display:none;width:100%;max-width:960px}
+#precios-panel-custom.show{display:block}
+#precios-grid-custom{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.precio-card-custom{background:#141415;border:1px solid #222;border-radius:18px;padding:22px;text-align:center}
+.precio-card-custom.popular{border-color:#FFD60A;background:#1a180f;transform:scale(1.05);position:relative}
+.precio-card-custom.popular::before{content:'MÁS POPULAR';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#FFD60A;color:#000;font-size:9px;font-weight:900;padding:4px 10px;border-radius:20px}
+@media(max-width:850px){#precios-grid-custom{grid-template-columns:1fr}.precio-card-custom.popular{transform:none}}
+.c-input{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:12px 14px;color:#fff;font-size:13px;margin-bottom:10px;outline:none}
+.c-input:focus{border-color:#FFD60A}
+.c-btn{width:100%;background:#FFD60A;color:#000;border:none;border-radius:10px;padding:12px;font-weight:900;font-size:13px;cursor:pointer;margin-top:6px}
+#adminPanel{z-index:10010!important;position:fixed!important;inset:0!important;background:#08080a!important;overflow-y:auto!important;padding:20px!important;display:none}
+#user-session-bar{position:fixed;top:10px;right:10px;z-index:10011;background:#111;border:1px solid #333;padding:8px 14px;border-radius:10px;display:none;align-items:center;gap:12px;font-size:12px;color:#aaa}
+#user-session-bar b{color:#fff}
+#user-session-bar button{background:#FFD60A;color:#000;border:none;padding:6px 14px;border-radius:8px;font-weight:900;cursor:pointer}
+</style>
+
+<div id="custom-login-overlay">
+  <div id="login-beta-badge">MODO BETA</div>
+  <div id="login-brand"><div id="login-brand-icon">🍦</div><div id="login-brand-title">ICE CREAM DIGITAL</div><div id="login-brand-sub">PRO EDITOR • MODO BETA</div></div>
+  <div id="login-tabs-custom"><div class="login-tab-custom active" data-tab="login">Iniciar sesión</div><div class="login-tab-custom" data-tab="precios">Precios</div></div>
+  <div id="login-form-container">
+    <div style="color:#fff;font-weight:800;font-size:14px;margin-bottom:4px">Bienvenido</div>
+    <div style="color:#666;font-size:11px;margin-bottom:14px">Panel admin + usuarios intactos</div>
+    <input id="c-loginUser" class="c-input" placeholder="Usuario">
+    <input id="c-loginPass" class="c-input" type="password" placeholder="Contraseña">
+    <button id="c-loginBtn" class="c-btn">ENTRAR AL EDITOR →</button>
+    <div id="c-authMsg" style="margin-top:10px;font-size:12px;color:#ff6b6b;display:none"></div>
+  </div>
+  <div id="precios-panel-custom">
+    <div style="text-align:center"><h2 style="color:#fff;font-size:24px;font-weight:900;margin:0">Elige tu plan</h2><p style="color:#666;font-size:12px;margin-top:6px">WhatsApp: +504 9606-0657</p></div>
+    <div id="precios-grid-custom">
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">STARTER</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$30<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">100 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 100 descargas<br>✓ 60fps fluido</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20STARTER%20$30','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">WhatsApp</button></div>
+      <div class="precio-card-custom popular"><h3 style="color:#fff;margin:0">PRO</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$50<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">175 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 175 descargas<br>✓ Plantillas PRO</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20PRO%20$50','_blank')" style="width:100%;background:#FFD60A;color:#000;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">WhatsApp</button></div>
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">AGENCY</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$60<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">250 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 250 descargas<br>✓ VIP 24/7</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20AGENCY%20$60','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">WhatsApp</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="user-session-bar"><span>👤 <b id="sess-user"></b> <span id="sess-days" style="color:#4ade80;margin-left:6px"></span></span><button id="sess-logout">Salir</button></div>
+
+<script>
+(function(){
+  const SUPABASE_URL = "https://gouzcooqqwflcggxnaqe.supabase.co";
+  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc";
+  const ADMIN_USER = "Icecreamdigital";
+  const LS_SESSION = "ic_session_v19";
+
+  async function doLogin(u,p){
+    const msg=document.getElementById('c-authMsg');
+    const show=t=>{msg.style.display='block';msg.textContent=t;};
+    if(!u||!p){show('Usuario y contraseña');return;}
+    if(u===ADMIN_USER && p==="Ives2020."){
+      localStorage.setItem(LS_SESSION, JSON.stringify({username:u,isAdmin:true,ts:Date.now()}));
+      location.reload();return;
+    }
+    try{
+      const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+      let {data}=await supa.from('users').select('*').eq('username',u).maybeSingle();
+      if(!data){ let {data:d2}=await supa.from('app_users').select('*').eq('username',u).maybeSingle(); data=d2; }
+      if(data){
+        if(data.password!==p){show('Contraseña incorrecta');return;}
+        if(data.expires_at && new Date(data.expires_at)<new Date() && u.toLowerCase()!==ADMIN_USER.toLowerCase()){
+          msg.innerHTML='⛔ <b>Expirado</b> - Paga suscripción<br><a href="https://wa.me/50496060657?text=Renovar%20'+u+'" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;margin-top:6px">Renovar WhatsApp</a>';
+          msg.style.display='block';return;
+        }
+        localStorage.setItem(LS_SESSION, JSON.stringify({username:u,isAdmin:false,ts:Date.now(),expires_at:data.expires_at||null}));
+        location.reload();return;
+      }
+    }catch(e){console.log(e);}
+    show('Usuario no encontrado');
+  }
+
+  function initLogin(){
+    const btn=document.getElementById('c-loginBtn');
+    const user=document.getElementById('c-loginUser');
+    const pass=document.getElementById('c-loginPass');
+    if(btn && !btn.dataset.ok){
+      btn.dataset.ok='1';
+      btn.onclick=()=>doLogin(user.value.trim(),pass.value.trim());
+      pass.addEventListener('keypress',e=>{if(e.key==='Enter') doLogin(user.value.trim(),pass.value.trim());});
+    }
+    document.querySelectorAll('.login-tab-custom').forEach(tab=>{
+      if(tab.dataset.ok) return; tab.dataset.ok='1';
+      tab.onclick=()=>{
+        document.querySelectorAll('.login-tab-custom').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        const formCont=document.getElementById('login-form-container');
+        const precios=document.getElementById('precios-panel-custom');
+        if(tab.dataset.tab==='precios'){formCont.style.display='none';precios.classList.add('show');}
+        else{formCont.style.display='block';precios.classList.remove('show');}
+      };
+    });
+    try{
+      const sess=JSON.parse(localStorage.getItem(LS_SESSION)||'null');
+      if(sess && sess.username){
+        document.getElementById('custom-login-overlay').classList.add('hidden');
+        document.getElementById('authOverlay').style.display='none';
+      }else{
+        document.getElementById('authOverlay').style.display='none';
+      }
+    }catch{}
+  }
+
+  // ADMIN - una sola funcion que funciona
+  window.renderUsers = async function(){
+    const list=document.getElementById('usersList');
+    if(!list) return;
+    list.innerHTML='<div style="padding:20px;color:#888;text-align:center">Cargando usuarios...</div>';
+    try{
+      const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+      let {data} = await supa.from('users').select('*').order('created_at',{ascending:false});
+      let users=data||[];
+      if(users.length===0){
+        let {data:d2}=await supa.from('app_users').select('*').order('created_at',{ascending:false});
+        if(d2) users=d2.map(x=>({username:x.username||x.user,id:x.id,expires_at:x.expires_at,plan:x.plan||'pro',plan_days:30,password:x.password,created_at:x.created_at}));
+      }
+      if(users.length===0){ list.innerHTML='<div style="padding:20px;color:#666">No hay usuarios</div>'; return; }
+      list.innerHTML='';
+      users.forEach(u=>{
+        if((u.username||'').toLowerCase()===ADMIN_USER.toLowerCase()) return; // no mostrar admin en lista
+        const exp=u.expires_at?new Date(u.expires_at):null;
+        const now=new Date();
+        let badge='<span style="color:#666;font-size:10px">Sin fecha</span>';
+        let txt='';
+        if(exp){
+          const diff=Math.ceil((exp-now)/86400000);
+          if(diff<=0){ badge='<span style="background:#2a1111;color:#ff6b6b;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">EXPIRADO</span>'; txt='Expiró '+exp.toLocaleDateString(); }
+          else if(diff<=3){ badge='<span style="background:#2a2211;color:#ffb020;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días ⚠️</span>'; txt='Expira '+exp.toLocaleDateString(); }
+          else { badge='<span style="background:#0f2a15;color:#4ade80;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días</span>'; txt='Expira '+exp.toLocaleDateString(); }
+        }
+        const row=document.createElement('div');
+        row.style.cssText='display:grid;grid-template-columns:1.2fr 0.8fr 1.2fr;gap:12px;padding:16px;border:1px solid #222;border-radius:12px;background:#141415;margin-bottom:10px;align-items:center';
+        const safeName=u.username.replace(/'/g,"\'");
+        row.innerHTML='<div><b style="color:#fff;font-size:13px">'+u.username+'</b><br><span style="color:#888;font-size:10px">'+(u.plan||'pro')+' • '+(u.plan_days||30)+'d</span><br><span style="color:#666;font-size:10px">'+txt+'</span></div><div>'+badge+'</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button onclick="const np=prompt(\'Nueva clave para '+safeName+':\'); if(np&&np.trim().length>=3){ window.supabase.createClient(\'https://gouzcooqqwflcggxnaqe.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc\').from(\'users\').update({password:np.trim()}).eq(\'username\',\''+safeName+'\').then(()=>{alert(\'Clave actualizada\');}); }" style="background:#1e1e22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px">✏️ Clave</button><button onclick="const d=prompt(\'Días para '+safeName+':\',\'30\'); if(d){const ex=new Date(); ex.setDate(ex.getDate()+parseInt(d)); window.supabase.createClient(\'https://gouzcooqqwflcggxnaqe.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc\').from(\'users\').update({expires_at:ex.toISOString(),plan_days:parseInt(d),is_active:true}).eq(\'username\',\''+safeName+'\').then(()=>{alert(\'Renovado\'); window.renderUsers();});}" style="background:#1e1e22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px">Renovar</button><button onclick="if(confirm(\'¿Borrar a '+safeName+'?\')){ window.supabase.createClient(\'https://gouzcooqqwflcggxnaqe.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc\').from(\'users\').delete().eq(\'username\',\''+safeName+'\').then(()=>{alert(\'Borrado\'); window.renderUsers();}); }" style="background:#2a1111;border:1px solid #4a1a1a;color:#ff6b6b;padding:6px 10px;border-radius:8px;cursor:pointer;font-weight:900;font-size:11px">🗑 Borrar</button></div>';
+        list.appendChild(row);
+      });
+    }catch(e){ list.innerHTML='<div style="color:#ff6b6b">Error: '+e.message+'</div>'; }
+  };
+
+  function fixAdmin(){
+    const panel=document.getElementById('adminPanel');
+    const go=document.getElementById('goAdmin');
+    const close=document.getElementById('closeAdmin');
+    const logoutA=document.getElementById('logoutAdmin');
+    const logout=document.getElementById('logoutBtn');
+    const refresh=document.getElementById('refreshBtn');
+    const add=document.getElementById('addUserBtn');
+    if(go && !go.dataset.f){ go.dataset.f='1'; go.addEventListener('click',()=>{ panel.style.display='block'; setTimeout(()=>window.renderUsers(),300); }); }
+    if(close && !close.dataset.f){ close.dataset.f='1'; close.onclick=()=>panel.style.display='none'; }
+    if(logoutA && !logoutA.dataset.f){ logoutA.dataset.f='1'; logoutA.onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();}; }
+    if(logout && !logout.dataset.f){ logout.dataset.f='1'; logout.onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();}; }
+    if(refresh && !refresh.dataset.f){ refresh.dataset.f='1'; refresh.onclick=()=>window.renderUsers(); }
+    if(add && !add.dataset.f){
+      add.dataset.f='1';
+      add.onclick=async()=>{
+        const u=document.getElementById('newUser').value.trim();
+        const p=document.getElementById('newPass').value.trim();
+        if(!u||!p){alert('Usuario y clave');return;}
+        try{
+          const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+          const ex=new Date(); ex.setDate(ex.getDate()+30);
+          const {error}=await supa.from('users').insert({username:u,password:p,plan:'pro',plan_days:30,expires_at:ex.toISOString(),is_active:true});
+          if(error) throw error;
+          document.getElementById('newUser').value=''; document.getElementById('newPass').value='';
+          window.renderUsers();
+        }catch(e){alert(e.message);}
+      };
+    }
+    try{
+      const sess=JSON.parse(localStorage.getItem(LS_SESSION)||'null');
+      if(sess && sess.username){
+        const bar=document.getElementById('user-session-bar');
+        if(bar){
+          bar.style.display='flex';
+          document.getElementById('sess-user').textContent=sess.username+(sess.isAdmin?' (Admin)':'');
+          const daysEl=document.getElementById('sess-days');
+          if(sess.isAdmin){ daysEl.textContent='ILIMITADO ♾️'; daysEl.style.color='#FFD60A'; }
+          else if(sess.expires_at){
+            const diff=Math.ceil((new Date(sess.expires_at)-new Date())/86400000);
+            daysEl.textContent=diff>0?diff+' días':'EXPIRADO';
+          }
+          document.getElementById('sess-logout').onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();};
+        }
+      }
+    }catch{}
+  }
+
+  setInterval(()=>{initLogin(); fixAdmin();},1000);
+  setTimeout(()=>{initLogin(); fixAdmin();},400);
+})();
+</script>
+
+
+<script>
+(function(){
+  function ensureAppAndAdmin(){
+    try{
+      const sess=JSON.parse(localStorage.getItem('ic_session_v19')||'null');
+      if(!sess || !sess.username) return;
+      const app=document.getElementById('app');
+      if(app && getComputedStyle(app).display==='none'){
+        app.style.display='block';
+      }
+      // If admin and goAdmin not visible, create floating button
+      if(sess.isAdmin){
+        let fab=document.getElementById('admin-fab');
+        if(!fab){
+          fab=document.createElement('button');
+          fab.id='admin-fab';
+          fab.textContent='⚙️ Panel Admin';
+          fab.style.cssText='position:fixed;bottom:20px;left:20px;z-index:10012;background:#FFD60A;color:#000;border:none;padding:12px 18px;border-radius:12px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3)';
+          document.body.appendChild(fab);
+          fab.onclick=()=>{
+            const panel=document.getElementById('adminPanel');
+            if(panel){
+              panel.style.display='block';
+              panel.style.position='fixed';
+              panel.style.inset='0';
+              panel.style.zIndex='10010';
+              panel.style.background='#08080a';
+              panel.style.overflowY='auto';
+              panel.style.padding='20px';
+              if(window.renderUsers) window.renderUsers();
+            }
+          };
+        }
+      }
+    }catch(e){}
+  }
+  setInterval(ensureAppAndAdmin,1000);
+  setTimeout(ensureAppAndAdmin,500);
+})();
+</script>
+
+
+<style>
+#renew-modal{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;padding:20px}
+#renew-modal.show{display:flex}
+#renew-modal-content{background:#141415;border:2px solid #FFD60A;border-radius:18px;padding:24px;width:100%;max-width:400px}
+</style>
+<div id="renew-modal">
+  <div id="renew-modal-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <b style="color:#fff;font-size:16px">🔄 Renovar suscripción</b>
+      <span onclick="document.getElementById('renew-modal').classList.remove('show')" style="color:#666;cursor:pointer;font-size:20px">✕</span>
+    </div>
+    <div id="renew-modal-info" style="background:#0a0a0a;border:1px solid #222;border-radius:12px;padding:14px;margin-bottom:14px;font-size:12px;color:#aaa;line-height:1.6"></div>
+    <label style="color:#888;font-size:11px">Nuevo plan</label>
+    <select id="renew-modal-plan" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:10px;padding:10px;color:#fff;margin:6px 0 12px 0">
+      <option value="starter">STARTER $30 - 100 videos/mes</option>
+      <option value="pro" selected>PRO $50 - 175 videos/mes</option>
+      <option value="agency">AGENCY $60 - 250 videos/mes</option>
+    </select>
+    <label style="color:#888;font-size:11px">Días a asignar</label>
+    <input id="renew-modal-days" type="number" value="30" min="1" max="365" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:10px;padding:10px;color:#fff;margin:6px 0 12px 0">
+    <div id="renew-modal-preview" style="background:#0f2a15;border:1px solid #1a4a22;border-radius:10px;padding:10px;color:#4ade80;font-size:11px;text-align:center;margin-bottom:14px"></div>
+    <button id="renew-modal-btn" style="width:100%;background:#FFD60A;color:#000;border:none;padding:12px;border-radius:10px;font-weight:900;cursor:pointer">Confirmar renovación</button>
+    <div id="renew-modal-msg" style="font-size:11px;color:#888;margin-top:10px;text-align:center"></div>
+  </div>
+</div>
+<script>
+window.IC_renew = function(username){
+  const modal=document.getElementById('renew-modal');
+  const info=document.getElementById('renew-modal-info');
+  const preview=document.getElementById('renew-modal-preview');
+  const planSel=document.getElementById('renew-modal-plan');
+  const daysInput=document.getElementById('renew-modal-days');
+  const btn=document.getElementById('renew-modal-btn');
+  const msg=document.getElementById('renew-modal-msg');
+  
+  // Find user data from list
+  (async()=>{
+    try{
+      const supa=window.supabase.createClient("https://gouzcooqqwflcggxnaqe.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc");
+      let {data} = await supa.from('users').select('*').eq('username',username).maybeSingle();
+      if(!data){
+        let {data:d2}=await supa.from('app_users').select('*').eq('username',username).maybeSingle();
+        data=d2;
+      }
+      const currentPlan = data ? (data.plan||'pro') : 'pro';
+      const exp = data && data.expires_at ? new Date(data.expires_at) : null;
+      const now = new Date();
+      let daysLeft = exp ? Math.ceil((exp-now)/86400000) : 0;
+      let daysText = exp ? (daysLeft<=0 ? 'EXPIRADO hace '+Math.abs(daysLeft)+' días' : daysLeft+' días restantes') : 'Sin fecha de expiración';
+      let expText = exp ? exp.toLocaleDateString()+' '+exp.toLocaleTimeString() : 'No definida';
+      
+      const planNames = {starter:'STARTER $30 - 100 videos', pro:'PRO $50 - 175 videos', agency:'AGENCY $60 - 250 videos'};
+      
+      info.innerHTML = `
+        <div style="color:#fff;font-weight:800;font-size:13px;margin-bottom:6px">👤 ${username}</div>
+        <div>📦 Plan actual: <b style="color:#FFD60A">${planNames[currentPlan]||currentPlan}</b></div>
+        <div>⏳ Estado: <b style="color:${daysLeft<=0?'#ff6b6b':daysLeft<=3?'#ffb020':'#4ade80'}">${daysText}</b></div>
+        <div>📅 Expira: ${expText}</div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid #222">
+          <div style="color:#666;font-size:10px">Contador:</div>
+          <div id="renew-counter" style="color:#fff;font-weight:900;font-size:14px">${daysLeft>0 ? '⏰ '+daysLeft+'d '+Math.floor((exp-now)/3600000%24)+'h restantes' : '⛔ EXPIRADO'}</div>
+        </div>
+      `;
+      
+      // Set current plan in selector
+      planSel.value = currentPlan;
+      
+      function updatePreview(){
+        const d=parseInt(daysInput.value)||30;
+        const newExp=new Date(); newExp.setDate(newExp.getDate()+d);
+        const planLabel = planSel.options[planSel.selectedIndex].text;
+        preview.innerHTML = `✅ Nuevo: <b>${planLabel}</b><br>📅 Expira: <b>${newExp.toLocaleDateString()}</b><br>⏳ ${d} días de acceso`;
+      }
+      
+      planSel.onchange=updatePreview;
+      daysInput.oninput=updatePreview;
+      updatePreview();
+      
+      // Counter interval
+      const counterInt = setInterval(()=>{
+        if(!exp) return;
+        const now2=new Date();
+        const diff=exp-now2;
+        const el=document.getElementById('renew-counter');
+        if(!el) return;
+        if(diff<=0){ el.textContent='⛔ EXPIRADO'; el.style.color='#ff6b6b'; }
+        else {
+          const d=Math.floor(diff/86400000);
+          const h=Math.floor(diff/3600000%24);
+          const m=Math.floor(diff/60000%60);
+          el.textContent=`⏰ ${d}d ${h}h ${m}m restantes`;
+        }
+      },1000);
+      
+      btn.onclick=async()=>{
+        const d=parseInt(daysInput.value)||30;
+        const newPlan=planSel.value;
+        const newExp=new Date(); newExp.setDate(newExp.getDate()+d);
+        try{
+          msg.textContent='Guardando...';
+          const supa2=window.supabase.createClient("https://gouzcooqqwflcggxnaqe.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc");
+          let {error}=await supa2.from('users').update({plan:newPlan,plan_days:d,expires_at:newExp.toISOString(),is_active:true}).eq('username',username);
+          if(error){
+            let {error:e2}=await supa2.from('app_users').update({plan:newPlan,expires_at:newExp.toISOString()}).eq('username',username);
+            if(e2) throw error;
+          }
+          msg.innerHTML='<span style="color:#4ade80">✅ '+username+' renovado: '+newPlan.toUpperCase()+' '+d+' días hasta '+newExp.toLocaleDateString()+'</span>';
+          setTimeout(()=>{ modal.classList.remove('show'); clearInterval(counterInt); window.renderUsers(); },1200);
+        }catch(e){ msg.textContent='❌ '+e.message; }
+      };
+      
+      modal.classList.add('show');
+      
+      // Close modal cleanup
+      const closeHandler = ()=>{ clearInterval(counterInt); };
+      modal.addEventListener('click', function handler(e){ if(e.target===modal){ modal.classList.remove('show'); clearInterval(counterInt); modal.removeEventListener('click', handler); } });
+      
+    }catch(e){ alert(e.message); }
+  })();
+};
+</script>
+
 </body></html>
