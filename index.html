@@ -1785,165 +1785,230 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 </script>
 
 
+<style>
+#custom-login-overlay{position:fixed;inset:0;z-index:9998;background:#08080a;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:30px 20px;overflow-y:auto}
+#custom-login-overlay.hidden{display:none!important}
+#login-beta-badge{position:fixed;top:16px;right:16px;background:#FFD60A;color:#000;font-size:10px;font-weight:900;padding:6px 12px;border-radius:20px;z-index:10001}
+#login-brand{display:flex;flex-direction:column;align-items:center;margin:20px 0 18px 0}
+#login-brand-icon{width:72px;height:72px;background:linear-gradient(135deg,#FFD60A 0%,#FF8A00 100%);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:12px}
+#login-brand-title{font-weight:900;font-size:22px;color:#fff}
+#login-brand-sub{font-size:11px;letter-spacing:3px;color:#FFD60A;font-weight:800;margin-top:4px}
+#login-tabs-custom{display:flex;gap:10px;margin-bottom:20px}
+.login-tab-custom{padding:10px 22px;border-radius:22px;font-size:13px;font-weight:800;cursor:pointer;border:1px solid #222;background:#111;color:#888}
+.login-tab-custom.active{background:#FFD60A;color:#000;border-color:#FFD60A}
+#login-form-container{width:100%;max-width:380px;background:#141415;border:1px solid #222;border-radius:20px;padding:26px}
+#precios-panel-custom{display:none;width:100%;max-width:960px}
+#precios-panel-custom.show{display:block}
+#precios-grid-custom{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.precio-card-custom{background:#141415;border:1px solid #222;border-radius:18px;padding:22px;text-align:center}
+.precio-card-custom.popular{border-color:#FFD60A;background:#1a180f;transform:scale(1.05);position:relative}
+.precio-card-custom.popular::before{content:'MÁS POPULAR';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#FFD60A;color:#000;font-size:9px;font-weight:900;padding:4px 10px;border-radius:20px}
+@media(max-width:850px){#precios-grid-custom{grid-template-columns:1fr}.precio-card-custom.popular{transform:none}}
+.c-input{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:12px 14px;color:#fff;font-size:13px;margin-bottom:10px;outline:none}
+.c-input:focus{border-color:#FFD60A}
+.c-btn{width:100%;background:#FFD60A;color:#000;border:none;border-radius:10px;padding:12px;font-weight:900;font-size:13px;cursor:pointer;margin-top:6px}
+#adminPanel{z-index:10010!important;position:fixed!important;inset:0!important;background:#08080a!important;overflow-y:auto!important;padding:20px!important}
+#user-session-bar{position:fixed;top:10px;right:10px;z-index:10011;background:#111;border:1px solid #333;padding:8px 14px;border-radius:10px;display:none;align-items:center;gap:12px;font-size:12px;color:#aaa}
+#user-session-bar b{color:#fff}
+#user-session-bar button{background:#FFD60A;color:#000;border:none;padding:6px 14px;border-radius:8px;font-weight:900;cursor:pointer}
+</style>
+
+<div id="custom-login-overlay">
+  <div id="login-beta-badge">MODO BETA</div>
+  <div id="login-brand"><div id="login-brand-icon">🍦</div><div id="login-brand-title">ICE CREAM DIGITAL</div><div id="login-brand-sub">PRO EDITOR • MODO BETA</div></div>
+  <div id="login-tabs-custom"><div class="login-tab-custom active" data-tab="login">Iniciar sesión</div><div class="login-tab-custom" data-tab="precios">Precios</div></div>
+  <div id="login-form-container">
+    <div style="color:#fff;font-weight:800;font-size:14px;margin-bottom:4px">Bienvenido</div>
+    <div style="color:#666;font-size:11px;margin-bottom:14px">Usuarios guardados intactos</div>
+    <input id="c-loginUser" class="c-input" placeholder="Usuario">
+    <input id="c-loginPass" class="c-input" type="password" placeholder="Contraseña">
+    <button id="c-loginBtn" class="c-btn">ENTRAR AL EDITOR →</button>
+    <div id="c-authMsg" style="margin-top:10px;font-size:12px;color:#ff6b6b;display:none"></div>
+    <div style="margin-top:10px;font-size:10px;color:#555;text-align:center">✅ Nube activa</div>
+  </div>
+  <div id="precios-panel-custom">
+    <div style="text-align:center"><h2 style="color:#fff;font-size:24px;font-weight:900;margin:0">Elige tu plan</h2><p style="color:#666;font-size:12px;margin-top:6px">WhatsApp: +504 9606-0657 • 100 / 175 / 250 videos</p></div>
+    <div id="precios-grid-custom">
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">STARTER</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$30<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">100 videos / mes</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left;line-height:1.6">✓ 100 descargas finales<br>✓ 60fps fluido<br>✓ Sin marca de agua</div><button onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20STARTER%20$30','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">Comprar por WhatsApp</button></div>
+      <div class="precio-card-custom popular"><h3 style="color:#fff;margin:0">PRO</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$50<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">175 videos / mes</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left;line-height:1.6">✓ 175 descargas finales<br>✓ 60fps + plantillas PRO<br>✓ Soporte prioritario</div><button onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20PRO%20$50','_blank')" style="width:100%;background:#FFD60A;color:#000;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">Comprar por WhatsApp</button></div>
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">AGENCY</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$60<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">250 videos / mes</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left;line-height:1.6">✓ 250 descargas finales<br>✓ 60fps ilimitado<br>✓ Soporte VIP 24/7</div><button onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20AGENCY%20$60','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">Comprar por WhatsApp</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="user-session-bar"><span>👤 <b id="sess-user"></b> <span id="sess-days" style="color:#4ade80;margin-left:6px"></span></span><button id="sess-logout">Salir</button></div>
+
 <script>
-// V34 - FIX ADMIN 100%
 (function(){
   const SUPABASE_URL = "https://gouzcooqqwflcggxnaqe.supabase.co";
   const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc";
+  const ADMIN_USER = "Icecreamdigital";
   const LS_SESSION = "ic_session_v19";
   
-  // Override supaGetUsers to read from users table correctly
+  async function loginLogic(u,p){
+    const msg=document.getElementById('c-authMsg');
+    const show=(t)=>{msg.style.display='block';msg.textContent=t;};
+    if(!u||!p){show('Ingresa usuario y contraseña');return;}
+    if(u===ADMIN_USER && p==="Ives2020."){
+      localStorage.setItem(LS_SESSION, JSON.stringify({username:u,isAdmin:true,ts:Date.now()}));
+      location.reload();return;
+    }
+    try{
+      const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+      let {data} = await supa.from('users').select('*').eq('username',u).maybeSingle();
+      if(!data){ let {data:d2} = await supa.from('app_users').select('*').eq('username',u).maybeSingle(); data=d2; }
+      if(data){
+        if(data.password!==p){show('Contraseña incorrecta');return;}
+        if(data.expires_at && new Date(data.expires_at)<new Date()){
+          msg.innerHTML='⛔ <b>Expirado</b> - Paga suscripción<br><a href="https://wa.me/50496060657?text=Renovar%20'+u+'" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;margin-top:6px">Renovar WhatsApp</a>';
+          msg.style.display='block';return;
+        }
+        localStorage.setItem(LS_SESSION, JSON.stringify({username:u,isAdmin:false,ts:Date.now(),expires_at:data.expires_at||null}));
+        location.reload();return;
+      }
+    }catch(e){console.log(e);}
+    show('Usuario no encontrado');
+  }
+  
+  function setupLogin(){
+    const btn=document.getElementById('c-loginBtn');
+    const user=document.getElementById('c-loginUser');
+    const pass=document.getElementById('c-loginPass');
+    if(btn && !btn.dataset.b){
+      btn.dataset.b='1';
+      btn.onclick=()=>loginLogic(user.value.trim(),pass.value.trim());
+      pass.addEventListener('keypress',e=>{if(e.key==='Enter') loginLogic(user.value.trim(),pass.value.trim());});
+    }
+    const tabs=document.querySelectorAll('.login-tab-custom');
+    const formCont=document.getElementById('login-form-container');
+    const precios=document.getElementById('precios-panel-custom');
+    tabs.forEach(tab=>{
+      if(tab.dataset.b) return; tab.dataset.b='1';
+      tab.onclick=()=>{
+        tabs.forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        if(tab.dataset.tab==='precios'){formCont.style.display='none';precios.classList.add('show');}
+        else{formCont.style.display='block';precios.classList.remove('show');}
+      };
+    });
+    try{
+      const sess=JSON.parse(localStorage.getItem(LS_SESSION)||'null');
+      if(sess && sess.username){
+        document.getElementById('custom-login-overlay').classList.add('hidden');
+        document.getElementById('authOverlay').style.display='none';
+      }else{
+        document.getElementById('authOverlay').style.display='none';
+      }
+    }catch{}
+  }
+
   window.supaGetUsers = async function(){
     try{
-      const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-      // Try users table first (your real table)
-      let {data, error} = await supa.from('users').select('*').order('created_at', {ascending:false});
-      if(error || !data || data.length===0){
-        let {data:data2} = await supa.from('app_users').select('*').order('created_at', {ascending:false});
-        if(data2 && data2.length>0){
-          return data2.map(d=>({
-            id:d.id, 
-            user:d.username||d.user, 
-            username:d.username||d.user,
-            pass:d.password, 
-            password:d.password,
-            active:d.active!==false, 
-            isAdmin:d.is_admin||false,
-            created:d.created_at?new Date(d.created_at).toLocaleDateString():'-',
-            expires_at:d.expires_at||null,
-            plan:d.plan||'pro',
-            plan_days:d.plan_days||30
-          }));
-        }
+      const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+      let {data} = await supa.from('users').select('*').order('created_at',{ascending:false});
+      if(!data || data.length===0){
+        let {data:d2} = await supa.from('app_users').select('*').order('created_at',{ascending:false});
+        if(d2) return d2.map(d=>({id:d.id,user:d.username||d.user,username:d.username||d.user,password:d.password,active:true,created:d.created_at?new Date(d.created_at).toLocaleDateString():'-',expires_at:d.expires_at||null,plan:d.plan||'pro',plan_days:d.plan_days||30}));
       }
-      return (data||[]).map(d=>({
-        id:d.id,
-        user:d.username,
-        username:d.username,
-        pass:d.password,
-        password:d.password,
-        active:d.is_active!==false,
-        isAdmin:false,
-        created:d.created_at?new Date(d.created_at).toLocaleDateString():'-',
-        expires_at:d.expires_at||null,
-        plan:d.plan||'pro',
-        plan_days:d.plan_days||30
-      }));
-    }catch(e){
-      console.log('supaGetUsers error', e);
-      return [];
-    }
+      return (data||[]).map(d=>({id:d.id,user:d.username,username:d.username,password:d.password,active:d.is_active!==false,created:d.created_at?new Date(d.created_at).toLocaleDateString():'-',expires_at:d.expires_at||null,plan:d.plan||'pro',plan_days:d.plan_days||30}));
+    }catch(e){return [];}
   };
-  
-  window.supaDeleteUser = async function(id, username){
-    if(username && username.toLowerCase()==='icecreamdigital'){ alert('No puedes borrar admin'); return; }
-    const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-    try{
-      let {error} = await supa.from('users').delete().eq('username', username);
-      if(error){
-        let {error:e2} = await supa.from('users').delete().eq('id', id);
-        if(e2){
-          await supa.from('app_users').delete().eq('username', username);
-        }
-      }
-    }catch(e){ alert(e.message); }
-  };
-  
-  // New render that shows expiration and delete
+
   window.renderUsers = async function(){
-    const usersList = document.getElementById('usersList');
+    const usersList=document.getElementById('usersList');
     if(!usersList) return;
-    usersList.innerHTML='<div style="padding:20px;color:#888;text-align:center">Cargando usuarios de Supabase...</div>';
-    const users = await window.supaGetUsers();
-    if(users.length===0){
-      usersList.innerHTML='<div style="padding:20px;color:#666;text-align:center">No hay usuarios en la tabla users<br><small>Revisa Supabase</small></div>';
-      return;
-    }
+    usersList.innerHTML='<div style="padding:20px;color:#888;text-align:center">Cargando usuarios...</div>';
+    const users=await window.supaGetUsers();
+    if(users.length===0){ usersList.innerHTML='<div style="padding:20px;color:#666;text-align:center">No hay usuarios</div>'; return; }
     usersList.innerHTML='';
     users.forEach(u=>{
-      const exp = u.expires_at ? new Date(u.expires_at) : null;
-      const now = new Date();
-      let badge = '<span style="color:#555;font-size:10px">Sin fecha</span>';
-      let daysLeftText = '';
+      const exp=u.expires_at?new Date(u.expires_at):null;
+      const now=new Date();
+      let badge='<span style="color:#555;font-size:10px">Sin fecha</span>';
+      let daysText='';
       if(exp){
-        const diff = Math.ceil((exp - now)/86400000);
-        if(diff<=0){
-          badge='<span style="background:#2a1111;color:#ff6b6b;border:1px solid #4a1111;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">EXPIRADO</span>';
-          daysLeftText='Expiró '+exp.toLocaleDateString();
-        } else if(diff<=3){
-          badge='<span style="background:#2a2211;color:#ffb020;border:1px solid #4a3a11;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días ⚠️</span>';
-          daysLeftText='Expira '+exp.toLocaleDateString();
-        } else {
-          badge='<span style="background:#0f2a15;color:#4ade80;border:1px solid #1a4a22;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días restantes</span>';
-          daysLeftText='Expira '+exp.toLocaleDateString();
-        }
+        const diff=Math.ceil((exp-now)/86400000);
+        if(diff<=0){ badge='<span style="background:#2a1111;color:#ff6b6b;border:1px solid #4a1111;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">EXPIRADO</span>'; daysText='Expiró '+exp.toLocaleDateString(); }
+        else if(diff<=3){ badge='<span style="background:#2a2211;color:#ffb020;border:1px solid #4a3a11;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días ⚠️</span>'; daysText='Expira '+exp.toLocaleDateString(); }
+        else { badge='<span style="background:#0f2a15;color:#4ade80;border:1px solid #1a4a22;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días</span>'; daysText='Expira '+exp.toLocaleDateString(); }
       }
-      
-      const row = document.createElement('div');
-      row.style.cssText='display:grid;grid-template-columns:1.3fr 0.8fr 0.9fr;gap:12px;padding:16px;border-bottom:1px solid #1e1e22;align-items:center;background:#141415;margin-bottom:8px;border-radius:12px;border:1px solid #222';
+      const row=document.createElement('div');
+      row.style.cssText='display:grid;grid-template-columns:1.2fr 0.8fr 1.2fr;gap:12px;padding:16px;border:1px solid #222;border-radius:12px;background:#141415;margin-bottom:10px;align-items:center';
       row.innerHTML=`
-        <div>
-          <b style="color:#fff;font-size:14px">${u.username||u.user}</b> ${u.isAdmin?'<span style="font-size:9px;background:#FFD60A;color:#000;padding:2px 6px;border-radius:8px;margin-left:6px">ADMIN</span>':''}
-          <br><span style="color:#888;font-size:11px">${u.plan||'pro'} • ${u.plan_days||30} días • ${u.created||''}</span>
-          <br><span style="color:#666;font-size:10px">${daysLeftText}</span>
-        </div>
+        <div><b style="color:#fff;font-size:13px">${u.username}</b><br><span style="color:#888;font-size:10px">${u.plan||'pro'} • ${u.plan_days||30}d</span><br><span style="color:#666;font-size:10px">${daysText}</span></div>
         <div>${badge}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button onclick="(function(){const d=prompt('Días para ${u.username}:','30'); if(!d) return; const ex=new Date(); ex.setDate(ex.getDate()+parseInt(d)); window.supabase.createClient('${SUPABASE_URL}','${SUPABASE_ANON}').from('users').update({expires_at:ex.toISOString(),plan_days:parseInt(d)}).eq('username','${u.username}').then(()=>{alert('Renovado '+d+' días'); window.renderUsers();});})()" style="background:#1e1e22;border:1px solid #2a2a2e;color:#fff;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:11px">Renovar</button>
-          <button onclick="if(confirm('¿Borrar a ${u.username}? No se puede deshacer.')){ window.supaDeleteUser('${u.id||''}','${u.username||u.user}').then(()=>window.renderUsers()); }" style="background:#2a1111;border:1px solid #4a1a1a;color:#ff6b6b;padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:900;font-size:11px">🗑 Borrar</button>
+          <button onclick="window.IC_editPass('${u.username}')" style="background:#1e1e22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px">✏️ Clave</button>
+          <button onclick="window.IC_renew('${u.username}')" style="background:#1e1e22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px">Renovar</button>
+          <button onclick="window.IC_del('${u.username}')" style="background:#2a1111;border:1px solid #4a1a1a;color:#ff6b6b;padding:6px 10px;border-radius:8px;cursor:pointer;font-weight:900;font-size:11px">🗑 Borrar</button>
         </div>
       `;
       usersList.appendChild(row);
     });
   };
-  
-  // Force admin panel to be visible and functional
-  function fixAdminPanel(){
-    const adminPanel = document.getElementById('adminPanel');
-    const goAdmin = document.getElementById('goAdmin');
-    const closeAdmin = document.getElementById('closeAdmin');
-    const logoutAdmin = document.getElementById('logoutAdmin');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const addUserBtn = document.getElementById('addUserBtn');
-    
-    if(goAdmin && !goAdmin.dataset.fixed34){
-      goAdmin.dataset.fixed34='1';
-      goAdmin.addEventListener('click', ()=>{
-        if(adminPanel){
-          adminPanel.style.display='block';
-          adminPanel.style.position='fixed';
-          adminPanel.style.inset='0';
-          adminPanel.style.zIndex='10010';
-          adminPanel.style.background='#08080a';
-          adminPanel.style.overflowY='auto';
-          adminPanel.style.padding='20px';
-          setTimeout(()=>window.renderUsers(),300);
-        }
-      });
-    }
-    if(closeAdmin && !closeAdmin.dataset.fixed34){
-      closeAdmin.dataset.fixed34='1';
-      closeAdmin.onclick=()=>{ if(adminPanel) adminPanel.style.display='none'; };
-    }
-    if(logoutAdmin && !logoutAdmin.dataset.fixed34){
-      logoutAdmin.dataset.fixed34='1';
-      logoutAdmin.onclick=()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
-    }
-    if(logoutBtn && !logoutBtn.dataset.fixed34){
-      logoutBtn.dataset.fixed34='1';
-      logoutBtn.onclick=()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
-    }
-    if(refreshBtn && !refreshBtn.dataset.fixed34){
-      refreshBtn.dataset.fixed34='1';
-      refreshBtn.onclick=()=>window.renderUsers();
-    }
-    if(addUserBtn && !addUserBtn.dataset.fixed34){
-      addUserBtn.dataset.fixed34='1';
+
+  window.IC_editPass = function(username){
+    const nueva=prompt('Nueva contraseña para '+username+':');
+    if(!nueva||nueva.trim().length<3){ alert('Mínimo 3 caracteres'); return; }
+    (async()=>{
+      try{
+        const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+        let {error} = await supa.from('users').update({password:nueva.trim()}).eq('username',username);
+        if(error){ await supa.from('app_users').update({password:nueva.trim()}).eq('username',username); }
+        alert('✅ Contraseña de '+username+' actualizada');
+      }catch(e){ alert('Error: '+e.message); }
+    })();
+  };
+
+  window.IC_renew = function(username){
+    const days=prompt('¿Cuántos días para '+username+'?','30');
+    if(!days) return;
+    const d=parseInt(days);
+    const ex=new Date(); ex.setDate(ex.getDate()+d);
+    (async()=>{
+      try{
+        const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+        let {error} = await supa.from('users').update({expires_at:ex.toISOString(),plan_days:d,is_active:true}).eq('username',username);
+        if(error){ await supa.from('app_users').update({expires_at:ex.toISOString()}).eq('username',username); }
+        alert('✅ '+username+' renovado '+d+' días hasta '+ex.toLocaleDateString());
+        window.renderUsers();
+      }catch(e){ alert(e.message); }
+    })();
+  };
+
+  window.IC_del = function(username){
+    if(username.toLowerCase()==='icecreamdigital'){ alert('No puedes borrar admin'); return; }
+    if(!confirm('¿Borrar a '+username+'? No se puede deshacer.')) return;
+    (async()=>{
+      try{
+        const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+        let {error} = await supa.from('users').delete().eq('username',username);
+        if(error){ await supa.from('app_users').delete().eq('username',username); }
+        alert('✅ '+username+' borrado');
+        window.renderUsers();
+      }catch(e){ alert(e.message); }
+    })();
+  };
+
+  function fixAdmin(){
+    const adminPanel=document.getElementById('adminPanel');
+    const goAdmin=document.getElementById('goAdmin');
+    const closeAdmin=document.getElementById('closeAdmin');
+    const logoutAdmin=document.getElementById('logoutAdmin');
+    const logoutBtn=document.getElementById('logoutBtn');
+    const refreshBtn=document.getElementById('refreshBtn');
+    const addUserBtn=document.getElementById('addUserBtn');
+    if(goAdmin && !goAdmin.dataset.f36){ goAdmin.dataset.f36='1'; goAdmin.addEventListener('click',()=>{ if(adminPanel){adminPanel.style.display='block'; setTimeout(()=>window.renderUsers(),400);} }); }
+    if(closeAdmin && !closeAdmin.dataset.f36){ closeAdmin.dataset.f36='1'; closeAdmin.onclick=()=>{adminPanel.style.display='none';}; }
+    if(logoutAdmin && !logoutAdmin.dataset.f36){ logoutAdmin.dataset.f36='1'; logoutAdmin.onclick=()=>{localStorage.removeItem(LS_SESSION);location.reload();}; }
+    if(logoutBtn && !logoutBtn.dataset.f36){ logoutBtn.dataset.f36='1'; logoutBtn.onclick=()=>{localStorage.removeItem(LS_SESSION);location.reload();}; }
+    if(refreshBtn && !refreshBtn.dataset.f36){ refreshBtn.dataset.f36='1'; refreshBtn.onclick=()=>window.renderUsers(); }
+    if(addUserBtn && !addUserBtn.dataset.f36){
+      addUserBtn.dataset.f36='1';
       addUserBtn.onclick=async()=>{
         const u=document.getElementById('newUser').value.trim();
         const p=document.getElementById('newPass').value.trim();
-        if(!u||!p){ alert('Pon usuario y contraseña'); return; }
+        if(!u||!p){alert('Usuario y contraseña');return;}
         try{
           const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
           const exp=new Date(); exp.setDate(exp.getDate()+30);
@@ -1951,38 +2016,30 @@ document.getElementById('addUserBtn').onclick = async ()=>{
           if(error) throw error;
           document.getElementById('newUser').value=''; document.getElementById('newPass').value='';
           window.renderUsers();
-        }catch(e){ alert('Error: '+e.message); }
+        }catch(e){alert('Error: '+e.message);}
       };
     }
-  }
-  
-  setInterval(fixAdminPanel,1000);
-  setTimeout(fixAdminPanel,500);
-})();
-</script>
-
-<style>
-#adminPanel{display:none;position:fixed!important;inset:0!important;z-index:10010!important;background:#08080a!important;overflow-y:auto!important;padding:20px!important}
-.adminHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.adminCard{background:#141415;border:1px solid #222;border-radius:16px;padding:20px}
-#user-session-bar{position:fixed;top:10px;right:10px;z-index:10011;background:#111;border:1px solid #333;padding:8px 14px;border-radius:10px;display:none;align-items:center;gap:12px;font-size:12px;color:#aaa}
-#user-session-bar b{color:#fff}
-#user-session-bar button{background:#FFD60A;color:#000;border:none;padding:6px 14px;border-radius:8px;font-weight:900;cursor:pointer}
-</style>
-
-<div id="user-session-bar"><span>👤 <b id="sess-user"></b> <span id="sess-days" style="color:#4ade80;margin-left:6px"></span></span><button id="sess-logout">Salir</button></div>
-<script>
-(function(){
-  function showBar(){
     try{
-      const sess=JSON.parse(localStorage.getItem('ic_session_v19')||'null');
-      if(!sess||!sess.username) return;
-      const bar=document.getElementById('user-session-bar');
-      if(bar){ bar.style.display='flex'; document.getElementById('sess-user').textContent=sess.username+(sess.isAdmin?' (Admin)':''); document.getElementById('sess-logout').onclick=()=>{localStorage.removeItem('ic_session_v19');location.reload();}; }
+      const sess=JSON.parse(localStorage.getItem(LS_SESSION)||'null');
+      if(sess && sess.username){
+        const bar=document.getElementById('user-session-bar');
+        if(bar){
+          bar.style.display='flex';
+          document.getElementById('sess-user').textContent=sess.username+(sess.isAdmin?' (Admin)':'');
+          document.getElementById('sess-logout').onclick=()=>{localStorage.removeItem(LS_SESSION);location.reload();};
+          if(sess.expires_at){
+            const diff=Math.ceil((new Date(sess.expires_at)-new Date())/86400000);
+            document.getElementById('sess-days').textContent=diff>0?diff+' días':'EXPIRADO';
+          }
+        }
+      }
     }catch{}
   }
-  setInterval(showBar,1000);
+
+  setInterval(()=>{ setupLogin(); fixAdmin(); },1000);
+  setTimeout(()=>{ setupLogin(); fixAdmin(); },500);
 })();
 </script>
 
+<script>try{const _orig=localStorage.getItem('ic_session_v19'); const _s=JSON.parse(_orig||'null'); if(_s && _s.isAdmin){ setInterval(()=>{ const d=document.getElementById('sess-days'); if(d){ d.textContent='ILIMITADO \u267e\ufe0f'; d.style.color='#FFD60A'; } },500); } }catch(e){}</script>
 </body></html>
