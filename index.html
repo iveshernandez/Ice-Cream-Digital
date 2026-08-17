@@ -857,7 +857,7 @@ async function renderSingle(item,onProg){
       const cStream=canvas.captureStream(FPS);
       // Solo video del canvas, audio solo de voz (dest) - video original silenciado 100%
       const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-      const rec=new MediaRecorder(combined,{mimeType:mimeMP4, videoBitsPerSecond:2500000, audioBitsPerSecond:128000});
+      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 8000000, mimeType:mimeMP4, videoBitsPerSecond: 8000000, audioBitsPerSecond:128000});
       const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
       const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:'video/mp4'})) );
 
@@ -1785,6 +1785,20 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 </script>
 
 
+<script>
+// V21 EXPORT FLUIDO - descarga igual que preview
+(function(){
+  console.log('V21 Fix: 60fps 8Mbps activo');
+  try{
+    const orig = HTMLCanvasElement.prototype.captureStream;
+    if(orig){
+      HTMLCanvasElement.prototype.captureStream = function(){ return orig.call(this, 60); };
+    }
+  }catch(e){}
+})();
+</script>
+
+
 <style>
 #custom-login-overlay{position:fixed;inset:0;z-index:9998;background:#08080a;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:30px 20px;overflow-y:auto}
 #custom-login-overlay.hidden{display:none!important}
@@ -1807,7 +1821,7 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 .c-input{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:12px 14px;color:#fff;font-size:13px;margin-bottom:10px;outline:none}
 .c-input:focus{border-color:#FFD60A}
 .c-btn{width:100%;background:#FFD60A;color:#000;border:none;border-radius:10px;padding:12px;font-weight:900;font-size:13px;cursor:pointer;margin-top:6px}
-#adminPanel{z-index:10010!important;position:fixed!important;inset:0!important;background:#08080a!important;overflow-y:auto!important;padding:20px!important}
+#adminPanel{z-index:10010!important;position:fixed!important;inset:0!important;background:#08080a!important;overflow-y:auto!important;padding:20px!important;display:none}
 #user-session-bar{position:fixed;top:10px;right:10px;z-index:10011;background:#111;border:1px solid #333;padding:8px 14px;border-radius:10px;display:none;align-items:center;gap:12px;font-size:12px;color:#aaa}
 #user-session-bar b{color:#fff}
 #user-session-bar button{background:#FFD60A;color:#000;border:none;padding:6px 14px;border-radius:8px;font-weight:900;cursor:pointer}
@@ -1819,19 +1833,18 @@ document.getElementById('addUserBtn').onclick = async ()=>{
   <div id="login-tabs-custom"><div class="login-tab-custom active" data-tab="login">Iniciar sesión</div><div class="login-tab-custom" data-tab="precios">Precios</div></div>
   <div id="login-form-container">
     <div style="color:#fff;font-weight:800;font-size:14px;margin-bottom:4px">Bienvenido</div>
-    <div style="color:#666;font-size:11px;margin-bottom:14px">Usuarios guardados intactos</div>
+    <div style="color:#666;font-size:11px;margin-bottom:14px">Panel admin + usuarios intactos</div>
     <input id="c-loginUser" class="c-input" placeholder="Usuario">
     <input id="c-loginPass" class="c-input" type="password" placeholder="Contraseña">
     <button id="c-loginBtn" class="c-btn">ENTRAR AL EDITOR →</button>
     <div id="c-authMsg" style="margin-top:10px;font-size:12px;color:#ff6b6b;display:none"></div>
-    <div style="margin-top:10px;font-size:10px;color:#555;text-align:center">✅ Nube activa</div>
   </div>
   <div id="precios-panel-custom">
-    <div style="text-align:center"><h2 style="color:#fff;font-size:24px;font-weight:900;margin:0">Elige tu plan</h2><p style="color:#666;font-size:12px;margin-top:6px">WhatsApp: +504 9606-0657 • 100 / 175 / 250 videos</p></div>
+    <div style="text-align:center"><h2 style="color:#fff;font-size:24px;font-weight:900;margin:0">Elige tu plan</h2><p style="color:#666;font-size:12px;margin-top:6px">WhatsApp: +504 9606-0657</p></div>
     <div id="precios-grid-custom">
-      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">STARTER</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$30<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">100 videos / mes</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left;line-height:1.6">✓ 100 descargas finales<br>✓ 60fps fluido<br>✓ Sin marca de agua</div><button onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20STARTER%20$30','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">Comprar por WhatsApp</button></div>
-      <div class="precio-card-custom popular"><h3 style="color:#fff;margin:0">PRO</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$50<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">175 videos / mes</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left;line-height:1.6">✓ 175 descargas finales<br>✓ 60fps + plantillas PRO<br>✓ Soporte prioritario</div><button onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20PRO%20$50','_blank')" style="width:100%;background:#FFD60A;color:#000;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">Comprar por WhatsApp</button></div>
-      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">AGENCY</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$60<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">250 videos / mes</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left;line-height:1.6">✓ 250 descargas finales<br>✓ 60fps ilimitado<br>✓ Soporte VIP 24/7</div><button onclick="window.open('https://wa.me/50496060657?text=Hola%20quiero%20AGENCY%20$60','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">Comprar por WhatsApp</button></div>
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">STARTER</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$30<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">100 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 100 descargas<br>✓ 60fps fluido</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20STARTER%20$30','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">WhatsApp</button></div>
+      <div class="precio-card-custom popular"><h3 style="color:#fff;margin:0">PRO</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$50<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">175 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 175 descargas<br>✓ Plantillas PRO</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20PRO%20$50','_blank')" style="width:100%;background:#FFD60A;color:#000;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">WhatsApp</button></div>
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">AGENCY</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$60<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">250 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 250 descargas<br>✓ VIP 24/7</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20AGENCY%20$60','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">WhatsApp</button></div>
     </div>
   </div>
 </div>
@@ -1844,22 +1857,22 @@ document.getElementById('addUserBtn').onclick = async ()=>{
   const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc";
   const ADMIN_USER = "Icecreamdigital";
   const LS_SESSION = "ic_session_v19";
-  
-  async function loginLogic(u,p){
+
+  async function doLogin(u,p){
     const msg=document.getElementById('c-authMsg');
-    const show=(t)=>{msg.style.display='block';msg.textContent=t;};
-    if(!u||!p){show('Ingresa usuario y contraseña');return;}
+    const show=t=>{msg.style.display='block';msg.textContent=t;};
+    if(!u||!p){show('Usuario y contraseña');return;}
     if(u===ADMIN_USER && p==="Ives2020."){
       localStorage.setItem(LS_SESSION, JSON.stringify({username:u,isAdmin:true,ts:Date.now()}));
       location.reload();return;
     }
     try{
       const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-      let {data} = await supa.from('users').select('*').eq('username',u).maybeSingle();
-      if(!data){ let {data:d2} = await supa.from('app_users').select('*').eq('username',u).maybeSingle(); data=d2; }
+      let {data}=await supa.from('users').select('*').eq('username',u).maybeSingle();
+      if(!data){ let {data:d2}=await supa.from('app_users').select('*').eq('username',u).maybeSingle(); data=d2; }
       if(data){
         if(data.password!==p){show('Contraseña incorrecta');return;}
-        if(data.expires_at && new Date(data.expires_at)<new Date()){
+        if(data.expires_at && new Date(data.expires_at)<new Date() && u.toLowerCase()!==ADMIN_USER.toLowerCase()){
           msg.innerHTML='⛔ <b>Expirado</b> - Paga suscripción<br><a href="https://wa.me/50496060657?text=Renovar%20'+u+'" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;margin-top:6px">Renovar WhatsApp</a>';
           msg.style.display='block';return;
         }
@@ -1869,24 +1882,23 @@ document.getElementById('addUserBtn').onclick = async ()=>{
     }catch(e){console.log(e);}
     show('Usuario no encontrado');
   }
-  
-  function setupLogin(){
+
+  function initLogin(){
     const btn=document.getElementById('c-loginBtn');
     const user=document.getElementById('c-loginUser');
     const pass=document.getElementById('c-loginPass');
-    if(btn && !btn.dataset.b){
-      btn.dataset.b='1';
-      btn.onclick=()=>loginLogic(user.value.trim(),pass.value.trim());
-      pass.addEventListener('keypress',e=>{if(e.key==='Enter') loginLogic(user.value.trim(),pass.value.trim());});
+    if(btn && !btn.dataset.ok){
+      btn.dataset.ok='1';
+      btn.onclick=()=>doLogin(user.value.trim(),pass.value.trim());
+      pass.addEventListener('keypress',e=>{if(e.key==='Enter') doLogin(user.value.trim(),pass.value.trim());});
     }
-    const tabs=document.querySelectorAll('.login-tab-custom');
-    const formCont=document.getElementById('login-form-container');
-    const precios=document.getElementById('precios-panel-custom');
-    tabs.forEach(tab=>{
-      if(tab.dataset.b) return; tab.dataset.b='1';
+    document.querySelectorAll('.login-tab-custom').forEach(tab=>{
+      if(tab.dataset.ok) return; tab.dataset.ok='1';
       tab.onclick=()=>{
-        tabs.forEach(t=>t.classList.remove('active'));
+        document.querySelectorAll('.login-tab-custom').forEach(t=>t.classList.remove('active'));
         tab.classList.add('active');
+        const formCont=document.getElementById('login-form-container');
+        const precios=document.getElementById('precios-panel-custom');
         if(tab.dataset.tab==='precios'){formCont.style.display='none';precios.classList.add('show');}
         else{formCont.style.display='block';precios.classList.remove('show');}
       };
@@ -1902,121 +1914,69 @@ document.getElementById('addUserBtn').onclick = async ()=>{
     }catch{}
   }
 
-  window.supaGetUsers = async function(){
+  // ADMIN - una sola funcion que funciona
+  window.renderUsers = async function(){
+    const list=document.getElementById('usersList');
+    if(!list) return;
+    list.innerHTML='<div style="padding:20px;color:#888;text-align:center">Cargando usuarios...</div>';
     try{
       const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
       let {data} = await supa.from('users').select('*').order('created_at',{ascending:false});
-      if(!data || data.length===0){
-        let {data:d2} = await supa.from('app_users').select('*').order('created_at',{ascending:false});
-        if(d2) return d2.map(d=>({id:d.id,user:d.username||d.user,username:d.username||d.user,password:d.password,active:true,created:d.created_at?new Date(d.created_at).toLocaleDateString():'-',expires_at:d.expires_at||null,plan:d.plan||'pro',plan_days:d.plan_days||30}));
+      let users=data||[];
+      if(users.length===0){
+        let {data:d2}=await supa.from('app_users').select('*').order('created_at',{ascending:false});
+        if(d2) users=d2.map(x=>({username:x.username||x.user,id:x.id,expires_at:x.expires_at,plan:x.plan||'pro',plan_days:30,password:x.password,created_at:x.created_at}));
       }
-      return (data||[]).map(d=>({id:d.id,user:d.username,username:d.username,password:d.password,active:d.is_active!==false,created:d.created_at?new Date(d.created_at).toLocaleDateString():'-',expires_at:d.expires_at||null,plan:d.plan||'pro',plan_days:d.plan_days||30}));
-    }catch(e){return [];}
-  };
-
-  window.renderUsers = async function(){
-    const usersList=document.getElementById('usersList');
-    if(!usersList) return;
-    usersList.innerHTML='<div style="padding:20px;color:#888;text-align:center">Cargando usuarios...</div>';
-    const users=await window.supaGetUsers();
-    if(users.length===0){ usersList.innerHTML='<div style="padding:20px;color:#666;text-align:center">No hay usuarios</div>'; return; }
-    usersList.innerHTML='';
-    users.forEach(u=>{
-      const exp=u.expires_at?new Date(u.expires_at):null;
-      const now=new Date();
-      let badge='<span style="color:#555;font-size:10px">Sin fecha</span>';
-      let daysText='';
-      if(exp){
-        const diff=Math.ceil((exp-now)/86400000);
-        if(diff<=0){ badge='<span style="background:#2a1111;color:#ff6b6b;border:1px solid #4a1111;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">EXPIRADO</span>'; daysText='Expiró '+exp.toLocaleDateString(); }
-        else if(diff<=3){ badge='<span style="background:#2a2211;color:#ffb020;border:1px solid #4a3a11;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días ⚠️</span>'; daysText='Expira '+exp.toLocaleDateString(); }
-        else { badge='<span style="background:#0f2a15;color:#4ade80;border:1px solid #1a4a22;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días</span>'; daysText='Expira '+exp.toLocaleDateString(); }
-      }
-      const row=document.createElement('div');
-      row.style.cssText='display:grid;grid-template-columns:1.2fr 0.8fr 1.2fr;gap:12px;padding:16px;border:1px solid #222;border-radius:12px;background:#141415;margin-bottom:10px;align-items:center';
-      row.innerHTML=`
-        <div><b style="color:#fff;font-size:13px">${u.username}</b><br><span style="color:#888;font-size:10px">${u.plan||'pro'} • ${u.plan_days||30}d</span><br><span style="color:#666;font-size:10px">${daysText}</span></div>
-        <div>${badge}</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button onclick="window.IC_editPass('${u.username}')" style="background:#1e1e22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px">✏️ Clave</button>
-          <button onclick="window.IC_renew('${u.username}')" style="background:#1e1e22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px">Renovar</button>
-          <button onclick="window.IC_del('${u.username}')" style="background:#2a1111;border:1px solid #4a1a1a;color:#ff6b6b;padding:6px 10px;border-radius:8px;cursor:pointer;font-weight:900;font-size:11px">🗑 Borrar</button>
-        </div>
-      `;
-      usersList.appendChild(row);
-    });
-  };
-
-  window.IC_editPass = function(username){
-    const nueva=prompt('Nueva contraseña para '+username+':');
-    if(!nueva||nueva.trim().length<3){ alert('Mínimo 3 caracteres'); return; }
-    (async()=>{
-      try{
-        const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-        let {error} = await supa.from('users').update({password:nueva.trim()}).eq('username',username);
-        if(error){ await supa.from('app_users').update({password:nueva.trim()}).eq('username',username); }
-        alert('✅ Contraseña de '+username+' actualizada');
-      }catch(e){ alert('Error: '+e.message); }
-    })();
-  };
-
-  window.IC_renew = function(username){
-    const days=prompt('¿Cuántos días para '+username+'?','30');
-    if(!days) return;
-    const d=parseInt(days);
-    const ex=new Date(); ex.setDate(ex.getDate()+d);
-    (async()=>{
-      try{
-        const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-        let {error} = await supa.from('users').update({expires_at:ex.toISOString(),plan_days:d,is_active:true}).eq('username',username);
-        if(error){ await supa.from('app_users').update({expires_at:ex.toISOString()}).eq('username',username); }
-        alert('✅ '+username+' renovado '+d+' días hasta '+ex.toLocaleDateString());
-        window.renderUsers();
-      }catch(e){ alert(e.message); }
-    })();
-  };
-
-  window.IC_del = function(username){
-    if(username.toLowerCase()==='icecreamdigital'){ alert('No puedes borrar admin'); return; }
-    if(!confirm('¿Borrar a '+username+'? No se puede deshacer.')) return;
-    (async()=>{
-      try{
-        const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-        let {error} = await supa.from('users').delete().eq('username',username);
-        if(error){ await supa.from('app_users').delete().eq('username',username); }
-        alert('✅ '+username+' borrado');
-        window.renderUsers();
-      }catch(e){ alert(e.message); }
-    })();
+      if(users.length===0){ list.innerHTML='<div style="padding:20px;color:#666">No hay usuarios</div>'; return; }
+      list.innerHTML='';
+      users.forEach(u=>{
+        if((u.username||'').toLowerCase()===ADMIN_USER.toLowerCase()) return; // no mostrar admin en lista
+        const exp=u.expires_at?new Date(u.expires_at):null;
+        const now=new Date();
+        let badge='<span style="color:#666;font-size:10px">Sin fecha</span>';
+        let txt='';
+        if(exp){
+          const diff=Math.ceil((exp-now)/86400000);
+          if(diff<=0){ badge='<span style="background:#2a1111;color:#ff6b6b;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">EXPIRADO</span>'; txt='Expiró '+exp.toLocaleDateString(); }
+          else if(diff<=3){ badge='<span style="background:#2a2211;color:#ffb020;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días ⚠️</span>'; txt='Expira '+exp.toLocaleDateString(); }
+          else { badge='<span style="background:#0f2a15;color:#4ade80;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días</span>'; txt='Expira '+exp.toLocaleDateString(); }
+        }
+        const row=document.createElement('div');
+        row.style.cssText='display:grid;grid-template-columns:1.2fr 0.8fr 1.2fr;gap:12px;padding:16px;border:1px solid #222;border-radius:12px;background:#141415;margin-bottom:10px;align-items:center';
+        const safeName=u.username.replace(/'/g,"\'");
+        row.innerHTML='<div><b style="color:#fff;font-size:13px">'+u.username+'</b><br><span style="color:#888;font-size:10px">'+(u.plan||'pro')+' • '+(u.plan_days||30)+'d</span><br><span style="color:#666;font-size:10px">'+txt+'</span></div><div>'+badge+'</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button onclick="const np=prompt(\'Nueva clave para '+safeName+':\'); if(np&&np.trim().length>=3){ window.supabase.createClient(\'https://gouzcooqqwflcggxnaqe.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc\').from(\'users\').update({password:np.trim()}).eq(\'username\',\''+safeName+'\').then(()=>{alert(\'Clave actualizada\');}); }" style="background:#1e1e22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px">✏️ Clave</button><button onclick="const d=prompt(\'Días para '+safeName+':\',\'30\'); if(d){const ex=new Date(); ex.setDate(ex.getDate()+parseInt(d)); window.supabase.createClient(\'https://gouzcooqqwflcggxnaqe.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc\').from(\'users\').update({expires_at:ex.toISOString(),plan_days:parseInt(d),is_active:true}).eq(\'username\',\''+safeName+'\').then(()=>{alert(\'Renovado\'); window.renderUsers();});}" style="background:#1e1e22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px">Renovar</button><button onclick="if(confirm(\'¿Borrar a '+safeName+'?\')){ window.supabase.createClient(\'https://gouzcooqqwflcggxnaqe.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc\').from(\'users\').delete().eq(\'username\',\''+safeName+'\').then(()=>{alert(\'Borrado\'); window.renderUsers();}); }" style="background:#2a1111;border:1px solid #4a1a1a;color:#ff6b6b;padding:6px 10px;border-radius:8px;cursor:pointer;font-weight:900;font-size:11px">🗑 Borrar</button></div>';
+        list.appendChild(row);
+      });
+    }catch(e){ list.innerHTML='<div style="color:#ff6b6b">Error: '+e.message+'</div>'; }
   };
 
   function fixAdmin(){
-    const adminPanel=document.getElementById('adminPanel');
-    const goAdmin=document.getElementById('goAdmin');
-    const closeAdmin=document.getElementById('closeAdmin');
-    const logoutAdmin=document.getElementById('logoutAdmin');
-    const logoutBtn=document.getElementById('logoutBtn');
-    const refreshBtn=document.getElementById('refreshBtn');
-    const addUserBtn=document.getElementById('addUserBtn');
-    if(goAdmin && !goAdmin.dataset.f36){ goAdmin.dataset.f36='1'; goAdmin.addEventListener('click',()=>{ if(adminPanel){adminPanel.style.display='block'; setTimeout(()=>window.renderUsers(),400);} }); }
-    if(closeAdmin && !closeAdmin.dataset.f36){ closeAdmin.dataset.f36='1'; closeAdmin.onclick=()=>{adminPanel.style.display='none';}; }
-    if(logoutAdmin && !logoutAdmin.dataset.f36){ logoutAdmin.dataset.f36='1'; logoutAdmin.onclick=()=>{localStorage.removeItem(LS_SESSION);location.reload();}; }
-    if(logoutBtn && !logoutBtn.dataset.f36){ logoutBtn.dataset.f36='1'; logoutBtn.onclick=()=>{localStorage.removeItem(LS_SESSION);location.reload();}; }
-    if(refreshBtn && !refreshBtn.dataset.f36){ refreshBtn.dataset.f36='1'; refreshBtn.onclick=()=>window.renderUsers(); }
-    if(addUserBtn && !addUserBtn.dataset.f36){
-      addUserBtn.dataset.f36='1';
-      addUserBtn.onclick=async()=>{
+    const panel=document.getElementById('adminPanel');
+    const go=document.getElementById('goAdmin');
+    const close=document.getElementById('closeAdmin');
+    const logoutA=document.getElementById('logoutAdmin');
+    const logout=document.getElementById('logoutBtn');
+    const refresh=document.getElementById('refreshBtn');
+    const add=document.getElementById('addUserBtn');
+    if(go && !go.dataset.f){ go.dataset.f='1'; go.addEventListener('click',()=>{ panel.style.display='block'; setTimeout(()=>window.renderUsers(),300); }); }
+    if(close && !close.dataset.f){ close.dataset.f='1'; close.onclick=()=>panel.style.display='none'; }
+    if(logoutA && !logoutA.dataset.f){ logoutA.dataset.f='1'; logoutA.onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();}; }
+    if(logout && !logout.dataset.f){ logout.dataset.f='1'; logout.onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();}; }
+    if(refresh && !refresh.dataset.f){ refresh.dataset.f='1'; refresh.onclick=()=>window.renderUsers(); }
+    if(add && !add.dataset.f){
+      add.dataset.f='1';
+      add.onclick=async()=>{
         const u=document.getElementById('newUser').value.trim();
         const p=document.getElementById('newPass').value.trim();
-        if(!u||!p){alert('Usuario y contraseña');return;}
+        if(!u||!p){alert('Usuario y clave');return;}
         try{
           const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
-          const exp=new Date(); exp.setDate(exp.getDate()+30);
-          const {error}=await supa.from('users').insert({username:u,password:p,plan:'pro',plan_days:30,expires_at:exp.toISOString(),is_active:true});
+          const ex=new Date(); ex.setDate(ex.getDate()+30);
+          const {error}=await supa.from('users').insert({username:u,password:p,plan:'pro',plan_days:30,expires_at:ex.toISOString(),is_active:true});
           if(error) throw error;
           document.getElementById('newUser').value=''; document.getElementById('newPass').value='';
           window.renderUsers();
-        }catch(e){alert('Error: '+e.message);}
+        }catch(e){alert(e.message);}
       };
     }
     try{
@@ -2026,20 +1986,21 @@ document.getElementById('addUserBtn').onclick = async ()=>{
         if(bar){
           bar.style.display='flex';
           document.getElementById('sess-user').textContent=sess.username+(sess.isAdmin?' (Admin)':'');
-          document.getElementById('sess-logout').onclick=()=>{localStorage.removeItem(LS_SESSION);location.reload();};
-          if(sess.expires_at){
+          const daysEl=document.getElementById('sess-days');
+          if(sess.isAdmin){ daysEl.textContent='ILIMITADO ♾️'; daysEl.style.color='#FFD60A'; }
+          else if(sess.expires_at){
             const diff=Math.ceil((new Date(sess.expires_at)-new Date())/86400000);
-            document.getElementById('sess-days').textContent=diff>0?diff+' días':'EXPIRADO';
+            daysEl.textContent=diff>0?diff+' días':'EXPIRADO';
           }
+          document.getElementById('sess-logout').onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();};
         }
       }
     }catch{}
   }
 
-  setInterval(()=>{ setupLogin(); fixAdmin(); },1000);
-  setTimeout(()=>{ setupLogin(); fixAdmin(); },500);
+  setInterval(()=>{initLogin(); fixAdmin();},1000);
+  setTimeout(()=>{initLogin(); fixAdmin();},400);
 })();
 </script>
 
-<script>try{const _orig=localStorage.getItem('ic_session_v19'); const _s=JSON.parse(_orig||'null'); if(_s && _s.isAdmin){ setInterval(()=>{ const d=document.getElementById('sess-days'); if(d){ d.textContent='ILIMITADO \u267e\ufe0f'; d.style.color='#FFD60A'; } },500); } }catch(e){}</script>
 </body></html>
