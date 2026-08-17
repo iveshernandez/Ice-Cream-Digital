@@ -2045,4 +2045,127 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 })();
 </script>
 
+
+<style>
+#renew-modal{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;padding:20px}
+#renew-modal.show{display:flex}
+#renew-modal-content{background:#141415;border:2px solid #FFD60A;border-radius:18px;padding:24px;width:100%;max-width:400px}
+</style>
+<div id="renew-modal">
+  <div id="renew-modal-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <b style="color:#fff;font-size:16px">🔄 Renovar suscripción</b>
+      <span onclick="document.getElementById('renew-modal').classList.remove('show')" style="color:#666;cursor:pointer;font-size:20px">✕</span>
+    </div>
+    <div id="renew-modal-info" style="background:#0a0a0a;border:1px solid #222;border-radius:12px;padding:14px;margin-bottom:14px;font-size:12px;color:#aaa;line-height:1.6"></div>
+    <label style="color:#888;font-size:11px">Nuevo plan</label>
+    <select id="renew-modal-plan" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:10px;padding:10px;color:#fff;margin:6px 0 12px 0">
+      <option value="starter">STARTER $30 - 100 videos/mes</option>
+      <option value="pro" selected>PRO $50 - 175 videos/mes</option>
+      <option value="agency">AGENCY $60 - 250 videos/mes</option>
+    </select>
+    <label style="color:#888;font-size:11px">Días a asignar</label>
+    <input id="renew-modal-days" type="number" value="30" min="1" max="365" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:10px;padding:10px;color:#fff;margin:6px 0 12px 0">
+    <div id="renew-modal-preview" style="background:#0f2a15;border:1px solid #1a4a22;border-radius:10px;padding:10px;color:#4ade80;font-size:11px;text-align:center;margin-bottom:14px"></div>
+    <button id="renew-modal-btn" style="width:100%;background:#FFD60A;color:#000;border:none;padding:12px;border-radius:10px;font-weight:900;cursor:pointer">Confirmar renovación</button>
+    <div id="renew-modal-msg" style="font-size:11px;color:#888;margin-top:10px;text-align:center"></div>
+  </div>
+</div>
+<script>
+window.IC_renew = function(username){
+  const modal=document.getElementById('renew-modal');
+  const info=document.getElementById('renew-modal-info');
+  const preview=document.getElementById('renew-modal-preview');
+  const planSel=document.getElementById('renew-modal-plan');
+  const daysInput=document.getElementById('renew-modal-days');
+  const btn=document.getElementById('renew-modal-btn');
+  const msg=document.getElementById('renew-modal-msg');
+  
+  // Find user data from list
+  (async()=>{
+    try{
+      const supa=window.supabase.createClient("https://gouzcooqqwflcggxnaqe.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc");
+      let {data} = await supa.from('users').select('*').eq('username',username).maybeSingle();
+      if(!data){
+        let {data:d2}=await supa.from('app_users').select('*').eq('username',username).maybeSingle();
+        data=d2;
+      }
+      const currentPlan = data ? (data.plan||'pro') : 'pro';
+      const exp = data && data.expires_at ? new Date(data.expires_at) : null;
+      const now = new Date();
+      let daysLeft = exp ? Math.ceil((exp-now)/86400000) : 0;
+      let daysText = exp ? (daysLeft<=0 ? 'EXPIRADO hace '+Math.abs(daysLeft)+' días' : daysLeft+' días restantes') : 'Sin fecha de expiración';
+      let expText = exp ? exp.toLocaleDateString()+' '+exp.toLocaleTimeString() : 'No definida';
+      
+      const planNames = {starter:'STARTER $30 - 100 videos', pro:'PRO $50 - 175 videos', agency:'AGENCY $60 - 250 videos'};
+      
+      info.innerHTML = `
+        <div style="color:#fff;font-weight:800;font-size:13px;margin-bottom:6px">👤 ${username}</div>
+        <div>📦 Plan actual: <b style="color:#FFD60A">${planNames[currentPlan]||currentPlan}</b></div>
+        <div>⏳ Estado: <b style="color:${daysLeft<=0?'#ff6b6b':daysLeft<=3?'#ffb020':'#4ade80'}">${daysText}</b></div>
+        <div>📅 Expira: ${expText}</div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid #222">
+          <div style="color:#666;font-size:10px">Contador:</div>
+          <div id="renew-counter" style="color:#fff;font-weight:900;font-size:14px">${daysLeft>0 ? '⏰ '+daysLeft+'d '+Math.floor((exp-now)/3600000%24)+'h restantes' : '⛔ EXPIRADO'}</div>
+        </div>
+      `;
+      
+      // Set current plan in selector
+      planSel.value = currentPlan;
+      
+      function updatePreview(){
+        const d=parseInt(daysInput.value)||30;
+        const newExp=new Date(); newExp.setDate(newExp.getDate()+d);
+        const planLabel = planSel.options[planSel.selectedIndex].text;
+        preview.innerHTML = `✅ Nuevo: <b>${planLabel}</b><br>📅 Expira: <b>${newExp.toLocaleDateString()}</b><br>⏳ ${d} días de acceso`;
+      }
+      
+      planSel.onchange=updatePreview;
+      daysInput.oninput=updatePreview;
+      updatePreview();
+      
+      // Counter interval
+      const counterInt = setInterval(()=>{
+        if(!exp) return;
+        const now2=new Date();
+        const diff=exp-now2;
+        const el=document.getElementById('renew-counter');
+        if(!el) return;
+        if(diff<=0){ el.textContent='⛔ EXPIRADO'; el.style.color='#ff6b6b'; }
+        else {
+          const d=Math.floor(diff/86400000);
+          const h=Math.floor(diff/3600000%24);
+          const m=Math.floor(diff/60000%60);
+          el.textContent=`⏰ ${d}d ${h}h ${m}m restantes`;
+        }
+      },1000);
+      
+      btn.onclick=async()=>{
+        const d=parseInt(daysInput.value)||30;
+        const newPlan=planSel.value;
+        const newExp=new Date(); newExp.setDate(newExp.getDate()+d);
+        try{
+          msg.textContent='Guardando...';
+          const supa2=window.supabase.createClient("https://gouzcooqqwflcggxnaqe.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc");
+          let {error}=await supa2.from('users').update({plan:newPlan,plan_days:d,expires_at:newExp.toISOString(),is_active:true}).eq('username',username);
+          if(error){
+            let {error:e2}=await supa2.from('app_users').update({plan:newPlan,expires_at:newExp.toISOString()}).eq('username',username);
+            if(e2) throw error;
+          }
+          msg.innerHTML='<span style="color:#4ade80">✅ '+username+' renovado: '+newPlan.toUpperCase()+' '+d+' días hasta '+newExp.toLocaleDateString()+'</span>';
+          setTimeout(()=>{ modal.classList.remove('show'); clearInterval(counterInt); window.renderUsers(); },1200);
+        }catch(e){ msg.textContent='❌ '+e.message; }
+      };
+      
+      modal.classList.add('show');
+      
+      // Close modal cleanup
+      const closeHandler = ()=>{ clearInterval(counterInt); };
+      modal.addEventListener('click', function handler(e){ if(e.target===modal){ modal.classList.remove('show'); clearInterval(counterInt); modal.removeEventListener('click', handler); } });
+      
+    }catch(e){ alert(e.message); }
+  })();
+};
+</script>
+
 </body></html>
