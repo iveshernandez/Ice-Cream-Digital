@@ -1,0 +1,22 @@
+
+ICE CREAM DIGITAL V25 - WHATSAPP + EXPIRACION
+
+1. GITHUB: sube el index.html como siempre
+
+2. SUPABASE: ve a SQL Editor y pega el contenido de SETUP_V25_EXPIRACION.sql y dale RUN
+   - Esto agrega las columnas plan, expires_at, etc.
+   - No borra tus usuarios actuales
+
+3. ADMIN: entra con Icecreamdigital / Ives2020.
+   - Al crear usuario ahora verás selector de Plan y Días
+   - Al listar usuarios verás "X días left" o "EXPIRADO" en rojo
+   - Para renovar, edita el usuario y ponle 30 días de nuevo
+
+4. EXPIRACION AUTOMATICA:
+   - Si el usuario entra y ya expiró, le sale:
+     "⛔ Tu suscripción expiró. Paga la suscripción"
+     + botón de WhatsApp a 50496060657
+
+5. WHATSAPP: Los 3 botones de planes ahora abren directo a tu WhatsApp +504 96060657 con mensaje pre-escrito
+
+Soporte: +504 96060657
