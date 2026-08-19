@@ -857,19 +857,40 @@ async function renderSingle(item,onProg){
       const cStream=canvas.captureStream(FPS);
       // Solo video del canvas, audio solo de voz (dest) - video original silenciado 100%
       const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 8000000, mimeType:mimeMP4, videoBitsPerSecond: 8000000, audioBitsPerSecond:128000});
+      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 4500000, mimeType:mimeMP4, audioBitsPerSecond:128000});
       const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
       const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:'video/mp4'})) );
+
+      // === TITULO PRE-RENDERIZADO - NO measureText NI strokeText CADA FRAME ===
+      const titleCanvas=document.createElement('canvas'); titleCanvas.width=720; titleCanvas.height=150;
+      const tCtx=titleCanvas.getContext('2d');
+      tCtx.textAlign='center'; tCtx.textBaseline='middle'; tCtx.lineJoin='round'; tCtx.miterLimit=10;
+      tCtx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
+      tLines.forEach((l,i)=>{
+        const y=42+i*40;
+        const fw = tCtx.measureText(l).width;
+        const padX=22, rh=34; const rw=fw+padX*2;
+        tCtx.fillStyle='#000000';
+        if(tCtx.roundRect){ tCtx.beginPath(); tCtx.roundRect(360-rw/2, y-rh/2, rw, rh, 8); tCtx.fill(); }
+        else { tCtx.fillRect(360-rw/2, y-rh/2, rw, rh); }
+        tCtx.lineWidth=3.5; tCtx.strokeStyle='#000000'; tCtx.fillStyle='#FFEB00';
+        tCtx.strokeText(l,360,y); tCtx.fillText(l,360,y);
+      });
+      console.log('[OPTIMIZADO] Titulo pre-renderizado una sola vez');
 
       let _recStopped=false;
       await v.play().catch(()=>{});
       if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
       if(bgCap){ bgCap.currentTime=0; try{ bgCap.volume=1; bgCap.muted=false; }catch{} await bgCap.play().catch(()=>{}); }
-      rec.start(100);
+      rec.start(1000); // 1000ms = 1 blob por segundo, 10x mas rapido que 100ms
 
       await new Promise(res=>{
         let start=performance.now();
-        const draw=()=>{
+        let lastFrame=0;
+        const draw=(now)=>{
+          // 30fps exacto - no intenta 60fps
+          if(now-lastFrame<33) { requestAnimationFrame(draw); return; }
+          lastFrame=now;
           const elapsed=(performance.now()-start)/1000;
           const cur=Math.min(elapsed, realTotal);
           onProg?.(Math.min((cur/realTotal)*100,100));
@@ -880,22 +901,8 @@ async function renderSingle(item,onProg){
             else{ ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
           }
           
-          // TITULO FINO BORDE NEGRO - MEDIANO - IGUAL PREVIEW
-          ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
-          ctx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
-          tLines.forEach((l,i)=>{
-            const y=42+i*40;
-            const fw = ctx.measureText(l).width;
-            ctx.save();
-            ctx.fillStyle='#000000';
-            const padX=22, rh=34;
-            const rw=fw+padX*2;
-            if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2, y-rh/2, rw, rh, 8); ctx.fill(); }
-            else { ctx.fillRect(360-rw/2, y-rh/2, rw, rh); }
-            ctx.restore();
-            ctx.lineWidth=3.5; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00';
-            ctx.strokeText(l,360,y); ctx.fillText(l,360,y);
-          });
+          // TITULO PRE-RENDERIZADO - solo drawImage, 0% CPU
+          ctx.drawImage(titleCanvas, 0, 0);
           ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
 
           if(subs.length){
@@ -1547,9 +1554,9 @@ setKStatus('✅ V27 FIX - Voz por SLOT + Subs sync audio real');
   if(OrigMediaRecorder){
     window.MediaRecorder = function(stream, opts){
       try{
-        if(opts && opts.videoBitsPerSecond && opts.videoBitsPerSecond < 3500000){
-          opts.videoBitsPerSecond = 3500000;
-          console.log('[FIX] Bitrate subido a 3.5Mbps para Facebook');
+        if(opts && opts.videoBitsPerSecond){
+          opts.videoBitsPerSecond = 4500000;
+          console.log('[FIX] Bitrate optimizado a 4.5Mbps Facebook 720p');
         }
       }catch{}
       return new OrigMediaRecorder(stream, opts);
@@ -1788,11 +1795,11 @@ document.getElementById('addUserBtn').onclick = async ()=>{
 <script>
 // V21 EXPORT FLUIDO - descarga igual que preview
 (function(){
-  console.log('V21 Fix: 60fps 8Mbps activo');
+  console.log('V22 Fix: 30fps 4.5Mbps Facebook 720p - Optimizado');
   try{
     const orig = HTMLCanvasElement.prototype.captureStream;
     if(orig){
-      HTMLCanvasElement.prototype.captureStream = function(){ return orig.call(this, 60); };
+      HTMLCanvasElement.prototype.captureStream = function(){ return orig.call(this, 30); };
     }
   }catch(e){}
 })();
