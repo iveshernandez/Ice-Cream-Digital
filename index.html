@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ice Cream Digital V13 - Fondo Incrustado</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
+.glass{background:#141418;border:1px solid #222;border-radius:14px}
+.file-btn{width:100%;background:#0f0f12;border:1px dashed #2a2a2e;color:#999;border-radius:10px;padding:10px;font-size:11px;font-weight:800;cursor:pointer;display:flex;gap:6px;justify-content:center;align-items:center}
+.file-btn.has{border-color:#4ade80;color:#4ade80;background:rgba(34,197,94,.08);border-style:solid}
+input[type=file]{display:none}
+.anton{font-family:'Anton',sans-serif}
+header{padding:22px 20px;display:flex;justify-content:space-between;align-items:center;background:#0a0a0c;border-bottom:2px solid #222;position:sticky;top:0;z-index:50;min-height:105px}
+#cola{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:8px}
+.slot{background:#0f0f12;border:1px solid #222;border-radius:10px;padding:7px;cursor:pointer;min-height:108px;display:flex;flex-direction:column;justify-content:space-between}
+.slot.active{border:2px solid #FFEB00;background:rgba(255,235,0,.10)}.slot.done{border-color:#22c55e}.slot.run{border-color:#FFEB00;box-shadow:0 0 0 3px rgba(255,235,0,.18)}
+.layout{display:grid;grid-template-columns:1fr 410px;gap:10px;max-width:1750px;margin:auto;padding:10px}
+@media(max-width:1650px){#cola{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:900px){#cola{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}}
+</style>
+
+<style>
+/* === MINIMAL PRO - SOLO CENTRADO Y BONITO === */
+body{
+  background: radial-gradient(1200px 600px at 50% -10%, #1a1a1e 0%, #070709 60%);
+  min-height:100vh;
+}
+header{
+  max-width:1440px;
+  margin:0 auto;
+  border-radius:0 0 16px 16px;
+  padding:16px 24px !important;
+  display:flex !important;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  background:rgba(10,10,12,0.85) !important;
+  backdrop-filter:blur(20px);
+  border:1px solid #222 !important;
+  border-top:0 !important;
+}
+header > div{flex:1}
+header > div:last-child{justify-content:flex-end}
+
+/* Contenedor principal centrado */
+body > div[style*="max-width:1750px"]{
+  max-width:1280px !important;
+  margin:0 auto !important;
+  padding:20px 24px !important;
+}
+
+/* Barra de musica centrada */
+.glass[style*="border:1px solid #FFEB00"]{
+  max-width:1280px;
+  margin:0 auto;
+  justify-content:center !important;
+  border-radius:12px !important;
+  padding:14px 20px !important;
+  background:rgba(255,235,0,0.04) !important;
+}
+
+/* SELECCIONA EL SLOT - centrado perfecto */
+#cola{
+  max-width:1180px !important;
+  margin:16px auto 0 !important;
+  grid-template-columns:repeat(6, minmax(150px, 1fr)) !important;
+  gap:12px !important;
+  justify-content:center;
+}
+#cola .slot{
+  min-height:118px !important;
+  border-radius:14px !important;
+  padding:12px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center;
+  background:#0f0f12 !important;
+  border:1.5px solid #222 !important;
+}
+#cola .slot.active{
+  border:2px solid #FFEB00 !important;
+  background:rgba(255,235,0,0.08) !important;
+  transform:translateY(-1px);
+}
+
+/* Layout preview centrado */
+.layout{
+  max-width:1280px !important;
+  margin:16px auto !important;
+  grid-template-columns:1fr 420px !important;
+  gap:24px !important;
+  align-items:start;
+}
+.layout .glass{
+  border-radius:16px !important;
+  padding:18px !important;
+}
+
+/* Preview centrado */
+#previewCanvas, #vPreview{
+  border-radius:12px;
+}
+.glass[style*="position:sticky"]{
+  top:88px !important;
+}
+
+/* Botones uniformes */
+button, .file-btn{
+  border-radius:10px !important;
+  font-weight:700 !important;
+  letter-spacing:0.3px;
+  transition:all 0.2s ease;
+}
+#btnRender{
+  padding:12px 20px !important;
+  font-size:11px !important;
+  letter-spacing:0.5px;
+  box-shadow:0 2px 0 #000;
+}
+#btnRender:hover{transform:translateY(-1px); box-shadow:0 4px 12px rgba(255,235,0,0.3)}
+
+/* Inputs más limpios */
+input[type="text"], textarea{
+  border-radius:10px !important;
+  background:#0a0a0c !important;
+  border:1.5px solid #222 !important;
+  padding:12px !important;
+  transition:border 0.2s;
+}
+input[type="text"]:focus, textarea:focus{
+  border-color:#FFEB00 !important;
+  outline:none;
+}
+
+/* Barra total centrada y bonita */
+div[style*="display:flex;justify-content:space-between;margin-bottom:8px"]{
+  max-width:900px;
+  margin:0 auto 12px !important;
+  background:#0f0f12;
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid #1a1a1e;
+}
+
+@media(max-width:900px){
+  #cola{grid-template-columns:repeat(3, 1fr) !important}
+  .layout{grid-template-columns:1fr !important}
+  header{flex-direction:column; border-radius:0}
+}
+</style>
+
+
+<style>
+/* MEJORA UI SOLO VISUAL */
+#cola .slot{transition:all 0.2s ease; position:relative}
+#cola .slot:hover{transform:translateY(-2px); border-color:#FFEB00 !important; box-shadow:0 4px 12px rgba(255,235,0,0.15)}
+#cola .slot.active::after{content:'✏️ EDITANDO'; position:absolute; top:-8px; right:8px; background:#FFEB00; color:#000; font-size:7px; font-weight:900; padding:2px 6px; border-radius:10px; letter-spacing:0.5px}
+.glass{box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+header{backdrop-filter:blur(10px)}
+#totalProgressBar{box-shadow:0 0 10px rgba(255,235,0,0.5)}
+</style>
+
+
+<style>@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}</style>
+<script>
+// VOZ PROGRESO - CALCULO CORREGIDO: % por slot + promedio total
+window.voiceProgressBySlot = window.voiceProgressBySlot || {};
+window.updateVoiceProgressCorrecto = function(slotId, current, total){
+  const pct = total ? Math.round((current/total)*100) : 0;
+  window.voiceProgressBySlot[slotId] = {current, total, pct, status: pct>=100?'VOZ OK':'GENERANDO...'};
+  
+  const overlay = document.getElementById('renderOverlay');
+  const pctEl = document.getElementById('renderPct');
+  const textEl = document.getElementById('renderText');
+  const subEl = document.getElementById('renderSubLabel') || document.getElementById('renderTotalLabel');
+  const listEl = document.getElementById('renderList');
+  
+  if(overlay) overlay.style.display='flex';
+  if(textEl) textEl.textContent = `GENERANDO VOZ ${current}/${total} chunks`;
+  
+  // Total = promedio de los 6 slots (suma / 6)
+  let suma = 0;
+  for(let i=1;i<=6;i++){
+    suma += (window.voiceProgressBySlot[i] ? window.voiceProgressBySlot[i].pct : 0);
+  }
+  const promedio = Math.round(suma / 6);
+  
+  if(pctEl) pctEl.textContent = promedio + '%';
+  if(subEl) subEl.textContent = `GENERANDO VOZ ${current}/${total} chunks`;
+  
+  if(listEl){
+    let h='';
+    for(let id=1; id<=6; id++){
+      const d = window.voiceProgressBySlot[id];
+      const q = window.queue ? window.queue.find(x=>x.id===id) : null;
+      const dur = q && q.audioDur ? `${q.audioDur.toFixed(1)}s` : (d ? `${d.current}/${d.total}` : '');
+      const p = d ? d.pct : 0;
+      const isActive = id===slotId && p>0 && p<100;
+      const isDone = p>=100;
+      const label = !d ? 'EN COLA' : isDone ? `${dur} · VOZ OK` : `GENERANDO... ${d.current}/${d.total}`;
+      h+=`<div style="background:${isActive?'rgba(255,235,0,.12)':'#141418'};border:1.5px solid ${isActive?'#FFEB00': isDone?'#22c55e':'#2a2a2e'};border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;transition:all .2s">
+        <span style="display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;color:${isActive?'#FFEB00': isDone?'#4ade80':'#888'}"><span style="width:6px;height:6px;border-radius:50%;background:${isDone?'#22c55e': isActive?'#FFEB00':'#333'};${isActive?'animation:blink 1s infinite':''}"></span>SLOT${id} ${label? '· '+label : ''}</span>
+        <span style="font-size:11px;font-weight:900;color:${isDone?'#4ade80': isActive?'#FFEB00':'#666'}">${p}%</span>
+      </div>`;
+    }
+    listEl.innerHTML = h;
+  }
+};
+</script>
+
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#070709">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-512.png">
+
+
+<style>
+#authOverlay{position:fixed;inset:0;z-index:999999;background:radial-gradient(1200px 600px at 50% -10%, #1a1a1e 0%, #070709 95%);display:flex;align-items:center;justify-content:center;padding:20px}
+.authCard{width:100%;max-width:440px;background:#141418;border:1px solid #222;border-radius:22px;padding:28px;box-shadow:0 20px 80px rgba(0,0,0,.7)}
+.authLogo{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.authLogo b{font-size:22px;font-family:'Anton',sans-serif}
+.authBadge{display:inline-flex;background:rgba(255,235,0,.12);border:1px solid #FFEB00;color:#FFEB00;font-size:9px;font-weight:900;padding:5px 10px;border-radius:20px;letter-spacing:.8px;margin-bottom:12px}
+.authInput{width:100%;background:#0a0a0c;border:1.5px solid #222;border-radius:12px;padding:13px 14px;font-size:14px;color:#fff;outline:none}
+.authInput:focus{border-color:#FFEB00}
+.authBtn{width:100%;background:#FFEB00;color:#000;border:0;border-radius:12px;padding:13px;font-weight:900;font-size:13px;cursor:pointer;margin-top:12px;transition:.2s}
+#authMsg{font-size:11px;margin-top:12px;min-height:16px;text-align:center;color:#ff6b6b}
+#adminPanel{position:fixed;inset:0;z-index:999998;background:#070709;display:none;overflow:auto;padding:24px}
+.adminHeader{display:flex;justify-content:space-between;align-items:center;max-width:1000px;margin:0 auto 20px;flex-wrap:wrap;gap:12px}
+.adminCard{max-width:1000px;margin:0 auto;background:#141418;border:1px solid #222;border-radius:16px;padding:18px}
+.userRow{display:grid;grid-template-columns:1.2fr 100px 110px 200px;gap:10px;align-items:center;padding:12px 10px;border-bottom:1px solid #1e1e22;font-size:13px}
+.tagActive{background:#0f2a18;color:#4ade80;border:1px solid #1a4a2a;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:800}
+.tagOff{background:#2a1515;color:#ff6b6b;border:1px solid #4a1a1a;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:800}
+.smallBtn{background:#1e1e22;border:1px solid #2a2a2e;color:#fff;padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer}
+.dangerBtn{background:transparent;border:1px solid #3a1a1a;color:#ff6b6b;padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer}
+</style>
+
+</head>
+<body>
+
+<div id="authOverlay">
+  <div class="authCard">
+    <div class="authLogo"><div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div><b>ICE CREAM DIGITAL</b></div>
+    <div class="authBadge">MULTIUSUARIO • TIEMPO REAL</div>
+    <h1 style="font-size:26px;font-weight:800;margin:0 0 6px">Iniciar sesión</h1>
+    <p style="color:#888;font-size:12.5px;line-height:1.5;margin:0 0 18px">Acceso privado. Varias personas pueden usar la app a la vez.</p>
+    <input id="loginUser" class="authInput" placeholder="Usuario" autocomplete="username" />
+    <input id="loginPass" class="authInput" type="password" placeholder="Contraseña" style="margin-top:10px" autocomplete="current-password" />
+    <button id="loginBtn" class="authBtn">ENTRAR →</button>
+    <div id="authMsg"></div>
+    <div id="supabaseStatus" style="margin-top:10px;font-size:10px;color:#555;text-align:center"></div>
+  </div>
+</div>
+
+<div id="adminPanel">
+  <div class="adminHeader">
+    <div><b style="font-size:22px">Panel de Administrador</b><br><span style="color:#666;font-size:12px">Multiusuario real - Usuarios en la nube (Supabase)</span></div>
+    <div style="display:flex;gap:8px">
+      <button id="closeAdmin" style="background:#1e1e22;border:1px solid #2a2a2e;color:#fff;padding:10px 16px;border-radius:10px;cursor:pointer">Volver al editor</button>
+      <button id="logoutAdmin" style="background:#FFEB00;border:0;color:#000;padding:10px 16px;border-radius:10px;font-weight:900;cursor:pointer">Salir</button>
+    </div>
+  </div>
+  <div class="adminCard">
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:18px">
+      <input id="newUser" class="authInput" placeholder="Nuevo usuario" />
+      <input id="newPass" class="authInput" type="password" placeholder="Nueva contraseña" />
+      <button id="addUserBtn" class="authBtn" style="margin:0;padding:13px 18px">+ AGREGAR</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="color:#888;font-size:11px">Usuarios conectados a la misma base de datos - Uso simultáneo ilimitado</div>
+      <button id="refreshBtn" class="smallBtn">↻ Actualizar lista</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1.2fr 100px 110px 200px;gap:10px;padding:8px 10px;color:#555;font-size:10px;font-weight:800;letter-spacing:.8px">
+      <div>USUARIO</div><div>ESTADO</div><div>CREADO</div><div>ACCIONES</div>
+    </div>
+    <div id="usersList"></div>
+  </div>
+</div>
+
+<header>
+<div style="display:flex;align-items:center;gap:12px">
+<img src="data:image/png;base64,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" style="width:285px;height:auto;object-fit:contain;transform:scale(1.22)">
+</div>
+<div style="display:flex;gap:8px;align-items:center">
+<span style="font-size:10px;color:#666;background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222">720p • 30fps • 3Mbps • MP4 • FLUIDO</span>
+<label style="background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222;font-size:10px"><input type="checkbox" id="autoDownloadCheck" checked> Auto-descargar</label>
+<button id="btnRender" style="background:#FFEB00;color:#000;border:0;padding:10px 18px;border-radius:10px;font-weight:900;cursor:pointer">⚡ RENDERIZAR TODO</button>
+</div>
+</header>
+
+<div style="max-width:1750px;margin:auto;padding:10px;">
+<div class="glass" style="padding:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid #FFEB00;background:rgba(255,235,0,0.06)">
+<div style="font-size:10px;font-weight:900;letter-spacing:0.5px">🎵 MÚSICA DE FONDO POR DEFECTO (para todos los videos)</div>
+<label id="lblBg" class="file-btn" style="width:auto;padding:8px 14px;font-size:10px;margin:0" for="inputBgMusic"><span id="txtBg">Cargar audio fondo para video.m4a</span></label>
+<input type="file" id="inputBgMusic" accept="audio/*">
+<div style="display:flex;align-items:center;gap:6px">
+<span style="font-size:9px;color:#888">Vol:</span>
+<input type="range" id="bgVol" min="0" max="0.5" step="0.01" value="0.12" style="width:80px">
+<span id="bgVolTxt" style="font-size:10px;color:#FFEB00;font-weight:800">12%</span>
+<label style="display:flex;align-items:center;gap:4px;font-size:9px;color:#aaa;cursor:pointer"><input type="checkbox" id="bgEnabled" checked> Activo</label>
+</div>
+<span id="bgName" style="font-size:9px;color:#4ade80;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+<audio id="previewBg" preload="auto" loop style="display:none"></audio>
+</div>
+</div>
+
+<div style="max-width:1750px;margin:auto;padding:10px;display:flex;flex-direction:column;gap:10px">
+<div class="glass" style="padding:10px"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b style="font-size:11px;color:#FFEB00">🎬 SELECCIONA EL SLOT PARA EDITAR - 6 VIDEOS INDEPENDIENTES</b><span id="colaInfo" style="font-size:10px;color:#666"></span></div><div id="cola"></div></div>
+<div class="layout">
+<div class="glass" style="padding:10px;height:fit-content;position:sticky;top:60px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b id="slotLabel">SLOT 1</b><div style="display:flex;gap:6px;align-items:center"><span id="statusLabel" style="font-size:9px;background:#111;padding:4px 8px;border-radius:20px">vacio</span><span id="speedLabel" style="font-size:9px;background:#111;padding:4px 8px;border-radius:20px;color:#FFEB00">—</span><button id="btnRenderSingle" style="background:#fff;color:#000;border:0;padding:6px 12px;border-radius:8px;font-weight:900;font-size:10px;cursor:pointer">⚡ RENDER ESTE SLOT</button></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+<!-- 1. VIDEO -->
+<div><div style="font-size:9px;color:#FFEB00;font-weight:800;margin-bottom:3px">1. VIDEO .MP4 *</div><label for="inputVideo" class="file-btn" id="lblVideo">🎬 <span id="txtVideo">Elegir video</span></label><input type="file" id="inputVideo" accept="video/*"><div id="videoName" style="font-size:9.5px;color:#4ade80;margin-top:5px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);padding:5px 7px;border-radius:6px;word-break:break-all;min-height:18px;display:flex;align-items:center;gap:4px"><span style="color:#666">Sin video</span></div></div>
+<!-- 2. TXT -->
+<div><div style="font-size:9px;color:#FFEB00;font-weight:800;margin-bottom:3px">2. 📄 .TXT (Guion)</div><label for="inputTxt" class="file-btn" id="lblTxt">📂 <span id="txtTxt">Elegir .txt</span></label><input type="file" id="inputTxt" accept=".txt,text/plain"><div id="txtName" style="font-size:9.5px;color:#4ade80;margin-top:5px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);padding:5px 7px;border-radius:6px;word-break:break-all;min-height:18px;display:flex;align-items:center;gap:4px"><span style="color:#666">Sin .txt</span></div></div>
+<!-- 3. KOKORO GENERADOR -> GUARDA EN AUDIO -->
+<div><div style="font-size:9px;color:#FFEB00;font-weight:800;margin-bottom:3px">3. AUDIO ESPAÑOL AUTO <span id="pyStatusDot" class="offline"></span><span id="pyStatusText" style="font-size:8px">Python desconectado</span></div>
+  <div style="background:#0f0f12;border:1.5px solid #222;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px">
+    <div style="display:flex;gap:6px">
+      <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
+        <option value="es_ES-sharvard-medium" selected>Dora - Española ES (Nativa)</option>
+        <option value="es_ES-carlfm-x_low">Alex - Español ES (Nativo)</option>
+        <option value="es_ES-davefx-medium">Dave - Español ES</option>
+        <option value="es_MX-ald-medium">Ald - Español MX</option>
+      </select>
+      <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
+        <option value="0.95">0.95x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.15">1.15x</option>
+      </select>
+    </div>
+    <button id="btnKokoroGen" style="width:100%;background:#FFEB00;color:#000;border:2px solid #000;border-radius:8px;padding:9px;font-size:11px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #000;letter-spacing:0.3px">🔊 🔊 GENERAR AUDIO ESPAÑOL</button>
+    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Esperando .txt...</div>
+    <div id="kokoroProgress" style="height:4px;background:#1a1a1e;border-radius:10px;overflow:hidden;display:none"><div id="kokoroProgressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
+    <div id="audioName" style="font-size:9.5px;color:#4ade80;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);padding:5px 7px;border-radius:6px;word-break:break-all;min-height:18px;display:flex;align-items:center;gap:4px"><span style="color:#666">Sin audio (se guardará aquí)</span></div>
+    <input type="file" id="inputAudio" accept="audio/*" style="display:none">
+    <div style="display:flex;gap:4px"><button id="lblAudio" style="display:none">dummy</button><span id="txtAudio" style="display:none"></span></div>
+  </div>
+</div>
+</div>
+<div style="margin-bottom:6px"><div style="font-size:9px;color:#FFEB00;font-weight:800">TITULO AMARILLO GRANDE</div><textarea id="inputTitle" rows="2" style="width:100%;background:#0f0f12;border:1px solid #333;color:#fff;border-radius:8px;padding:8px;font-size:13px;font-weight:800">ESTE CORTE CAMBIÓ SU VIDA MIRA EL ANTES Y DESPUÉS</textarea></div>
+<div style="margin-bottom:6px"><div style="font-size:9px;color:#777">GUION - 12 palabras (3 líneas) sync voz - más lectura = mejor sync</div><textarea id="inputScript" rows="3" style="width:100%;background:#0f0f12;border:1px solid #222;color:#fff;border-radius:8px;padding:8px;font-size:12px">Mira este cambio increíble que hicimos hoy en la barbería. El cliente llegó sin esperanza y se fue como un modelo.</textarea></div>
+<div><div style="font-size:9px;color:#777">NOMBRE ARCHIVO</div><input id="inputFileName" value="Video 1" style="width:100%;background:#0f0f12;border:1px solid #222;color:#fff;border-radius:8px;padding:8px;font-weight:700"></div>
+<div id="debug" style="margin-top:6px;font-size:9px;color:#666;background:#000;padding:6px;border-radius:6px;white-space:pre-wrap;max-height:70px;overflow:auto"></div>
+</div>
+<div class="glass" style="padding:8px;height:fit-content;position:sticky;top:60px">
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW 720p 720x900 • SUBS VISIBLES</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
+<div style="position:relative;width:100%;aspect-ratio:4/5;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
+<video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
+<audio id="previewAudio" preload="auto" style="display:none"></audio>
+<div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
+<canvas id="previewCanvas" width="720" height="900" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none"></canvas>
+<div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
+<div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px"><div style="width:44px;height:44px;background:#FFEB00;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div><div id="renderText" style="display:none !important">RENDER 720p</div><div id="renderList" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin-top:4px"></div><div style="width:100%;max-width:320px;height:1px;background:#222;margin:4px 0"></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div id="renderPct" style="font-size:42px;font-weight:900;color:#FFEB00;line-height:1;letter-spacing:-1px">0%</div><div id="renderTotalLabel" style="font-size:10px;color:#666;font-weight:800;letter-spacing:1.2px">TOTAL</div></div></div>
+</div>
+</div>
+</div>
+</div>
+
+
+<script>
+const $=s=>document.getElementById(s);
+const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c="";for(let x of w){const test=c?c+" "+x:x;if(test.length<=m)c=test;else{if(c)l.push(c);c=x.length>m?x.slice(0,m):x;}}if(c)l.push(c);return l;};
+const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;}; // 12 palabras = 3 líneas para mejor sync
+const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
+const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
+// TODOS LOS SLOTS IGUALES E INDEPENDIENTES - vacíos al inicio
+const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_ES-sharvard-medium",voiceSpeed:1,audioBlob:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+let activeId=1,lastCola=0,raf=null;
+window.queue=queue;
+window.activeId=1;
+window.getActiveId=()=>activeId;
+
+const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
+const bgEl=$("previewBg");
+let defaultBgUrl="", defaultBgName="audio fondo para video (incrustado)", defaultBgBuffer=null;
+// Audio incrustado por defecto
+
+// Auto-cargar audio incrustado
+try{
+  const bgElAuto = document.getElementById('previewBg');
+  if(bgElAuto && defaultBgUrl){
+    bgElAuto.src=defaultBgUrl;
+    bgElAuto.load();
+    bgElAuto.volume=parseFloat(document.getElementById('bgVol')?.value||0.12);
+    document.getElementById('lblBg')?.classList.add('has');
+    document.getElementById('txtBg').textContent="✓ Fondo incrustado activo";
+    document.getElementById('bgName').textContent="🎵 audio fondo para video (incrustado) · 5.1 MB - ACTIVO EN TODOS LOS VIDEOS";
+    // precargar buffer para WebCodecs
+    (async()=>{
+      try{
+        const acTmp=new (window.AudioContext||window.webkitAudioContext)();
+        const resp=await fetch(defaultBgUrl);
+        const ab=await resp.arrayBuffer();
+        defaultBgBuffer=await acTmp.decodeAudioData(ab);
+        await acTmp.close();
+        console.log('Buffer fondo incrustado cargado', defaultBgBuffer.duration);
+      }catch(e){ console.warn('No se pudo precargar buffer fondo',e); }
+    })();
+  }
+}catch(e){ console.warn(e); }
+
+
+// Cargar bg guardado en localStorage si existe
+try{
+  const savedName=localStorage.getItem('ice_bg_name');
+  const savedVol=localStorage.getItem('ice_bg_vol');
+  if(savedVol) {$("bgVol").value=savedVol; $("bgVolTxt").textContent=Math.round(parseFloat(savedVol)*100)+'%';}
+  if(savedName) $("bgName").textContent="Guardado: "+savedName+" (recarga el archivo para usarlo)";
+}catch(e){}
+
+const log=m=>{const d=$("debug");d.textContent=new Date().toLocaleTimeString()+" | "+m+"\n"+d.textContent.slice(0,400);};
+const getA=()=>queue.find(q=>q.id===activeId);
+function getRateInfo(vDur,aDur){
+  if(!vDur||!aDur) return {rate:1,useLoop:false,realTotal:vDur||aDur||0,needed:1,stretchFirst:true};
+  const needed=vDur/aDur;
+  // Si el video es corto, estirar la primera instancia al máximo (0.25x = 4x más largo) antes de loopear
+  const MIN_RATE = 0.25; // máximo estiramiento permitido, super fluido
+  if(needed < MIN_RATE){
+    // Ej: video 5s, audio 20s -> needed 0.25 -> rate 0.25, loop si aún no alcanza
+    // Ej: video 5s, audio 30s -> rate 0.25 = 20s estirados, faltan 10s = loop de la parte estirada
+    const stretchedDur = vDur / MIN_RATE;
+    const useLoop = stretchedDur < aDur;
+    return {rate:MIN_RATE,useLoop,realTotal:aDur,needed,stretchFirst:true, stretchedDur};
+  }
+  if(needed>4) return {rate:4,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
+  return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
+}
+function calcDurInfo(q){
+  if(!q.videoDur||!q.audioDur) return null;
+  const v=q.videoDur,a=q.audioDur;
+  const info=getRateInfo(v,a);
+  let mode;
+  if(info.stretchFirst && info.useLoop) mode=`Estirado ${info.rate}x + bucle`;
+  else if(info.stretchFirst) mode=`Estirado ${info.rate}x`;
+  else if(info.useLoop) mode=`Bucle ${a.toFixed(1)}s`;
+  else if(info.needed>4) mode=`4x + corte`;
+  else mode=`${info.rate.toFixed(2)}x`;
+  return {v,a,rate:info.rate,useLoop:info.useLoop,mode,txt:`${v.toFixed(1)}s → ${a.toFixed(1)}s (${mode})`};
+}
+function renderCola(f=false){
+  if(!f&&performance.now()-lastCola<150)return;lastCola=performance.now();
+  const c=$("cola");c.innerHTML="";const fr=document.createDocumentFragment();
+  queue.forEach(q=>{
+    const act=q.id===activeId,nm=sanitizar(q.fileNameBase)||`Video ${q.id}`;
+    const di=calcDurInfo(q);
+    const el=document.createElement("div");
+    el.className=`slot ${act?'active':''} ${q.status==='hecho'?'done':''} ${q.status==='renderizando'?'run':''}`;
+    el.onclick=()=>setActive(q.id);
+    el.innerHTML=`<div style="display:flex;justify-content:space-between"><b style="font-size:11px;color:${act?'#FFEB00':'#fff'}">SLOT ${q.id}</b><span style="font-size:7px;font-weight:800;color:#666">${q.status.toUpperCase()}</span></div>
+    <div style="font-size:9px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:3px 0">${nm}</div>
+    <div style="font-size:7px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${q.videoName?`🎬 ${q.videoName.slice(0,18)}`:'Vacío - Click para cargar'}</div>
+    ${di?`<div style="font-size:7px;color:${di.useLoop?'#FFEB00':'#4ade80'};background:rgba(0,0,0,.5);padding:2px 4px;border-radius:4px;margin-top:3px;white-space:nowrap;overflow:hidden">⏱ ${di.txt}</div>`:`<div style="font-size:7px;color:#333;margin-top:3px">${q.videoDur?`v:${q.videoDur.toFixed(1)}s`:''} ${q.audioDur?`a:${q.audioDur.toFixed(1)}s`:''}</div>`}
+    <div style="height:3px;background:#000;border-radius:10px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${q.progress}%;background:${q.status==='hecho'?'#22c55e':q.status==='renderizando'?'#FFEB00':'#333'}"></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px"><button onclick="event.stopPropagation();renderOne(${q.id})" style="background:${q.videoUrl?'#FFEB00':'#222'};color:${q.videoUrl?'#000':'#555'};border:0;padding:5px;border-radius:6px;font-size:8px;font-weight:900;cursor:pointer">⚡ RENDER</button>${q.finalUrl?`<a href="${q.finalUrl}" download="${nm}.${q.finalExt}" onclick="event.stopPropagation()" style="background:#22c55e;color:#000;text-align:center;padding:5px;border-radius:6px;font-size:8px;font-weight:900;text-decoration:none">⬇</a>`:`<div style="background:#1a1a1e;color:#555;text-align:center;padding:4px;border-radius:6px;font-size:7px">${q.videoUrl?'✓ Listo':'Vacío'}</div>`}</div>`;
+    fr.appendChild(el);
+  });
+  c.appendChild(fr);
+  $("colaInfo").textContent=`${queue.filter(q=>q.videoUrl).length}/6 listos`;
+}
+window.setActive=id=>{
+  const p=getA();
+  if(p){
+    p.title=$("inputTitle").value; p.script=$("inputScript").value; p.fileNameBase=$("inputFileName").value;
+    // Guardar duracion solo si es del mismo slot
+    if(p.videoUrl && vEl.src && vEl.duration) p.videoDur=vEl.duration;
+    // NO sobrescribir audioDur con duracion de otro slot
+    if(p.audioUrl && aEl.src && aEl.duration && aEl.duration>0){
+      // Solo si el aEl actual corresponde a este slot
+      if(aEl.src === p.audioUrl || p.audioUrl.includes('blob:')){
+        // verificar que no sea de otro slot: comparar duraciones no es fiable, comparar src
+        // Si aEl.src es blob y p tiene blob, asumimos que es suyo si activeId == p.id
+        if(activeId === p.id) p.audioDur=aEl.duration;
+      }
+    }
+    try{
+      const vSel=document.getElementById('kokoroVoice');
+      const sSel=document.getElementById('kokoroSpeed');
+      if(vSel) p.voiceId=vSel.value;
+      if(sSel) p.voiceSpeed=parseFloat(sSel.value)||1;
+    }catch{}
+  }
+  try{ vEl.pause(); aEl.pause(); vEl.loop=false; vEl.playbackRate=1; vEl.muted=true; aEl.muted=false; vEl.volume=1; aEl.volume=1; if(raf) cancelAnimationFrame(raf); $("btnPlay").textContent='▶ Play'; }catch{}
+  activeId=id;
+  window.activeId=id;
+  const it=getA();
+  $("slotLabel").textContent=`SLOT ${it.id}`;
+  $("statusLabel").textContent=it.status;
+  const di=calcDurInfo(it);
+  $("speedLabel").textContent=di?di.txt:(it.videoDur?`V:${it.videoDur.toFixed(1)}s`:"—");
+  $("inputTitle").value=it.title;
+  $("inputScript").value=it.script;
+  $("inputFileName").value=it.fileNameBase;
+  // Restaurar voz por SLOT
+  try{
+    const vSel=document.getElementById('kokoroVoice');
+    const sSel=document.getElementById('kokoroSpeed');
+    if(vSel) vSel.value = it.voiceId || 'es_ES-sharvard-medium';
+    if(sSel) sSel.value = String(it.voiceSpeed || 1);
+    const st=document.getElementById('kokoroStatus');
+    if(st){
+      if(it.audioUrl){
+        const nombre = (it.voiceId||'').includes('sharvard')?'Dora':(it.voiceId||'').includes('carlfm')?'Alex':it.voiceId;
+        st.textContent=`✅ SLOT ${it.id} - ${nombre} - ${it.audioDur?it.audioDur.toFixed(1)+'s':''} - LISTO`;
+        st.style.color='#4ade80';
+      } else {
+        st.textContent=`SLOT ${it.id} - Listo para generar`;
+        st.style.color='#888';
+      }
+    }
+  }catch{}
+  if(it.txtName){
+    $("lblTxt").classList.add('has'); $("txtTxt").textContent="✓ "+it.txtName.slice(0,16);
+    $("txtName").innerHTML=`📄 <b>${it.txtName}</b> · ${it.title?it.title.slice(0,18):''}`;
+    $("txtName").style.color='#4ade80';
+  }else{
+    $("lblTxt").classList.remove('has'); $("txtTxt").textContent="Elegir .txt";
+    $("txtName").innerHTML=`<span style="color:#666">Sin .txt</span>`; $("txtName").style.color='#666';
+  }
+  if(it.videoUrl){
+    vEl.src=it.videoUrl; vEl.muted=true; vEl.volume=0; vEl.style.display='block'; ph.style.display='none'; vEl.load();
+    vEl.onloadedmetadata=()=>{ it.videoDur=vEl.duration; renderCola(true); const d2=calcDurInfo(it); if(d2&&activeId===it.id) $("speedLabel").textContent=d2.txt; };
+    $("lblVideo").classList.add('has'); $("txtVideo").textContent="✓ "+it.videoName.slice(0,18); $("videoName").innerHTML=`🎬 <b>${it.videoName}</b> ${it.videoDur?`· ${it.videoDur.toFixed(1)}s`:''}`; $("videoName").style.color='#4ade80'; $("videoName").style.borderColor='rgba(34,197,94,.35)';
+  }else{
+    vEl.removeAttribute('src'); vEl.style.display='none'; ph.style.display='flex';
+    $("lblVideo").classList.remove('has'); $("txtVideo").textContent="Elegir video"; $("videoName").innerHTML=`<span style="color:#666">Sin video</span>`; $("videoName").style.color='#666'; $("videoName").style.borderColor='rgba(255,255,255,.08)';
+  }
+  if(it.audioUrl){
+    aEl.src=it.audioUrl; aEl.load(); aEl.playbackRate=it.voiceSpeed||1;
+    aEl.onloadedmetadata=()=>{ 
+      // Solo actualizar si seguimos en este slot
+      if(activeId===it.id){
+        it.audioDur=aEl.duration; 
+        renderCola(true); 
+        const d2=calcDurInfo(it); 
+        if(d2) $("speedLabel").textContent=d2.txt; 
+        renderOverlay();
+      }
+    };
+    $("lblAudio").classList.add('has'); $("txtAudio").textContent="✓ "+it.audioName.slice(0,18); 
+    $("audioName").innerHTML=`🎙️ <b>${it.audioName}</b> ${it.audioDur?`· ${it.audioDur.toFixed(1)}s`:''} [SLOT ${it.id}]`; 
+    $("audioName").style.color='#4ade80'; $("audioName").style.borderColor='rgba(34,197,94,.35)';
+  }else{
+    aEl.removeAttribute('src'); $("lblAudio").classList.remove('has'); $("txtAudio").textContent="Elegir audio"; $("audioName").innerHTML=`<span style="color:#666">Sin audio SLOT ${it.id} - Genera voz</span>`; $("audioName").style.color='#666'; $("audioName").style.borderColor='rgba(255,255,255,.08)';
+  }
+  renderOverlay(); renderCola(true);
+};
+
+function renderOverlay(){
+  const it=getA();
+  const tl=splitWords((it.title||'').toUpperCase(),22).slice(0,3);
+  const subs=chunkSubs(it.script||"");
+  window._previewTL = tl;
+  window._previewSubs = subs;
+  startLoop();
+}
+function updSubs(){
+  const it=getA();
+  if(!it) return;
+  // V27 FIX DEFINITIVO: Subtitulo sincronizado a duracion REAL del audio generado de ESTE slot
+  const hasAudio = !!(it.audioUrl && it.audioDur && it.audioDur>0);
+  const total= hasAudio ? it.audioDur : (it.videoDur||vEl.duration||0);
+  let cur = 0;
+  if(hasAudio){
+    // Si estamos reproduciendo, usar currentTime del audio
+    // Si no, calcular progreso basado en video pero escalado a audioDur
+    if(!aEl.paused && aEl.src && it.audioUrl && aEl.src.includes('blob')){
+      cur = aEl.currentTime;
+    } else if(vEl.duration && !vEl.paused){
+      // Durante preview sin audio playing, escalar video time a audio time
+      const videoProgress = vEl.currentTime / (it.videoDur||vEl.duration||1);
+      cur = videoProgress * it.audioDur;
+    } else {
+      // Si todo pausado, usar 0 para mostrar primer subtitulo
+      cur = hasAudio && !aEl.paused ? aEl.currentTime : 0;
+    }
+  } else {
+    cur = vEl.currentTime||0;
+  }
+  const canvas=$("previewCanvas");
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,720,900);
+  const tl=window._previewTL || splitWords((it.title||'').toUpperCase(),22).slice(0,3);
+  const subs=window._previewSubs || chunkSubs(it.script||"");
+  // DISEÑO MEJORADO TITULO
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
+  ctx.font=`900 ${tl.join(' ').length>90?30:36}px Anton`;
+  tl.forEach((l,i)=>{
+    const y=45+i*48;
+    const fw = ctx.measureText(l).width;
+    // Fondo negro pill detrás del título para que resalte sin degradado
+    ctx.save();
+    ctx.fillStyle='#000000';
+    ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=12; ctx.shadowOffsetY=4;
+    const padX=28, padY=10;
+    const rw=fw+padX*2, rh=38;
+    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
+    else { ctx.fillRect(360-rw/2, y-rh/2, rw, rh); }
+    ctx.restore();
+    // Borde y relleno amarillo
+    ctx.lineWidth=6; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00';
+    ctx.strokeText(l,360,y); ctx.fillText(l,360,y);
+    // Brillo interior sutil
+    ctx.lineWidth=1.5; ctx.strokeStyle='rgba(255,255,255,0.25)';
+    ctx.strokeText(l,360,y);
+  });
+  ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+  if(subs.length){
+    let idx=total>0.2?Math.floor((cur/total)*subs.length):0;
+    idx=Math.max(0,Math.min(idx,subs.length-1));
+    const curr=subs[idx]||'';
+    if(curr){
+      const ls=splitWords(curr.toUpperCase(),22).slice(0,3);
+      ls.forEach((ln,j)=>{
+        const y=700+j*42;
+        ctx.font='800 28px Plus Jakarta Sans';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        const m=ctx.measureText(ln);
+        const bw=m.width+36, bh=42;
+        // Fondo subtitulo mejorado - negro 85% con borde amarillo sutil
+        ctx.save();
+        ctx.fillStyle='rgba(0,0,0,0.85)';
+        ctx.strokeStyle='rgba(255,235,0,0.25)'; ctx.lineWidth=1;
+        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2, y-bh/2, bw, bh, 12); ctx.fill(); ctx.stroke(); }
+        else { ctx.fillRect(360-bw/2, y-bh/2, bw, bh); }
+        ctx.restore();
+        ctx.font='800 28px Plus Jakarta Sans'; ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFFFFF';
+        ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y);
+      });
+    }
+  }
+  if(total>0) $("progressBar").style.width=Math.min((cur/total)*100,100)+'%';
+}
+
+function startLoop(){ if(raf) cancelAnimationFrame(raf); const loop=()=>{ updSubs(); raf=requestAnimationFrame(loop); }; raf=requestAnimationFrame(loop); }
+
+// === CARGA AUTOMATICA .TXT ===
+
+// TXT POR SLOT - GUION = TXT COMPLETO
+$("inputTxt").addEventListener('change', async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{
+    let text=await f.text();
+    text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
+    if(!text){ alert('TXT vacío'); return; }
+    const lines=text.split('\n');
+    const first=lines.find(l=>l.trim()!=='')||'';
+    const codigo=first.trim();
+    const it=getA();
+    it.title=codigo;
+    it.fileNameBase=codigo;
+    it.script=text; // <-- AQUÍ VA EL TXT COMPLETO EN EL GUION (título + todo)
+    it.txtName=f.name;
+    it.txtContent=text;
+    $("inputTitle").value=codigo;
+    $("inputFileName").value=codigo;
+    $("inputScript").value=text; // guion = txt completo
+    $("lblTxt").classList.add('has');
+    $("txtTxt").textContent="✓ "+f.name.slice(0,16);
+    $("txtName").innerHTML=`📄 <b>${f.name}</b> · ${codigo.slice(0,20)}`;
+    $("txtName").style.color='#4ade80';
+    renderOverlay();
+    renderCola(true);
+    log(`TXT SLOT ${it.id}: ${f.name} - Título: ${codigo} - Guion = TXT completo (${text.length} chars)`);
+  }catch(err){ alert('Error TXT: '+err.message); }
+  e.target.value='';
+});
+
+$("inputVideo").addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const it=getA(); if(it.videoUrl) URL.revokeObjectURL(it.videoUrl);
+  const u=URL.createObjectURL(f); it.videoUrl=u; it.videoName=f.name; it.status='solo video';
+  vEl.src=u; vEl.muted=true; vEl.style.display='block'; ph.style.display='none'; vEl.load();
+  vEl.onloadedmetadata=()=>{ it.videoDur=vEl.duration; $("videoName").innerHTML=`🎬 <b>${it.videoName}</b> · ${it.videoDur.toFixed(1)}s`; renderCola(true); renderOverlay(); const di=calcDurInfo(it); if(di) $("speedLabel").textContent=di.txt; };
+  $("videoName").innerHTML=`🎬 <b>${f.name}</b> · ${(f.size/1024/1024).toFixed(2)} MB`; $("videoName").style.color='#4ade80'; $("videoName").style.borderColor='rgba(34,197,94,.35)';
+  log(`Video SLOT ${it.id} ${f.name}`); renderOverlay(); e.target.value='';
+});
+$("inputAudio").addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const it=getA(); if(it.audioUrl) URL.revokeObjectURL(it.audioUrl);
+  const u=URL.createObjectURL(f); it.audioUrl=u; it.audioName=f.name;
+  aEl.src=u; aEl.load();
+  aEl.onloadedmetadata=()=>{ it.audioDur=aEl.duration; $("audioName").innerHTML=`🎙️ <b>${it.audioName}</b> · ${it.audioDur.toFixed(1)}s`; renderCola(true); renderOverlay(); const di=calcDurInfo(it); if(di) $("speedLabel").textContent=di.txt; };
+  
+$("audioName").innerHTML=`🎙️ <b>${f.name}</b> · ${(f.size/1024/1024).toFixed(2)} MB`; $("audioName").style.color='#4ade80'; $("audioName").style.borderColor='rgba(34,197,94,.35)';
+  log(`Audio SLOT ${it.id} ${f.name}`); e.target.value='';
+});
+
+// --- FONDO POR DEFECTO LOGIC ---
+async function loadBgFile(file){
+  if(!file) return;
+  if(defaultBgUrl) URL.revokeObjectURL(defaultBgUrl);
+  const u=URL.createObjectURL(file);
+  defaultBgUrl=u;
+  defaultBgName=file.name;
+  bgEl.src=u; bgEl.load(); bgEl.volume=parseFloat($("bgVol").value);
+  $("lblBg").classList.add('has'); $("txtBg").textContent="✓ "+file.name.slice(0,22);
+  $("bgName").textContent=`🎵 ${file.name} · ${(file.size/1024/1024).toFixed(2)} MB - POR DEFECTO EN TODOS LOS VIDEOS`;
+  try{ localStorage.setItem('ice_bg_name', file.name); }catch{}
+  // precargar buffer para WebCodecs
+  try{
+    const acTmp=new (window.AudioContext||window.webkitAudioContext)();
+    const ab=await file.arrayBuffer();
+    defaultBgBuffer=await acTmp.decodeAudioData(ab);
+    await acTmp.close();
+  }catch(e){ defaultBgBuffer=null; }
+  log(`Fondo por defecto cargado: ${file.name} - se usará en TODOS los renders`);
+}
+$("inputBgMusic").addEventListener('change', async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  await loadBgFile(f);
+  e.target.value='';
+});
+$("bgVol").addEventListener('input', e=>{
+  const v=parseFloat(e.target.value);
+  bgEl.volume=v;
+  $("bgVolTxt").textContent=Math.round(v*100)+'%';
+  try{ localStorage.setItem('ice_bg_vol', String(v)); }catch{}
+});
+$("bgEnabled").addEventListener('change', e=>{
+  log(`Fondo ${e.target.checked?'ACTIVADO':'DESACTIVADO'} por defecto`);
+});
+// Auto-cargar si ya tienes el archivo en Drive local - intentar fetch del nombre comun
+
+$("inputTitle").addEventListener('input',()=>{
+  const it=getA(); const up=$("inputTitle").value.toUpperCase(); $("inputTitle").value=up; it.title=up;
+  const fn=sanitizar(up); if(fn) $("inputFileName").value=fn; it.fileNameBase=$("inputFileName").value; renderOverlay();
+});
+$("inputScript").addEventListener('input',()=>{ getA().script=$("inputScript").value; renderOverlay(); });
+$("inputFileName").addEventListener('input',()=>{ getA().fileNameBase=$("inputFileName").value; renderCola(); });
+
+// PLAY CORREGIDO - con adaptación de velocidad y con video en mute automático
+$("btnPlay").addEventListener('click',()=>{
+  const it=getA(); if(!vEl.src) return;
+  const info=getRateInfo(it.videoDur||vEl.duration||0, it.audioDur||aEl.duration||0);
+  if(vEl.paused){
+    try{
+      vEl.muted=true; aEl.muted=false; vEl.volume=1; aEl.volume=1;
+      vEl.playbackRate=info.rate;
+      vEl.loop=info.useLoop;
+      // SYNC FIX: Ambos a 0 al mismo tiempo para que voz, subtítulos y video arranquen juntos
+      vEl.currentTime=0;
+      if(it.audioUrl){
+        aEl.currentTime=0;
+        try{ if(Math.abs(aEl.currentTime - vEl.currentTime) > 0.5) aEl.currentTime=vEl.currentTime; }catch{}
+        aEl.playbackRate=1;
+      }
+    }catch(e){ console.warn(e); }
+    const p1=vEl.play(); if(p1) p1.catch(()=>{});
+    if(it.audioUrl){ const p2=aEl.play(); if(p2) p2.catch(()=>{}); }
+    if(defaultBgUrl && $("bgEnabled").checked){
+      try{ bgEl.currentTime=vEl.currentTime; bgEl.volume=parseFloat($("bgVol").value)||0.12; bgEl.muted=aEl.muted; const p3=bgEl.play(); if(p3) p3.catch(()=>{}); }catch(e){}
+    }
+    $("btnPlay").textContent='⏸';
+    log(`PLAY SLOT ${it.id}: ${info.useLoop?'Bucle':info.rate.toFixed(2)+'x'} ${(it.videoDur||0).toFixed(1)}s → ${(it.audioDur||0).toFixed(1)}s`);
+  }else{
+    vEl.pause(); aEl.pause(); try{ bgEl.pause(); }catch{}
+    $("btnPlay").textContent='▶ Play';
+  }
+});
+const FPS=30,W=720,H=900;
+
+function safeDownload(url, name){
+  try{
+    const a=document.createElement('a'); a.href=url; a.download=name; a.style.display='none';
+    document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),1200);
+  }catch(e){ console.warn('dl fail',e); }
+}
+let _dlQueue=[]; let _dlTimer=null;
+function queueDownload(url,name){
+  if(_dlQueue.some(x=>x.url===url)) return;
+  _dlQueue.push({url,name});
+  if(_dlTimer) return;
+  function next(){
+    if(!_dlQueue.length){ _dlTimer=null; return; }
+    const {url,name}=_dlQueue.shift();
+    safeDownload(url,name);
+    _dlTimer=setTimeout(next, 1200);
+  }
+  next();
+}
+
+
+
+async function renderSingleMP4_WebCodecs(item,onProg){ return {url:'',ext:'mp4'}; }
+
+
+
+function hardCleanup(){ try{const vp=document.getElementById('vPreview'); if(vp) vp.pause()}catch{} }
+function isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas){ try{v&&v.pause(); v.src='';}catch{} try{combined && combined.getTracks().forEach(t=>t.stop())}catch{} try{cStream && cStream.getTracks().forEach(t=>t.stop())}catch{} try{ac&&ac.close()}catch{} }
+
+async function renderSingle(item,onProg){
+  hardCleanup();
+  const vPre=document.createElement('video'); vPre.src=item.videoUrl; vPre.muted=true; vPre.crossOrigin='anonymous'; vPre.preload='auto';
+  await new Promise(r=>{ vPre.onloadedmetadata=()=>r(); vPre.onerror=()=>r(); vPre.load(); });
+  const vDur=vPre.duration||item.videoDur||10;
+
+  const scriptText=(item.script||"").trim();
+  const subs=chunkSubs(scriptText);
+  const tLines=splitWords((item.title||'').toUpperCase(),22).slice(0,3);
+  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
+  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true});
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+
+  let ac,dest,cap=null,bgCap=null,bgGain=null,voiceGain=null; let aDur=item.audioDur||0;
+  if(item.audioUrl || (defaultBgUrl && $("bgEnabled").checked)){
+    try{
+      ac=new (window.AudioContext||window.webkitAudioContext)();
+      dest=ac.createMediaStreamDestination();
+      if(item.audioUrl){
+        cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; cap.preload='auto';
+        await new Promise(r=>{ cap.onloadedmetadata=()=>{ aDur=cap.duration||aDur; r(); }; cap.onerror=()=>r(); cap.load(); });
+        const src=ac.createMediaElementSource(cap);
+        voiceGain=ac.createGain(); voiceGain.gain.value=1.0;
+        src.connect(voiceGain); voiceGain.connect(dest);
+      }
+      // Fondo por defecto - mezcla con volumen bajo
+      if(defaultBgUrl && $("bgEnabled").checked){
+        bgCap=document.createElement('audio'); bgCap.src=defaultBgUrl; bgCap.crossOrigin='anonymous'; bgCap.preload='auto'; bgCap.loop=true;
+        await new Promise(r=>{ bgCap.onloadedmetadata=()=>r(); bgCap.onerror=()=>r(); bgCap.load(); });
+        const bgSrc=ac.createMediaElementSource(bgCap);
+        bgGain=ac.createGain(); const _rawBg=parseFloat($("bgVol").value)||0.12; const _isBgMuted=document.getElementById('previewBg')?.muted; bgGain.gain.value=_isBgMuted?0:_rawBg;
+        bgSrc.connect(bgGain); bgGain.connect(dest);
+      }
+    }catch(e){ console.warn('bg audio ctx fail',e); cap=null; }
+  }
+  const realTotal=aDur||vDur||10;
+  // Limpiar pre-video
+  try{ vPre.pause(); vPre.src=''; vPre.load(); }catch{}
+  const info=getRateInfo(vDur,aDur);
+
+  const mimeMP4 = [
+    'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+    'video/mp4;codecs=avc1.42E01E',
+    'video/mp4;codecs=avc1',
+    'video/mp4'
+  ].find(m=>{ try{ return MediaRecorder.isTypeSupported(m); }catch{ return false; } });
+
+  if(mimeMP4){
+    try{
+      const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto'; v.volume=0; // VIDEO 100% SILENCIADO EN RENDER - solo voz + fondo
+      await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
+      await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,800); });
+      v.playbackRate=info.rate;
+      v.loop=info.useLoop;
+      v.currentTime=0;
+      v.muted=true;
+
+      // VIDEO MUTEADO: canvas solo tiene video, audio viene solo de dest (voz Piper + fondo) - video original nunca entra
+      const cStream=canvas.captureStream(FPS);
+      // Solo video del canvas, audio solo de voz (dest) - video original silenciado 100%
+      const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
+      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 4500000, mimeType:mimeMP4, audioBitsPerSecond:128000, audioBitsPerSecond:128000});
+      const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+      const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:'video/mp4'})) );
+
+      let _recStopped=false;
+      await v.play().catch(()=>{});
+      if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
+      if(bgCap){ bgCap.currentTime=0; try{ bgCap.volume=1; bgCap.muted=false; }catch{} await bgCap.play().catch(()=>{}); }
+      rec.start(1000);
+
+      await new Promise(res=>{
+        let start=performance.now();
+        const draw=()=>{
+          const elapsed=(performance.now()-start)/1000;
+          const cur=Math.min(elapsed, realTotal);
+          onProg?.(Math.min((cur/realTotal)*100,100));
+
+          if(v.readyState>=2){
+            const vw=v.videoWidth, vh=v.videoHeight;
+            if(vw&&vh){ const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{} }
+            else{ ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
+          }
+          
+          // TITULO FINO BORDE NEGRO - MEDIANO - IGUAL PREVIEW
+          ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
+          ctx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
+          tLines.forEach((l,i)=>{
+            const y=42+i*40;
+            const fw = ctx.measureText(l).width;
+            ctx.save();
+            ctx.fillStyle='#000000';
+            const padX=22, rh=34;
+            const rw=fw+padX*2;
+            if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2, y-rh/2, rw, rh, 8); ctx.fill(); }
+            else { ctx.fillRect(360-rw/2, y-rh/2, rw, rh); }
+            ctx.restore();
+            ctx.lineWidth=3.5; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00';
+            ctx.strokeText(l,360,y); ctx.fillText(l,360,y);
+          });
+          ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+
+          if(subs.length){
+            const audioCur = (cap && !cap.paused) ? cap.currentTime : cur;
+            const si=Math.min(Math.floor((audioCur/(aDur||realTotal))*subs.length),subs.length-1);
+            const curr=subs[si]||'';
+            if(curr){
+              const ls=splitWords(curr.toUpperCase(),22).slice(0,3);
+              ls.forEach((ln,j)=>{
+                const y=700+j*42;
+                ctx.font='800 28px Plus Jakarta Sans';
+                const m=ctx.measureText(ln);
+                const bw=m.width+36, bh=42;
+                ctx.save();
+                ctx.fillStyle='rgba(0,0,0,0.85)';
+                ctx.strokeStyle='rgba(255,235,0,0.25)'; ctx.lineWidth=1;
+                if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2, y-bh/2, bw, bh, 12); ctx.fill(); ctx.stroke(); }
+                ctx.restore();
+                ctx.font='800 28px Plus Jakarta Sans'; ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#fff';
+                ctx.textAlign='center'; ctx.textBaseline='middle';
+                ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y);
+              });
+            }
+          }
+
+          if(cur>=realTotal-0.03){ if(!_recStopped){ _recStopped=true; try{ rec.stop(); }catch{} setTimeout(res,300); } return; }
+          requestAnimationFrame(draw);
+        };
+        draw();
+      });
+
+      const blob=await blobP;
+      try{ isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas); }catch{}
+      if(blob.size>2000) return {url:URL.createObjectURL(blob), ext:'mp4'};
+    }catch(e){ console.warn('mp4 native fluid fail',e); }
+  }
+
+  return {url:'',ext:'mp4'};
+}
+
+
+window.renderOne=async id=>{
+  const it=queue.find(x=>x.id===id);if(!it||!it.videoUrl){alert('SLOT '+id+' Vacío - Click para cargar');return;}
+  try{ vEl.pause(); aEl.pause(); vEl.loop=false; if(raf) cancelAnimationFrame(raf); $("btnPlay").textContent='▶ Play'; }catch{}
+  const cur=getA();cur.title=$("inputTitle").value;cur.script=$("inputScript").value;cur.fileNameBase=$("inputFileName").value; if(vEl.duration) cur.videoDur=vEl.duration; if(aEl.duration) cur.audioDur=aEl.duration;
+  const q=queue.find(x=>x.id===id);q.status='renderizando';renderCola(true);
+  $("renderOverlay").style.display='flex';// MOD V15: oculto
+  $("renderText").textContent=``;
+  const listEl=$("renderList"); if(listEl) listEl.innerHTML=`<div style="background:#141418;border:1px solid #222;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:#fff;font-weight:700">SLOT ${id}</span><span id="renderSlot-${id}" style="font-size:11px;color:#FFEB00;font-weight:900">0%</span></div>`;
+  try{const r=await renderSingle(it,p=>{q.progress=p;const el=document.getElementById(`renderSlot-${id}`); if(el) el.textContent=p.toFixed(0)+'%'; $("renderPct").textContent=p.toFixed(0)+'%';;renderCola(true);});if(r){q.finalUrl=r.url;q.finalExt=r.ext;q.status='hecho';q.progress=100;if($("autoDownloadCheck").checked){const n=sanitizar(q.fileNameBase)||`Video ${id}`; queueDownload(r.url, n+'.'+r.ext);}}}catch(e){q.status='error';log(e.message);}
+  $("renderOverlay").style.display='none';try{ startLoop(); }catch{} renderCola(true);
+};
+$("btnRenderSingle").addEventListener('click',()=>renderOne(activeId));
+$("btnRender").addEventListener('click',async()=>{
+  const cur=getA(); if(cur){ cur.title=$("inputTitle").value; cur.script=$("inputScript").value; cur.fileNameBase=$("inputFileName").value; }
+  const list=queue.filter(q=>q.videoUrl); if(!list.length){alert('Llena al menos 1 slot con video');return;}
+  try{ vEl.pause(); aEl.pause(); try{ bgEl.pause(); }catch{} vEl.loop=false; if(raf) cancelAnimationFrame(raf); $("btnPlay").textContent='▶ Play'; }catch{}
+  const overlay=$("renderOverlay");
+  overlay.style.display='flex';
+  overlay.style.pointerEvents='none';
+  const CONCURRENCY = 6; // 6 videos en canvas separados
+  $("renderText").textContent='FASE 1/2 VOCES';
+  $("renderPct").textContent='0%';
+
+  // V30.1 FASE 1: Generar TODAS las voces 1 por 1 automatico
+  // Criterio: slots con video y con txtContent o script, pero sin audioUrl
+  const slotsNeedingVoice = list.filter(q=>{
+    const qq = queue.find(x=>x.id===q.id);
+    const hasText = !!(qq.txtContent || qq.script);
+    const hasAudio = !!(qq.audioUrl && qq.audioDur>0);
+    return hasText && !hasAudio;
+  });
+  
+  // Tambien incluir slots que tienen txtContent pero ya tienen audio? No, solo los que faltan
+  // Si quieres regenerar todos, usa el boton "GENERAR TODAS LAS VOCES" nuevo
+  
+  log(`FASE 1 VOCES: ${slotsNeedingVoice.length} slots necesitan voz de ${list.length} totales`);
+  
+  if(slotsNeedingVoice.length){
+    let voiceDone=0; const CONC=6;
+    log(`FASE 1: ${slotsNeedingVoice.length} voces EN PARALELO REAL x${CONC} - ARRANQUE SIMULTANEO`);
+    for(let batchStart=0; batchStart<slotsNeedingVoice.length; batchStart+=CONC){
+      const batch=slotsNeedingVoice.slice(batchStart,batchStart+CONC);
+      const ids=batch.map(b=>b.id).join(",");
+      try{ document.getElementById('renderOverlay').style.display='flex'; }catch{}
+      log(`>>> BATCH VOCES [${ids}] INICIO PARALELO`);
+      try{ document.getElementById("mVoices").textContent=batch.length; }catch{}
+      $("renderText").textContent=`FASE 1/2: Voces [${ids}] PARALELO x${CONC}`;
+      $("renderPct").textContent=Math.round((voiceDone/slotsNeedingVoice.length)*50)+"%";
+      await Promise.all(batch.map(async (q)=>{
+        const qq=queue.find(x=>x.id===q.id);
+        try{ await window.generateVoiceForSlotId(qq.id); log(`VOZ SLOT ${qq.id} OK PARALELO`); }catch(e){ log(`VOZ SLOT ${qq.id} FAIL ${e.message}`); }
+      }));
+      voiceDone+=batch.length;
+      try{ document.getElementById("mVoices").textContent=0; }catch{}
+      $("renderPct").textContent=Math.round((voiceDone/slotsNeedingVoice.length)*50)+"%";
+      renderCola(true);
+    }
+    $("renderPct").textContent="50%";
+    $("renderText").textContent=`FASE 1/2 COMPLETA: ${voiceDone} voces EN PARALELO REAL`;
+    await new Promise(r=>setTimeout(r, 600));
+  } else {
+    $("renderText").textContent=`FASE 1/2: Todas las voces ya estaban generadas`;
+    $("renderPct").textContent='50%';
+    await new Promise(r=>setTimeout(r, 500));
+  }
+
+  // FASE 2: Render videos 3 en 3 con audios ya guardados
+  const listWithAudioCheck = list.filter(q=>{
+    const qq = queue.find(x=>x.id===q.id);
+    return qq.audioUrl;
+  });
+  log(`FASE 2 VIDEO: ${list.length} videos, ${listWithAudioCheck.length} con audio guardado - iniciando render x${CONCURRENCY}`);
+  $("renderText").textContent=`FASE 2/2: Renderizando ${list.length} videos x${CONCURRENCY}`;
+
+  let completed=0; let activeVideos=0; let lastColaRender=0; let videoProgressMap={};
+  function updateVideoMon(){ try{ document.getElementById("mVideos").textContent=activeVideos; }catch{} }
+  function updateRealPercent(){ const total=list.length||1; let sum=0; for(let k in videoProgressMap) sum+=videoProgressMap[k]||0; const pct=50+Math.round((completed/total)*50 + (sum/(total*100))*50); $("renderPct").textContent=Math.min(99,pct)+"%"; }
+  function renderOverlayList(){
+    const listEl=$("renderList");
+    if(!listEl) return;
+    const totalProg = list.reduce((acc,qq)=>{ const q=queue.find(x=>x.id===qq.id); return acc + (q && q.progress ? q.progress : 0); },0) / list.length;
+    let htmlList='';
+    list.forEach(qq=>{
+      const q=queue.find(x=>x.id===qq.id);
+      const prog=q? (q.progress||0) : 0;
+      const status=q? q.status : 'vacio';
+      const isActive=status==='renderizando';
+      const isDone=status==='hecho';
+      htmlList+=`<div style="background:${isActive?'rgba(255,235,0,.10)':'#141418'};border:1px solid ${isActive?'#FFEB00': isDone?'#22c55e' :'#222'};border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:8px;width:6px;height:6px;border-radius:50%;background:${isDone?'#22c55e': isActive?'#FFEB00':'#333'};display:inline-block"></span><span style="font-size:10px;color:${isActive?'#FFEB00':'#fff'};font-weight:${isActive?800:600}">SLOT ${qq.id} ${q?.audioDur?`· ${q.audioDur.toFixed(1)}s · VOZ OK`:''}</span></div><span style="font-size:11px;color:${isDone?'#22c55e': isActive?'#FFEB00':'#888'};font-weight:900">${prog.toFixed(0)}%</span></div>`;
+    });
+    listEl.innerHTML=htmlList;
+    $("renderPct").textContent = (50 + Math.round(totalProg/2)) + '%';
+  }
+  function throttledCola(){
+    const now=performance.now();
+    if(now-lastColaRender>180){ renderCola(true); lastColaRender=now; }
+    renderOverlayList();
+  }
+  
+  const queueList=[...list];
+  async function worker(){
+    while(queueList.length){
+      const it=queueList.shift();
+      if(!it) break;
+      const q=queue.find(x=>x.id===it.id);
+      if(!q.audioUrl){
+        log(`SLOT ${q.id} ADVERTENCIA: sin audio, render solo video`);
+      } else {
+        log(`SLOT ${q.id} render con audio guardado ${q.audioDur?.toFixed(1)}s`);
+      }
+      q.status='renderizando'; q.progress=0; videoProgressMap[q.id]=0; activeVideos++; updateVideoMon(); updateRealPercent(); throttledCola();
+      try{
+        const r=await renderSingle(q,p=>{ q.progress=p; videoProgressMap[q.id]=p; updateRealPercent(); throttledCola(); });
+        if(r && r.url){
+          q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100; videoProgressMap[q.id]=100; activeVideos=Math.max(0,activeVideos-1); updateVideoMon(); updateRealPercent();
+          log(`SLOT ${q.id} VIDEO OK ${q.audioDur?'con audio':'(sin audio)'} `);
+          if($("autoDownloadCheck").checked){
+            const n=sanitizar(q.fileNameBase)||`Video ${q.id}`;
+            queueDownload(q.finalUrl, n+'.'+q.finalExt);
+          }
+        }else{ q.status='error'; log(`SLOT ${q.id} fallo video`); }
+      }catch(e){ q.status='error'; log(`Error SLOT ${q.id}: `+(e.message||e)); console.error(e); }
+      completed++;
+      throttledCola();
+    }
+  }
+  const workers=Array.from({length:Math.min(CONCURRENCY, list.length)}, ()=>worker());
+  await Promise.allSettled(workers);
+  
+  $("renderPct").textContent='100%';
+  $("renderText").textContent=`COMPLETADO - ${list.length} videos`;
+  setTimeout(()=>{ overlay.style.display='none'; overlay.style.pointerEvents='auto'; }, 800);
+  try{ startLoop(); }catch{} 
+  log(`Render TODO V30.1 terminado: ${completed}/${list.length} - voces 1x1 luego videos 3x3`);
+  renderCola(true);
+});
+
+setActive(1);renderCola(true);log('V11 MP4 FLUIDO ESTIRADO - primera instancia max estirada 0.25x + seek manual anti-freeze + .mp4');
+</script>
+
+<div style="position:fixed;bottom:12px;left:14px;z-index:100;font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-size:11px;color:#aaa;background:rgba(20,20,24,0.85);border:1px solid #222;padding:6px 10px;border-radius:8px;backdrop-filter:blur(4px);pointer-events:none;letter-spacing:0.2px">
+Nunca fui yo, siempre fue Dios. La groria y honra sea para El....
+</div>
+
+
+
+<script>
+// BRIDGE: exponer funciones para Kokoro module
+try{
+  if(typeof queue !== 'undefined') window.queue = queue;
+  if(typeof getA !== 'undefined') window.getA = getA;
+  if(typeof renderCola !== 'undefined') window.renderCola = renderCola;
+  if(typeof calcDurInfo !== 'undefined') window.calcDurInfo = calcDurInfo;
+  if(typeof log !== 'undefined') window.log = log;
+  window._kokoroBridgeReady = true;
+  window.renderOverlay = typeof renderOverlay !== 'undefined' ? renderOverlay : window.renderOverlay;
+
+  console.log('Kokoro bridge ready');
+}catch(e){ console.warn('bridge fail', e); }
+</script>
+
+
+
+
+
+
+
+
+
+
+<!-- V27 FIX DEFINITIVO - VOZ POR SLOT + SYNC SUBS -->
+<script type="module">
+const $id = (id)=>document.getElementById(id);
+
+function getActiveSlot(){
+  try{
+    // Usar window.activeId que ahora si existe
+    const curId = window.activeId || 1;
+    if(window.queue){
+      return window.queue.find(q=>q.id===curId) || window.queue[0];
+    }
+    if(window.getA) return window.getA();
+  }catch{}
+  return null;
+}
+function setKStatus(t, isError=false){
+  const el=$id('kokoroStatus');
+  if(el){ el.textContent=t; el.style.color=isError?'#ef4444':'#4ade80'; }
+  console.log('[Piper V27]', t);
+}
+function setKProg(p){
+  const bar=$id('kokoroProgress'); const fill=$id('kokoroProgressBar');
+  if(!bar) return;
+  if(p==null){bar.style.display='none'; return;}
+  bar.style.display='block'; fill.style.width=p+'%';
+}
+let ttsLib = null;
+async function getTTS(){
+  if(ttsLib) return ttsLib;
+  setKStatus('Cargando motor Piper...');
+  setKProg(20);
+  try{
+    ttsLib = await import('https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm');
+    setKProg(50);
+    setKStatus('Motor listo');
+    return ttsLib;
+  }catch(e){
+    console.error('CDN jsdelivr fallo', e);
+    try{
+      ttsLib = await import('https://esm.run/@mintplex-labs/piper-tts-web@1.0.4');
+      return ttsLib;
+    }catch(e2){
+      throw new Error('No se pudo cargar Piper: '+e.message);
+    }
+  }
+}
+
+
+async function handleGenerate(){
+  const capturedId = window.activeId || 1;
+  const slot = window.queue ? window.queue.find(q=>q.id===capturedId) : null;
+  if(!slot){ alert('No hay slot '+capturedId); return; }
+  let text = (slot.txtContent || slot.script || document.getElementById('inputScript')?.value || '').trim();
+  if(!text){ alert('Carga .txt en paso 2'); return; }
+  
+  function splitIntoChunks(txt, maxLen){
+    maxLen = maxLen || 380;
+    const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+    const chunks=[];
+    let cur="";
+    for(let s of sentences){
+      s=s.trim();
+      if(!s) continue;
+      if((cur + " " + s).length <= maxLen){
+        cur = cur ? cur + " " + s : s;
+      } else {
+        if(cur) chunks.push(cur);
+        if(s.length > maxLen){
+          const words=s.split(/\s+/);
+          let tmp="";
+          for(let w of words){
+            if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w;
+            else { if(tmp) chunks.push(tmp); tmp=w; }
+          }
+          if(tmp) cur=tmp; else cur="";
+        } else {
+          cur=s;
+        }
+      }
+    }
+    if(cur) chunks.push(cur);
+    return chunks;
+  }
+
+  async function blobToAudioBuffer(blob, audioCtx){
+    const ab = await blob.arrayBuffer();
+    return await audioCtx.decodeAudioData(ab);
+  }
+  function audioBufferToWavBlob(buffer){
+    const numChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const length = buffer.length;
+    const wavLength = length * numChannels * 2 + 44;
+    const ab = new ArrayBuffer(wavLength);
+    const view = new DataView(ab);
+    let pos=0;
+    function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
+    function write16(d){ view.setUint16(pos, d, true); pos+=2; }
+    function write32(d){ view.setUint32(pos, d, true); pos+=4; }
+    writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE');
+    writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16);
+    writeStr('data'); write32(wavLength-pos-4);
+    const channels=[];
+    for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
+    let offset=44;
+    for(let i=0;i<length;i++){
+      for(let c=0;c<numChannels;c++){
+        let sample = Math.max(-1, Math.min(1, channels[c][i]));
+        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+        view.setInt16(offset, sample, true);
+        offset+=2;
+      }
+    }
+    return new Blob([ab], {type:'audio/wav'});
+  }
+
+  const voiceSelectEl = document.getElementById('kokoroVoice');
+  const speedSelectEl = document.getElementById('kokoroSpeed');
+  if(voiceSelectEl) slot.voiceId = voiceSelectEl.value;
+  if(speedSelectEl) slot.voiceSpeed = parseFloat(speedSelectEl.value)||1;
+  const voiceId = slot.voiceId;
+  const speed = slot.voiceSpeed;
+
+  const chunks = splitIntoChunks(text, 380);
+  console.log('[V28] TXT total ' + text.length + ' chars -> ' + chunks.length + ' chunks');
+
+  const btn=document.getElementById('btnKokoroGen');
+  btn.disabled=true;
+  btn.textContent='SLOT '+slot.id+' 0/'+chunks.length;
+  btn.style.background='#fff';
+
+  try{
+    const tts = await getTTS();
+    document.getElementById('kokoroStatus').textContent='[SLOT '+slot.id+'] Descargando voz...';
+    const onProgress = function(prog){
+      if(prog && prog.loaded && prog.total){
+        const pct = Math.round(prog.loaded*100/prog.total);
+        const bar=document.getElementById('kokoroProgressBar');
+        const barWrap=document.getElementById('kokoroProgress');
+        if(barWrap) barWrap.style.display='block';
+        if(bar) bar.style.width=(20 + Math.round(pct*0.3))+'%';
+      }
+    };
+    try{ await tts.download(voiceId, onProgress); }catch(e){ console.warn(e); }
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const buffers = [];
+
+    for(let i=0;i<chunks.length;i++){
+      try{ window.updateVoiceProgressCorrecto(slotId, i+1, chunks.length); }catch(e){}
+
+      const chunk = chunks[i];
+      btn.textContent='SLOT '+slot.id+' GENERANDO '+(i+1)+'/'+chunks.length;
+      document.getElementById('kokoroStatus').textContent='[SLOT '+slot.id+'] Parte '+(i+1)+'/'+chunks.length+' ('+chunk.length+' chars)';
+      const prog = 50 + Math.round((i/chunks.length)*40);
+      const bar=document.getElementById('kokoroProgressBar');
+      if(bar) bar.style.width=prog+'%';
+
+      const wavBlob = await tts.predict({ text: chunk, voiceId: voiceId }, onProgress);
+      if(!wavBlob || wavBlob.size<500){
+        console.warn('Chunk '+i+' vacio');
+        continue;
+      }
+      const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
+      buffers.push(audioBuf);
+      await new Promise(function(r){ setTimeout(r, 30); });
+    }
+
+    if(!buffers.length) throw new Error('No se genero audio');
+
+    let totalLength = 0;
+    for(let b of buffers) totalLength+=b.length;
+    let numberOfChannels = buffers[0].numberOfChannels;
+    let sampleRate = buffers[0].sampleRate;
+    const concatBuffer = audioCtx.createBuffer(numberOfChannels, totalLength, sampleRate);
+    let offset=0;
+    for(let buf of buffers){
+      for(let ch=0; ch<numberOfChannels; ch++){
+        concatBuffer.getChannelData(ch).set(buf.getChannelData(ch), offset);
+      }
+      offset+=buf.length;
+    }
+    await audioCtx.close();
+
+    const finalWavBlob = audioBufferToWavBlob(concatBuffer);
+    const url=URL.createObjectURL(finalWavBlob);
+    if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
+    slot.audioUrl=url;
+    slot.audioName='SLOT'+slot.id+'-'+voiceId+'-'+text.length+'chars-'+chunks.length+'partes.wav';
+    slot.audioBlob=finalWavBlob;
+
+    const tempAudio = new Audio();
+    tempAudio.src = url;
+    await new Promise(function(res){
+      tempAudio.onloadedmetadata=function(){
+        slot.audioDur = tempAudio.duration;
+        console.log('[V28] SLOT '+slot.id+' duracion FINAL real:', slot.audioDur, 'de '+chunks.length+' partes');
+        res();
+      };
+      tempAudio.onerror=function(){ res(); };
+      tempAudio.load();
+    });
+
+    if(window.activeId === slot.id){
+      const aEl=document.getElementById('previewAudio');
+      const vEl2=document.getElementById('previewVideo');
+      if(aEl){
+        aEl.src=url; aEl.load(); aEl.playbackRate=speed; aEl.muted=false;
+        if(vEl2){ vEl2.muted=true; vEl2.volume=0; }
+      }
+      const audioNameEl=document.getElementById('audioName');
+      if(audioNameEl){
+        const nombre = voiceId.indexOf('sharvard')>=0 ? 'Dora' : voiceId.indexOf('carlfm')>=0 ? 'Alex' : voiceId;
+        audioNameEl.innerHTML='🎙️ <b>'+nombre+' SLOT '+slot.id+'</b> · TODO '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅';
+        audioNameEl.style.color='#4ade80';
+      }
+      if(window.renderCola) window.renderCola(true);
+      if(window.renderOverlay) window.renderOverlay();
+      if(window.calcDurInfo){
+        const di=window.calcDurInfo(slot);
+        if(di) document.getElementById('speedLabel').textContent=di.txt;
+      }
+    } else {
+      if(window.renderCola) window.renderCola(true);
+    }
+
+    document.getElementById('kokoroStatus').textContent='✅ SLOT '+slot.id+' COMPLETO - '+text.length+' chars - '+slot.audioDur.toFixed(1)+'s - '+chunks.length+' partes';
+    const bar2=document.getElementById('kokoroProgressBar');
+    if(bar2) bar2.style.width='100%';
+    setTimeout(function(){ const bw=document.getElementById('kokoroProgress'); if(bw) bw.style.display='none'; },1200);
+  }catch(e){
+    console.error(e);
+    const st=document.getElementById('kokoroStatus');
+    if(st){ st.textContent='[SLOT '+slot.id+'] ❌ '+e.message; st.style.color='#ef4444'; }
+    alert('Error SLOT '+slot.id+': '+e.message);
+  }finally{
+    btn.disabled=false; btn.textContent='🔊 GENERAR AUDIO COMPLETO (TODO EL TXT)'; btn.style.background='#FFEB00';
+  }
+}
+
+
+// V30.1 WRAPPER - Reusa el mismo handleGenerate que ya funciona perfecto en V28
+window.generateVoiceForSlotId = async function(slotId){
+  console.log('[V30.1] Generando voz para SLOT '+slotId+' usando motor V28 que funciona');
+  const originalActive = window.activeId;
+  try{
+    // Cambiar a ese slot
+    if(window.setActive) window.setActive(slotId);
+    else window.activeId = slotId;
+    
+    // Pequeña espera para que setActive restaure UI
+    await new Promise(r=>setTimeout(r, 100));
+    
+    const slot = window.queue.find(q=>q.id===slotId);
+    if(!slot){ throw new Error('Slot '+slotId+' no existe'); }
+    if(!slot.txtContent && !slot.script){ throw new Error('SLOT '+slotId+' sin TXT'); }
+    
+    // Llamar directamente a la logica de handleGenerate pero sin depender del boton
+    // Duplicamos la logica exacta de handleGenerate que ya funciona:
+    let text = (slot.txtContent || slot.script || '').trim();
+    if(!text) throw new Error('Sin texto');
+    
+    function splitIntoChunks(txt, maxLen){
+      maxLen = maxLen || 380;
+      const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+      const chunks=[]; let cur="";
+      for(let s of sentences){
+        s=s.trim(); if(!s) continue;
+        if((cur + " " + s).length <= maxLen){ cur = cur ? cur + " " + s : s; }
+        else {
+          if(cur) chunks.push(cur);
+          if(s.length > maxLen){
+            const words=s.split(/\s+/); let tmp="";
+            for(let w of words){ if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w; else { if(tmp) chunks.push(tmp); tmp=w; } }
+            if(tmp) cur=tmp; else cur="";
+          } else cur=s;
+        }
+      }
+      if(cur) chunks.push(cur);
+      return chunks;
+    }
+    async function blobToAudioBuffer(blob, audioCtx){ const ab = await blob.arrayBuffer(); return await audioCtx.decodeAudioData(ab); }
+    function audioBufferToWavBlob(buffer){
+      const numChannels = buffer.numberOfChannels; const sampleRate = buffer.sampleRate; const length = buffer.length;
+      const wavLength = length * numChannels * 2 + 44; const ab = new ArrayBuffer(wavLength); const view = new DataView(ab); let pos=0;
+      function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
+      function write16(d){ view.setUint16(pos, d, true); pos+=2; } function write32(d){ view.setUint32(pos, d, true); pos+=4; }
+      writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE'); writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16); writeStr('data'); write32(wavLength-pos-4);
+      const channels=[]; for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
+      let offset=44; for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample = Math.max(-1, Math.min(1, channels[c][i])); sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; view.setInt16(offset, sample, true); offset+=2; } } return new Blob([ab], {type:'audio/wav'});
+    }
+
+    const voiceId = slot.voiceId || document.getElementById('kokoroVoice')?.value || 'es_ES-sharvard-medium';
+    const speed = slot.voiceSpeed || parseFloat(document.getElementById('kokoroSpeed')?.value)||1;
+    const chunks = splitIntoChunks(text, 380);
+    console.log('[V30.1] SLOT '+slotId+' '+text.length+' chars -> '+chunks.length+' chunks voz '+voiceId);
+
+    const tts = await getTTS();
+    try{ await tts.download(voiceId, ()=>{}); }catch(e){}
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const buffers=[];
+    for(let i=0;i<chunks.length;i++){
+      try{ window.updateVoiceProgressCorrecto(slotId, i+1, chunks.length); }catch(e){}
+
+      const chunk = chunks[i];
+      const st=document.getElementById('kokoroStatus');
+      if(st) st.textContent='[SLOT '+slotId+'] Generando '+ (i+1) +'/'+chunks.length+' ('+chunk.length+' chars)';
+      const btn=document.getElementById('btnKokoroGen');
+      if(btn) btn.textContent='SLOT '+slotId+' '+ (i+1) +'/'+chunks.length;
+      let wavBlob=null;
+      try{ wavBlob = await tts.predict({ text: chunk, voiceId: voiceId }); }catch(e){ console.error('predict fail', e); continue; }
+      if(!wavBlob || wavBlob.size<500) continue;
+      const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
+      buffers.push(audioBuf);
+      await new Promise(r=>setTimeout(r, 20));
+    }
+    if(!buffers.length) throw new Error('No se genero audio SLOT '+slotId);
+    let totalLength=0; for(let b of buffers) totalLength+=b.length;
+    const concatBuffer = audioCtx.createBuffer(buffers[0].numberOfChannels, totalLength, buffers[0].sampleRate);
+    let off=0; for(let buf of buffers){ for(let ch=0; ch<concatBuffer.numberOfChannels; ch++){ concatBuffer.getChannelData(ch).set(buf.getChannelData(ch), off); } off+=buf.length; }
+    await audioCtx.close();
+    const finalWavBlob = audioBufferToWavBlob(concatBuffer);
+    const url = URL.createObjectURL(finalWavBlob);
+    if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
+    slot.audioUrl = url;
+    slot.audioBlob = finalWavBlob;
+    slot.audioName = 'SLOT'+slot.id+'-VOZ-COMPLETA.wav';
+    
+    const tempAudio = new Audio(); tempAudio.src=url;
+    await new Promise(function(res){
+      tempAudio.onloadedmetadata=function(){ slot.audioDur=tempAudio.duration; console.log('[V30.1] SLOT '+slot.id+' dur '+slot.audioDur); res(); };
+      tempAudio.onerror=function(){ slot.audioDur=concatBuffer.length/concatBuffer.sampleRate; res(); };
+      tempAudio.load();
+    });
+    
+    slot.status='con audio';
+    if(window.renderCola) window.renderCola(true);
+    if(window.renderOverlay) window.renderOverlay();
+    
+    console.log('[V30.1] SLOT '+slot.id+' GUARDADO OK', {url: !!slot.audioUrl, dur: slot.audioDur, size: slot.audioBlob.size});
+    
+    // Restaurar UI si es el slot activo original
+    const aEl=document.getElementById('previewAudio');
+    if(aEl && window.activeId===slotId){
+      aEl.src=url; aEl.load(); aEl.playbackRate=speed;
+      const audioNameEl=document.getElementById('audioName');
+      if(audioNameEl){
+        audioNameEl.innerHTML='🎙️ <b>SLOT '+slot.id+' VOZ COMPLETA</b> · '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅ GUARDADO';
+        audioNameEl.style.color='#4ade80';
+      }
+    }
+    
+    return slot;
+  } finally {
+    // Restaurar slot activo original
+    if(window.setActive && originalActive) {
+      try{ window.setActive(originalActive); }catch{}
+    }
+  }
+};
+
+// Mutex global para voces
+window.ttsLock = Promise.resolve();
+window.generateVoiceForSlotIdLocked = async function(slotId){
+  let release;
+  const nextLock = new Promise(r=>release=r);
+  const currentLock = window.ttsLock;
+  window.ttsLock = nextLock;
+  await currentLock;
+  try{
+    return await window.generateVoiceForSlotId(slotId);
+  } finally {
+    release();
+  }
+};
+
+
+$id('btnKokoroGen')?.addEventListener('click', handleGenerate);
+document.getElementById('inputTxt')?.addEventListener('change', ()=>{
+  setTimeout(()=>{
+    const s=getActiveSlot();
+    if(s?.txtContent) setKStatus(`TXT SLOT ${s.id} listo (${s.txtContent.length} chars) → GENERAR`);
+  },600);
+});
+document.getElementById('kokoroVoice')?.addEventListener('change', e=>{
+  const it = window.getA ? window.getA() : getActiveSlot();
+  if(it){ it.voiceId = e.target.value; console.log(`SLOT ${it.id} voz -> ${e.target.value}`); }
+});
+document.getElementById('kokoroSpeed')?.addEventListener('change', e=>{
+  const it = window.getA ? window.getA() : getActiveSlot();
+  if(it) it.voiceSpeed = parseFloat(e.target.value)||1;
+});
+
+setKStatus('✅ V27 FIX - Voz por SLOT + Subs sync audio real');
+</script>
+
+
+<div id="perfMon" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:rgba(8,8,10,0.92);border:1px solid #222;border-radius:14px;padding:10px;min-width:200px;font-family:sans-serif"><div style="font-size:8px;color:#FFEB00;font-weight:900">⚡ V13 6x6 PARALELO REAL</div><div style="font-size:9px;color:#999;margin-top:6px">Voces: <b id="mVoices">0</b>/6 | Videos: <b id="mVideos">0</b>/6 | RAM: <b id="mRam">--</b></div></div><script>setInterval(()=>{try{const m=performance.memory; if(m){document.getElementById('mRam').textContent=Math.round(m.usedJSHeapSize/1048576)+'MB'} }catch{}},1000)</script>
+
+<script>
+// === PARCHE ANTI-CONGELADO V13.2 - NO TOCA TU LOGICA, SOLO LIMPIA RAM ===
+(function(){
+  console.log('[FIX] Aplicando parche anti-congelado');
+  // Guardar original
+  const _origIsolated = window.isolatedCleanup;
+  window.isolatedCleanup = function(v,cap,bgCap,ac,cStream,combined,canvas, vPre){
+    try{
+      if(v){ try{v.pause();}catch{} try{v.src='';}catch{} try{v.removeAttribute('src');}catch{} try{v.load();}catch{} }
+      if(vPre){ try{vPre.pause();}catch{} try{vPre.src='';}catch{} }
+      if(cap){ try{cap.pause();}catch{} }
+      if(bgCap){ try{bgCap.pause();}catch{} }
+      if(combined){ try{combined.getTracks().forEach(t=>{ try{t.stop()}catch{}})}catch{} }
+      if(cStream){ try{cStream.getTracks().forEach(t=>{ try{t.stop()}catch{}})}catch{} }
+      if(ac){ try{ac.close();}catch{} }
+    }catch(e){ console.warn('cleanup fix error',e); }
+    // Llamar original por si acaso si existía otro
+    try{ if(_origIsolated && _origIsolated!==window.isolatedCleanup) _origIsolated(v,cap,bgCap,ac,cStream,combined,canvas); }catch{}
+  };
+
+  // Parche para liberar blob final viejo antes de nuevo render (causa del corte al 6to video)
+  const _origRenderOne = window.renderOne;
+  if(_origRenderOne){
+    window.renderOne = async function(id){
+      try{
+        const q = window.queue ? window.queue.find(x=>x.id===id) : null;
+        if(q && q.finalUrl){
+          try{ URL.revokeObjectURL(q.finalUrl); console.log('[FIX] Blob viejo liberado SLOT',id); }catch{}
+          q.finalUrl = null;
+        }
+      }catch{}
+      return _origRenderOne(id);
+    };
+  }
+
+  // Mejora bitrate para Facebook sin tocar tu renderSingle: sobreescribir MediaRecorder bitrate en tiempo real
+  const OrigMediaRecorder = window.MediaRecorder;
+  if(OrigMediaRecorder){
+    window.MediaRecorder = function(stream, opts){
+      try{
+        if(opts && opts.videoBitsPerSecond && opts.videoBitsPerSecond < 3500000){
+          opts.videoBitsPerSecond = 3500000;
+          console.log('[FIX] Bitrate subido a 3.5Mbps para Facebook');
+        }
+      }catch{}
+      return new OrigMediaRecorder(stream, opts);
+    };
+    window.MediaRecorder.prototype = OrigMediaRecorder.prototype;
+    window.MediaRecorder.isTypeSupported = OrigMediaRecorder.isTypeSupported;
+  }
+})();
+</script>
+
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// === CONFIG SUPABASE - REEMPLAZA CON TUS DATOS ===
+const SUPABASE_URL = "https://gouzcooqqwflcggxnaqe.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc";
+const isSupabaseConfigured = !SUPABASE_URL.includes("TU-PROYECTO");
+
+const supa = isSupabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+const ADMIN_USER = "Icecreamdigital";
+const ADMIN_PASS = "Ives2020.";
+
+const LS_USERS = "ic_allowed_users_v18";
+const LS_SESSION = "ic_session_v19";
+
+const overlay = document.getElementById('authOverlay');
+const adminPanel = document.getElementById('adminPanel');
+const loginUser = document.getElementById('loginUser');
+const loginPass = document.getElementById('loginPass');
+const loginBtn = document.getElementById('loginBtn');
+const msg = document.getElementById('authMsg');
+const statusEl = document.getElementById('supabaseStatus');
+
+function showMsg(t){ msg.textContent=t; }
+function setStatus(){
+  if(!isSupabaseConfigured){
+    statusEl.innerHTML = '⚠️ Modo local (sin nube) - Crea Supabase para multiusuario real<br><span style="font-size:9px">Varios usuarios NO se comparten aún</span>';
+    statusEl.style.color='#f59e0b';
+  } else {
+    statusEl.innerHTML = '✅ Conectado a la nube - Multiusuario real activo';
+    statusEl.style.color='#4ade80';
+  }
+}
+setStatus();
+
+// Local fallback functions
+function getLocalUsers(){
+  try{ return JSON.parse(localStorage.getItem(LS_USERS)||"[]"); }catch{ return [] }
+}
+function saveLocalUsers(u){ localStorage.setItem(LS_USERS, JSON.stringify(u)); }
+
+// Supabase functions
+async function supaGetUsers(){
+  if(!supa) return getLocalUsers();
+  const {data, error} = await supa.from('app_users').select('*').order('created_at', {ascending:false});
+  if(error){ console.error(error); showMsg('Error cargando usuarios'); return []; }
+  return data.map(d=>({id:d.id, user:d.username, pass:d.password, active:d.active, isAdmin:d.is_admin, created:new Date(d.created_at).toLocaleDateString()}));
+}
+
+async function supaAddUser(username, password){
+  if(!supa){
+    let users = getLocalUsers();
+    if(users.find(x=>x.user.toLowerCase()===username.toLowerCase())){ alert('Ya existe'); return false; }
+    users.push({user:username, pass:password, active:true, isAdmin:false, created:new Date().toLocaleDateString()});
+    saveLocalUsers(users); return true;
+  }
+  const {error} = await supa.from('app_users').insert({username, password, active:true, is_admin:false});
+  if(error){ alert('Error: '+error.message); return false; }
+  return true;
+}
+
+async function supaToggleUser(id, active){
+  if(!supa){
+    let users = getLocalUsers();
+    const u = users.find(x=>x.user===id || x.id===id);
+    if(u){ u.active = !u.active; saveLocalUsers(users); }
+    return;
+  }
+  const {error} = await supa.from('app_users').update({active}).eq('id', id);
+  if(error) alert(error.message);
+}
+
+async function supaDeleteUser(id, username){
+  if(!supa){
+    let users = getLocalUsers();
+    users = users.filter(x=>x.user!==username);
+    saveLocalUsers(users); return;
+  }
+  const {error} = await supa.from('app_users').delete().eq('id', id);
+  if(error) alert(error.message);
+}
+
+async function supaUpdatePass(id, newPass){
+  if(!supa){
+    let users = getLocalUsers();
+    const u = users.find(x=>x.id===id || x.user===id);
+    if(u){ u.pass=newPass; saveLocalUsers(users); }
+    return;
+  }
+  const {error} = await supa.from('app_users').update({password:newPass}).eq('id', id);
+  if(error) alert(error.message);
+}
+
+async function tryLoginCloud(username, password){
+  if(!supa){
+    // local mode
+    const users = getLocalUsers();
+    // ensure admin exists locally
+    if(users.length===0){
+      users.push({user:ADMIN_USER, pass:ADMIN_PASS, active:true, isAdmin:true, created:new Date().toLocaleDateString()});
+      saveLocalUsers(users);
+    }
+    const found = users.find(x=>x.user.toLowerCase()===username.toLowerCase() && x.pass===password && x.active);
+    return found || null;
+  }
+  const {data, error} = await supa.from('app_users').select('*').eq('username', username).eq('password', password).eq('active', true).maybeSingle();
+  if(error){ console.error(error); return null; }
+  if(!data) return null;
+  return {id:data.id, user:data.username, pass:data.password, active:data.active, isAdmin:data.is_admin};
+}
+
+function setSession(userObj){
+  localStorage.setItem(LS_SESSION, JSON.stringify({user:userObj.user, isAdmin:!!userObj.isAdmin, id:userObj.id||userObj.user, ts:Date.now()}));
+  overlay.style.display='none';
+  const header = document.querySelector('header');
+  if(header && !document.getElementById('userChip')){
+    const chip = document.createElement('div');
+    chip.id='userChip';
+    const isAdm = userObj.isAdmin ? '<span style="background:#FFEB00;color:#000;padding:2px 6px;border-radius:10px;font-size:8px;font-weight:900">ADMIN</span>' : '<span style="background:#222;padding:2px 6px;border-radius:10px;font-size:8px;color:#FFEB00">MULTI</span>';
+    chip.style.cssText='display:flex;align-items:center;gap:10px;background:#141418;border:1px solid #222;padding:6px 14px;border-radius:24px;font-size:11px';
+    chip.innerHTML = `<div style="width:24px;height:24px;background:#FFEB00;border-radius:50%;display:grid;place-items:center;color:#000;font-weight:900">${userObj.user[0].toUpperCase()}</div><span style="color:#ccc">${userObj.user}</span>${isAdm}<button id="goAdmin" style="display:${userObj.isAdmin?'inline-block':'none'};background:#1e1e22;border:1px solid #333;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer;margin-left:4px">PANEL</button><button id="logoutBtn" style="background:transparent;border:0;color:#666;cursor:pointer;margin-left:6px">Salir</button>`;
+    header.appendChild(chip);
+    document.getElementById('goAdmin')?.addEventListener('click', ()=>{ adminPanel.style.display='block'; renderUsers(); });
+    document.getElementById('logoutBtn').onclick = ()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
+  }
+}
+
+// Auto-login
+(async ()=>{
+  const sess = localStorage.getItem(LS_SESSION);
+  if(sess){
+    try{
+      const s = JSON.parse(sess);
+      // validate still active
+      let user = null;
+      if(isSupabaseConfigured){
+        const {data} = await supa.from('app_users').select('*').eq('username', s.user).eq('active', true).maybeSingle();
+        if(data) user = {id:data.id, user:data.username, isAdmin:data.is_admin};
+      } else {
+        const users = getLocalUsers();
+        user = users.find(x=>x.user.toLowerCase()===s.user.toLowerCase() && x.active);
+      }
+      if(user){ setSession(user); return; }
+    }catch{}
+  }
+})();
+
+async function tryLogin(){
+  const u = loginUser.value.trim();
+  const p = loginPass.value.trim();
+  if(!u||!p){ showMsg('Usuario o contraseña invalido'); return; }
+  loginBtn.disabled=true; loginBtn.textContent='Verificando...';
+  const found = await tryLoginCloud(u, p);
+  loginBtn.disabled=false; loginBtn.textContent='ENTRAR →';
+  if(!found){ showMsg('Usuario o contraseña invalido'); return; }
+  setSession(found);
+}
+
+loginBtn.onclick = tryLogin;
+loginUser.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+loginPass.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+
+// Admin panel rendering
+const usersList = document.getElementById('usersList');
+async function renderUsers(){
+  usersList.innerHTML='<div style="padding:12px;color:#666">Cargando...</div>';
+  const users = await supaGetUsers();
+  usersList.innerHTML='';
+  users.forEach((u)=>{
+    const row = document.createElement('div');
+    row.className='userRow';
+    row.innerHTML = `
+      <div><b style="color:#fff">${u.user}</b> ${u.isAdmin?'<span style="font-size:9px;background:#FFEB00;color:#000;padding:2px 6px;border-radius:10px;margin-left:6px">ADMIN</span>':''}<br><span style="color:#555;font-size:11px">••••••••</span></div>
+      <div>${u.active?'<span class=tagActive>ACTIVO</span>':'<span class=tagOff>INACTIVO</span>'}</div>
+      <div style="color:#666">${u.created||'-'}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="smallBtn" data-act="edit" data-id="${u.id||u.user}" data-user="${u.user}">Cambiar clave</button>
+        <button class="smallBtn" data-act="toggle" data-id="${u.id||u.user}" data-active="${!u.active}">${u.active?'Desactivar':'Activar'}</button>
+        <button class="dangerBtn" data-act="del" data-id="${u.id||u.user}" data-user="${u.user}">X</button>
+      </div>
+    `;
+    usersList.appendChild(row);
+  });
+  usersList.querySelectorAll('button').forEach(b=>{
+    b.onclick = async ()=>{
+      const id = b.dataset.id;
+      const user = b.dataset.user;
+      if(b.dataset.act==='del'){
+        if(user.toLowerCase()===ADMIN_USER.toLowerCase()){ alert('No puedes borrar al admin principal'); return; }
+        if(!confirm('¿Borrar '+user+'?')) return;
+        await supaDeleteUser(id, user);
+        renderUsers();
+      }else if(b.dataset.act==='toggle'){
+        const active = b.dataset.active==='true';
+        await supaToggleUser(id, active);
+        renderUsers();
+      }else if(b.dataset.act==='edit'){
+        const nueva = prompt('Nueva contraseña para '+user+':');
+        if(nueva && nueva.trim().length>=3){
+          await supaUpdatePass(id, nueva.trim());
+          alert('Contraseña actualizada');
+          renderUsers();
+        }
+      }
+    };
+  });
+}
+
+document.getElementById('closeAdmin').onclick = ()=>{ adminPanel.style.display='none'; };
+document.getElementById('logoutAdmin').onclick = ()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
+document.getElementById('refreshBtn').onclick = renderUsers;
+document.getElementById('addUserBtn').onclick = async ()=>{
+  const u = document.getElementById('newUser').value.trim();
+  const p = document.getElementById('newPass').value.trim();
+  if(!u||!p){ alert('Pon usuario y contraseña'); return; }
+  const ok = await supaAddUser(u,p);
+  if(ok){
+    document.getElementById('newUser').value=''; document.getElementById('newPass').value='';
+    renderUsers();
+  }
+};
+</script>
+
+
+<script>
+// V21 EXPORT FLUIDO - descarga igual que preview
+(function(){
+  console.log('V21 Fix: 60fps 8Mbps activo');
+  try{
+    const orig = HTMLCanvasElement.prototype.captureStream;
+    if(orig){
+      HTMLCanvasElement.prototype.captureStream = function(){ return orig.call(this, 30); };
+    }
+  }catch(e){}
+})();
+</script>
+
+
+<style>
+#custom-login-overlay{position:fixed;inset:0;z-index:9998;background:#08080a;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:30px 20px;overflow-y:auto}
+#custom-login-overlay.hidden{display:none!important}
+#login-beta-badge{position:fixed;top:16px;right:16px;background:#FFD60A;color:#000;font-size:10px;font-weight:900;padding:6px 12px;border-radius:20px;z-index:10001}
+#login-brand{display:flex;flex-direction:column;align-items:center;margin:20px 0 18px 0}
+#login-brand-icon{width:72px;height:72px;background:linear-gradient(135deg,#FFD60A 0%,#FF8A00 100%);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:12px}
+#login-brand-title{font-weight:900;font-size:22px;color:#fff}
+#login-brand-sub{font-size:11px;letter-spacing:3px;color:#FFD60A;font-weight:800;margin-top:4px}
+#login-tabs-custom{display:flex;gap:10px;margin-bottom:20px}
+.login-tab-custom{padding:10px 22px;border-radius:22px;font-size:13px;font-weight:800;cursor:pointer;border:1px solid #222;background:#111;color:#888}
+.login-tab-custom.active{background:#FFD60A;color:#000;border-color:#FFD60A}
+#login-form-container{width:100%;max-width:380px;background:#141415;border:1px solid #222;border-radius:20px;padding:26px}
+#precios-panel-custom{display:none;width:100%;max-width:960px}
+#precios-panel-custom.show{display:block}
+#precios-grid-custom{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.precio-card-custom{background:#141415;border:1px solid #222;border-radius:18px;padding:22px;text-align:center}
+.precio-card-custom.popular{border-color:#FFD60A;background:#1a180f;transform:scale(1.05);position:relative}
+.precio-card-custom.popular::before{content:'MÁS POPULAR';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#FFD60A;color:#000;font-size:9px;font-weight:900;padding:4px 10px;border-radius:20px}
+@media(max-width:850px){#precios-grid-custom{grid-template-columns:1fr}.precio-card-custom.popular{transform:none}}
+.c-input{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:12px 14px;color:#fff;font-size:13px;margin-bottom:10px;outline:none}
+.c-input:focus{border-color:#FFD60A}
+.c-btn{width:100%;background:#FFD60A;color:#000;border:none;border-radius:10px;padding:12px;font-weight:900;font-size:13px;cursor:pointer;margin-top:6px}
+#adminPanel{z-index:10010!important;position:fixed!important;inset:0!important;background:#08080a!important;overflow-y:auto!important;padding:20px!important;display:none}
+#user-session-bar{position:fixed;top:10px;right:10px;z-index:10011;background:#111;border:1px solid #333;padding:8px 14px;border-radius:10px;display:none;align-items:center;gap:12px;font-size:12px;color:#aaa}
+#user-session-bar b{color:#fff}
+#user-session-bar button{background:#FFD60A;color:#000;border:none;padding:6px 14px;border-radius:8px;font-weight:900;cursor:pointer}
+</style>
+
+<div id="custom-login-overlay">
+  <div id="login-beta-badge">MODO BETA</div>
+  <div id="login-brand"><div id="login-brand-icon">🍦</div><div id="login-brand-title">ICE CREAM DIGITAL</div><div id="login-brand-sub">PRO EDITOR • MODO BETA</div></div>
+  <div id="login-tabs-custom"><div class="login-tab-custom active" data-tab="login">Iniciar sesión</div><div class="login-tab-custom" data-tab="precios">Precios</div></div>
+  <div id="login-form-container">
+    <div style="color:#fff;font-weight:800;font-size:14px;margin-bottom:4px">Bienvenido</div>
+    <div style="color:#666;font-size:11px;margin-bottom:14px">Panel admin + usuarios intactos</div>
+    <input id="c-loginUser" class="c-input" placeholder="Usuario">
+    <input id="c-loginPass" class="c-input" type="password" placeholder="Contraseña">
+    <button id="c-loginBtn" class="c-btn">ENTRAR AL EDITOR →</button>
+    <div id="c-authMsg" style="margin-top:10px;font-size:12px;color:#ff6b6b;display:none"></div>
+  </div>
+  <div id="precios-panel-custom">
+    <div style="text-align:center"><h2 style="color:#fff;font-size:24px;font-weight:900;margin:0">Elige tu plan</h2><p style="color:#666;font-size:12px;margin-top:6px">WhatsApp: +504 9606-0657</p></div>
+    <div id="precios-grid-custom">
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">STARTER</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$30<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">100 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 100 descargas<br>✓ 60fps fluido</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20STARTER%20$30','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">WhatsApp</button></div>
+      <div class="precio-card-custom popular"><h3 style="color:#fff;margin:0">PRO</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$50<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">175 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 175 descargas<br>✓ Plantillas PRO</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20PRO%20$50','_blank')" style="width:100%;background:#FFD60A;color:#000;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">WhatsApp</button></div>
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">AGENCY</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$60<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">250 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 250 descargas<br>✓ VIP 24/7</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20AGENCY%20$60','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">WhatsApp</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="user-session-bar"><span>👤 <b id="sess-user"></b> <span id="sess-days" style="color:#4ade80;margin-left:6px"></span></span><button id="sess-logout">Salir</button></div>
+
+<script>
+(function(){
+  const SUPABASE_URL = "https://gouzcooqqwflcggxnaqe.supabase.co";
+  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc";
+  const ADMIN_USER = "Icecreamdigital";
+  const LS_SESSION = "ic_session_v19";
+
+  async function doLogin(u,p){
+    const msg=document.getElementById('c-authMsg');
+    const show=t=>{msg.style.display='block';msg.textContent=t;};
+    if(!u||!p){show('Usuario y contraseña');return;}
+    if(u===ADMIN_USER && p==="Ives2020."){
+      localStorage.setItem(LS_SESSION, JSON.stringify({username:u,isAdmin:true,ts:Date.now()}));
+      location.reload();return;
+    }
+    try{
+      const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+      let {data}=await supa.from('users').select('*').eq('username',u).maybeSingle();
+      if(!data){ let {data:d2}=await supa.from('app_users').select('*').eq('username',u).maybeSingle(); data=d2; }
+      if(data){
+        if(data.password!==p){show('Contraseña incorrecta');return;}
+        if(data.expires_at && new Date(data.expires_at)<new Date() && u.toLowerCase()!==ADMIN_USER.toLowerCase()){
+          msg.innerHTML='⛔ <b>Expirado</b> - Paga suscripción<br><a href="https://wa.me/50496060657?text=Renovar%20'+u+'" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;margin-top:6px">Renovar WhatsApp</a>';
+          msg.style.display='block';return;
+        }
+        localStorage.setItem(LS_SESSION, JSON.stringify({username:u,isAdmin:false,ts:Date.now(),expires_at:data.expires_at||null}));
+        location.reload();return;
+      }
+    }catch(e){console.log(e);}
+    show('Usuario no encontrado');
+  }
+
+  function initLogin(){
+    const btn=document.getElementById('c-loginBtn');
+    const user=document.getElementById('c-loginUser');
+    const pass=document.getElementById('c-loginPass');
+    if(btn && !btn.dataset.ok){
+      btn.dataset.ok='1';
+      btn.onclick=()=>doLogin(user.value.trim(),pass.value.trim());
+      pass.addEventListener('keypress',e=>{if(e.key==='Enter') doLogin(user.value.trim(),pass.value.trim());});
+    }
+    document.querySelectorAll('.login-tab-custom').forEach(tab=>{
+      if(tab.dataset.ok) return; tab.dataset.ok='1';
+      tab.onclick=()=>{
+        document.querySelectorAll('.login-tab-custom').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        const formCont=document.getElementById('login-form-container');
+        const precios=document.getElementById('precios-panel-custom');
+        if(tab.dataset.tab==='precios'){formCont.style.display='none';precios.classList.add('show');}
+        else{formCont.style.display='block';precios.classList.remove('show');}
+      };
+    });
+    try{
+      const sess=JSON.parse(localStorage.getItem(LS_SESSION)||'null');
+      if(sess && sess.username){
+        document.getElementById('custom-login-overlay').classList.add('hidden');
+        document.getElementById('authOverlay').style.display='none';
+      }else{
+        document.getElementById('authOverlay').style.display='none';
+      }
+    }catch{}
+  }
+
+  // ADMIN - una sola funcion que funciona
+  window.renderUsers = async function(){
+    const list=document.getElementById('usersList');
+    if(!list) return;
+    list.innerHTML='<div style="padding:20px;color:#888;text-align:center">Cargando usuarios...</div>';
+    try{
+      const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+      let {data} = await supa.from('users').select('*').order('created_at',{ascending:false});
+      let users=data||[];
+      if(users.length===0){
+        let {data:d2}=await supa.from('app_users').select('*').order('created_at',{ascending:false});
+        if(d2) users=d2.map(x=>({username:x.username||x.user,id:x.id,expires_at:x.expires_at,plan:x.plan||'pro',plan_days:30,password:x.password,created_at:x.created_at}));
+      }
+      if(users.length===0){ list.innerHTML='<div style="padding:20px;color:#666">No hay usuarios</div>'; return; }
+      list.innerHTML='';
+      users.forEach(u=>{
+        if((u.username||'').toLowerCase()===ADMIN_USER.toLowerCase()) return; // no mostrar admin en lista
+        const exp=u.expires_at?new Date(u.expires_at):null;
+        const now=new Date();
+        let badge='<span style="color:#666;font-size:10px">Sin fecha</span>';
+        let txt='';
+        if(exp){
+          const diff=Math.ceil((exp-now)/86400000);
+          if(diff<=0){ badge='<span style="background:#2a1111;color:#ff6b6b;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">EXPIRADO</span>'; txt='Expiró '+exp.toLocaleDateString(); }
+          else if(diff<=3){ badge='<span style="background:#2a2211;color:#ffb020;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días ⚠️</span>'; txt='Expira '+exp.toLocaleDateString(); }
+          else { badge='<span style="background:#0f2a15;color:#4ade80;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días</span>'; txt='Expira '+exp.toLocaleDateString(); }
+        }
+        const row=document.createElement('div');
+        row.style.cssText='display:grid;grid-template-columns:1.2fr 0.8fr 1.2fr;gap:12px;padding:16px;border:1px solid #222;border-radius:12px;background:#141415;margin-bottom:10px;align-items:center';
+        const safeName=u.username.replace(/'/g,"\'");
+        row.innerHTML='<div><b style="color:#fff;font-size:13px">'+u.username+'</b><br><span style="color:#888;font-size:10px">'+(u.plan||'pro')+' • '+(u.plan_days||30)+'d</span><br><span style="color:#666;font-size:10px">'+txt+'</span></div><div>'+badge+'</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button onclick="const np=prompt(\'Nueva clave para '+safeName+':\'); if(np&&np.trim().length>=3){ window.supabase.createClient(\'https://gouzcooqqwflcggxnaqe.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc\').from(\'users\').update({password:np.trim()}).eq(\'username\',\''+safeName+'\').then(()=>{alert(\'Clave actualizada\');}); }" style="background:#1e1e22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px">✏️ Clave</button><button onclick="const d=prompt(\'Días para '+safeName+':\',\'30\'); if(d){const ex=new Date(); ex.setDate(ex.getDate()+parseInt(d)); window.supabase.createClient(\'https://gouzcooqqwflcggxnaqe.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc\').from(\'users\').update({expires_at:ex.toISOString(),plan_days:parseInt(d),is_active:true}).eq(\'username\',\''+safeName+'\').then(()=>{alert(\'Renovado\'); window.renderUsers();});}" style="background:#1e1e22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px">Renovar</button><button onclick="if(confirm(\'¿Borrar a '+safeName+'?\')){ window.supabase.createClient(\'https://gouzcooqqwflcggxnaqe.supabase.co\',\'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc\').from(\'users\').delete().eq(\'username\',\''+safeName+'\').then(()=>{alert(\'Borrado\'); window.renderUsers();}); }" style="background:#2a1111;border:1px solid #4a1a1a;color:#ff6b6b;padding:6px 10px;border-radius:8px;cursor:pointer;font-weight:900;font-size:11px">🗑 Borrar</button></div>';
+        list.appendChild(row);
+      });
+    }catch(e){ list.innerHTML='<div style="color:#ff6b6b">Error: '+e.message+'</div>'; }
+  };
+
+  function fixAdmin(){
+    const panel=document.getElementById('adminPanel');
+    const go=document.getElementById('goAdmin');
+    const close=document.getElementById('closeAdmin');
+    const logoutA=document.getElementById('logoutAdmin');
+    const logout=document.getElementById('logoutBtn');
+    const refresh=document.getElementById('refreshBtn');
+    const add=document.getElementById('addUserBtn');
+    if(go && !go.dataset.f){ go.dataset.f='1'; go.addEventListener('click',()=>{ panel.style.display='block'; setTimeout(()=>window.renderUsers(),300); }); }
+    if(close && !close.dataset.f){ close.dataset.f='1'; close.onclick=()=>panel.style.display='none'; }
+    if(logoutA && !logoutA.dataset.f){ logoutA.dataset.f='1'; logoutA.onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();}; }
+    if(logout && !logout.dataset.f){ logout.dataset.f='1'; logout.onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();}; }
+    if(refresh && !refresh.dataset.f){ refresh.dataset.f='1'; refresh.onclick=()=>window.renderUsers(); }
+    if(add && !add.dataset.f){
+      add.dataset.f='1';
+      add.onclick=async()=>{
+        const u=document.getElementById('newUser').value.trim();
+        const p=document.getElementById('newPass').value.trim();
+        if(!u||!p){alert('Usuario y clave');return;}
+        try{
+          const supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+          const ex=new Date(); ex.setDate(ex.getDate()+30);
+          const {error}=await supa.from('users').insert({username:u,password:p,plan:'pro',plan_days:30,expires_at:ex.toISOString(),is_active:true});
+          if(error) throw error;
+          document.getElementById('newUser').value=''; document.getElementById('newPass').value='';
+          window.renderUsers();
+        }catch(e){alert(e.message);}
+      };
+    }
+    try{
+      const sess=JSON.parse(localStorage.getItem(LS_SESSION)||'null');
+      if(sess && sess.username){
+        const bar=document.getElementById('user-session-bar');
+        if(bar){
+          bar.style.display='flex';
+          document.getElementById('sess-user').textContent=sess.username+(sess.isAdmin?' (Admin)':'');
+          const daysEl=document.getElementById('sess-days');
+          if(sess.isAdmin){ daysEl.textContent='ILIMITADO ♾️'; daysEl.style.color='#FFD60A'; }
+          else if(sess.expires_at){
+            const diff=Math.ceil((new Date(sess.expires_at)-new Date())/86400000);
+            daysEl.textContent=diff>0?diff+' días':'EXPIRADO';
+          }
+          document.getElementById('sess-logout').onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();};
+        }
+      }
+    }catch{}
+  }
+
+  setInterval(()=>{initLogin(); fixAdmin();},1000);
+  setTimeout(()=>{initLogin(); fixAdmin();},400);
+})();
+</script>
+
+
+<script>
+(function(){
+  function ensureAppAndAdmin(){
+    try{
+      const sess=JSON.parse(localStorage.getItem('ic_session_v19')||'null');
+      if(!sess || !sess.username) return;
+      const app=document.getElementById('app');
+      if(app && getComputedStyle(app).display==='none'){
+        app.style.display='block';
+      }
+      // If admin and goAdmin not visible, create floating button
+      if(sess.isAdmin){
+        let fab=document.getElementById('admin-fab');
+        if(!fab){
+          fab=document.createElement('button');
+          fab.id='admin-fab';
+          fab.textContent='⚙️ Panel Admin';
+          fab.style.cssText='position:fixed;bottom:20px;left:20px;z-index:10012;background:#FFD60A;color:#000;border:none;padding:12px 18px;border-radius:12px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3)';
+          document.body.appendChild(fab);
+          fab.onclick=()=>{
+            const panel=document.getElementById('adminPanel');
+            if(panel){
+              panel.style.display='block';
+              panel.style.position='fixed';
+              panel.style.inset='0';
+              panel.style.zIndex='10010';
+              panel.style.background='#08080a';
+              panel.style.overflowY='auto';
+              panel.style.padding='20px';
+              if(window.renderUsers) window.renderUsers();
+            }
+          };
+        }
+      }
+    }catch(e){}
+  }
+  setInterval(ensureAppAndAdmin,1000);
+  setTimeout(ensureAppAndAdmin,500);
+})();
+</script>
+
+
+<style>
+#renew-modal{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;padding:20px}
+#renew-modal.show{display:flex}
+#renew-modal-content{background:#141415;border:2px solid #FFD60A;border-radius:18px;padding:24px;width:100%;max-width:400px}
+</style>
+<div id="renew-modal">
+  <div id="renew-modal-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <b style="color:#fff;font-size:16px">🔄 Renovar suscripción</b>
+      <span onclick="document.getElementById('renew-modal').classList.remove('show')" style="color:#666;cursor:pointer;font-size:20px">✕</span>
+    </div>
+    <div id="renew-modal-info" style="background:#0a0a0a;border:1px solid #222;border-radius:12px;padding:14px;margin-bottom:14px;font-size:12px;color:#aaa;line-height:1.6"></div>
+    <label style="color:#888;font-size:11px">Nuevo plan</label>
+    <select id="renew-modal-plan" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:10px;padding:10px;color:#fff;margin:6px 0 12px 0">
+      <option value="starter">STARTER $30 - 100 videos/mes</option>
+      <option value="pro" selected>PRO $50 - 175 videos/mes</option>
+      <option value="agency">AGENCY $60 - 250 videos/mes</option>
+    </select>
+    <label style="color:#888;font-size:11px">Días a asignar</label>
+    <input id="renew-modal-days" type="number" value="30" min="1" max="365" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:10px;padding:10px;color:#fff;margin:6px 0 12px 0">
+    <div id="renew-modal-preview" style="background:#0f2a15;border:1px solid #1a4a22;border-radius:10px;padding:10px;color:#4ade80;font-size:11px;text-align:center;margin-bottom:14px"></div>
+    <button id="renew-modal-btn" style="width:100%;background:#FFD60A;color:#000;border:none;padding:12px;border-radius:10px;font-weight:900;cursor:pointer">Confirmar renovación</button>
+    <div id="renew-modal-msg" style="font-size:11px;color:#888;margin-top:10px;text-align:center"></div>
+  </div>
+</div>
+<script>
+window.IC_renew = function(username){
+  const modal=document.getElementById('renew-modal');
+  const info=document.getElementById('renew-modal-info');
+  const preview=document.getElementById('renew-modal-preview');
+  const planSel=document.getElementById('renew-modal-plan');
+  const daysInput=document.getElementById('renew-modal-days');
+  const btn=document.getElementById('renew-modal-btn');
+  const msg=document.getElementById('renew-modal-msg');
+  
+  // Find user data from list
+  (async()=>{
+    try{
+      const supa=window.supabase.createClient("https://gouzcooqqwflcggxnaqe.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc");
+      let {data} = await supa.from('users').select('*').eq('username',username).maybeSingle();
+      if(!data){
+        let {data:d2}=await supa.from('app_users').select('*').eq('username',username).maybeSingle();
+        data=d2;
+      }
+      const currentPlan = data ? (data.plan||'pro') : 'pro';
+      const exp = data && data.expires_at ? new Date(data.expires_at) : null;
+      const now = new Date();
+      let daysLeft = exp ? Math.ceil((exp-now)/86400000) : 0;
+      let daysText = exp ? (daysLeft<=0 ? 'EXPIRADO hace '+Math.abs(daysLeft)+' días' : daysLeft+' días restantes') : 'Sin fecha de expiración';
+      let expText = exp ? exp.toLocaleDateString()+' '+exp.toLocaleTimeString() : 'No definida';
+      
+      const planNames = {starter:'STARTER $30 - 100 videos', pro:'PRO $50 - 175 videos', agency:'AGENCY $60 - 250 videos'};
+      
+      info.innerHTML = `
+        <div style="color:#fff;font-weight:800;font-size:13px;margin-bottom:6px">👤 ${username}</div>
+        <div>📦 Plan actual: <b style="color:#FFD60A">${planNames[currentPlan]||currentPlan}</b></div>
+        <div>⏳ Estado: <b style="color:${daysLeft<=0?'#ff6b6b':daysLeft<=3?'#ffb020':'#4ade80'}">${daysText}</b></div>
+        <div>📅 Expira: ${expText}</div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid #222">
+          <div style="color:#666;font-size:10px">Contador:</div>
+          <div id="renew-counter" style="color:#fff;font-weight:900;font-size:14px">${daysLeft>0 ? '⏰ '+daysLeft+'d '+Math.floor((exp-now)/3600000%24)+'h restantes' : '⛔ EXPIRADO'}</div>
+        </div>
+      `;
+      
+      // Set current plan in selector
+      planSel.value = currentPlan;
+      
+      function updatePreview(){
+        const d=parseInt(daysInput.value)||30;
+        const newExp=new Date(); newExp.setDate(newExp.getDate()+d);
+        const planLabel = planSel.options[planSel.selectedIndex].text;
+        preview.innerHTML = `✅ Nuevo: <b>${planLabel}</b><br>📅 Expira: <b>${newExp.toLocaleDateString()}</b><br>⏳ ${d} días de acceso`;
+      }
+      
+      planSel.onchange=updatePreview;
+      daysInput.oninput=updatePreview;
+      updatePreview();
+      
+      // Counter interval
+      const counterInt = setInterval(()=>{
+        if(!exp) return;
+        const now2=new Date();
+        const diff=exp-now2;
+        const el=document.getElementById('renew-counter');
+        if(!el) return;
+        if(diff<=0){ el.textContent='⛔ EXPIRADO'; el.style.color='#ff6b6b'; }
+        else {
+          const d=Math.floor(diff/86400000);
+          const h=Math.floor(diff/3600000%24);
+          const m=Math.floor(diff/60000%60);
+          el.textContent=`⏰ ${d}d ${h}h ${m}m restantes`;
+        }
+      },1000);
+      
+      btn.onclick=async()=>{
+        const d=parseInt(daysInput.value)||30;
+        const newPlan=planSel.value;
+        const newExp=new Date(); newExp.setDate(newExp.getDate()+d);
+        try{
+          msg.textContent='Guardando...';
+          const supa2=window.supabase.createClient("https://gouzcooqqwflcggxnaqe.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc");
+          let {error}=await supa2.from('users').update({plan:newPlan,plan_days:d,expires_at:newExp.toISOString(),is_active:true}).eq('username',username);
+          if(error){
+            let {error:e2}=await supa2.from('app_users').update({plan:newPlan,expires_at:newExp.toISOString()}).eq('username',username);
+            if(e2) throw error;
+          }
+          msg.innerHTML='<span style="color:#4ade80">✅ '+username+' renovado: '+newPlan.toUpperCase()+' '+d+' días hasta '+newExp.toLocaleDateString()+'</span>';
+          setTimeout(()=>{ modal.classList.remove('show'); clearInterval(counterInt); window.renderUsers(); },1200);
+        }catch(e){ msg.textContent='❌ '+e.message; }
+      };
+      
+      modal.classList.add('show');
+      
+      // Close modal cleanup
+      const closeHandler = ()=>{ clearInterval(counterInt); };
+      modal.addEventListener('click', function handler(e){ if(e.target===modal){ modal.classList.remove('show'); clearInterval(counterInt); modal.removeEventListener('click', handler); } });
+      
+    }catch(e){ alert(e.message); }
+  })();
+};
+</script>
+
+</body></html>
