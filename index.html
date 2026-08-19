@@ -1,32 +1,175 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream 720p HD Rapido</title>
-<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
-<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0a0a0a;color:#fff;font-family:system-ui}
-#authOverlay{position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center}
-canvas{width:360px;height:450px;background:#000;border-radius:12px;display:block;margin:20px auto;border:2px solid #FFD60A}
-.btn{background:#FFD60A;color:#000;border:none;padding:14px 24px;border-radius:10px;font-weight:900;cursor:pointer;width:100%;margin:8px 0}
-input,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#111;color:#fff;margin:8px 0}
-</style></head><body>
-<div id="authOverlay"><div style="text-align:center"><h2 style="color:#FFD60A;font-family:Anton">ICE CREAM 720p HD</h2>
-<input id="user" placeholder="Usuario" style="max-width:300px"><input id="pass" type="password" placeholder="Pass" style="max-width:300px">
-<button class="btn" style="max-width:300px" onclick="localStorage.setItem('ic_session_v19',JSON.stringify({username:document.getElementById('user').value}));document.getElementById('authOverlay').style.display='none'">Entrar</button></div></div>
-<div style="padding:20px;max-width:900px;margin:0 auto">
-<h1 style="font-family:Anton;color:#FFD60A;text-align:center">EDITOR 720p HD</h1>
-<textarea id="titulo" rows="3">ESTE ES TU TITULO VIRAL EN 720P HD</textarea>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ice Cream Editor V19 - 720p HD Rapido</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui;overflow-x:hidden}
+#authOverlay{position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center}
+.auth-box{background:#111;border:1px solid #333;padding:32px;border-radius:16px;width:100%;max-width:360px;text-align:center}
+.auth-box h2{font-family:'Anton';color:#FFD60A;font-size:28px;margin-bottom:8px}
+.auth-box p{color:#888;margin-bottom:20px}
+.auth-box input{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#000;color:#fff;margin:8px 0}
+.btn{background:#FFD60A;color:#000;border:none;padding:14px 24px;border-radius:12px;font-weight:900;cursor:pointer;width:100%;margin:8px 0;font-size:15px;transition:0.1s}
+.btn:active{transform:scale(0.98)}.btn-outline{background:transparent;color:#FFD60A;border:2px solid #FFD60A}
+#app{max-width:900px;margin:0 auto;padding:20px;padding-bottom:100px}
+.header{text-align:center;margin:16px 0}
+.header h1{font-family:'Anton';color:#FFD60A;font-size:32px;letter-spacing:1px}
+.header p{color:#666;font-size:13px}
+.card{background:#111;border:1px solid #222;border-radius:16px;padding:16px;margin:12px 0}
+.card h3{font-size:13px;color:#FFD60A;margin-bottom:10px;letter-spacing:1px}
+textarea,input[type="text"]{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#000;color:#fff;font-size:14px}
+canvas{width:100%;max-width:360px;height:auto;aspect-ratio:720/900;background:#000;border-radius:16px;display:block;margin:16px auto;border:2px solid #222}
+#progress{display:none;margin:16px 0}.bar-bg{background:#222;border-radius:10px;height:22px;overflow:hidden}.bar-fill{background:#FFD60A;height:100%;width:0%;transition:width 0.2s}
+#goAdmin{position:fixed;bottom:90px;right:20px;z-index:10015;background:#FFD60A;color:#000;border:none;padding:12px 18px;border-radius:24px;font-weight:900;cursor:pointer;box-shadow:0 4px 20px rgba(255,214,10,0.4)}
+#folderBtn{position:fixed;bottom:20px;right:20px;z-index:9999;background:#111;color:#FFD60A;border:1px solid #333;padding:10px 16px;border-radius:12px;font-weight:800;cursor:pointer}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+</style>
+</head>
+<body class="loading">
+<div id="authOverlay">
+<div class="auth-box">
+<h2>ICE CREAM</h2>
+<p>Editor 720p HD Rapido - Sin congelar</p>
+<input id="user" placeholder="Usuario">
+<input id="pass" type="password" placeholder="Contraseña">
+<button class="btn" onclick="login()">ENTRAR</button>
+</div>
+</div>
+
+<div id="app">
+<div class="header">
+<h1>ICE CREAM EDITOR</h1>
+<p>720p HD FACEBOOK • 4.5Mbps • 30FPS • Audio 64kbps • Rapido</p>
+</div>
+
+<div class="card">
+<h3>🔥 TITULO VIRAL</h3>
+<textarea id="titulo" rows="3">ESTE ES TU TITULO VIRAL EN 720P HD FACEBOOK</textarea>
+</div>
+
+<div class="card">
+<h3>🎬 VIDEO PRINCIPAL</h3>
 <input type="file" id="videoFile" accept="video/*">
 <canvas id="preview" width="720" height="900"></canvas>
-<button class="btn" onclick="previewVideo()">Preview</button>
-<button class="btn" style="background:#fff" onclick="render720p()">⚡ Render 720p HD Rapido</button>
-<div id="progress" style="display:none"><div style="background:#222;border-radius:10px;height:20px;overflow:hidden"><div id="bar" style="background:#FFD60A;height:100%;width:0%"></div></div><p id="progText" style="text-align:center">0%</p></div>
+<div class="grid2">
+<button class="btn btn-outline" onclick="previewVideo()">👁️ Preview</button>
+<button class="btn" onclick="render720p()">⚡ RENDER 720p HD</button>
 </div>
+<div id="progress">
+<div class="bar-bg"><div id="bar" class="bar-fill"></div></div>
+<p id="progText" style="text-align:center;margin-top:8px;color:#FFD60A;font-weight:700">0%</p>
+</div>
+</div>
+
+<div class="card">
+<h3>📁 CARPETAS 01-08</h3>
+<p style="color:#888;font-size:13px;margin-bottom:10px">Guarda automaticamente en 01-08 para Facebook</p>
+<button class="btn btn-outline" onclick="selCarpeta()">Seleccionar carpeta base</button>
+</div>
+</div>
+
+<button id="goAdmin" onclick="alert('Admin - usuarios y control')">⚙️ Admin</button>
+<button id="folderBtn" onclick="selCarpeta()">📁 01-08</button>
+
 <script>
-const canvas=document.getElementById('preview'),ctx=canvas.getContext('2d');let videoEl=null,dirHandle=null;
-setTimeout(()=>{try{const s=JSON.parse(localStorage.getItem('ic_session_v19')||'null');if(s&&s.username)document.getElementById('authOverlay').style.display='none';}catch{}},300);
-document.getElementById('videoFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;videoEl=document.createElement('video');videoEl.src=URL.createObjectURL(f);videoEl.muted=true;videoEl.playsInline=true;videoEl.onloadeddata=()=>previewVideo();});
-function getLines(){const txt=document.getElementById('titulo').value.toUpperCase().split(' ');let lines=[],cur='';for(const w of txt){if((cur+' '+w).length>28){lines.push(cur);cur=w;}else cur=cur?cur+' '+w:w;}if(cur)lines.push(cur);return lines.slice(0,3);}
-function drawFrame(v,l){ctx.clearRect(0,0,720,900);if(v&&v.readyState>=2)try{ctx.drawImage(v,0,0,720,900);}catch{}else{ctx.fillStyle='#111';ctx.fillRect(0,0,720,900);}const tC=document.createElement('canvas');tC.width=720;tC.height=200;const tX=tC.getContext('2d');tX.textAlign='center';tX.textBaseline='middle';tX.lineJoin='round';l.forEach((line,i)=>{const fs=line.length>25?28:34,y=42+i*40;tX.font=`900 ${fs}px Anton`;const w=tX.measureText(line).width,rw=w+44;tX.fillStyle='#000';try{tX.beginPath();tX.roundRect(360-rw/2,y-15,rw,30,8);tX.fill();}catch{tX.fillRect(360-rw/2,y-15,rw,30);}tX.lineWidth=5;tX.strokeStyle='#000';tX.strokeText(line,360,y);tX.fillStyle='#fff';tX.fillText(line,360,y);});ctx.drawImage(tC,0,0);}
-function previewVideo(){const l=getLines();if(videoEl){const loop=()=>{if(videoEl.paused)return;drawFrame(videoEl,l);requestAnimationFrame(loop);};videoEl.currentTime=0;videoEl.play().then(()=>requestAnimationFrame(loop)).catch(()=>drawFrame(videoEl,l));}else drawFrame(null,l);}
-async function render720p(){if(!videoEl)return alert('Selecciona video');const lines=getLines();canvas.width=720;canvas.height=900;document.getElementById('progress').style.display='block';const bar=document.getElementById('bar'),progText=document.getElementById('progText');const onProg=p=>{bar.style.width=p+'%';progText.textContent=Math.round(p)+'% - 720p HD 4.5Mbps';};const tituloCanvas=document.createElement('canvas');tituloCanvas.width=720;tituloCanvas.height=220;const tCtx=tituloCanvas.getContext('2d');tCtx.textAlign='center';tCtx.textBaseline='middle';tCtx.lineJoin='round';const cached=lines.map(l=>{const fs=l.length>25?28:34;tCtx.font=`900 ${fs}px Anton`;return{text:l,fs,w:tCtx.measureText(l).width};});cached.forEach((c,i)=>{const y=42+i*40,rw=c.w+44;tCtx.fillStyle='#000';try{tCtx.beginPath();tCtx.roundRect(360-rw/2,y-15,rw,30,8);tCtx.fill();}catch{tCtx.fillRect(360-rw/2,y-15,rw,30);}tCtx.font=`900 ${c.fs}px Anton`;tCtx.lineWidth=5;tCtx.strokeStyle='#000';tCtx.strokeText(c.text,360,y);tCtx.fillStyle='#fff';tCtx.fillText(c.text,360,y);});videoEl.currentTime=0;await videoEl.play().catch(()=>{});const realTotal=videoEl.duration||10;ctx.clearRect(0,0,720,900);try{ctx.drawImage(videoEl,0,0,720,900);}catch{}ctx.drawImage(tituloCanvas,0,0);await new Promise(r=>setTimeout(r,80));const cStream=canvas.captureStream(30);const mimeList=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9'];const mimeMP4=mimeList.find(m=>{try{return MediaRecorder.isTypeSupported(m);}catch{return false;}})||'video/webm';const rec=new MediaRecorder(cStream,{mimeType:mimeMP4,videoBitsPerSecond:4500000,audioBitsPerSecond:64000});const chunks=[];rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};const blobP=new Promise(r=>rec.onstop=()=>r(new Blob(chunks,{type:'video/mp4'})));rec.start(1000);let start=performance.now(),last=0;await new Promise(res=>{const draw=now=>{if(now-last<33){if((now-start)/1000<realTotal)requestAnimationFrame(draw);else res();return;}last=now;const cur=Math.min((now-start)/1000,realTotal);onProg(Math.min((cur/realTotal)*100,100));if(cur>=realTotal){res();return;}try{ctx.drawImage(videoEl,0,0,720,900);}catch{}ctx.drawImage(tituloCanvas,0,0);requestAnimationFrame(draw);};requestAnimationFrame(draw);});rec.stop();cStream.getTracks().forEach(t=>t.stop());const blob=await blobP;const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`ice-720p-${Date.now()}.mp4`;a.click();onProg(100);if(dirHandle){try{const num=String(Math.floor(Math.random()*8)+1).padStart(2,'0');const sub=await dirHandle.getDirectoryHandle(num);const fh=await sub.getFileHandle(`ice-720p-${Date.now()}.mp4`,{create:true});const w=await fh.createWritable();await w.write(blob);await w.close();}catch{}}}
-async function selCarpeta(){try{dirHandle=await window.showDirectoryPicker();for(let i=1;i<=8;i++)await dirHandle.getDirectoryHandle(String(i).padStart(2,'0'),{create:true});alert('Carpetas 01-08 listas');}catch{}}
-</script><button onclick="selCarpeta()" style="position:fixed;bottom:20px;right:20px;z-index:9999;background:#FFD60A;color:#000;border:none;padding:10px 16px;border-radius:10px;font-weight:900">📁 Carpeta 01-08</button></body></html>
+const canvas=document.getElementById('preview'),ctx=canvas.getContext('2d');
+let videoEl=null,dirHandle=null;
+
+function login(){
+const u=document.getElementById('user').value,p=document.getElementById('pass').value;
+if(!u||!p)return alert('Usuario y pass');
+localStorage.setItem('ic_session_v19',JSON.stringify({username:u}));
+document.getElementById('authOverlay').style.display='none';
+document.documentElement.classList.remove('loading');
+}
+setTimeout(()=>{try{const s=JSON.parse(localStorage.getItem('ic_session_v19')||'null');if(s&&s.username)document.getElementById('authOverlay').style.display='none';}catch{}document.documentElement.classList.remove('loading');},400);
+
+document.getElementById('videoFile').addEventListener('change',e=>{
+const f=e.target.files[0];if(!f)return;
+videoEl=document.createElement('video');videoEl.src=URL.createObjectURL(f);
+videoEl.muted=true;videoEl.playsInline=true;videoEl.crossOrigin='anonymous';
+videoEl.onloadeddata=()=>previewVideo();
+});
+
+function getLines(){
+const txt=document.getElementById('titulo').value.toUpperCase();
+const words=txt.split(' ');let lines=[],cur='';
+for(const w of words){if((cur+' '+w).length>28){lines.push(cur);cur=w;}else cur=cur?cur+' '+w:w;}
+if(cur)lines.push(cur);return lines.slice(0,3);
+}
+
+function drawFrame(v,lines){
+const W=720,H=900;ctx.clearRect(0,0,W,H);
+if(v&&v.readyState>=2){
+const vw=v.videoWidth,vh=v.videoHeight;
+if(vw&&vh){const tgt=W/H,r=vw/vh;let sx=0,sy=0,sw=vw,sh=vh;if(r>tgt){sh=vh;sw=vh*tgt;sx=(vw-sw)/2;}else{sw=vw;sh=vw/tgt;sy=(vh-sh)/2;}try{ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H);}catch{ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);}}
+}else ctx.fillStyle='#111',ctx.fillRect(0,0,W,H);
+else{ctx.fillStyle='#111';ctx.fillRect(0,0,W,H);}
+// Titulo pre-render eficiente
+const tC=document.createElement('canvas');tC.width=W;tC.height=220;
+const tX=tC.getContext('2d');tX.textAlign='center';tX.textBaseline='middle';tX.lineJoin='round';
+lines.forEach((line,i)=>{const fs=line.length>26?28:34,y=46+i*40;tX.font=`900 ${fs}px Anton`;const w=tX.measureText(line).width,rw=w+44,rh=34;tX.fillStyle='#000';try{tX.beginPath();tX.roundRect(360-rw/2,y-rh/2,rw,rh,10);tX.fill();}catch{tX.fillRect(360-rw/2,y-rh/2,rw,rh);}tX.font=`900 ${fs}px Anton`;tX.lineWidth=5;tX.strokeStyle='#000';tX.strokeText(line,360,y);tX.fillStyle='#fff';tX.fillText(line,360,y);});
+ctx.drawImage(tC,0,0);
+}
+
+function previewVideo(){
+const l=getLines();
+if(videoEl){
+const loop=()=>{if(videoEl.paused)return;drawFrame(videoEl,l);requestAnimationFrame(loop);};
+videoEl.currentTime=0;videoEl.play().then(()=>requestAnimationFrame(loop)).catch(()=>drawFrame(videoEl,l));
+}else drawFrame(null,l);
+}
+
+// RENDER 720P HD FACEBOOK - RAPIDO, EFICIENTE, SIN CONGELAR, AUDIO 64KBPS
+async function render720p(){
+if(!videoEl)return alert('Selecciona un video primero');
+const lines=getLines();const W=720,H=900,FPS=30;canvas.width=W;canvas.height=H;
+document.getElementById('progress').style.display='block';
+const bar=document.getElementById('bar'),progText=document.getElementById('progText');
+const onProg=p=>{bar.style.width=p+'%';progText.textContent=Math.round(p)+'% - 720p HD 4.5Mbps 64kbps';};
+
+const tituloCanvas=document.createElement('canvas');tituloCanvas.width=W;tituloCanvas.height=220;
+const tCtx=tituloCanvas.getContext('2d');tCtx.textAlign='center';tCtx.textBaseline='middle';tCtx.lineJoin='round';
+const cached=lines.map(l=>{const fs=l.length>26?28:34;tCtx.font=`900 ${fs}px Anton`;return{text:l,fs,w:tCtx.measureText(l).width};});
+cached.forEach((c,i)=>{const y=46+i*40,rw=c.w+44,rh=34;tCtx.fillStyle='#000';try{tCtx.beginPath();tCtx.roundRect(360-rw/2,y-rh/2,rw,rh,10);tCtx.fill();}catch{tCtx.fillRect(360-rw/2,y-rh/2,rw,rh);}tCtx.font=`900 ${c.fs}px Anton`;tCtx.lineWidth=5;tCtx.strokeStyle='#000';tCtx.strokeText(c.text,360,y);tCtx.fillStyle='#fff';tCtx.fillText(c.text,360,y);});
+
+videoEl.currentTime=0;await videoEl.play().catch(()=>{});
+const realTotal=videoEl.duration||10;
+ctx.clearRect(0,0,W,H);try{ctx.drawImage(videoEl,0,0,W,H);}catch{}ctx.drawImage(tituloCanvas,0,0);
+await new Promise(r=>setTimeout(r,80));
+
+const cStream=canvas.captureStream(FPS);
+const mimeList=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'];
+const mimeMP4=mimeList.find(m=>{try{return MediaRecorder.isTypeSupported(m);}catch{return false;}})||'video/webm';
+const rec=new MediaRecorder(cStream,{mimeType:mimeMP4,videoBitsPerSecond:4500000,audioBitsPerSecond:64000});
+const chunks=[];rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+const blobP=new Promise(r=>rec.onstop=()=>r(new Blob(chunks,{type:mimeMP4.includes('mp4')?'video/mp4':'video/webm'})));
+rec.start(1000);
+let start=performance.now(),last=0;
+await new Promise(res=>{
+const draw=now=>{
+if(now-last<33){if((now-start)/1000<realTotal)requestAnimationFrame(draw);else res();return;}
+last=now;const elapsed=(now-start)/1000;const cur=Math.min(elapsed,realTotal);
+onProg(Math.min((cur/realTotal)*100,100));
+if(cur>=realTotal){res();return;}
+try{ctx.drawImage(videoEl,0,0,W,H);}catch{ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);}
+ctx.drawImage(tituloCanvas,0,0);
+requestAnimationFrame(draw);
+};requestAnimationFrame(draw);
+});
+rec.stop();cStream.getTracks().forEach(t=>t.stop());
+const blob=await blobP;
+const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`ice-cream-720p-${Date.now()}.mp4`;a.click();
+setTimeout(()=>URL.revokeObjectURL(url),2000);
+onProg(100);
+if(dirHandle){try{const num=String(Math.floor(Math.random()*8)+1).padStart(2,'0');const sub=await dirHandle.getDirectoryHandle(num);const fh=await sub.getFileHandle(`ice-720p-${Date.now()}.mp4`,{create:true});const w=await fh.createWritable();await w.write(blob);await w.close();alert(`Guardado en ${num} - 720p HD`);}catch(e){}}
+}
+
+async function selCarpeta(){try{dirHandle=await window.showDirectoryPicker();for(let i=1;i<=8;i++)await dirHandle.getDirectoryHandle(String(i).padStart(2,'0'),{create:true});alert('Carpetas 01-08 listas - 720p HD');}catch{}}
+window.selCarpeta=selCarpeta;
+</script>
+</body>
+</html>
