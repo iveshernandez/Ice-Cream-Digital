@@ -324,8 +324,10 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
   <div style="background:#0f0f12;border:1.5px solid #222;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px">
     <div style="display:flex;gap:6px">
       <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
-        <option value="es_ES-sharvard-medium:0" selected>Alexander V - Español ES (Masculino)</option>
-        <option value="es_ES-sharvard-medium:1">Alejandra P - Español ES (Femenina)</option>
+        <option value="es_ES-sharvard-medium" selected>Dora - Española ES (Nativa)</option>
+        <option value="es_ES-carlfm-x_low">Alex - Español ES (Nativo)</option>
+        <option value="es_ES-davefx-medium">Dave - Español ES</option>
+        <option value="es_MX-ald-medium">Ald - Español MX</option>
       </select>
       <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="0.95">0.95x</option>
@@ -499,7 +501,7 @@ window.setActive=id=>{
   try{
     const vSel=document.getElementById('kokoroVoice');
     const sSel=document.getElementById('kokoroSpeed');
-    if(vSel) vSel.value = it.voiceId || 'es_ES-sharvard-medium:0';
+    if(vSel) vSel.value = it.voiceId || 'es_ES-sharvard-medium';
     if(sSel) sSel.value = String(it.voiceSpeed || 1);
     const st=document.getElementById('kokoroStatus');
     if(st){
@@ -649,17 +651,20 @@ $("inputTxt").addEventListener('change', async e=>{
     text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
     if(!text){ alert('TXT vacío'); return; }
     const lines=text.split('\n');
-    const first=lines.find(l=>l.trim()!=='')||'';
-    const codigo=first.trim();
+    const firstIdx=lines.findIndex(l=>l.trim()!=='');
+    const first= firstIdx>=0 ? lines[firstIdx].trim() : '';
+    const codigo=first;
+    const guionLines = firstIdx>=0 ? lines.slice(firstIdx+1) : [];
+    const guion = guionLines.join('\n').trim();
     const it=getA();
     it.title=codigo;
     it.fileNameBase=codigo;
-    it.script=text; // <-- AQUÍ VA EL TXT COMPLETO EN EL GUION (título + todo)
+    it.script=guion;
     it.txtName=f.name;
-    it.txtContent=text;
+    it.txtContent=guion;
     $("inputTitle").value=codigo;
     $("inputFileName").value=codigo;
-    $("inputScript").value=text; // guion = txt completo
+    $("inputScript").value=guion;
     $("lblTxt").classList.add('has');
     $("txtTxt").textContent="✓ "+f.name.slice(0,16);
     $("txtName").innerHTML=`📄 <b>${f.name}</b> · ${codigo.slice(0,20)}`;
@@ -1263,7 +1268,7 @@ async function handleGenerate(){
       const bar=document.getElementById('kokoroProgressBar');
       if(bar) bar.style.width=prog+'%';
 
-      const wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, onProgress);
+      const wavBlob = await tts.predict({ text: chunk, voiceId: voiceId }, onProgress);
       if(!wavBlob || wavBlob.size<500){
         console.warn('Chunk '+i+' vacio');
         continue;
@@ -1397,14 +1402,10 @@ window.generateVoiceForSlotId = async function(slotId){
       let offset=44; for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample = Math.max(-1, Math.min(1, channels[c][i])); sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; view.setInt16(offset, sample, true); offset+=2; } } return new Blob([ab], {type:'audio/wav'});
     }
 
-    const rawVoiceId = slot.voiceId || document.getElementById('kokoroVoice')?.value || 'es_ES-sharvard-medium:0';
-    const vp = rawVoiceId.split(':');
-    const voiceId = vp[0];
-    const speakerId = parseInt(vp[1]||'0',10);
+    const voiceId = slot.voiceId || document.getElementById('kokoroVoice')?.value || 'es_ES-sharvard-medium';
     const speed = slot.voiceSpeed || parseFloat(document.getElementById('kokoroSpeed')?.value)||1;
     const chunks = splitIntoChunks(text, 380);
-    const nombreVoz = speakerId===1 ? 'Alejandra P' : 'Alexander V';
-    console.log('[V30.1] SLOT '+slotId+' '+text.length+' chars -> '+chunks.length+' chunks voz '+voiceId+' speaker '+speakerId+' ('+nombreVoz+')');
+    console.log('[V30.1] SLOT '+slotId+' '+text.length+' chars -> '+chunks.length+' chunks voz '+voiceId);
 
     const tts = await getTTS();
     try{ await tts.download(voiceId, ()=>{}); }catch(e){}
