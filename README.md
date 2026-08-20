@@ -1,4 +1,4 @@
-# Ice Cream Digital V13 - 720p Facebook Turbo
+# Ice Cream Digital- 720p Facebook Turbo
 
 ## Cambios clave para Facebook 720p HD (V100 Final):
 - Bitrate 4.5Mbps (Facebook recomienda 4-6Mbps)
