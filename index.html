@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital-Videos</title>
+<title>Ice Cream Digital</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -243,6 +243,20 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 </head>
 <body>
 
+<div id="authOverlay">
+  <div class="authCard">
+    <div class="authLogo"><div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div><b>ICE CREAM DIGITAL</b></div>
+    <div class="authBadge">MULTIUSUARIO • TIEMPO REAL</div>
+    <h1 style="font-size:26px;font-weight:800;margin:0 0 6px">Iniciar sesión</h1>
+    <p style="color:#888;font-size:12.5px;line-height:1.5;margin:0 0 18px">Acceso privado. Varias personas pueden usar la app a la vez.</p>
+    <input id="loginUser" class="authInput" placeholder="Usuario" autocomplete="username" />
+    <input id="loginPass" class="authInput" type="password" placeholder="Contraseña" style="margin-top:10px" autocomplete="current-password" />
+    <button id="loginBtn" class="authBtn">ENTRAR →</button>
+    <div id="authMsg"></div>
+    <div id="supabaseStatus" style="margin-top:10px;font-size:10px;color:#555;text-align:center"></div>
+  </div>
+</div>
+
 <div id="adminPanel">
   <div class="adminHeader">
     <div><b style="font-size:22px">Panel de Administrador</b><br><span style="color:#666;font-size:12px">Multiusuario real - Usuarios en la nube (Supabase)</span></div>
@@ -310,10 +324,8 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
   <div style="background:#0f0f12;border:1.5px solid #222;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px">
     <div style="display:flex;gap:6px">
       <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
-        <option value="es_ES-sharvard-medium" selected>Dora - Española ES (Nativa)</option>
-        <option value="es_ES-carlfm-x_low">Alex - Español ES (Nativo)</option>
-        <option value="es_ES-davefx-medium">Dave - Español ES</option>
-        <option value="es_MX-ald-medium">Ald - Español MX</option>
+        <option value="es_ES-sharvard-medium:0" selected>Alexander V - Español ES (Masculino)</option>
+        <option value="es_ES-sharvard-medium:1">Alejandra P - Español ES (Femenina)</option>
       </select>
       <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="0.95">0.95x</option>
@@ -487,7 +499,7 @@ window.setActive=id=>{
   try{
     const vSel=document.getElementById('kokoroVoice');
     const sSel=document.getElementById('kokoroSpeed');
-    if(vSel) vSel.value = it.voiceId || 'es_ES-sharvard-medium';
+    if(vSel) vSel.value = it.voiceId || 'es_ES-sharvard-medium:0';
     if(sSel) sSel.value = String(it.voiceSpeed || 1);
     const st=document.getElementById('kokoroStatus');
     if(st){
@@ -793,7 +805,7 @@ async function renderSingle(item,onProg){
   const tLines=splitWords((item.title||'').toUpperCase(),22).slice(0,3);
   const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true});
-  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='medium';
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
 
   let ac,dest,cap=null,bgCap=null,bgGain=null,voiceGain=null; let aDur=item.audioDur||0;
   if(item.audioUrl || (defaultBgUrl && $("bgEnabled").checked)){
@@ -851,14 +863,11 @@ async function renderSingle(item,onProg){
       await v.play().catch(()=>{});
       if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
       if(bgCap){ bgCap.currentTime=0; try{ bgCap.volume=1; bgCap.muted=false; }catch{} await bgCap.play().catch(()=>{}); }
-      rec.start(2000);
+      rec.start(1000);
 
       await new Promise(res=>{
         let start=performance.now();
-        let lastFrame=0;
-        const draw=(now)=>{
-          if(now-lastFrame<33){ requestAnimationFrame(draw); return; }
-          lastFrame=now;
+        const draw=()=>{
           const elapsed=(performance.now()-start)/1000;
           const cur=Math.min(elapsed, realTotal);
           onProg?.(Math.min((cur/realTotal)*100,100));
@@ -945,7 +954,7 @@ $("btnRender").addEventListener('click',async()=>{
   const overlay=$("renderOverlay");
   overlay.style.display='flex';
   overlay.style.pointerEvents='none';
-  const CONCURRENCY = 3; // Turbo: 3 videos = mas rapido, menos RAM
+  const CONCURRENCY = 6; // 6 videos en canvas separados
   $("renderText").textContent='FASE 1/2 VOCES';
   $("renderPct").textContent='0%';
 
@@ -964,7 +973,7 @@ $("btnRender").addEventListener('click',async()=>{
   log(`FASE 1 VOCES: ${slotsNeedingVoice.length} slots necesitan voz de ${list.length} totales`);
   
   if(slotsNeedingVoice.length){
-    let voiceDone=0; const CONC=3;
+    let voiceDone=0; const CONC=6;
     log(`FASE 1: ${slotsNeedingVoice.length} voces EN PARALELO REAL x${CONC} - ARRANQUE SIMULTANEO`);
     for(let batchStart=0; batchStart<slotsNeedingVoice.length; batchStart+=CONC){
       const batch=slotsNeedingVoice.slice(batchStart,batchStart+CONC);
@@ -1254,7 +1263,7 @@ async function handleGenerate(){
       const bar=document.getElementById('kokoroProgressBar');
       if(bar) bar.style.width=prog+'%';
 
-      const wavBlob = await tts.predict({ text: chunk, voiceId: voiceId }, onProgress);
+      const wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, onProgress);
       if(!wavBlob || wavBlob.size<500){
         console.warn('Chunk '+i+' vacio');
         continue;
@@ -1388,10 +1397,14 @@ window.generateVoiceForSlotId = async function(slotId){
       let offset=44; for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample = Math.max(-1, Math.min(1, channels[c][i])); sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; view.setInt16(offset, sample, true); offset+=2; } } return new Blob([ab], {type:'audio/wav'});
     }
 
-    const voiceId = slot.voiceId || document.getElementById('kokoroVoice')?.value || 'es_ES-sharvard-medium';
+    const rawVoiceId = slot.voiceId || document.getElementById('kokoroVoice')?.value || 'es_ES-sharvard-medium:0';
+    const vp = rawVoiceId.split(':');
+    const voiceId = vp[0];
+    const speakerId = parseInt(vp[1]||'0',10);
     const speed = slot.voiceSpeed || parseFloat(document.getElementById('kokoroSpeed')?.value)||1;
     const chunks = splitIntoChunks(text, 380);
-    console.log('[V30.1] SLOT '+slotId+' '+text.length+' chars -> '+chunks.length+' chunks voz '+voiceId);
+    const nombreVoz = speakerId===1 ? 'Alejandra P' : 'Alexander V';
+    console.log('[V30.1] SLOT '+slotId+' '+text.length+' chars -> '+chunks.length+' chunks voz '+voiceId+' speaker '+speakerId+' ('+nombreVoz+')');
 
     const tts = await getTTS();
     try{ await tts.download(voiceId, ()=>{}); }catch(e){}
@@ -1551,7 +1564,227 @@ setKStatus('✅ V27 FIX - Voz por SLOT + Subs sync audio real');
 
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// === CONFIG SUPABASE - REEMPLAZA CON TUS DATOS ===
+const SUPABASE_URL = "https://gouzcooqqwflcggxnaqe.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdXpjb29xcXdmbGNnZ3huYXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MDgyNDcsImV4cCI6MjEwMjM4NDI0N30.w6tp7tv0dtGGCxVGhjSbSFMq49fk7zvnNbQuQm7GjKc";
+const isSupabaseConfigured = !SUPABASE_URL.includes("TU-PROYECTO");
 
+const supa = isSupabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+const ADMIN_USER = "Icecreamdigital";
+const ADMIN_PASS = "Ives2020.";
+
+const LS_USERS = "ic_allowed_users_v18";
+const LS_SESSION = "ic_session_v19";
+
+const overlay = document.getElementById('authOverlay');
+const adminPanel = document.getElementById('adminPanel');
+const loginUser = document.getElementById('loginUser');
+const loginPass = document.getElementById('loginPass');
+const loginBtn = document.getElementById('loginBtn');
+const msg = document.getElementById('authMsg');
+const statusEl = document.getElementById('supabaseStatus');
+
+function showMsg(t){ msg.textContent=t; }
+function setStatus(){
+  if(!isSupabaseConfigured){
+    statusEl.innerHTML = '⚠️ Modo local (sin nube) - Crea Supabase para multiusuario real<br><span style="font-size:9px">Varios usuarios NO se comparten aún</span>';
+    statusEl.style.color='#f59e0b';
+  } else {
+    statusEl.innerHTML = '✅ Conectado a la nube - Multiusuario real activo';
+    statusEl.style.color='#4ade80';
+  }
+}
+setStatus();
+
+// Local fallback functions
+function getLocalUsers(){
+  try{ return JSON.parse(localStorage.getItem(LS_USERS)||"[]"); }catch{ return [] }
+}
+function saveLocalUsers(u){ localStorage.setItem(LS_USERS, JSON.stringify(u)); }
+
+// Supabase functions
+async function supaGetUsers(){
+  if(!supa) return getLocalUsers();
+  const {data, error} = await supa.from('app_users').select('*').order('created_at', {ascending:false});
+  if(error){ console.error(error); showMsg('Error cargando usuarios'); return []; }
+  return data.map(d=>({id:d.id, user:d.username, pass:d.password, active:d.active, isAdmin:d.is_admin, created:new Date(d.created_at).toLocaleDateString()}));
+}
+
+async function supaAddUser(username, password){
+  if(!supa){
+    let users = getLocalUsers();
+    if(users.find(x=>x.user.toLowerCase()===username.toLowerCase())){ alert('Ya existe'); return false; }
+    users.push({user:username, pass:password, active:true, isAdmin:false, created:new Date().toLocaleDateString()});
+    saveLocalUsers(users); return true;
+  }
+  const {error} = await supa.from('app_users').insert({username, password, active:true, is_admin:false});
+  if(error){ alert('Error: '+error.message); return false; }
+  return true;
+}
+
+async function supaToggleUser(id, active){
+  if(!supa){
+    let users = getLocalUsers();
+    const u = users.find(x=>x.user===id || x.id===id);
+    if(u){ u.active = !u.active; saveLocalUsers(users); }
+    return;
+  }
+  const {error} = await supa.from('app_users').update({active}).eq('id', id);
+  if(error) alert(error.message);
+}
+
+async function supaDeleteUser(id, username){
+  if(!supa){
+    let users = getLocalUsers();
+    users = users.filter(x=>x.user!==username);
+    saveLocalUsers(users); return;
+  }
+  const {error} = await supa.from('app_users').delete().eq('id', id);
+  if(error) alert(error.message);
+}
+
+async function supaUpdatePass(id, newPass){
+  if(!supa){
+    let users = getLocalUsers();
+    const u = users.find(x=>x.id===id || x.user===id);
+    if(u){ u.pass=newPass; saveLocalUsers(users); }
+    return;
+  }
+  const {error} = await supa.from('app_users').update({password:newPass}).eq('id', id);
+  if(error) alert(error.message);
+}
+
+async function tryLoginCloud(username, password){
+  if(!supa){
+    // local mode
+    const users = getLocalUsers();
+    // ensure admin exists locally
+    if(users.length===0){
+      users.push({user:ADMIN_USER, pass:ADMIN_PASS, active:true, isAdmin:true, created:new Date().toLocaleDateString()});
+      saveLocalUsers(users);
+    }
+    const found = users.find(x=>x.user.toLowerCase()===username.toLowerCase() && x.pass===password && x.active);
+    return found || null;
+  }
+  const {data, error} = await supa.from('app_users').select('*').eq('username', username).eq('password', password).eq('active', true).maybeSingle();
+  if(error){ console.error(error); return null; }
+  if(!data) return null;
+  return {id:data.id, user:data.username, pass:data.password, active:data.active, isAdmin:data.is_admin};
+}
+
+function setSession(userObj){
+  localStorage.setItem(LS_SESSION, JSON.stringify({user:userObj.user, isAdmin:!!userObj.isAdmin, id:userObj.id||userObj.user, ts:Date.now()}));
+  overlay.style.display='none';
+  const header = document.querySelector('header');
+  if(header && !document.getElementById('userChip')){
+    const chip = document.createElement('div');
+    chip.id='userChip';
+    const isAdm = userObj.isAdmin ? '<span style="background:#FFEB00;color:#000;padding:2px 6px;border-radius:10px;font-size:8px;font-weight:900">ADMIN</span>' : '<span style="background:#222;padding:2px 6px;border-radius:10px;font-size:8px;color:#FFEB00">MULTI</span>';
+    chip.style.cssText='display:flex;align-items:center;gap:10px;background:#141418;border:1px solid #222;padding:6px 14px;border-radius:24px;font-size:11px';
+    chip.innerHTML = `<div style="width:24px;height:24px;background:#FFEB00;border-radius:50%;display:grid;place-items:center;color:#000;font-weight:900">${userObj.user[0].toUpperCase()}</div><span style="color:#ccc">${userObj.user}</span>${isAdm}<button id="goAdmin" style="display:${userObj.isAdmin?'inline-block':'none'};background:#1e1e22;border:1px solid #333;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer;margin-left:4px">PANEL</button><button id="logoutBtn" style="background:transparent;border:0;color:#666;cursor:pointer;margin-left:6px">Salir</button>`;
+    header.appendChild(chip);
+    document.getElementById('goAdmin')?.addEventListener('click', ()=>{ adminPanel.style.display='block'; renderUsers(); });
+    document.getElementById('logoutBtn').onclick = ()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
+  }
+}
+
+// Auto-login
+(async ()=>{
+  const sess = localStorage.getItem(LS_SESSION);
+  if(sess){
+    try{
+      const s = JSON.parse(sess);
+      // validate still active
+      let user = null;
+      if(isSupabaseConfigured){
+        const {data} = await supa.from('app_users').select('*').eq('username', s.user).eq('active', true).maybeSingle();
+        if(data) user = {id:data.id, user:data.username, isAdmin:data.is_admin};
+      } else {
+        const users = getLocalUsers();
+        user = users.find(x=>x.user.toLowerCase()===s.user.toLowerCase() && x.active);
+      }
+      if(user){ setSession(user); return; }
+    }catch{}
+  }
+})();
+
+async function tryLogin(){
+  const u = loginUser.value.trim();
+  const p = loginPass.value.trim();
+  if(!u||!p){ showMsg('Usuario o contraseña invalido'); return; }
+  loginBtn.disabled=true; loginBtn.textContent='Verificando...';
+  const found = await tryLoginCloud(u, p);
+  loginBtn.disabled=false; loginBtn.textContent='ENTRAR →';
+  if(!found){ showMsg('Usuario o contraseña invalido'); return; }
+  setSession(found);
+}
+
+loginBtn.onclick = tryLogin;
+loginUser.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+loginPass.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+
+// Admin panel rendering
+const usersList = document.getElementById('usersList');
+async function renderUsers(){
+  usersList.innerHTML='<div style="padding:12px;color:#666">Cargando...</div>';
+  const users = await supaGetUsers();
+  usersList.innerHTML='';
+  users.forEach((u)=>{
+    const row = document.createElement('div');
+    row.className='userRow';
+    row.innerHTML = `
+      <div><b style="color:#fff">${u.user}</b> ${u.isAdmin?'<span style="font-size:9px;background:#FFEB00;color:#000;padding:2px 6px;border-radius:10px;margin-left:6px">ADMIN</span>':''}<br><span style="color:#555;font-size:11px">••••••••</span></div>
+      <div>${u.active?'<span class=tagActive>ACTIVO</span>':'<span class=tagOff>INACTIVO</span>'}</div>
+      <div style="color:#666">${u.created||'-'}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="smallBtn" data-act="edit" data-id="${u.id||u.user}" data-user="${u.user}">Cambiar clave</button>
+        <button class="smallBtn" data-act="toggle" data-id="${u.id||u.user}" data-active="${!u.active}">${u.active?'Desactivar':'Activar'}</button>
+        <button class="dangerBtn" data-act="del" data-id="${u.id||u.user}" data-user="${u.user}">X</button>
+      </div>
+    `;
+    usersList.appendChild(row);
+  });
+  usersList.querySelectorAll('button').forEach(b=>{
+    b.onclick = async ()=>{
+      const id = b.dataset.id;
+      const user = b.dataset.user;
+      if(b.dataset.act==='del'){
+        if(user.toLowerCase()===ADMIN_USER.toLowerCase()){ alert('No puedes borrar al admin principal'); return; }
+        if(!confirm('¿Borrar '+user+'?')) return;
+        await supaDeleteUser(id, user);
+        renderUsers();
+      }else if(b.dataset.act==='toggle'){
+        const active = b.dataset.active==='true';
+        await supaToggleUser(id, active);
+        renderUsers();
+      }else if(b.dataset.act==='edit'){
+        const nueva = prompt('Nueva contraseña para '+user+':');
+        if(nueva && nueva.trim().length>=3){
+          await supaUpdatePass(id, nueva.trim());
+          alert('Contraseña actualizada');
+          renderUsers();
+        }
+      }
+    };
+  });
+}
+
+document.getElementById('closeAdmin').onclick = ()=>{ adminPanel.style.display='none'; };
+document.getElementById('logoutAdmin').onclick = ()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
+document.getElementById('refreshBtn').onclick = renderUsers;
+document.getElementById('addUserBtn').onclick = async ()=>{
+  const u = document.getElementById('newUser').value.trim();
+  const p = document.getElementById('newPass').value.trim();
+  if(!u||!p){ alert('Pon usuario y contraseña'); return; }
+  const ok = await supaAddUser(u,p);
+  if(ok){
+    document.getElementById('newUser').value=''; document.getElementById('newPass').value='';
+    renderUsers();
+  }
+};
+</script>
 
 
 <script>
@@ -1729,8 +1962,8 @@ setKStatus('✅ V27 FIX - Voz por SLOT + Subs sync audio real');
     const add=document.getElementById('addUserBtn');
     if(go && !go.dataset.f){ go.dataset.f='1'; go.addEventListener('click',()=>{ panel.style.display='block'; setTimeout(()=>window.renderUsers(),300); }); }
     if(close && !close.dataset.f){ close.dataset.f='1'; close.onclick=()=>panel.style.display='none'; }
-    if(logoutA && !logoutA.dataset.f){ logoutA.dataset.f='1'; logoutA.onclick=()=>{ window.IC_doLogout(); }; }
-    if(logout && !logout.dataset.f){ logout.dataset.f='1'; logout.onclick=()=>{ window.IC_doLogout(); }; }
+    if(logoutA && !logoutA.dataset.f){ logoutA.dataset.f='1'; logoutA.onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();}; }
+    if(logout && !logout.dataset.f){ logout.dataset.f='1'; logout.onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();}; }
     if(refresh && !refresh.dataset.f){ refresh.dataset.f='1'; refresh.onclick=()=>window.renderUsers(); }
     if(add && !add.dataset.f){
       add.dataset.f='1';
@@ -1761,7 +1994,7 @@ setKStatus('✅ V27 FIX - Voz por SLOT + Subs sync audio real');
             const diff=Math.ceil((new Date(sess.expires_at)-new Date())/86400000);
             daysEl.textContent=diff>0?diff+' días':'EXPIRADO';
           }
-          document.getElementById('sess-logout').onclick=()=>{window.IC_doLogout();};
+          document.getElementById('sess-logout').onclick=()=>{localStorage.removeItem(LS_SESSION); location.reload();};
         }
       }
     }catch{}
@@ -1935,44 +2168,6 @@ window.IC_renew = function(username){
     }catch(e){ alert(e.message); }
   })();
 };
-</script>
-
-
-<script>
-// FIX LOGOUT V100.1 - Salir 100% funcional
-window.IC_doLogout = function(){
-  try{
-    localStorage.removeItem('ic_session_v19');
-    localStorage.removeItem('ic_allowed_users_v18');
-    localStorage.removeItem('ic_session_v19');
-    // limpiar cualquier clave que empiece con ic_
-    Object.keys(localStorage).forEach(k=>{ if(k.startsWith('ic_')) localStorage.removeItem(k); });
-    sessionStorage.clear();
-  }catch(e){}
-  const overlay = document.getElementById('custom-login-overlay');
-  const app = document.getElementById('app');
-  const adminPanel = document.getElementById('adminPanel');
-  if(adminPanel) adminPanel.style.display='none';
-  if(app) app.style.display='none';
-  if(overlay) overlay.classList.remove('hidden');
-  // recargar para limpiar estado
-  setTimeout(()=>{ location.reload(); }, 100);
-};
-
-document.addEventListener('DOMContentLoaded', ()=>{
-  ['logoutBtn','logoutAdmin','logoutBtn2'].forEach(id=>{
-    const btn = document.getElementById(id);
-    if(btn){
-      btn.onclick = window.IC_doLogout;
-    }
-  });
-  // Delegacion para chips dinamicos
-  document.body.addEventListener('click', (e)=>{
-    if(e.target && (e.target.id==='logoutBtn' || e.target.closest && e.target.closest('#logoutBtn'))){
-      window.IC_doLogout();
-    }
-  });
-});
 </script>
 
 </body></html>
