@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital V13 - Fondo Incrustado</title>
+<title>Ice Cream Digital</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -239,6 +239,23 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 .smallBtn{background:#1e1e22;border:1px solid #2a2a2e;color:#fff;padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer}
 .dangerBtn{background:transparent;border:1px solid #3a1a1a;color:#ff6b6b;padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer}
 </style>
+
+
+<style>
+/* ELIMINAR MUSICA DE FONDO COMPLETAMENTE */
+#musicaFondoBar, [id*="musicaFondo"], [id*="bgVol"], #bgMusic, #bgMusicVol, #kokoroSpeed,
+div[style*="MÚSICA DE FONDO"], div[style*="MUSICA DE FONDO"] { display:none !important; }
+</style>
+<script>
+// Eliminar barras duplicadas por texto
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('div').forEach(d=>{
+    if(d.textContent.includes('MÚSICA DE FONDO POR DEFECTO') || d.textContent.includes('Cargar audio fondo')){
+      d.style.display='none';
+    }
+  });
+});
+</script>
 
 </head>
 <body>
