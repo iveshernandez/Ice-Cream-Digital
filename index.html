@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital</title>
+<title>Ice Cream Digital V13 - Fondo Incrustado</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -323,13 +323,22 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 <div><div style="font-size:9px;color:#FFEB00;font-weight:800;margin-bottom:3px">3. AUDIO ESPAÑOL AUTO <span id="pyStatusDot" class="offline"></span><span id="pyStatusText" style="font-size:8px">Python desconectado</span></div>
   <div style="background:#0f0f12;border:1.5px solid #222;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px">
     <div style="display:flex;gap:6px">
-            <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
+                  <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="es_ES-sharvard-medium:0" selected>Alexander V - Español ES (Masculino)</option>
-        <option value="es_ES-sharvard-medium:1">Alejandra P - Español ES (Femenina)</option>
+        <option value="es_ES-sharvard-medium:1">Alejandra Pineda P - Español ES (Femenina)</option>
       </select>
       <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="0.95">0.95x</option>
         <option value="1" selected>1x</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:4px">
+      <select id="bgMusic" style="flex:1;background:#070709;border:1px solid #333;color:#FFEB00;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
+        <option value="none">Sin musica</option>
+        <option value="curiosity" selected>Curiosidad Ligera (0KB)</option>
+        <option value="lofi">LoFi</option>
+        <option value="uplift">Uplift</option>
+      </select>
         <option value="1.15">1.15x</option>
       </select>
     </div>
@@ -1685,7 +1694,7 @@ function setSession(userObj){
     chip.id='userChip';
     const isAdm = userObj.isAdmin ? '<span style="background:#FFEB00;color:#000;padding:2px 6px;border-radius:10px;font-size:8px;font-weight:900">ADMIN</span>' : '<span style="background:#222;padding:2px 6px;border-radius:10px;font-size:8px;color:#FFEB00">MULTI</span>';
     chip.style.cssText='display:flex;align-items:center;gap:10px;background:#141418;border:1px solid #222;padding:6px 14px;border-radius:24px;font-size:11px';
-    chip.innerHTML = `<div style="width:24px;height:24px;background:#FFEB00;border-radius:50%;display:grid;place-items:center;color:#000;font-weight:900">${userObj.user[0].toUpperCase()}</div><span style="color:#ccc">${userObj.user}</span>${isAdm}<button id="goAdmin" style="display:${userObj.isAdmin?'inline-block':'none'};background:#1e1e22;border:1px solid #333;color:#fff;padding:4px 8px;border-radius:8px;font-size:10px;cursor:pointer;margin-left:4px">PANEL</button><button id="logoutBtn" style="background:transparent;border:0;color:#666;cursor:pointer;margin-left:6px">Salir</button>`;
+    chip.innerHTML = `<div style="width:24px;height:24px;background:#FFEB00;border-radius:50%;display:grid;place-items:center;color:#000;font-weight:900">${userObj.user[0].toUpperCase()}</div><span style="color:#ccc">${userObj.user}</span>${isAdm}<button id="goAdmin" style="display:${userObj.isAdmin?'inline-block':'none'};position:fixed!important;bottom:68px!important;left:12px!important;z-index:999999!important;background:#FFEB00!important;border:2px solid #000!important;color:#000!important;padding:5px 10px!important;border-radius:8px!important;font-size:10px!important;font-weight:900!important;cursor:pointer;box-shadow:2px 2px 0 #000">Panel Admin</button><button id="logoutBtn" style="background:transparent;border:0;color:#666;cursor:pointer;margin-left:6px">Salir</button>`;
     header.appendChild(chip);
     document.getElementById('goAdmin')?.addEventListener('click', ()=>{ adminPanel.style.display='block'; renderUsers(); });
     document.getElementById('logoutBtn').onclick = ()=>{ localStorage.removeItem(LS_SESSION); location.reload(); };
@@ -2025,7 +2034,7 @@ document.getElementById('addUserBtn').onclick = async ()=>{
           fab=document.createElement('button');
           fab.id='admin-fab';
           fab.textContent='⚙️ Panel Admin';
-          fab.style.cssText='position:fixed;bottom:20px;left:20px;z-index:10012;background:#FFD60A;color:#000;border:none;padding:12px 18px;border-radius:12px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3)';
+          fab.style.cssText='position:fixed;bottom:68px;left:12px;z-index:10012;background:#FFEB00;color:#000;border:2px solid #000;padding:5px 10px;border-radius:8px;font-weight:900;font-size:10px;cursor:pointer;box-shadow:2px 2px 0 #000';
           document.body.appendChild(fab);
           fab.onclick=()=>{
             const panel=document.getElementById('adminPanel');
@@ -2172,4 +2181,4 @@ window.IC_renew = function(username){
 };
 </script>
 
-</body></html
+<script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};</script></body></html>
