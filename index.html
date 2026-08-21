@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital V13 - Fondo Incrustado</title>
+<title>Ice Cream Digital-Videos</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -2283,36 +2283,100 @@ window.IC_renew = function(username){
 
 <script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};
 // === LIMPIAR TODO EN CERO - VERSION FINAL ESTABLE ===
-<style id="hide-red-box">#btnRenderSingle,#statusLabel,#speedLabel{display:none !important;}</style>
 window.limpiarTodo=function(){
-  if(!confirm('🧹 ¿Borrar TODO y recargar pagina en cero 100% limpio?')) return;
+  if(!confirm('¿Borrar TODO del editor y dejar en cero para proximos 6?')) return;
   try{
     if(window._lastBlobs){ window._lastBlobs.forEach(u=>{ try{URL.revokeObjectURL(u)}catch{}}); window._lastBlobs=[]; }
-    try{ queue.forEach(q=>{ if(q.videoUrl&&q.videoUrl.startsWith('blob:')) try{URL.revokeObjectURL(q.videoUrl)}catch{}; if(q.audioUrl&&q.audioUrl.startsWith('blob:')) try{URL.revokeObjectURL(q.audioUrl)}catch{}; if(q.finalUrl&&q.finalUrl.startsWith('blob:')) try{URL.revokeObjectURL(q.finalUrl)}catch{}; }); }catch{}
+    try{
+      queue.forEach(q=>{
+        if(q.videoUrl && q.videoUrl.startsWith('blob:')) try{URL.revokeObjectURL(q.videoUrl)}catch{}
+        if(q.audioUrl && q.audioUrl.startsWith('blob:')) try{URL.revokeObjectURL(q.audioUrl)}catch{}
+        if(q.finalUrl && q.finalUrl.startsWith('blob:')) try{URL.revokeObjectURL(q.finalUrl)}catch{}
+      });
+    }catch{}
     queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0; q.status='vacio'; q.finalUrl=''; q.finalExt=''; q.fileNameBase=''; q.progress=0; });
-    try{ const keep=['auth','token','session','login','user','firebase','supabase']; const rm=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!k) continue; const low=k.toLowerCase(); if(keep.some(w=>low.includes(w))) continue; if(low.includes('punto')||low.includes('queue')||low.includes('render')||low.includes('cola')) rm.push(k); } rm.forEach(k=>{ try{localStorage.removeItem(k)}catch{} }); try{sessionStorage.clear();}catch{} }catch{}
+    try{
+      const keep=['auth','token','session','login','user','firebase','supabase'];
+      const rm=[];
+      for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!k) continue; const low=k.toLowerCase(); if(keep.some(w=>low.includes(w))) continue; if(low.includes('punto')||low.includes('queue')||low.includes('render')||low.includes('cola')) rm.push(k); }
+      rm.forEach(k=>{ try{localStorage.removeItem(k)}catch{} });
+    }catch{}
     document.querySelectorAll('input[type=file]').forEach(inp=>{ inp.value=''; });
     ['inputTitle','inputScript','inputFileName'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
     const setEmpty=(id,txt)=>{ const el=document.getElementById(id); if(el) el.innerHTML='<span style="color:#666">'+txt+'</span>'; };
-    setEmpty('txtName','Sin .txt'); setEmpty('videoName','Sin video'); setEmpty('audioName','Sin audio');
+    setEmpty('txtName','Sin .txt');
+    setEmpty('videoName','Sin video');
+    setEmpty('audioName','Sin audio');
+    const bgName=document.getElementById('bgName'); if(bgName) bgName.textContent='';
+    const t1=document.getElementById('txtTxt'); if(t1) t1.textContent='Elegir .txt';
+    const t2=document.getElementById('txtVideo'); if(t2) t2.textContent='Elegir video';
+    const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
+    try{ if(typeof vEl!=='undefined'&&vEl){ vEl.pause(); vEl.removeAttribute('src'); vEl.load(); } }catch{}
+    try{ if(typeof aEl!=='undefined'&&aEl){ aEl.pause(); aEl.removeAttribute('src'); aEl.load(); } }catch{}
+    try{ const vp=document.getElementById('vPreview'); if(vp){ vp.pause(); vp.removeAttribute('src'); vp.load(); } }catch{}
     try{ if(typeof renderCola==='function') renderCola(true); }catch{}
-    setTimeout(()=>{ location.reload(true); }, 600);
-  }catch(e){ location.reload(true); }
+    try{ if(typeof hardCleanup==='function') hardCleanup(); }catch{}
+  }catch(e){ console.error(e); }
 };
 (function(){
-  function isLogin(){
-    const u=document.getElementById('loginUser'); if(u&&u.offsetParent!==null) return true; return false;
+  function isLoginVisible(){
+    const u=document.getElementById('loginUser');
+    const cU=document.getElementById('c-loginUser');
+    if(u && u.offsetParent!==null) return true;
+    if(cU && cU.offsetParent!==null) return true;
+    return false;
   }
   function insertBtn(){
-    if(isLogin()){ const b=document.getElementById('btnLimpiarTodo'); if(b) b.remove(); return; }
-    const cola=document.getElementById('cola'); const ti=document.getElementById('inputTitle');
-    if(!cola||!ti||cola.offsetParent===null||ti.offsetParent===null){ const b=document.getElementById('btnLimpiarTodo'); if(b) b.remove(); return; }
+    if(isLoginVisible()){ const b=document.getElementById('btnLimpiarTodo'); if(b) b.remove(); return; }
+    const cola=document.getElementById('cola');
+    const titleInput=document.getElementById('inputTitle');
+    if(!cola || !titleInput) return;
+    if(cola.offsetParent===null || titleInput.offsetParent===null){ const b=document.getElementById('btnLimpiarTodo'); if(b) b.remove(); return; }
     if(document.getElementById('btnLimpiarTodo')) return;
     const btnRender=document.getElementById('btnRender');
-    const b=document.createElement('button'); b.id='btnLimpiarTodo'; b.innerHTML='🧹 LIMPIAR TODO EN CERO'; b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-left:8px;';
-    b.onclick=()=>window.limpiarTodo(); if(btnRender&&btnRender.parentElement) btnRender.parentElement.appendChild(b);
+    const b=document.createElement('button');
+    b.id='btnLimpiarTodo';
+    b.textContent='🧹 LIMPIAR TODO EN CERO';
+    b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-left:8px;';
+    b.onclick=()=>window.limpiarTodo();
+    if(btnRender && btnRender.parentElement) btnRender.parentElement.appendChild(b);
   }
-  setTimeout(insertBtn,800); setInterval(insertBtn,1000);
+  setTimeout(insertBtn, 1000);
+  setInterval(insertBtn, 1000);
 })();
 
-</script></body></html>
+</script>
+<script>
+(function(){
+  const st=document.createElement('style'); st.textContent='#btnRenderSingle,#statusLabel,#speedLabel{display:none!important}'; document.head.appendChild(st);
+  window.limpiarTodo=function(){
+    if(!confirm('🧹 ¿Borrar TODO y recargar en cero 100%?')) return;
+    try{
+      if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});
+      queue.forEach(q=>{ try{ if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{} });
+      queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0; q.status='vacio'; q.finalUrl=''; q.finalExt=''; q.fileNameBase=''; q.progress=0; });
+      document.querySelectorAll('input[type=file]').forEach(i=>i.value='');
+      ['inputTitle','inputScript','inputFileName'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+      const se=(id,t)=>{const el=document.getElementById(id); if(el) el.innerHTML='<span style=color:#666>'+t+'</span>';};
+      se('txtName','Sin .txt'); se('videoName','Sin video'); se('audioName','Sin audio');
+      try{ renderCola(true);}catch{}
+      setTimeout(()=>location.reload(),700);
+    }catch(e){ location.reload(); }
+  };
+  function isL(){const u=document.getElementById('loginUser');return u&&u.offsetParent!==null;}
+  function ins(){
+    if(isL()){const b=document.getElementById('btnLimpiarTodo'); if(b) b.remove(); return;}
+    const c=document.getElementById('cola'); const t=document.getElementById('inputTitle');
+    if(!c||!t||c.offsetParent===null||t.offsetParent===null){const b=document.getElementById('btnLimpiarTodo'); if(b) b.remove(); return;}
+    if(document.getElementById('btnLimpiarTodo')) return;
+    const br=document.getElementById('btnRender');
+    const b=document.createElement('button'); b.id='btnLimpiarTodo'; b.innerHTML='🧹 LIMPIAR TODO EN CERO';
+    b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-left:8px;';
+    b.onclick=()=>window.limpiarTodo();
+    if(br&&br.parentElement) br.parentElement.appendChild(b);
+  }
+  setTimeout(ins,900); setInterval(ins,1000);
+})();
+</script>
+
+</body></html>
