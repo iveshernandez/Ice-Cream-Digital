@@ -887,9 +887,9 @@ async function renderSingle(item,onProg){
       
       v.playbackRate=info.rate;
       v.loop=false; // manejamos loop manual para crossfade
-      v.currentTime=0;
+      try{ v.currentTime=0.05; }catch{ v.currentTime=0; }
       v.muted=true;
-      if(info.useLoop){ v2.currentTime=0; v2.playbackRate=info.rate; v2.muted=true; }
+      if(info.useLoop){ try{ v2.currentTime=0.05; }catch{ v2.currentTime=0; } v2.playbackRate=info.rate; v2.muted=true; }
 
       const cStream=canvas.captureStream(30);
       const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
@@ -902,7 +902,24 @@ async function renderSingle(item,onProg){
       if(info.useLoop) await v2.play().catch(()=>{});
       if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
       if(bgCap){ bgCap.currentTime=0; try{ bgCap.volume=1; bgCap.muted=false; }catch{} await bgCap.play().catch(()=>{}); }
+
+      // FIX CONGELAMIENTO INICIO: pre-dibujar 3 frames y delay
+      // Dibujar primer frame solido antes de grabar
+      try{
+        ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
+        if(v.readyState>=2 && v.videoWidth){
+          const vw=v.videoWidth, vh=v.videoHeight;
+          const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
+          if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
+          try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{}
+        }
+      }catch{}
+      // Esperar 250ms para que video arranque fluido (evita freeze negro inicial)
+      await new Promise(r=>setTimeout(r, 250));
       rec.start(100);
+      // Forzar primer frame despues de start
+      await new Promise(r=>setTimeout(r, 80));
+
 
       const CROSSFADE = 0.25; // segundos de crossfade invisible tipo CapCut
       let lastDraw = performance.now();
@@ -1035,7 +1052,10 @@ window.renderOne=async id=>{
 };
 $("btnRenderSingle").addEventListener('click',()=>renderOne(activeId));
 $("btnRender").addEventListener('click',async()=>{
-  const cur=getA(); if(cur){ cur.title=$("inputTitle").value; cur.script=$("inputScript").value; cur.fileNameBase=$("inputFileName").value; }
+  const cur=getA(); if(cur){ cur.title=$("inputTitle").value; cur.script=$("inputScript").value; cur.fileNameBase=$("inputFileName").value; // Guardar antes de validar
+      // Validacion voz para segunda tanda: si no hay audio, alertar
+      const slotsSinVoz = queue.filter(q=>q.videoUrl && !q.audioUrl);
+      if(slotsSinVoz.length>0 && !confirm(`⚠️ Hay ${slotsSinVoz.length} slots con video pero sin voz. ¿Renderizar de todas formas?\n\nRecomendado: Genera voz primero para cada slot.`)){ return; } }
   const list=queue.filter(q=>q.videoUrl); if(!list.length){alert('Llena al menos 1 slot con video');return;}
   try{ vEl.pause(); aEl.pause(); try{ bgEl.pause(); }catch{} vEl.loop=false; if(raf) cancelAnimationFrame(raf); $("btnPlay").textContent='▶ Play'; }catch{}
   const overlay=$("renderOverlay");
@@ -2267,13 +2287,17 @@ window.IC_renew = function(username){
 <script>
 (function(){
   window.limpiarTodo=function(){
-    if(!confirm('🧹 ¿Borrar TODO y recargar en cero 100% limpio?')) return;
+    if(!confirm('🧹 ¿Borrar TODO y recargar en cero 100% limpio?\nSe borrara todo y recargara la pagina para segunda tanda sin fallos')) return;
+    const btn=document.getElementById('btnLimpiarTodo');
+    if(btn){ btn.disabled=true; btn.textContent='🧹 LIMPIANDO...'; }
     try{
-      if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});
+      console.log('[LIMPIAR] Iniciando limpieza total');
+      if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}}); window._lastBlobs=[];
+      if(window.voiceProgressBySlot) window.voiceProgressBySlot={};
       queue.forEach(q=>{
         try{ if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{}
       });
-      queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase=`Video ${q.id}`; q.txtName=''; q.txtContent=''; });
+      queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase=`Video ${q.id}`; q.txtName=''; q.txtContent=''; q.audioBlob=null; });
       document.querySelectorAll('input[type=file]').forEach(inp=>inp.value='');
       ['inputTitle','inputScript','inputFileName'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
       const se=(id,t)=>{const el=document.getElementById(id); if(el) el.innerHTML='<span style=color:#666>'+t+'</span>';};
@@ -2281,8 +2305,15 @@ window.IC_renew = function(username){
       const t1=document.getElementById('txtTxt'); if(t1) t1.textContent='Elegir .txt';
       const t2=document.getElementById('txtVideo'); if(t2) t2.textContent='Elegir video';
       const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
+      try{ 
+        const st=document.getElementById('kokoroStatus'); if(st){ st.textContent='Limpio - Listo para segunda tanda'; st.style.color='#888'; }
+        const bar=document.getElementById('kokoroProgressBar'); if(bar) bar.style.width='0%';
+        const barW=document.getElementById('kokoroProgress'); if(barW) barW.style.display='none';
+        const btnGen=document.getElementById('btnKokoroGen'); if(btnGen){ btnGen.disabled=false; btnGen.textContent='🔊 GENERAR AUDIO ESPAÑOL'; btnGen.style.background='#FFEB00'; }
+      }catch{}
       try{ setActive(1); renderCola(true);}catch{}
-      setTimeout(()=>location.reload(),700);
+      console.log('[LIMPIAR] Recargando en 1.2s para estado 100% limpio');
+      setTimeout(()=>location.reload(),1200);
     }catch(e){ location.reload(); }
   };
   function isLogged(){
