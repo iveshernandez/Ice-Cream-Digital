@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital V13</title>
+<title>Ice Cream Digital V13 - Fondo Incrustado</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -2503,6 +2503,89 @@ document.addEventListener('DOMContentLoaded', ()=>{
       }catch{}
     }, true);
   }
+})();
+</script>
+
+
+<script>
+(function(){
+  // SILENCIAR TODO DURANTE GENERACION DE VOZ Y RENDER
+  window._batchGenerating = false;
+  
+  function silenceAll(){
+    try{
+      document.querySelectorAll('audio,video').forEach(el=>{
+        try{ el.pause(); el.muted=true; el.volume=0; }catch{}
+      });
+      if(window.raf) cancelAnimationFrame(window.raf);
+      // Pausar preview especifico
+      const vEl=document.getElementById('previewVideo'); if(vEl){ vEl.pause(); vEl.muted=true; }
+      const aEl=document.getElementById('previewAudio'); if(aEl){ aEl.pause(); aEl.muted=true; aEl.volume=0; }
+      const bgEl=document.getElementById('bgVideo'); if(bgEl){ try{ bgEl.pause(); bgEl.muted=true; }catch{} }
+    }catch{}
+  }
+  
+  // Interceptar Audio.play durante batch para que no suenen todas a la vez
+  const origPlay = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function(){
+    if(window._batchGenerating || window._previewDisabled || window._rendering){
+      // Durante generacion batch o render, no reproducir nada
+      try{ this.muted=true; this.volume=0; }catch{}
+      // Solo permitir si es el audio de export (renderSingle) que usa AudioContext
+      if(this.id==='previewAudio' || this.id==='previewVideo' || this.id==='bgVideo'){
+        return Promise.resolve();
+      }
+      // Para voces, bloquear play
+      if(this.src && this.src.startsWith('blob:')){
+        return Promise.resolve();
+      }
+    }
+    return origPlay.apply(this, arguments);
+  };
+  
+  // Parchear btnRender para silenciar
+  const btn=document.getElementById('btnRender');
+  if(btn){
+    btn.addEventListener('click', ()=>{
+      window._batchGenerating=true;
+      window._rendering=true;
+      window._previewDisabled=true;
+      silenceAll();
+      console.log('[AUDIO] Todo silenciado para batch voces + render - ahorro CPU');
+    }, true);
+    
+    // Restaurar despues de render
+    const overlay=document.getElementById('renderOverlay');
+    if(overlay){
+      const obs=new MutationObserver(()=>{
+        if(overlay.style.display==='none'){
+          window._batchGenerating=false;
+          window._rendering=false;
+          window._previewDisabled=false;
+          // Reactivar volumen preview
+          const aEl=document.getElementById('previewAudio'); if(aEl){ aEl.muted=false; aEl.volume=1; }
+          const vEl=document.getElementById('previewVideo'); if(vEl){ vEl.muted=false; }
+          if(window.startLoop) try{ window.startLoop(); }catch{}
+          console.log('[AUDIO] Preview reactivado, voces silenciadas liberadas');
+        }
+      });
+      obs.observe(overlay, {attributes:true, attributeFilter:['style']});
+    }
+  }
+  
+  // Tambien silenciar despues de cada voz generada
+  const origHandleGenerate = window.handleGenerate;
+  if(origHandleGenerate){
+    window.handleGenerate = async function(){
+      window._batchGenerating=true;
+      silenceAll();
+      const r=await origHandleGenerate.apply(this, arguments);
+      silenceAll();
+      return r;
+    };
+  }
+  
+  setInterval(silenceAll, 2000); // por si alguna voz se escapa, silenciar cada 2s durante batch
 })();
 </script>
 
