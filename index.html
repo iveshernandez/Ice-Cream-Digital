@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital-Videos</title>
+<title>Ice Cream Digital V13 - Fondo Incrustado</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -2347,35 +2347,35 @@ window.limpiarTodo=function(){
 
 </script>
 <script>
+// SOLO CAMBIOS PEDIDOS - sin tocar render ni slots
 (function(){
-  const st=document.createElement('style'); st.textContent='#btnRenderSingle,#statusLabel,#speedLabel{display:none!important}'; document.head.appendChild(st);
+  // 1. Borrar rectangulos rojos
+  const st=document.createElement('style');
+  st.textContent='#btnRenderSingle,#statusLabel,#speedLabel{display:none!important}';
+  document.head.appendChild(st);
+
+  // 2. Boton con escoba + F5
+  const oldLimpiar = window.limpiarTodo;
   window.limpiarTodo=function(){
-    if(!confirm('🧹 ¿Borrar TODO y recargar en cero 100%?')) return;
+    if(!confirm('🧹 ¿Borrar TODO y recargar en cero 100% limpio?')) return;
     try{
-      if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});
-      queue.forEach(q=>{ try{ if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{} });
-      queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0; q.status='vacio'; q.finalUrl=''; q.finalExt=''; q.fileNameBase=''; q.progress=0; });
-      document.querySelectorAll('input[type=file]').forEach(i=>i.value='');
-      ['inputTitle','inputScript','inputFileName'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+      if(typeof oldLimpiar==='function'){
+        // Llamar limpieza original que ya funcionaba
+        try{ oldLimpiar(); }catch{}
+      }
+      // Limpiar visual extra .txt
       const se=(id,t)=>{const el=document.getElementById(id); if(el) el.innerHTML='<span style=color:#666>'+t+'</span>';};
       se('txtName','Sin .txt'); se('videoName','Sin video'); se('audioName','Sin audio');
-      try{ renderCola(true);}catch{}
       setTimeout(()=>location.reload(),700);
     }catch(e){ location.reload(); }
   };
-  function isL(){const u=document.getElementById('loginUser');return u&&u.offsetParent!==null;}
-  function ins(){
-    if(isL()){const b=document.getElementById('btnLimpiarTodo'); if(b) b.remove(); return;}
-    const c=document.getElementById('cola'); const t=document.getElementById('inputTitle');
-    if(!c||!t||c.offsetParent===null||t.offsetParent===null){const b=document.getElementById('btnLimpiarTodo'); if(b) b.remove(); return;}
-    if(document.getElementById('btnLimpiarTodo')) return;
-    const br=document.getElementById('btnRender');
-    const b=document.createElement('button'); b.id='btnLimpiarTodo'; b.innerHTML='🧹 LIMPIAR TODO EN CERO';
-    b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-left:8px;';
-    b.onclick=()=>window.limpiarTodo();
-    if(br&&br.parentElement) br.parentElement.appendChild(b);
+
+  // Asegurar emoji escoba visible
+  function ensureBroom(){
+    const b=document.getElementById('btnLimpiarTodo');
+    if(b && !b.innerHTML.includes('🧹')) b.innerHTML='🧹 LIMPIAR TODO EN CERO';
   }
-  setTimeout(ins,900); setInterval(ins,1000);
+  setInterval(ensureBroom,1000);
 })();
 </script>
 
