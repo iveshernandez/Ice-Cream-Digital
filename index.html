@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital V13 - Fondo Incrustado</title>
+<title>Ice Cream Digital</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -795,7 +795,7 @@ $("btnPlay").addEventListener('click',()=>{
     $("btnPlay").textContent='▶ Play';
   }
 });
-const FPS=30,W=1080,H=1350;
+const FPS=30,W=720,H=900;
 
 function safeDownload(url, name){
   try{
@@ -836,7 +836,7 @@ async function renderSingle(item,onProg){
   const scriptText=(item.script||"").trim();
   const subs=chunkSubs(scriptText);
   const tLines=splitWords((item.title||'').toUpperCase(),22).slice(0,3);
-  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1350; // FB OPTIMO 4:5 16GB
+  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true});
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
 
@@ -909,7 +909,7 @@ async function renderSingle(item,onProg){
         ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
         if(v.readyState>=2 && v.videoWidth){
           const vw=v.videoWidth, vh=v.videoHeight;
-          const tgt=1080/1350, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
+          const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
           if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
           try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{}
         }
@@ -954,7 +954,7 @@ async function renderSingle(item,onProg){
           if(v.readyState>=2){
             const vw=v.videoWidth, vh=v.videoHeight;
             if(vw&&vh){ 
-              const tgt=1080/1350, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; 
+              const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; 
               if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
               try{ 
                 ctx.globalAlpha = 1;
@@ -2287,7 +2287,7 @@ div:has(> #kokoroSpeed) {display:none !important;}
 async function renderSingle(item, onProgress){
   const info = window.calcDurInfo ? window.calcDurInfo(item) : {useLoop:false, playbackRate:1, finalDur: item.videoDur || 10};
   const canvas = document.createElement('canvas');
-  canvas.width=1080; canvas.height=1350; // FB OPTIMO 4:5 16GB
+  canvas.width=720; canvas.height=900;
   const ctx = canvas.getContext('2d', {alpha:false});
   const v = document.createElement('video');
   v.src = item.videoUrl; v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
@@ -2308,17 +2308,13 @@ async function renderSingle(item, onProgress){
   }
   const stream=canvas.captureStream(fps);
   if(dest && dest.stream) dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
-  const chunks=[]; let mime='video/webm;codecs=vp9'; let ext='webm';
-  if(MediaRecorder.isTypeSupported('video/mp4;codecs=avc1.42E01E')){ mime='video/mp4;codecs=avc1.42E01E'; ext='mp4'; }
-  else if(MediaRecorder.isTypeSupported('video/mp4')){ mime='video/mp4'; ext='mp4'; }
-  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:4000000,audioBitsPerSecond:128000});
-
+  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:5000000,audioBitsPerSecond:128000});
   rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
   const recDone=new Promise(res=>{ rec.onstop=()=>res(); });
   function drawFrame(){
     ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
     if(v.videoWidth){
-      const vw=v.videoWidth,vh=v.videoHeight,tgt=1080/1350,r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
+      const vw=v.videoWidth,vh=v.videoHeight,tgt=720/900,r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
       if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
       try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900);}catch{}
     }
@@ -2345,7 +2341,7 @@ async function renderSingle(item, onProgress){
     await new Promise(r=>setTimeout(r,frameDur*1000));
   }
   rec.stop(); if(audioEl) try{audioEl.pause();}catch{} await recDone; if(ac) try{await ac.close();}catch{}
-  const blob=new Blob(chunks,{type:mime}); const url=URL.createObjectURL(blob);
+  const blob=new Blob(chunks,{type:'video/webm'}); const url=URL.createObjectURL(blob);
   return {url, ext:'webm', blob};
 }
 window.renderSingle = renderSingle;
@@ -2390,25 +2386,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
         console.log('Need voice', needVoice.map(x=>x.id));
         
         if(needVoice.length){
-          txtEl.textContent=`FASE 1/2: Generando ${needVoice.length} voces Alexander PARALELO x4 OPTIMO 16GB`;
+          txtEl.textContent=`FASE 1/2: Generando ${needVoice.length} voces Alexander PARALELO x6`;
           pctEl.textContent='5%';
           listEl.innerHTML=needVoice.map(s=>`<div style="background:rgba(255,235,0,.12);border:1px solid #FFEB00;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:#FFEB00">SLOT ${s.id} · GENERANDO VOZ...</span><span>...</span></div>`).join('');
           
-          // VOZ SECUENCIAL (no paralelo) para evitar race de activeId
-          for(const slot of needVoice){
+          await Promise.all(needVoice.map(async (slot)=>{
             try{
               window.activeId=slot.id;
-              txtEl.textContent=`FASE 1/2: Generando voz SLOT ${slot.id} (${needVoice.indexOf(slot)+1}/${needVoice.length})`;
-              if(window.generateVoiceForSlotId){
-                await window.generateVoiceForSlotId(slot.id);
-              }else if(typeof handleGenerate==='function'){
+              if(typeof handleGenerate==='function'){
                 await handleGenerate();
+              }else if(window.generateVoiceForSlotId){
+                await window.generateVoiceForSlotId(slot.id);
               }
               console.log('VOZ OK SLOT '+slot.id);
-              // Silenciar despues de cada voz
-              try{ document.querySelectorAll('audio').forEach(a=>{ a.pause(); a.muted=true; }); }catch{}
             }catch(e){ console.error('VOZ FAIL SLOT '+slot.id, e); }
-          }
+          }));
           
           pctEl.textContent='50%';
           txtEl.textContent=`FASE 1/2 COMPLETA: ${needVoice.length} voces listas`;
@@ -2468,7 +2460,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
           }
         }
         
-        const workers=Array.from({length: Math.min(4, list.length)}, ()=>worker());
+        const workers=Array.from({length: Math.min(6, list.length)}, ()=>worker());
         await Promise.allSettled(workers);
         
         pctEl.textContent='100%';
@@ -2493,499 +2485,176 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 
 <script>
-(function(){
-  const btn=document.getElementById('btnRender');
-  if(btn){
-    btn.addEventListener('click', ()=>{
-      try{
-        window._previewDisabled=true;
-        const vEl=document.getElementById('previewVideo'); const aEl=document.getElementById('previewAudio'); const bgEl=document.getElementById('bgVideo');
-        if(vEl){ vEl.pause(); vEl.muted=true; }
-        if(aEl){ aEl.pause(); aEl.muted=true; }
-        if(bgEl){ try{ bgEl.pause(); }catch{} }
-        if(window.raf) cancelAnimationFrame(window.raf);
-      }catch{}
-    }, true);
+// PRE-CARGA TTS UNA SOLA VEZ PARA PARALELO REAL
+window._ttsInstance = null;
+async function getTTSParallel(){
+  if(window._ttsInstance) return window._ttsInstance;
+  if(typeof getTTS==='function'){
+    window._ttsInstance = await getTTS();
+    return window._ttsInstance;
   }
-})();
-</script>
+  return null;
+}
 
-
-<script>
-(function(){
-  // SILENCIAR TODO DURANTE GENERACION DE VOZ Y RENDER
-  window._batchGenerating = false;
-  
-  function silenceAll(){
-    try{
-      document.querySelectorAll('audio,video').forEach(el=>{
-        try{ el.pause(); el.muted=true; el.volume=0; }catch{}
-      });
-      if(window.raf) cancelAnimationFrame(window.raf);
-      // Pausar preview especifico
-      const vEl=document.getElementById('previewVideo'); if(vEl){ vEl.pause(); vEl.muted=true; }
-      const aEl=document.getElementById('previewAudio'); if(aEl){ aEl.pause(); aEl.muted=true; aEl.volume=0; }
-      const bgEl=document.getElementById('bgVideo'); if(bgEl){ try{ bgEl.pause(); bgEl.muted=true; }catch{} }
-    }catch{}
-  }
-  
-  // Interceptar Audio.play durante batch para que no suenen todas a la vez
-  const origPlay = HTMLMediaElement.prototype.play;
-  HTMLMediaElement.prototype.play = function(){
-    if(window._batchGenerating || window._previewDisabled || window._rendering){
-      // Durante generacion batch o render, no reproducir nada
-      try{ this.muted=true; this.volume=0; }catch{}
-      // Solo permitir si es el audio de export (renderSingle) que usa AudioContext
-      if(this.id==='previewAudio' || this.id==='previewVideo' || this.id==='bgVideo'){
-        return Promise.resolve();
-      }
-      // Para voces, bloquear play
-      if(this.src && this.src.startsWith('blob:')){
-        return Promise.resolve();
-      }
-    }
-    return origPlay.apply(this, arguments);
-  };
-  
-  // Parchear btnRender para silenciar
-  const btn=document.getElementById('btnRender');
-  if(btn){
-    btn.addEventListener('click', ()=>{
-      window._batchGenerating=true;
-      window._rendering=true;
-      window._previewDisabled=true;
-      silenceAll();
-      console.log('[AUDIO] Todo silenciado para batch voces + render - ahorro CPU');
-    }, true);
-    
-    // Restaurar despues de render
-    const overlay=document.getElementById('renderOverlay');
-    if(overlay){
-      const obs=new MutationObserver(()=>{
-        if(overlay.style.display==='none'){
-          window._batchGenerating=false;
-          window._rendering=false;
-          window._previewDisabled=false;
-          // Reactivar volumen preview
-          const aEl=document.getElementById('previewAudio'); if(aEl){ aEl.muted=false; aEl.volume=1; }
-          const vEl=document.getElementById('previewVideo'); if(vEl){ vEl.muted=false; }
-          if(window.startLoop) try{ window.startLoop(); }catch{}
-          console.log('[AUDIO] Preview reactivado, voces silenciadas liberadas');
-        }
-      });
-      obs.observe(overlay, {attributes:true, attributeFilter:['style']});
-    }
-  }
-  
-  // Tambien silenciar despues de cada voz generada
-  const origHandleGenerate = window.handleGenerate;
-  if(origHandleGenerate){
-    window.handleGenerate = async function(){
-      window._batchGenerating=true;
-      silenceAll();
-      const r=await origHandleGenerate.apply(this, arguments);
-      silenceAll();
-      return r;
-    };
-  }
-  
-  setInterval(silenceAll, 2000); // por si alguna voz se escapa, silenciar cada 2s durante batch
-})();
-</script>
-
-
-<script>
-// GENERADOR DE VOZ 100% INDEPENDIENTE Y PARALELO x4 - NO USA activeId
-async function generateVoiceIndependent(slot){
+// VOZ INDEPENDIENTE X6 - USA TTS PRE-CARGADO, NO TOCA DOM
+async function generateVoiceIndependentFast(slot, ttsInstance){
   if(!slot) return;
   let text = (slot.txtContent || slot.script || '').trim();
-  if(!text) { console.warn('SLOT '+slot.id+' sin texto'); return; }
-  
+  if(!text) return;
   function splitIntoChunks(txt, maxLen){
-    maxLen = maxLen || 380;
-    const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+    maxLen=380;
+    const sentences=txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
     const chunks=[]; let cur="";
     for(let s of sentences){
       s=s.trim(); if(!s) continue;
-      if((cur + " " + s).length <= maxLen){ cur = cur ? cur + " " + s : s; }
-      else {
-        if(cur) chunks.push(cur);
-        if(s.length > maxLen){
-          const words=s.split(/\s+/); let tmp="";
-          for(let w of words){
-            if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w;
-            else { if(tmp) chunks.push(tmp); tmp=w; }
-          }
-          if(tmp) cur=tmp; else cur="";
-        } else cur=s;
-      }
+      if((cur+" "+s).length<=maxLen) cur=cur?cur+" "+s:s;
+      else { if(cur) chunks.push(cur); if(s.length>maxLen){ const words=s.split(/\s+/); let tmp=""; for(let w of words){ if((tmp+" "+w).length<=maxLen) tmp=tmp?tmp+" "+w:w; else { if(tmp) chunks.push(tmp); tmp=w; } } if(tmp) cur=tmp; else cur=""; } else cur=s; }
     }
     if(cur) chunks.push(cur);
     return chunks;
   }
-  async function blobToAudioBuffer(blob, audioCtx){
-    const ab = await blob.arrayBuffer();
-    return await audioCtx.decodeAudioData(ab);
-  }
+  async function blobToAudioBuffer(blob, audioCtx){ const ab=await blob.arrayBuffer(); return await audioCtx.decodeAudioData(ab); }
   function audioBufferToWavBlob(buffer){
-    const numChannels = buffer.numberOfChannels;
-    const sampleRate = buffer.sampleRate;
-    const length = buffer.length;
-    const wavLength = length * numChannels * 2 + 44;
-    const ab = new ArrayBuffer(wavLength);
-    const view = new DataView(ab); let pos=0;
+    const numChannels=buffer.numberOfChannels; const sampleRate=buffer.sampleRate; const length=buffer.length;
+    const wavLength=length*numChannels*2+44; const ab=new ArrayBuffer(wavLength); const view=new DataView(ab); let pos=0;
     function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
-    function write16(d){ view.setUint16(pos, d, true); pos+=2; }
-    function write32(d){ view.setUint32(pos, d, true); pos+=4; }
-    writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE');
-    writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16);
+    function write16(d){ view.setUint16(pos,d,true); pos+=2; } function write32(d){ view.setUint32(pos,d,true); pos+=4; }
+    writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE'); writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16);
     writeStr('data'); write32(wavLength-pos-4);
     const channels=[]; for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
-    let offset=44;
-    for(let i=0;i<length;i++){
-      for(let c=0;c<numChannels;c++){
-        let sample = Math.max(-1, Math.min(1, channels[c][i]));
-        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-        view.setInt16(offset, sample, true); offset+=2;
-      }
-    }
-    return new Blob([ab], {type:'audio/wav'});
+    let offset=44; for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample=Math.max(-1,Math.min(1,channels[c][i])); sample=sample<0?sample*0x8000:sample*0x7FFF; view.setInt16(offset,sample,true); offset+=2; } }
+    return new Blob([ab],{type:'audio/wav'});
   }
-  
-  let voiceId = slot.voiceId || window.DEFAULT_VOICE || 'es_ES-sharvard-medium:0';
-  let speakerId=0;
+  let voiceId=slot.voiceId||window.DEFAULT_VOICE||'es_ES-sharvard-medium:0'; let speakerId=0;
   if(voiceId.includes(':')){ const parts=voiceId.split(':'); voiceId=parts[0]; speakerId=parseInt(parts[1]||0); }
-  
-  const chunks = splitIntoChunks(text, 380);
-  console.log('[PARALELO] SLOT '+slot.id+' -> '+chunks.length+' chunks voz '+voiceId);
-  
-  try{
-    const tts = await getTTS();
-    try{ await tts.download(voiceId, ()=>{}); }catch{}
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const buffers=[];
-    for(let i=0;i<chunks.length;i++){
-      const chunk=chunks[i];
-      const wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, ()=>{});
-      if(!wavBlob || wavBlob.size<500) continue;
-      const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
-      buffers.push(audioBuf);
-      await new Promise(r=>setTimeout(r, 20));
-    }
-    if(!buffers.length) throw new Error('Sin audio SLOT '+slot.id);
-    let totalLength=0; for(let b of buffers) totalLength+=b.length;
-    let numberOfChannels=buffers[0].numberOfChannels;
-    let sampleRate=buffers[0].sampleRate;
-    const concatBuffer = audioCtx.createBuffer(numberOfChannels, totalLength, sampleRate);
-    let offset=0;
-    for(let buf of buffers){
-      for(let ch=0; ch<numberOfChannels; ch++) concatBuffer.getChannelData(ch).set(buf.getChannelData(ch), offset);
-      offset+=buf.length;
-    }
-    await audioCtx.close();
-    const finalWavBlob = audioBufferToWavBlob(concatBuffer);
-    const url=URL.createObjectURL(finalWavBlob);
-    if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
-    slot.audioUrl=url; slot.audioName='SLOT'+slot.id+'.wav'; slot.audioBlob=finalWavBlob;
-    // Calcular duracion sin reproducir
-    const tempAudio = new Audio(); tempAudio.src=url; tempAudio.muted=true;
-    await new Promise(res=>{ tempAudio.onloadedmetadata=()=>res(); setTimeout(res, 1000); tempAudio.load(); });
-    slot.audioDur = tempAudio.duration || 0;
-    console.log('[PARALELO] SLOT '+slot.id+' VOZ OK '+slot.audioDur.toFixed(1)+'s');
-    if(window.renderCola) window.renderCola(true);
-    return true;
-  }catch(e){
-    console.error('[PARALELO] SLOT '+slot.id+' FAIL', e);
-    throw e;
+  const chunks=splitIntoChunks(text,380);
+  const tts=ttsInstance||await getTTSParallel();
+  try{ await tts.download(voiceId, ()=>{}); }catch{}
+  const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  const buffers=[];
+  for(let i=0;i<chunks.length;i++){
+    const wavBlob=await tts.predict({text:chunks[i], voiceId:voiceId, speakerId:speakerId}, ()=>{});
+    if(!wavBlob||wavBlob.size<500) continue;
+    const audioBuf=await blobToAudioBuffer(wavBlob, audioCtx);
+    buffers.push(audioBuf);
   }
+  if(!buffers.length) throw new Error('Sin audio');
+  let totalLength=0; for(let b of buffers) totalLength+=b.length;
+  const concatBuffer=audioCtx.createBuffer(buffers[0].numberOfChannels, totalLength, buffers[0].sampleRate);
+  let offset=0; for(let buf of buffers){ for(let ch=0;ch<concatBuffer.numberOfChannels;ch++) concatBuffer.getChannelData(ch).set(buf.getChannelData(ch), offset); offset+=buf.length; }
+  await audioCtx.close();
+  const finalWavBlob=audioBufferToWavBlob(concatBuffer);
+  const url=URL.createObjectURL(finalWavBlob);
+  if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
+  slot.audioUrl=url; slot.audioBlob=finalWavBlob;
+  const tempAudio=new Audio(); tempAudio.src=url; tempAudio.muted=true;
+  await new Promise(res=>{ tempAudio.onloadedmetadata=()=>res(); setTimeout(res,800); tempAudio.load(); });
+  slot.audioDur=tempAudio.duration||0;
+  return true;
 }
-window.generateVoiceIndependent = generateVoiceIndependent;
-window.generateVoiceForSlotId = async function(id){
-  const slot = window.queue.find(q=>q.id===id);
-  if(slot) return await generateVoiceIndependent(slot);
-};
-
-// PARCHE FASE 1 PARA USAR PARALELO INDEPENDIENTE
-(function(){
-  const oldBtn=document.getElementById('btnRender');
-  // Ya tenemos nuevo handler, lo re-parcheamos para paralelo real
-  setTimeout(()=>{
-    const btn=document.getElementById('btnRender');
-    if(!btn) return;
-    const clone=btn.cloneNode(true);
-    btn.parentNode.replaceChild(clone, btn);
-    const newBtn=document.getElementById('btnRender');
-    let isRendering=false;
-    newBtn.addEventListener('click', async ()=>{
-      if(isRendering) return;
-      isRendering=true; window._batchGenerating=true; window._rendering=true; window._previewDisabled=true;
-      window._downloadedNames=new Set();
-      newBtn.disabled=true; newBtn.textContent='⏳ RENDERIZANDO TODO PARALELO...';
-      try{
-        const list=window.queue.filter(q=>q.videoUrl);
-        if(!list.length){ alert('Llena video'); isRendering=false; newBtn.disabled=false; newBtn.textContent='⚡ RENDERIZAR TODO'; return; }
-        const overlay=document.getElementById('renderOverlay');
-        const txtEl=document.getElementById('renderText');
-        const pctEl=document.getElementById('renderPct');
-        const listEl=document.getElementById('renderList');
-        overlay.style.display='flex';
-        // Silenciar todo
-        try{ document.querySelectorAll('audio,video').forEach(el=>{ el.pause(); el.muted=true; }); if(window.raf) cancelAnimationFrame(window.raf); }catch{}
-        
-        // FASE 1: VOCES PARALELO x4 INDEPENDIENTE
-        const needVoice=list.filter(q=> (q.txtContent||q.script) && !(q.audioUrl&&q.audioDur>0));
-        if(needVoice.length){
-          txtEl.textContent=`FASE 1/2: ${needVoice.length} voces Alexander PARALELO x4 INDEPENDIENTE`;
-          pctEl.textContent='5%';
-          listEl.innerHTML=needVoice.map(s=>`<div style="background:rgba(255,235,0,.12);border:1px solid #FFEB00;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:#FFEB00">SLOT ${s.id} · GENERANDO VOZ PARALELO...</span><span>...</span></div>`).join('');
-          
-          // Worker pool x4 paralelo real
-          let voiceQueue=[...needVoice];
-          async function voiceWorker(){
-            while(voiceQueue.length){
-              const slot=voiceQueue.shift(); if(!slot) break;
-              try{ await generateVoiceIndependent(slot); }catch(e){}
-            }
-          }
-          const vWorkers=Array.from({length: Math.min(4, needVoice.length)}, ()=>voiceWorker());
-          await Promise.allSettled(vWorkers);
-          
-          txtEl.textContent=`FASE 1/2 COMPLETA: ${needVoice.length} voces listas`; pctEl.textContent='50%';
-        }
-        
-        // FASE 2: VIDEOS PARALELO x4
-        txtEl.textContent=`FASE 2/2: Renderizando ${list.length} videos x4 PARALELO 1080x1350 FB`; pctEl.textContent='55%';
-        let completed=0; let progressMap={};
-        function updateOverlay(){
-          let html='';
-          list.forEach(qq=>{
-            const q=window.queue.find(x=>x.id===qq.id);
-            const prog=q?(q.progress||0):0; const status=q?q.status:''; const isRun=status==='renderizando'; const isDone=status==='hecho';
-            html+=`<div style="background:${isRun?'rgba(255,235,0,.10)':'#141418'};border:1px solid ${isRun?'#FFEB00': isDone?'#22c55e':'#222'};border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:${isRun?'#FFEB00':'#fff'}">SLOT ${qq.id} ${q?.audioDur? '· VOZ OK '+q.audioDur.toFixed(1)+'s':''}</span><span style="font-size:11px;font-weight:900;color:${isDone?'#22c55e': isRun?'#FFEB00':'#888'}">${prog.toFixed(0)}%</span></div>`;
-          });
-          listEl.innerHTML=html;
-          let sum=0; for(let k in progressMap) sum+=progressMap[k]||0; const total=list.length||1;
-          const pct=50+Math.round((completed/total)*20 + (sum/(total*100))*30); pctEl.textContent=Math.min(99,pct)+'%';
-        }
-        let qList=[...list];
-        async function videoWorker(){
-          while(qList.length){
-            const it=qList.shift(); if(!it) break;
-            const q=window.queue.find(x=>x.id===it.id);
-            q.status='renderizando'; q.progress=0; progressMap[q.id]=0; updateOverlay();
-            try{
-              const r=await window.renderSingle(q, p=>{ q.progress=p; progressMap[q.id]=p; updateOverlay(); if(window.renderCola) window.renderCola(true); });
-              if(r && r.url){
-                q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100; progressMap[q.id]=100;
-                if(document.getElementById('autoDownloadCheck')?.checked){
-                  const nameKey=(window.sanitizar? window.sanitizar(q.fileNameBase): q.fileNameBase)||`Video ${q.id}`;
-                  const fileName=nameKey+'.'+q.finalExt;
-                  if(!window._downloadedNames.has(fileName)){
-                    window._downloadedNames.add(fileName);
-                    if(window.queueDownload) window.queueDownload(q.finalUrl, fileName);
-                  }
-                }
-              }else q.status='error';
-            }catch(e){ q.status='error'; }
-            completed++; updateOverlay();
-          }
-        }
-        const vW=Array.from({length: Math.min(4, list.length)}, ()=>videoWorker());
-        await Promise.allSettled(vW);
-        pctEl.textContent='100%'; txtEl.textContent=`COMPLETADO - ${list.length} videos FB 1080x1350`;
-        setTimeout(()=>{ overlay.style.display='none'; },1500);
-        if(window.renderCola) window.renderCola(true);
-      }catch(e){ console.error(e); alert(e.message); }
-      finally{ isRendering=false; window._batchGenerating=false; window._rendering=false; window._previewDisabled=false; newBtn.disabled=false; newBtn.textContent='⚡ RENDERIZAR TODO'; }
-    });
-    console.log('[FINAL] PARALELO INDEPENDIENTE x4 VOCES + x4 VIDEOS LISTO');
-  }, 800);
-})();
+window.generateVoiceIndependentFast=generateVoiceIndependentFast;
 </script>
-
-
 <script>
-// RENDER SINGLE 100% INDEPENDIENTE x6 - CADA UNO SU CANVAS, SU VIDEO ELEMENT, SU AUDIOCONTEXT
-async function renderSingleIndependent(item, onProgress){
-  // Cada llamada crea TODO nuevo - nada compartido
-  const myCanvas = document.createElement('canvas');
-  myCanvas.width=1080; myCanvas.height=1350;
-  const myCtx = myCanvas.getContext('2d', {alpha:false, desynchronized:true});
-  
-  const info = window.calcDurInfo ? window.calcDurInfo(item) : {useLoop:false, playbackRate:1, finalDur: item.videoDur || 10};
-  const myVideo = document.createElement('video');
-  myVideo.src = item.videoUrl; myVideo.muted=true; myVideo.playsInline=true; myVideo.preload='auto'; myVideo.crossOrigin='anonymous';
-  myVideo.playbackRate = info.playbackRate || 1;
+// RENDER x6 INDEPENDIENTE RAPIDO - 720x900 PARA VELOCIDAD (FB lo acepta, pero si quieres 1080x1350 cambia aqui)
+async function renderSingleFast(item, onProgress){
+  const myCanvas=document.createElement('canvas'); myCanvas.width=720; myCanvas.height=900;
+  const myCtx=myCanvas.getContext('2d',{alpha:false, desynchronized:true});
+  const info=window.calcDurInfo?window.calcDurInfo(item):{useLoop:false, playbackRate:1, finalDur:item.videoDur||10};
+  const myVideo=document.createElement('video'); myVideo.src=item.videoUrl; myVideo.muted=true; myVideo.playsInline=true; myVideo.preload='auto'; myVideo.crossOrigin='anonymous'; myVideo.playbackRate=info.playbackRate||1;
   await new Promise(res=>{ myVideo.onloadedmetadata=()=>res(); myVideo.onerror=()=>res(); myVideo.load(); });
-  
-  const START_OFFSET = 0.25;
-  const fps=30; const frameDur=1/fps;
-  const totalDur = info.finalDur || (item.audioDur || item.videoDur || 10);
-  const totalFrames = Math.ceil(totalDur * fps);
-  
+  const START_OFFSET=0.25; const fps=30; const frameDur=1/fps;
+  const totalDur=info.finalDur||(item.audioDur||item.videoDur||10); const totalFrames=Math.ceil(totalDur*fps);
   let myAc=null, myDest=null, myAudioEl=null;
   if(item.audioUrl){
-    try{
-      myAc=new (window.AudioContext||window.webkitAudioContext)();
-      myDest=myAc.createMediaStreamDestination();
-      myAudioEl=document.createElement('audio'); myAudioEl.src=item.audioUrl; myAudioEl.crossOrigin='anonymous'; myAudioEl.muted=false;
-      const src=myAc.createMediaElementSource(myAudioEl); src.connect(myDest);
-    }catch(e){ console.warn('Audio ctx fail SLOT '+item.id, e); }
+    try{ myAc=new (window.AudioContext||window.webkitAudioContext)(); myDest=myAc.createMediaStreamDestination(); myAudioEl=document.createElement('audio'); myAudioEl.src=item.audioUrl; myAudioEl.crossOrigin='anonymous'; const src=myAc.createMediaElementSource(myAudioEl); src.connect(myDest); }catch{}
   }
-  
   const myStream=myCanvas.captureStream(fps);
-  if(myDest && myDest.stream) myDest.stream.getAudioTracks().forEach(t=>myStream.addTrack(t));
-  
-  let mime='video/webm;codecs=vp9'; let ext='webm';
-  if(MediaRecorder.isTypeSupported('video/mp4;codecs=avc1.42E01E')){ mime='video/mp4;codecs=avc1.42E01E'; ext='mp4'; }
-  else if(MediaRecorder.isTypeSupported('video/mp4')){ mime='video/mp4'; ext='mp4'; }
-  
-  const myChunks=[]; 
-  const myRec=new MediaRecorder(myStream,{mimeType:mime,videoBitsPerSecond:4000000,audioBitsPerSecond:128000});
+  if(myDest&&myDest.stream) myDest.stream.getAudioTracks().forEach(t=>myStream.addTrack(t));
+  const mime='video/webm;codecs=vp9'; const ext='webm'; // VP9 es mas rapido que MP4 en Chrome
+  const myChunks=[]; const myRec=new MediaRecorder(myStream,{mimeType:mime,videoBitsPerSecond:4000000,audioBitsPerSecond:128000});
   myRec.ondataavailable=e=>{ if(e.data&&e.data.size) myChunks.push(e.data); };
   const myRecDone=new Promise(res=>{ myRec.onstop=()=>res(); });
-  
   function myDraw(){
-    myCtx.fillStyle='#000'; myCtx.fillRect(0,0,1080,1350);
-    if(myVideo.videoWidth){
-      const vw=myVideo.videoWidth,vh=myVideo.videoHeight,tgt=1080/1350,r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
-      if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
-      try{ myCtx.drawImage(myVideo,sx,sy,sw,sh,0,0,1080,1350);}catch{}
-    }
+    myCtx.fillStyle='#000'; myCtx.fillRect(0,0,720,900);
+    if(myVideo.videoWidth){ const vw=myVideo.videoWidth,vh=myVideo.videoHeight,tgt=720/900,r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ myCtx.drawImage(myVideo,sx,sy,sw,sh,0,0,720,900);}catch{} }
     try{ if(window.drawSubs) window.drawSubs(myCtx,item,myVideo.currentTime);}catch{}
-    try{ if(window.renderOverlay) window.renderOverlay(myCtx,item);}catch{}
   }
-  
   myVideo.currentTime=Math.min(START_OFFSET, myVideo.duration-0.1||START_OFFSET);
-  await new Promise(res=>{ const onSeek=()=>{myVideo.removeEventListener('seeked',onSeek);res();}; myVideo.addEventListener('seeked',onSeek); setTimeout(res,600); });
-  for(let k=0;k<5;k++){ myDraw(); await new Promise(r=>setTimeout(r,30)); }
-  
-  myRec.start(100); 
-  if(myAudioEl) try{ await myAudioEl.play(); }catch{}
-  
+  await new Promise(res=>{ const onSeek=()=>{myVideo.removeEventListener('seeked',onSeek);res();}; myVideo.addEventListener('seeked',onSeek); setTimeout(res,400); });
+  for(let k=0;k<3;k++){ myDraw(); await new Promise(r=>setTimeout(r,20)); }
+  myRec.start(100); if(myAudioEl) try{ await myAudioEl.play(); }catch{}
   for(let i=0;i<totalFrames;i++){
     const t=START_OFFSET+(i*frameDur*(info.playbackRate||1));
-    let seekT=t;
-    if(myVideo.duration && seekT>=myVideo.duration-0.05){
-      if(info.useLoop) seekT=START_OFFSET+(seekT%(myVideo.duration-START_OFFSET-0.1));
-      else seekT=myVideo.duration-0.05;
-    }
-    if(Math.abs(myVideo.currentTime-seekT)>0.03){
-      myVideo.currentTime=seekT;
-      await new Promise(res=>{ const onSeek=()=>{myVideo.removeEventListener('seeked',onSeek);res();}; myVideo.addEventListener('seeked',onSeek); setTimeout(res,80); });
-    }
-    myDraw();
-    if(onProgress) onProgress((i/totalFrames)*100);
-    await new Promise(r=>setTimeout(r,frameDur*1000));
+    let seekT=t; if(myVideo.duration&&seekT>=myVideo.duration-0.05){ if(info.useLoop) seekT=START_OFFSET+(seekT%(myVideo.duration-START_OFFSET-0.1)); else seekT=myVideo.duration-0.05; }
+    if(Math.abs(myVideo.currentTime-seekT)>0.05){ myVideo.currentTime=seekT; await new Promise(res=>{ const onSeek=()=>{myVideo.removeEventListener('seeked',onSeek);res();}; myVideo.addEventListener('seeked',onSeek); setTimeout(res,50); }); }
+    myDraw(); if(onProgress) onProgress((i/totalFrames)*100); await new Promise(r=>setTimeout(r,frameDur*1000));
   }
-  
   myRec.stop(); if(myAudioEl) try{ myAudioEl.pause(); }catch{}; await myRecDone; if(myAc) try{ await myAc.close(); }catch{};
-  // Limpieza total de este worker
-  try{ myVideo.src=''; myVideo.remove(); }catch{}
-  try{ if(myAudioEl){ myAudioEl.src=''; myAudioEl.remove(); } }catch{}
-  
+  try{ myVideo.src=''; myVideo.remove(); }catch{} try{ if(myAudioEl){ myAudioEl.src=''; myAudioEl.remove(); } }catch{}
   const blob=new Blob(myChunks,{type:mime}); const url=URL.createObjectURL(blob);
-  return {url, ext:ext, blob:blob, mime:mime};
+  return {url, ext:ext, blob:blob};
 }
-window.renderSingle = renderSingleIndependent;
-window.renderSingleIndependent = renderSingleIndependent;
-
-// RE-PARCHE BOTON TODO x6 INDEPENDIENTE
+window.renderSingle=renderSingleFast;
+window.renderSingleFast=renderSingleFast;
+</script>
+<script>
 setTimeout(()=>{
-  const old=document.getElementById('btnRender');
-  if(!old) return;
+  const old=document.getElementById('btnRender'); if(!old) return;
   const clone=old.cloneNode(true); old.parentNode.replaceChild(clone, old);
-  const btn=document.getElementById('btnRender');
-  let isRendering=false;
+  const btn=document.getElementById('btnRender'); let isRendering=false;
   btn.addEventListener('click', async ()=>{
     if(isRendering) return;
-    isRendering=true; window._batchGenerating=true; window._rendering=true; window._previewDisabled=true;
-    window._downloadedNames=new Set();
-    btn.disabled=true; btn.textContent='⏳ TODO x6 INDEPENDIENTE...';
+    isRendering=true; window._batchGenerating=true; window._rendering=true; window._previewDisabled=true; window._downloadedNames=new Set();
+    btn.disabled=true; btn.textContent='⏳ TODO x6 RAPIDO...';
     try{
-      try{ document.querySelectorAll('audio,video').forEach(el=>{ if(el.id!==''){ el.pause(); el.muted=true; } }); if(window.raf) cancelAnimationFrame(window.raf); }catch{}
+      try{ const vEl=document.getElementById('previewVideo'); if(vEl){ vEl.pause(); vEl.src=''; } const aEl=document.getElementById('previewAudio'); if(aEl){ aEl.pause(); aEl.muted=true; } if(window.raf) cancelAnimationFrame(window.raf); }catch{}
       const list=window.queue.filter(q=>q.videoUrl);
       if(!list.length){ alert('Llena video'); isRendering=false; btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO'; return; }
-      const overlay=document.getElementById('renderOverlay');
-      const txtEl=document.getElementById('renderText');
-      const pctEl=document.getElementById('renderPct');
-      const listEl=document.getElementById('renderList');
+      const overlay=document.getElementById('renderOverlay'); const txtEl=document.getElementById('renderText'); const pctEl=document.getElementById('renderPct'); const listEl=document.getElementById('renderList');
       overlay.style.display='flex';
-      
-      // FASE 1: VOCES x6 INDEPENDIENTE - CADA UNA SU PROPIO TTS + CONTEXTO
       const needVoice=list.filter(q=> (q.txtContent||q.script) && !(q.audioUrl&&q.audioDur>0));
       if(needVoice.length){
-        txtEl.textContent=`FASE 1/2: ${needVoice.length} voces Alexander x6 INDEPENDIENTE (canvas separado)`;
+        txtEl.textContent=`FASE 1/2: ${needVoice.length} voces x6 PARALELO REAL INDEPENDIENTE`;
         pctEl.textContent='5%';
-        listEl.innerHTML=needVoice.map(s=>`<div style="background:rgba(255,235,0,.12);border:1px solid #FFEB00;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:#FFEB00">SLOT ${s.id} · VOZ x6 INDEPENDIENTE</span><span>...</span></div>`).join('');
-        
-        let vQueue=[...needVoice];
-        async function vWorker(workerId){
-          console.log('Voice Worker '+workerId+' iniciado');
-          while(vQueue.length){
-            const slot=vQueue.shift(); if(!slot) break;
-            console.log('Voice Worker '+workerId+' -> SLOT '+slot.id);
-            try{ await window.generateVoiceIndependent(slot); }catch(e){ console.error('Voice Worker '+workerId+' fail SLOT '+slot.id, e); }
-            // Limpieza entre voces
-            try{ if(window.gc) window.gc(); }catch{}
-          }
-        }
-        const vWorkers=Array.from({length: Math.min(6, needVoice.length)}, (_,i)=>vWorker(i+1));
-        await Promise.allSettled(vWorkers);
-        txtEl.textContent=`FASE 1/2 COMPLETA x6`; pctEl.textContent='50%';
+        listEl.innerHTML=needVoice.map(s=>`<div style="background:rgba(255,235,0,.12);border:1px solid #FFEB00;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:#FFEB00">SLOT ${s.id} · VOZ PARALELO x6</span><span>...</span></div>`).join('');
+        // PRE-CARGA TTS UNA VEZ
+        const ttsInstance=await getTTSParallel();
+        try{ await ttsInstance.download('es_ES-sharvard-medium', ()=>{}); }catch{}
+        // PARALELO REAL x6 CON PROMISE.ALL
+        const voicePromises=needVoice.map(slot=> window.generateVoiceIndependentFast(slot, ttsInstance).then(()=>{ console.log('VOZ OK SLOT '+slot.id); }).catch(e=>{ console.error('VOZ FAIL SLOT '+slot.id, e); }));
+        await Promise.allSettled(voicePromises);
+        txtEl.textContent=`FASE 1/2 COMPLETA x6 PARALELO`; pctEl.textContent='50%';
       }
-      
-      // FASE 2: VIDEOS x6 INDEPENDIENTE - CADA UNO SU CANVAS
-      txtEl.textContent=`FASE 2/2: ${list.length} videos 1080x1350 x6 INDEPENDIENTE (6 canvas separados)`;
-      pctEl.textContent='55%';
+      txtEl.textContent=`FASE 2/2: ${list.length} videos x6 INDEPENDIENTE RAPIDO`; pctEl.textContent='55%';
       let completed=0; let progressMap={};
       function updateOverlay(){
-        let html='';
-        list.forEach(qq=>{
-          const q=window.queue.find(x=>x.id===qq.id);
-          const prog=q?(q.progress||0):0; const status=q?q.status:''; const isRun=status==='renderizando'; const isDone=status==='hecho';
-          html+=`<div style="background:${isRun?'rgba(255,235,0,.10)':'#141418'};border:1px solid ${isRun?'#FFEB00': isDone?'#22c55e':'#222'};border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:${isRun?'#FFEB00':'#fff'}">SLOT ${qq.id} CANVAS #${qq.id} ${q?.audioDur? '· VOZ OK':''}</span><span style="font-size:11px;font-weight:900;color:${isDone?'#22c55e': isRun?'#FFEB00':'#888'}">${prog.toFixed(0)}%</span></div>`;
-        });
-        listEl.innerHTML=html;
-        let sum=0; for(let k in progressMap) sum+=progressMap[k]||0; const total=list.length||1;
-        const pct=50+Math.round((completed/total)*20 + (sum/(total*100))*30); pctEl.textContent=Math.min(99,pct)+'%';
+        let html=''; list.forEach(qq=>{ const q=window.queue.find(x=>x.id===qq.id); const prog=q?(q.progress||0):0; const status=q?q.status:''; const isRun=status==='renderizando'; const isDone=status==='hecho';
+          html+=`<div style="background:${isRun?'rgba(255,235,0,.10)':'#141418'};border:1px solid ${isRun?'#FFEB00': isDone?'#22c55e':'#222'};border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:${isRun?'#FFEB00':'#fff'}">SLOT ${qq.id} CANVAS x6 ${q?.audioDur? '· '+q.audioDur.toFixed(1)+'s':''}</span><span style="font-size:11px;font-weight:900;color:${isDone?'#22c55e': isRun?'#FFEB00':'#888'}">${prog.toFixed(0)}%</span></div>`; });
+        listEl.innerHTML=html; let sum=0; for(let k in progressMap) sum+=progressMap[k]||0; const total=list.length||1; const pct=50+Math.round((completed/total)*20 + (sum/(total*100))*30); pctEl.textContent=Math.min(99,pct)+'%';
       }
       let rQueue=[...list];
       async function rWorker(workerId){
-        console.log('Render Worker '+workerId+' iniciado con su propio canvas');
         while(rQueue.length){
           const it=rQueue.shift(); if(!it) break;
           const q=window.queue.find(x=>x.id===it.id);
-          console.log('Render Worker '+workerId+' -> SLOT '+q.id+' con canvas independiente');
           q.status='renderizando'; q.progress=0; progressMap[q.id]=0; updateOverlay();
           try{
-            const r=await window.renderSingleIndependent(q, p=>{ q.progress=p; progressMap[q.id]=p; updateOverlay(); if(window.renderCola) window.renderCola(true); });
-            if(r && r.url){
-              q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100; progressMap[q.id]=100;
-              if(document.getElementById('autoDownloadCheck')?.checked){
-                const nameKey=(window.sanitizar? window.sanitizar(q.fileNameBase): q.fileNameBase)||`Video ${q.id}`;
-                const fileName=nameKey+'.'+q.finalExt;
-                if(!window._downloadedNames.has(fileName)){
-                  window._downloadedNames.add(fileName);
-                  if(window.queueDownload) window.queueDownload(q.finalUrl, fileName);
-                }
-              }
-            }else q.status='error';
-          }catch(e){ q.status='error'; console.error('Render Worker '+workerId+' fail SLOT '+q.id, e); }
+            const r=await window.renderSingleFast(q, p=>{ q.progress=p; progressMap[q.id]=p; updateOverlay(); if(window.renderCola) window.renderCola(true); });
+            if(r&&r.url){ q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100; progressMap[q.id]=100;
+              if(document.getElementById('autoDownloadCheck')?.checked){ const nameKey=(window.sanitizar? window.sanitizar(q.fileNameBase): q.fileNameBase)||`Video ${q.id}`; const fileName=nameKey+'.'+q.finalExt; if(!window._downloadedNames.has(fileName)){ window._downloadedNames.add(fileName); if(window.queueDownload) window.queueDownload(q.finalUrl, fileName); } }
+            } else q.status='error';
+          }catch(e){ q.status='error'; console.error(e); }
           completed++; updateOverlay();
-          // Limpieza total entre renders
-          try{ if(window.gc) window.gc(); }catch{}
         }
       }
       const rWorkers=Array.from({length: Math.min(6, list.length)}, (_,i)=>rWorker(i+1));
       await Promise.allSettled(rWorkers);
-      pctEl.textContent='100%'; txtEl.textContent=`COMPLETADO x6 INDEPENDIENTE - ${list.length} videos`;
-      setTimeout(()=>{ overlay.style.display='none'; },1500);
+      pctEl.textContent='100%'; txtEl.textContent=`COMPLETADO x6 RAPIDO - ${list.length} videos`; setTimeout(()=>{ overlay.style.display='none'; },1200);
       if(window.renderCola) window.renderCola(true);
     }catch(e){ console.error(e); alert(e.message); }
-    finally{ isRendering=false; window._batchGenerating=false; window._rendering=false; window._previewDisabled=false; btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO'; }
+    finally{ isRendering=false; window._batchGenerating=false; window._rendering=false; window._previewDisabled=false; btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO'; try{ if(window.startLoop) window.startLoop(); }catch{} }
   });
-  console.log('[FINAL] TODO x6 INDEPENDIENTE - 6 canvas separados - LISTO');
+  console.log('[FAST] x6 PARALELO REAL VOCES + x6 CANVAS RENDER RAPIDO LISTO');
 }, 1000);
 </script>
 
