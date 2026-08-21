@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital V13 - Fondo Incrustado</title>
+<title>Ice Cream Digital V13</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -795,7 +795,7 @@ $("btnPlay").addEventListener('click',()=>{
     $("btnPlay").textContent='▶ Play';
   }
 });
-const FPS=30,W=720,H=900;
+const FPS=30,W=1080,H=1350;
 
 function safeDownload(url, name){
   try{
@@ -836,7 +836,7 @@ async function renderSingle(item,onProg){
   const scriptText=(item.script||"").trim();
   const subs=chunkSubs(scriptText);
   const tLines=splitWords((item.title||'').toUpperCase(),22).slice(0,3);
-  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
+  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1350; // FB OPTIMO 4:5 16GB
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true});
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
 
@@ -909,7 +909,7 @@ async function renderSingle(item,onProg){
         ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
         if(v.readyState>=2 && v.videoWidth){
           const vw=v.videoWidth, vh=v.videoHeight;
-          const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
+          const tgt=1080/1350, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
           if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
           try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{}
         }
@@ -954,7 +954,7 @@ async function renderSingle(item,onProg){
           if(v.readyState>=2){
             const vw=v.videoWidth, vh=v.videoHeight;
             if(vw&&vh){ 
-              const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; 
+              const tgt=1080/1350, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; 
               if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
               try{ 
                 ctx.globalAlpha = 1;
@@ -2287,7 +2287,7 @@ div:has(> #kokoroSpeed) {display:none !important;}
 async function renderSingle(item, onProgress){
   const info = window.calcDurInfo ? window.calcDurInfo(item) : {useLoop:false, playbackRate:1, finalDur: item.videoDur || 10};
   const canvas = document.createElement('canvas');
-  canvas.width=720; canvas.height=900;
+  canvas.width=1080; canvas.height=1350; // FB OPTIMO 4:5 16GB
   const ctx = canvas.getContext('2d', {alpha:false});
   const v = document.createElement('video');
   v.src = item.videoUrl; v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
@@ -2308,13 +2308,17 @@ async function renderSingle(item, onProgress){
   }
   const stream=canvas.captureStream(fps);
   if(dest && dest.stream) dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
-  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:5000000,audioBitsPerSecond:128000});
+  const chunks=[]; let mime='video/webm;codecs=vp9'; let ext='webm';
+  if(MediaRecorder.isTypeSupported('video/mp4;codecs=avc1.42E01E')){ mime='video/mp4;codecs=avc1.42E01E'; ext='mp4'; }
+  else if(MediaRecorder.isTypeSupported('video/mp4')){ mime='video/mp4'; ext='mp4'; }
+  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:4000000,audioBitsPerSecond:128000});
+
   rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
   const recDone=new Promise(res=>{ rec.onstop=()=>res(); });
   function drawFrame(){
     ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
     if(v.videoWidth){
-      const vw=v.videoWidth,vh=v.videoHeight,tgt=720/900,r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
+      const vw=v.videoWidth,vh=v.videoHeight,tgt=1080/1350,r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
       if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
       try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900);}catch{}
     }
@@ -2341,7 +2345,7 @@ async function renderSingle(item, onProgress){
     await new Promise(r=>setTimeout(r,frameDur*1000));
   }
   rec.stop(); if(audioEl) try{audioEl.pause();}catch{} await recDone; if(ac) try{await ac.close();}catch{}
-  const blob=new Blob(chunks,{type:'video/webm'}); const url=URL.createObjectURL(blob);
+  const blob=new Blob(chunks,{type:mime}); const url=URL.createObjectURL(blob);
   return {url, ext:'webm', blob};
 }
 window.renderSingle = renderSingle;
@@ -2386,7 +2390,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         console.log('Need voice', needVoice.map(x=>x.id));
         
         if(needVoice.length){
-          txtEl.textContent=`FASE 1/2: Generando ${needVoice.length} voces Alexander PARALELO x6`;
+          txtEl.textContent=`FASE 1/2: Generando ${needVoice.length} voces Alexander PARALELO x4 OPTIMO 16GB`;
           pctEl.textContent='5%';
           listEl.innerHTML=needVoice.map(s=>`<div style="background:rgba(255,235,0,.12);border:1px solid #FFEB00;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:#FFEB00">SLOT ${s.id} · GENERANDO VOZ...</span><span>...</span></div>`).join('');
           
@@ -2460,7 +2464,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
           }
         }
         
-        const workers=Array.from({length: Math.min(6, list.length)}, ()=>worker());
+        const workers=Array.from({length: Math.min(4, list.length)}, ()=>worker());
         await Promise.allSettled(workers);
         
         pctEl.textContent='100%';
@@ -2481,6 +2485,25 @@ document.addEventListener('DOMContentLoaded', ()=>{
     console.log('[FINAL] RENDERIZAR TODO 6x6 PARALELO LISTO - 100% FUNCIONAL');
   }, 1500);
 });
+</script>
+
+
+<script>
+(function(){
+  const btn=document.getElementById('btnRender');
+  if(btn){
+    btn.addEventListener('click', ()=>{
+      try{
+        window._previewDisabled=true;
+        const vEl=document.getElementById('previewVideo'); const aEl=document.getElementById('previewAudio'); const bgEl=document.getElementById('bgVideo');
+        if(vEl){ vEl.pause(); vEl.muted=true; }
+        if(aEl){ aEl.pause(); aEl.muted=true; }
+        if(bgEl){ try{ bgEl.pause(); }catch{} }
+        if(window.raf) cancelAnimationFrame(window.raf);
+      }catch{}
+    }, true);
+  }
+})();
 </script>
 
 </body></html>
