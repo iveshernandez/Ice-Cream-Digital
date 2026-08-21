@@ -853,79 +853,6 @@ setInterval(saveQueueToStorage, 2000);
 window.addEventListener('beforeunload', saveQueueToStorage);
 setTimeout(loadQueueFromStorage, 600);
 
-function limpiarTodoParaProximos6(){
-  if(!confirm('¿Limpiar todo y dejar listo para los próximos 6?')) return;
-  try{
-    hardCleanup();
-    // Revocar todos los blobs
-    if(window._lastBlobs){
-      window._lastBlobs.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch{} });
-      window._lastBlobs=[];
-    }
-    // Revocar urls de la cola
-    try{
-      queue.forEach(q=>{
-        try{ if(q.videoUrl && q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); }catch{}
-        try{ if(q.audioUrl && q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); }catch{}
-      });
-    }catch{}
-    // Vaciar cola
-    queue.forEach((q,i)=>{
-      q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0;
-      q.status='vacio';
-    });
-    // Limpiar storage
-    try{ localStorage.removeItem('punto_seguro_queue_v91'); localStorage.removeItem('punto_seguro_queue_v9'); }catch{}
-    // Limpiar inputs DOM si existen
-    try{
-      document.querySelectorAll('input[type=file]').forEach(inp=>{ inp.value=''; });
-      document.querySelectorAll('textarea').forEach(t=>{ if(t.id && t.id.includes('script')) t.value=''; });
-    }catch{}
-    // Resetear preview
-    try{
-      const vp=document.getElementById('vPreview'); if(vp){ vp.pause(); vp.src=''; vp.load(); }
-    }catch{}
-    // Re-render cola vacía
-    try{ if(typeof renderCola==='function') renderCola(true); }catch{}
-    // Forzar GC visual
-    try{ if(window.gc) window.gc(); }catch{}
-    // Pequeña pausa y mensaje
-    setTimeout(()=>{
-      alert('✅ Limpio. RAM liberada. Listo para los próximos 6.');
-      try{ saveQueueToStorage(); }catch{}
-    }, 400);
-  }catch(e){
-    console.error('limpiar fail', e);
-    location.reload();
-  }
-}
-
-// Crear botón flotante LIMPIAR TODO
-function crearBotonLimpiar(){
-  try{
-    if(document.getElementById('btnLimpiarTodo')) return;
-    const btn = document.createElement('button');
-    btn.id='btnLimpiarTodo';
-    btn.textContent='🧹 Limpiar todo para próximos 6';
-    btn.style.cssText='position:fixed;bottom:18px;right:18px;z-index:99999;background:#ff3b3b;color:#fff;border:none;border-radius:12px;padding:14px 18px;font:800 14px Plus Jakarta Sans, sans-serif;box-shadow:0 8px 24px rgba(0,0,0,0.35);cursor:pointer;';
-    btn.onclick=limpiarTodoParaProximos6;
-    document.body.appendChild(btn);
-    
-    // También intentar ponerlo junto a los botones de render si existe contenedor
-    const cont = document.querySelector('.cola-actions, #colaActions, .render-actions');
-    if(cont){
-      const btn2 = btn.cloneNode(true);
-      btn2.style.position='relative'; btn2.style.bottom='auto'; btn2.style.right='auto'; btn2.style.marginLeft='8px';
-      btn2.onclick=limpiarTodoParaProximos6;
-      cont.appendChild(btn2);
-    }
-  }catch(e){ console.warn('boton limpiar fail', e); }
-}
-setTimeout(crearBotonLimpiar, 800);
-setTimeout(crearBotonLimpiar, 2500);
-window.limpiarTodo = limpiarTodoParaProximos6;
-
-
 function pausePreviewForRender(){
   try{
     const vp=document.getElementById('vPreview'); if(vp) vp.pause();
@@ -1028,6 +955,7 @@ async function renderWithRetry(item, onProg){
     }
   }
 }
+
 
 window.renderOne=async id=>{
   const it=queue.find(x=>x.id===id);if(!it||!it.videoUrl){alert('SLOT '+id+' Vacío - Click para cargar');return;}
@@ -2263,4 +2191,29 @@ window.IC_renew = function(username){
 };
 </script>
 
-<script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};</script></body></html>
+<script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};</script>
+// BOTON LIMPIAR SIMPLE - NO TOCA RENDER
+window.limpiarTodo = function(){
+  if(!confirm('¿Limpiar todo para próximos 6?')) return;
+  try{ hardCleanup(); }catch{}
+  try{
+    if(window._lastBlobs){ window._lastBlobs.forEach(u=>{ try{ URL.revokeObjectURL(u);}catch{} }); window._lastBlobs=[]; }
+    queue.forEach(q=>{ try{ if(q.videoUrl && q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl);}catch{} try{ if(q.audioUrl && q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl);}catch{} });
+    queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0; });
+    try{ localStorage.removeItem('punto_seguro_queue_v91'); }catch{}
+    try{ const vp=document.getElementById('vPreview'); if(vp){ vp.pause(); vp.src=''; vp.load(); } }catch{}
+    try{ if(typeof renderCola==='function') renderCola(true); }catch{}
+  }catch(e){ console.error(e); }
+  setTimeout(()=>alert('✅ Listo para próximos 6'),300);
+};
+function addLimpiarBtn(){
+  if(document.getElementById('btnLimpiarTodo')) return;
+  const b=document.createElement('button');
+  b.id='btnLimpiarTodo'; b.textContent='🧹 Limpiar para próximos 6';
+  b.style.cssText='position:fixed;bottom:18px;right:18px;z-index:999999;background:#ff3b3b;color:#fff;border:0;border-radius:12px;padding:14px 18px;font:800 14px sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35)';
+  b.onclick=()=>window.limpiarTodo();
+  document.body.appendChild(b);
+}
+setTimeout(addLimpiarBtn, 1000);
+
+</body></html>
