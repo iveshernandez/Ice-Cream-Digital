@@ -797,38 +797,25 @@ $("btnPlay").addEventListener('click',()=>{
 });
 const FPS=30,W=720,H=900;
 
-
-// === FIX DESCARGA 100% ===
 function safeDownload(url, name){
   try{
-    console.log('[DL] Intentando descargar', name, url);
-    const a=document.createElement('a');
-    a.href=url; a.download=name; a.style.display='none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(()=>a.remove(),1500);
-    // Guardar blob para que no se pierda
-    if(!window._lastBlobs) window._lastBlobs=[];
-    window._lastBlobs.push(url);
-    console.log('[DL] Click disparado');
-  }catch(e){ console.warn('dl fail',e); try{ window.open(url,'_blank'); }catch{} }
+    const a=document.createElement('a'); a.href=url; a.download=name; a.style.display='none';
+    document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),1200);
+  }catch(e){ console.warn('dl fail',e); }
 }
 let _dlQueue=[]; let _dlTimer=null;
 function queueDownload(url,name){
-  if(!url){ console.error('[DL] URL vacia'); return; }
-  console.log('[DL] Encolando', name);
-  if(_dlQueue.some(x=>x.url===url)) { safeDownload(url,name); return; }
+  if(_dlQueue.some(x=>x.url===url)) return;
   _dlQueue.push({url,name});
   if(_dlTimer) return;
   function next(){
     if(!_dlQueue.length){ _dlTimer=null; return; }
     const {url,name}=_dlQueue.shift();
     safeDownload(url,name);
-    _dlTimer=setTimeout(next, 800);
+    _dlTimer=setTimeout(next, 1200);
   }
   next();
 }
-
 
 
 
@@ -1043,19 +1030,7 @@ window.renderOne=async id=>{
   $("renderOverlay").style.display='flex';// MOD V15: oculto
   $("renderText").textContent=``;
   const listEl=$("renderList"); if(listEl) listEl.innerHTML=`<div style="background:#141418;border:1px solid #222;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:#fff;font-weight:700">SLOT ${id}</span><span id="renderSlot-${id}" style="font-size:11px;color:#FFEB00;font-weight:900">0%</span></div>`;
-  try{const r=await renderSingle(it,p=>{q.progress=p;const el=document.getElementById(`renderSlot-${id}`); if(el) el.textContent=p.toFixed(0)+'%'; $("renderPct").textContent=p.toFixed(0)+'%';;renderCola(true);});if(r && r.url){ q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100; 
-  console.log('[RENDER] 100% completado', r.url, r.url ? (r.url.length) : 0);
-  const n=sanitizar(q.fileNameBase)||`Video ${id}`;
-  // Forzar descarga siempre al 100% si autoDownload esta checked, o mostrar boton manual
-  if($("autoDownloadCheck")?.checked){
-    setTimeout(()=>{ queueDownload(r.url, n+'.'+r.ext); }, 300);
-  } else {
-    // Si no auto, igual guardar finalUrl para descarga manual
-    console.log('[RENDER] Auto-descarga desactivada, finalUrl guardado');
-  }
-  // Si blob muy pequeño, advertir
-  try{ fetch(r.url).then(res=>res.blob()).then(b=>{ console.log('[RENDER] Blob size', b.size); if(b.size<5000) alert('Render muy pequeño, revisa audio/video'); }); }catch{}
-}}catch(e){q.status='error';log(e.message);}
+  try{const r=await renderSingle(it,p=>{q.progress=p;const el=document.getElementById(`renderSlot-${id}`); if(el) el.textContent=p.toFixed(0)+'%'; $("renderPct").textContent=p.toFixed(0)+'%';;renderCola(true);});if(r){q.finalUrl=r.url;q.finalExt=r.ext;q.status='hecho';q.progress=100;if($("autoDownloadCheck").checked){const n=sanitizar(q.fileNameBase)||`Video ${id}`; queueDownload(r.url, n+'.'+r.ext);}}}catch(e){q.status='error';log(e.message);}
   $("renderOverlay").style.display='none';try{ startLoop(); }catch{} renderCola(true);
 };
 $("btnRenderSingle").addEventListener('click',()=>renderOne(activeId));
@@ -1337,7 +1312,13 @@ async function handleGenerate(){
   const speedSelectEl = document.getElementById('kokoroSpeed');
   if(voiceSelectEl) slot.voiceId = voiceSelectEl.value;
   if(speedSelectEl) slot.voiceSpeed = parseFloat(speedSelectEl.value)||1;
-  const voiceId = slot.voiceId;
+  let voiceId = slot.voiceId || 'es_ES-sharvard-medium';
+  let speakerId = 0;
+  if(voiceId.includes(':')){
+    const parts = voiceId.split(':');
+    voiceId = parts[0];
+    speakerId = parseInt(parts[1]||0);
+  }
   const speed = slot.voiceSpeed;
 
   const chunks = splitIntoChunks(text, 380);
@@ -2281,101 +2262,46 @@ window.IC_renew = function(username){
 };
 </script>
 
-<script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};
-// === LIMPIAR TODO EN CERO - VERSION FINAL ESTABLE ===
-window.limpiarTodo=function(){
-  if(!confirm('¿Borrar TODO del editor y dejar en cero para proximos 6?')) return;
-  try{
-    if(window._lastBlobs){ window._lastBlobs.forEach(u=>{ try{URL.revokeObjectURL(u)}catch{}}); window._lastBlobs=[]; }
-    try{
-      queue.forEach(q=>{
-        if(q.videoUrl && q.videoUrl.startsWith('blob:')) try{URL.revokeObjectURL(q.videoUrl)}catch{}
-        if(q.audioUrl && q.audioUrl.startsWith('blob:')) try{URL.revokeObjectURL(q.audioUrl)}catch{}
-        if(q.finalUrl && q.finalUrl.startsWith('blob:')) try{URL.revokeObjectURL(q.finalUrl)}catch{}
-      });
-    }catch{}
-    queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0; q.status='vacio'; q.finalUrl=''; q.finalExt=''; q.fileNameBase=''; q.progress=0; });
-    try{
-      const keep=['auth','token','session','login','user','firebase','supabase'];
-      const rm=[];
-      for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!k) continue; const low=k.toLowerCase(); if(keep.some(w=>low.includes(w))) continue; if(low.includes('punto')||low.includes('queue')||low.includes('render')||low.includes('cola')) rm.push(k); }
-      rm.forEach(k=>{ try{localStorage.removeItem(k)}catch{} });
-    }catch{}
-    document.querySelectorAll('input[type=file]').forEach(inp=>{ inp.value=''; });
-    ['inputTitle','inputScript','inputFileName'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-    const setEmpty=(id,txt)=>{ const el=document.getElementById(id); if(el) el.innerHTML='<span style="color:#666">'+txt+'</span>'; };
-    setEmpty('txtName','Sin .txt');
-    setEmpty('videoName','Sin video');
-    setEmpty('audioName','Sin audio');
-    const bgName=document.getElementById('bgName'); if(bgName) bgName.textContent='';
-    const t1=document.getElementById('txtTxt'); if(t1) t1.textContent='Elegir .txt';
-    const t2=document.getElementById('txtVideo'); if(t2) t2.textContent='Elegir video';
-    const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
-    try{ if(typeof vEl!=='undefined'&&vEl){ vEl.pause(); vEl.removeAttribute('src'); vEl.load(); } }catch{}
-    try{ if(typeof aEl!=='undefined'&&aEl){ aEl.pause(); aEl.removeAttribute('src'); aEl.load(); } }catch{}
-    try{ const vp=document.getElementById('vPreview'); if(vp){ vp.pause(); vp.removeAttribute('src'); vp.load(); } }catch{}
-    try{ if(typeof renderCola==='function') renderCola(true); }catch{}
-    try{ if(typeof hardCleanup==='function') hardCleanup(); }catch{}
-  }catch(e){ console.error(e); }
-};
-(function(){
-  function isLoginVisible(){
-    const u=document.getElementById('loginUser');
-    const cU=document.getElementById('c-loginUser');
-    if(u && u.offsetParent!==null) return true;
-    if(cU && cU.offsetParent!==null) return true;
-    return false;
-  }
-  function insertBtn(){
-    if(isLoginVisible()){ const b=document.getElementById('btnLimpiarTodo'); if(b) b.remove(); return; }
-    const cola=document.getElementById('cola');
-    const titleInput=document.getElementById('inputTitle');
-    if(!cola || !titleInput) return;
-    if(cola.offsetParent===null || titleInput.offsetParent===null){ const b=document.getElementById('btnLimpiarTodo'); if(b) b.remove(); return; }
-    if(document.getElementById('btnLimpiarTodo')) return;
-    const btnRender=document.getElementById('btnRender');
-    const b=document.createElement('button');
-    b.id='btnLimpiarTodo';
-    b.textContent='🧹 LIMPIAR TODO EN CERO';
-    b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-left:8px;';
-    b.onclick=()=>window.limpiarTodo();
-    if(btnRender && btnRender.parentElement) btnRender.parentElement.appendChild(b);
-  }
-  setTimeout(insertBtn, 1000);
-  setInterval(insertBtn, 1000);
-})();
-
-</script>
+<script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};</script>
+<style id="hide-rojo">#btnRenderSingle,#statusLabel,#speedLabel{display:none!important}</style>
 <script>
-// SOLO CAMBIOS PEDIDOS - sin tocar render ni slots
 (function(){
-  // 1. Borrar rectangulos rojos
-  const st=document.createElement('style');
-  st.textContent='#btnRenderSingle,#statusLabel,#speedLabel{display:none!important}';
-  document.head.appendChild(st);
-
-  // 2. Boton con escoba + F5
-  const oldLimpiar = window.limpiarTodo;
   window.limpiarTodo=function(){
     if(!confirm('🧹 ¿Borrar TODO y recargar en cero 100% limpio?')) return;
     try{
-      if(typeof oldLimpiar==='function'){
-        // Llamar limpieza original que ya funcionaba
-        try{ oldLimpiar(); }catch{}
-      }
-      // Limpiar visual extra .txt
+      if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});
+      queue.forEach(q=>{
+        try{ if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{}
+      });
+      queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase=`Video ${q.id}`; q.txtName=''; q.txtContent=''; });
+      document.querySelectorAll('input[type=file]').forEach(inp=>inp.value='');
+      ['inputTitle','inputScript','inputFileName'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
       const se=(id,t)=>{const el=document.getElementById(id); if(el) el.innerHTML='<span style=color:#666>'+t+'</span>';};
       se('txtName','Sin .txt'); se('videoName','Sin video'); se('audioName','Sin audio');
+      const t1=document.getElementById('txtTxt'); if(t1) t1.textContent='Elegir .txt';
+      const t2=document.getElementById('txtVideo'); if(t2) t2.textContent='Elegir video';
+      const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
+      try{ setActive(1); renderCola(true);}catch{}
       setTimeout(()=>location.reload(),700);
     }catch(e){ location.reload(); }
   };
-
-  // Asegurar emoji escoba visible
-  function ensureBroom(){
-    const b=document.getElementById('btnLimpiarTodo');
-    if(b && !b.innerHTML.includes('🧹')) b.innerHTML='🧹 LIMPIAR TODO EN CERO';
+  function isLogged(){
+    const ed = document.getElementById('editor') || document.querySelector('.layout');
+    // editor visible means logged
+    return ed && ed.offsetParent!==null;
   }
-  setInterval(ensureBroom,1000);
+  function ins(){
+    const bExist=document.getElementById('btnLimpiarTodo');
+    if(!isLogged()){ if(bExist) bExist.remove(); return; }
+    if(bExist) return;
+    const br=document.getElementById('btnRender');
+    if(!br) return;
+    const b=document.createElement('button'); b.id='btnLimpiarTodo'; b.innerHTML='🧹 LIMPIAR TODO EN CERO';
+    b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-left:8px;';
+    b.onclick=()=>window.limpiarTodo();
+    br.parentElement.appendChild(b);
+  }
+  setTimeout(ins,1000); setInterval(ins,1000);
 })();
 </script>
 
