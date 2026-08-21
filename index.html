@@ -2258,60 +2258,57 @@ window.IC_renew = function(username){
 
 <script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};
 window.limpiarTodo=function(){
-  if(!confirm('¿Borrar TODO del editor y dejar en cero para proximos 6?\nSe borraran videos, .txt y audios de los 6 slots.')) return;
+  if(!confirm('¿Borrar TODO del editor y dejar en cero para proximos 6?')) return;
   try{
     if(window._lastBlobs){ window._lastBlobs.forEach(u=>{ try{URL.revokeObjectURL(u)}catch{}}); window._lastBlobs=[]; }
+    queue.forEach(q=>{
+      try{ if(q.videoUrl && q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); }catch{}
+      try{ if(q.audioUrl && q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); }catch{}
+      try{ if(q.finalUrl && q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl); }catch{}
+    });
+    queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0; q.status='vacio'; q.finalUrl=''; q.finalExt=''; q.fileNameBase=''; q.progress=0; });
     try{
-      queue.forEach(q=>{
-        try{ if(q.videoUrl && q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); }catch{}
-        try{ if(q.audioUrl && q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); }catch{}
-        try{ if(q.finalUrl && q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl); }catch{}
-      });
+      const keep=['auth','token','session','login','user','firebase','supabase'];
+      const toRemove=[];
+      for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!k) continue; const low=k.toLowerCase(); if(keep.some(w=>low.includes(w))) continue; if(low.includes('punto')||low.includes('queue')||low.includes('render')||low.includes('cola')) toRemove.push(k); }
+      toRemove.forEach(k=>{ try{ localStorage.removeItem(k);}catch{} });
     }catch{}
-    try{
-      queue.forEach(q=>{
-        q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0; q.status='vacio'; q.finalUrl=''; q.finalExt=''; q.fileNameBase=''; q.progress=0;
-      });
-    }catch{}
-    // LIMPIEZA SEGURA: solo nuestras keys, NO auth/session/login/token
-    try{
-      const keep = ['auth','token','session','login','user','firebase','supabase'];
-      const toRemove = [];
-      for(let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if(!k) continue;
-        const low = k.toLowerCase();
-        const isAuth = keep.some(w=>low.includes(w));
-        const isOurs = low.includes('punto') || low.includes('queue') || low.includes('render') || low.includes('cola') || low.includes('video') || low.includes('script') || low.includes('proximos');
-        if(isOurs && !isAuth) toRemove.push(k);
-      }
-      toRemove.forEach(k=>{ try{ localStorage.removeItem(k); }catch{} });
-      // NO tocamos sessionStorage para no cerrar sesion
-    }catch{}
-    try{
-      document.querySelectorAll('input[type=file]').forEach(inp=>{ inp.value=''; });
-      const titleEl = document.getElementById('inputTitle'); if(titleEl) titleEl.value='';
-      const scriptEl = document.getElementById('inputScript'); if(scriptEl) scriptEl.value='';
-      const fileNameEl = document.getElementById('inputFileName'); if(fileNameEl) fileNameEl.value='';
-    }catch{}
+    document.querySelectorAll('input[type=file]').forEach(inp=>{ inp.value=''; });
+    const ti=document.getElementById('inputTitle'); if(ti) ti.value=''; const si=document.getElementById('inputScript'); if(si) si.value=''; const fi=document.getElementById('inputFileName'); if(fi) fi.value='';
     try{ if(typeof vEl!=='undefined'&&vEl){ vEl.pause(); vEl.removeAttribute('src'); vEl.load(); } }catch{}
     try{ if(typeof aEl!=='undefined'&&aEl){ aEl.pause(); aEl.removeAttribute('src'); aEl.load(); } }catch{}
     try{ const vp=document.getElementById('vPreview'); if(vp){ vp.pause(); vp.removeAttribute('src'); vp.load(); } }catch{}
     try{ if(typeof renderCola==='function') renderCola(true); }catch{}
     try{ if(typeof hardCleanup==='function') hardCleanup(); }catch{}
-    alert('Editor limpio en cero - listo para proximos 6');
-  }catch(e){ console.error(e); alert('Error limpiando: '+e.message); }
+    alert('Editor limpio en cero');
+  }catch(e){ console.error(e); }
 };
-setTimeout(()=>{
-  // Solo mostrar en editor, no en login
-  const isEditor = document.getElementById('inputTitle') || document.getElementById('cola') || document.querySelector('[id*="editor"]') || document.getElementById('renderList') || window.queue;
-  if(!isEditor) return;
-  if(document.getElementById('btnLimpiarTodo')) return;
-  const b=document.createElement('button');
-  b.id='btnLimpiarTodo'; b.textContent='🧹 LIMPIAR TODO EN CERO';
-  b.style.cssText='position:fixed;bottom:18px;right:18px;z-index:999999;background:#ff3b3b;color:#fff;border:0;border-radius:14px;padding:16px 20px;font:900 14px sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.4)';
-  b.onclick=()=>window.limpiarTodo();
-  document.body.appendChild(b);
-},1500);
+(function(){
+  // Esperar a que exista el contenedor del editor
+  function insertBtnInEditor(){
+    const cola = document.getElementById('cola');
+    if(!cola) return;
+    // Insertar dentro del contenedor padre de cola que solo existe en editor
+    const parent = cola.closest('.glass') || cola.parentElement;
+    if(!parent) return;
+    if(document.getElementById('btnLimpiarTodo')) return;
+    const b = document.createElement('button');
+    b.id='btnLimpiarTodo';
+    b.textContent='🧹 LIMPIAR TODO EN CERO';
+    // NO fixed, sino dentro del editor, al lado de Renderizar Todo
+    b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-left:8px;';
+    b.onclick=()=>window.limpiarTodo();
+    // Buscar donde esta btnRender y ponerlo ahi
+    const btnRender = document.getElementById('btnRender');
+    if(btnRender && btnRender.parentElement){
+      btnRender.parentElement.appendChild(b);
+    } else {
+      parent.appendChild(b);
+    }
+  }
+  setTimeout(insertBtnInEditor, 1000);
+  setTimeout(insertBtnInEditor, 2500);
+  setInterval(insertBtnInEditor, 2000);
+})();
 
 </script></body></html>
