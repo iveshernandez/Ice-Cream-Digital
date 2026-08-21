@@ -824,48 +824,6 @@ async function renderSingleMP4_WebCodecs(item,onProg){ return {url:'',ext:'mp4'}
 
 
 
-
-// ===== V9.1 FIX - SIN ZIP - RESTAURADO =====
-let wakeLock = null;
-async function requestWakeLock(){
-  try{ if('wakeLock' in navigator){ wakeLock = await navigator.wakeLock.request('screen'); } }catch{}
-}
-function releaseWakeLock(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch{} }
-
-function saveQueueToStorage(){
-  try{
-    const toSave = queue.map(q=>({id:q.id, title:q.title, script:q.script, videoUrl:q.videoUrl, videoDur:q.videoDur, audioUrl:q.audioUrl, audioDur:q.audioDur}));
-    localStorage.setItem('punto_seguro_queue_v91', JSON.stringify(toSave));
-  }catch{}
-}
-function loadQueueFromStorage(){
-  try{
-    const raw = localStorage.getItem('punto_seguro_queue_v91');
-    if(!raw) return;
-    const arr = JSON.parse(raw);
-    if(arr && arr.length && (queue.length===0 || queue.every(q=>!q.videoUrl))){
-      arr.forEach((saved,i)=>{ if(queue[i]){ queue[i].title=saved.title||queue[i].title; queue[i].script=saved.script||queue[i].script; if(saved.videoUrl) queue[i].videoUrl=saved.videoUrl; if(saved.videoDur) queue[i].videoDur=saved.videoDur; if(saved.audioUrl) queue[i].audioUrl=saved.audioUrl; if(saved.audioDur) queue[i].audioDur=saved.audioDur; } });
-      try{ renderCola(true); }catch{}
-    }
-  }catch{}
-}
-setInterval(saveQueueToStorage, 2000);
-window.addEventListener('beforeunload', saveQueueToStorage);
-setTimeout(loadQueueFromStorage, 600);
-
-function pausePreviewForRender(){
-  try{
-    const vp=document.getElementById('vPreview'); if(vp) vp.pause();
-    const btnPlay = document.getElementById('btnPlay'); if(btnPlay) btnPlay.textContent='⏸ Renderizando...';
-    if(typeof vEl!=='undefined'&&vEl) try{vEl.pause();}catch{}
-    if(typeof raf!=='undefined'&&raf) try{cancelAnimationFrame(raf);}catch{}
-  }catch{}
-}
-function resumePreviewAfterRender(){
-  try{ const btnPlay = document.getElementById('btnPlay'); if(btnPlay) btnPlay.textContent='▶ Play'; }catch{}
-  releaseWakeLock();
-}
-
 function hardCleanup(){
   try{
     const vp=document.getElementById('vPreview'); if(vp){ vp.pause(); vp.src=''; vp.load(); }
@@ -925,7 +883,7 @@ async function renderQueueSafe(ids, onProgGlobal){
       if(res && res.url){
         // Descargar y liberar después de 1s
         await new Promise(r=>setTimeout(r, 400));
-        try{ safeDownload(res.url, `video_${id}.mp4`); }catch{} finally{ resumePreviewAfterRender(); saveQueueToStorage(); }
+        try{ safeDownload(res.url, `video_${id}.mp4`); }catch{}
         await new Promise(r=>setTimeout(r, 1200)); // Pausa obligatoria para liberar GPU
         hardCleanup();
         // Pausa extra cada 3 videos
@@ -939,23 +897,6 @@ async function renderQueueSafe(ids, onProgGlobal){
   _isRendering = false;
   try{ window._lastBlobs.forEach((u,idx)=>{ if(idx < window._lastBlobs.length-6) try{ URL.revokeObjectURL(u); }catch{} }); }catch{}
 }
-
-
-async function renderWithRetry(item, onProg){
-  for(let attempt=1; attempt<=3; attempt++){
-    try{
-      const res = await renderSingle(item, onProg);
-      if(res && res.url && res.url.length>5) return res;
-      throw new Error('url vacia');
-    }catch(e){
-      console.warn(`Intento ${attempt} falló`, e);
-      hardCleanup();
-      await new Promise(r=>setTimeout(r, 700*attempt));
-      if(attempt===3) throw e;
-    }
-  }
-}
-
 
 window.renderOne=async id=>{
   const it=queue.find(x=>x.id===id);if(!it||!it.videoUrl){alert('SLOT '+id+' Vacío - Click para cargar');return;}
@@ -2191,29 +2132,32 @@ window.IC_renew = function(username){
 };
 </script>
 
-<script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};</script>
-// BOTON LIMPIAR SIMPLE - NO TOCA RENDER
+<script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};
+// === BOTON LIMPIAR PARA PROXIMOS 6 - v10 LIMPIO ===
 window.limpiarTodo = function(){
   if(!confirm('¿Limpiar todo para próximos 6?')) return;
-  try{ hardCleanup(); }catch{}
+  try{ if(typeof hardCleanup==='function') hardCleanup(); }catch{}
   try{
     if(window._lastBlobs){ window._lastBlobs.forEach(u=>{ try{ URL.revokeObjectURL(u);}catch{} }); window._lastBlobs=[]; }
     queue.forEach(q=>{ try{ if(q.videoUrl && q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl);}catch{} try{ if(q.audioUrl && q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl);}catch{} });
-    queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0; });
-    try{ localStorage.removeItem('punto_seguro_queue_v91'); }catch{}
-    try{ const vp=document.getElementById('vPreview'); if(vp){ vp.pause(); vp.src=''; vp.load(); } }catch{}
+    queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0; q.status='vacio'; q.finalUrl=''; });
+    try{ localStorage.removeItem('punto_seguro_queue_v9'); localStorage.removeItem('punto_seguro_queue_v91'); }catch{}
+    try{ const vp=document.getElementById('vPreview'); if(vp){ vp.pause(); vp.removeAttribute('src'); vp.load(); } }catch{}
     try{ if(typeof renderCola==='function') renderCola(true); }catch{}
   }catch(e){ console.error(e); }
-  setTimeout(()=>alert('✅ Listo para próximos 6'),300);
+  setTimeout(()=>alert('Listo para proximos 6 - RAM liberada'),300);
 };
-function addLimpiarBtn(){
-  if(document.getElementById('btnLimpiarTodo')) return;
-  const b=document.createElement('button');
-  b.id='btnLimpiarTodo'; b.textContent='🧹 Limpiar para próximos 6';
-  b.style.cssText='position:fixed;bottom:18px;right:18px;z-index:999999;background:#ff3b3b;color:#fff;border:0;border-radius:12px;padding:14px 18px;font:800 14px sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35)';
-  b.onclick=()=>window.limpiarTodo();
-  document.body.appendChild(b);
-}
-setTimeout(addLimpiarBtn, 1000);
+(function(){
+  function addBtn(){
+    if(document.getElementById('btnLimpiarTodo')) return;
+    const b=document.createElement('button');
+    b.id='btnLimpiarTodo'; b.textContent='Limpiar para proximos 6';
+    b.style.cssText='position:fixed;bottom:18px;right:18px;z-index:999999;background:#ff3b3b;color:#fff;border:0;border-radius:12px;padding:14px 18px;font:800 14px sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35)';
+    b.onclick=function(){ window.limpiarTodo(); };
+    document.body.appendChild(b);
+  }
+  setTimeout(addBtn, 1000);
+  setTimeout(addBtn, 2500);
+})();
 
-</body></html>
+</script></body></html>
