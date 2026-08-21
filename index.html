@@ -2369,4 +2369,214 @@ window.IC_renew = function(username){
   window.addEventListener('load',()=>{ setTimeout(()=>{forceA(); preload();},2000); });
 })();
 </script>
+
+<style>
+#btnKokoroGen, #kokoroSpeed { display:none !important; }
+#speedLabel, #statusLabel, #btnRenderSingle { display:none !important; }
+</style>
+<script>
+(function(){
+  const DEFAULT_VOICE='es_ES-sharvard-medium:0';
+  function hideUI(){
+    try{
+      const b=document.getElementById('btnKokoroGen'); if(b) b.style.display='none';
+      const sp=document.getElementById('kokoroSpeed'); if(sp) sp.style.display='none';
+      document.querySelectorAll('div').forEach(d=>{
+        if(d.textContent && d.textContent.trim()==='1.15x'){ d.style.display='none'; }
+      });
+    }catch{}
+  }
+  setInterval(hideUI,1000);
+  document.addEventListener('DOMContentLoaded', hideUI);
+  
+  // Quitar popup de confirm al renderizar
+  window.confirm = (function(orig){
+    return function(msg){
+      if(typeof msg==='string' && msg.includes('slots con video pero sin voz')){ console.log('[POPUP BLOQUEADO] '+msg); return true; }
+      if(typeof msg==='string' && msg.includes('Renderizar de todas formas')){ return true; }
+      return orig.apply(this, arguments);
+    };
+  })(window.confirm);
+  
+  async function autoGen(){
+    try{
+      const slot = window.getA ? window.getA() : null;
+      if(!slot) return;
+      if(!slot.txtContent || slot.txtContent.length<5) return;
+      if(slot.audioUrl) return;
+      if(typeof handleGenerate==='function' && !window._autoGenRunning){
+        window._autoGenRunning=true;
+        const st=document.getElementById('kokoroStatus');
+        if(st) st.textContent='⚙️ Generando voz Alexander automatica...';
+        console.log('[AUTO VOZ] SLOT '+slot.id);
+        await handleGenerate();
+        window._autoGenRunning=false;
+      }
+    }catch(e){ window._autoGenRunning=false; }
+  }
+  // Auto generar cada 4s si tiene txt sin voz y motor listo
+  setInterval(()=>{
+    try{
+      const st=document.getElementById('kokoroStatus');
+      if(st && st.textContent.includes('Motor listo')){
+        const slot=window.getA ? window.getA() : null;
+        if(slot && slot.txtContent && !slot.audioUrl){
+          if(!window._lastAuto || Date.now()-window._lastAuto>10000){
+            window._lastAuto=Date.now();
+            autoGen();
+          }
+        }
+      }
+    }catch{}
+  },4000);
+  
+  // Hook setActive para auto generar al cambiar slot
+  const origSetActive = window.setActive;
+  window.setActive = function(id){
+    try{ origSetActive(id);}catch{}
+    setTimeout(()=>{ hideUI(); },500);
+    setTimeout(autoGen, 1200);
+  };
+})();
+</script>
+
+<script>
+(function(){
+  // Eliminar listeners viejos clonando boton
+  const oldBtn = document.getElementById('btnRender');
+  if(oldBtn){
+    const newBtn = oldBtn.cloneNode(true);
+    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+  }
+  const btn = document.getElementById('btnRender');
+  
+  btn.addEventListener('click', async ()=>{
+    const getA = window.getA || (()=> window.queue.find(q=>q.id===window.activeId));
+    const cur = getA ? getA() : null;
+    if(cur){
+      try{
+        const tEl=document.getElementById('inputTitle'); if(tEl) cur.title=tEl.value;
+        const sEl=document.getElementById('inputScript'); if(sEl) cur.script=sEl.value;
+        const fEl=document.getElementById('inputFileName'); if(fEl) cur.fileNameBase=fEl.value;
+      }catch{}
+    }
+    
+    const list = window.queue.filter(q=>q.videoUrl);
+    if(!list.length){ alert('Llena al menos 1 slot con video'); return; }
+    
+    const overlay = document.getElementById('renderOverlay');
+    overlay.style.display='flex';
+    const txtEl = document.getElementById('renderText');
+    const pctEl = document.getElementById('renderPct');
+    const listEl = document.getElementById('renderList');
+    
+    // FASE 1: 6 VOCES
+    const slotsNeedingVoice = list.filter(q=>{
+      const hasText = !!(q.txtContent || q.script);
+      const hasAudio = !!(q.audioUrl && q.audioDur>0);
+      return hasText && !hasAudio;
+    });
+    
+    console.log('[RENDER TODO] Slots necesitan voz:', slotsNeedingVoice.map(s=>s.id));
+    
+    if(txtEl) txtEl.textContent = `FASE 1/2: Generando ${slotsNeedingVoice.length || list.length} voces Alexander`;
+    if(pctEl) pctEl.textContent = '0%';
+    
+    if(slotsNeedingVoice.length>0){
+      // Generar voces 1 por 1 secuencial para estabilidad
+      for(let i=0;i<slotsNeedingVoice.length;i++){
+        const slot = slotsNeedingVoice[i];
+        if(txtEl) txtEl.textContent = `FASE 1/2: Voz SLOT ${slot.id} (${i+1}/${slotsNeedingVoice.length})`;
+        if(pctEl) pctEl.textContent = Math.round((i/slotsNeedingVoice.length)*50)+'%';
+        if(listEl){
+          listEl.innerHTML = slotsNeedingVoice.map(s=>{
+            const done = s.id!==slot.id && window.queue.find(x=>x.id===s.id).audioUrl;
+            return `<div style="background:${s.id===slot.id?'rgba(255,235,0,.12)':'#141418'};border:1px solid ${s.id===slot.id?'#FFEB00': done?'#22c55e':'#222'};border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:${done?'#4ade80': s.id===slot.id?'#FFEB00':'#888'}">SLOT ${s.id} ${done?'· VOZ OK': s.id===slot.id?'· GENERANDO...':'· EN COLA'}</span><span style="font-size:11px;font-weight:900;color:${done?'#4ade80':'#666'}">${done?'100%': s.id===slot.id?'...':'0%'}</span></div>`;
+          }).join('');
+        }
+        try{
+          window.activeId = slot.id;
+          if(window.setActive) window.setActive(slot.id);
+          await new Promise(r=>setTimeout(r,300));
+          if(typeof handleGenerate==='function'){
+            await handleGenerate();
+          }else if(window.generateVoiceForSlotId){
+            await window.generateVoiceForSlotId(slot.id);
+          }
+          console.log('VOZ SLOT '+slot.id+' OK');
+        }catch(e){
+          console.error('VOZ SLOT '+slot.id+' FAIL', e);
+          const st=document.getElementById('kokoroStatus');
+          if(st) st.textContent='❌ SLOT '+slot.id+' '+e.message;
+        }
+        await new Promise(r=>setTimeout(r,400));
+      }
+      if(pctEl) pctEl.textContent='50%';
+      if(txtEl) txtEl.textContent='FASE 1/2 COMPLETA: Voces listas';
+      await new Promise(r=>setTimeout(r,600));
+    }else{
+      if(txtEl) txtEl.textContent='FASE 1/2: Voces ya generadas - saltando a video';
+      if(pctEl) pctEl.textContent='50%';
+      await new Promise(r=>setTimeout(r,400));
+    }
+    
+    // FASE 2: RENDER VIDEOS
+    const CONCURRENCY = 3;
+    if(txtEl) txtEl.textContent=`FASE 2/2: Renderizando ${list.length} videos x${CONCURRENCY}`;
+    
+    let completed=0;
+    let videoProgressMap={};
+    
+    function updateOverlay(){
+      if(!listEl) return;
+      let html='';
+      list.forEach(qq=>{
+        const q=window.queue.find(x=>x.id===qq.id);
+        const prog=q? (q.progress||0):0;
+        const status=q? q.status:'vacio';
+        const isRun=status==='renderizando';
+        const isDone=status==='hecho';
+        html+=`<div style="background:${isRun?'rgba(255,235,0,.10)':'#141418'};border:1px solid ${isRun?'#FFEB00': isDone?'#22c55e':'#222'};border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:${isRun?'#FFEB00':'#fff'}">SLOT ${qq.id} ${q?.audioDur? '· VOZ OK':''}</span><span style="font-size:11px;font-weight:900;color:${isDone?'#22c55e': isRun?'#FFEB00':'#888'}">${prog.toFixed(0)}%</span></div>`;
+      });
+      listEl.innerHTML=html;
+      const total = list.length||1;
+      let sum=0; for(let k in videoProgressMap) sum+=videoProgressMap[k]||0;
+      const pct = 50 + Math.round((completed/total)*30 + (sum/(total*100))*20);
+      if(pctEl) pctEl.textContent=Math.min(99,pct)+'%';
+    }
+    
+    const queueList=[...list];
+    async function worker(){
+      while(queueList.length){
+        const it=queueList.shift();
+        if(!it) break;
+        const q=window.queue.find(x=>x.id===it.id);
+        q.status='renderizando'; q.progress=0; videoProgressMap[q.id]=0;
+        try{
+          const r=await window.renderSingle(q, p=>{ q.progress=p; videoProgressMap[q.id]=p; updateOverlay(); if(window.renderCola) window.renderCola(true); });
+          if(r && r.url){
+            q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100; videoProgressMap[q.id]=100;
+            if(document.getElementById('autoDownloadCheck')?.checked){
+              const n=(window.sanitizar? window.sanitizar(q.fileNameBase): q.fileNameBase)||`Video ${q.id}`;
+              if(window.queueDownload) window.queueDownload(q.finalUrl, n+'.'+q.finalExt);
+            }
+          }else{ q.status='error'; }
+        }catch(e){ q.status='error'; console.error(e); }
+        completed++; updateOverlay();
+      }
+    }
+    const workers=Array.from({length: Math.min(CONCURRENCY, list.length)}, ()=>worker());
+    await Promise.allSettled(workers);
+    
+    if(pctEl) pctEl.textContent='100%';
+    if(txtEl) txtEl.textContent=`COMPLETADO - ${list.length} videos con voz`;
+    setTimeout(()=>{ overlay.style.display='none'; }, 1200);
+    if(window.renderCola) window.renderCola(true);
+    if(window.startLoop) try{ window.startLoop(); }catch{}
+  });
+  
+  console.log('[PATCH] btnRender reescrito: 6 voces -> render -> descarga');
+})();
+</script>
+
 </body></html>
