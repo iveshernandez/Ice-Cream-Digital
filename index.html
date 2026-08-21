@@ -2637,4 +2637,184 @@ window.IC_renew = function(username){
 })();
 </script>
 
-</body></html>
+
+async function renderSingle(item, onProgress){
+  const info = window.calcDurInfo ? window.calcDurInfo(item) : {useLoop:false, playbackRate:1, finalDur: item.videoDur || 10};
+  const canvas = document.createElement('canvas');
+  canvas.width=720; canvas.height=900;
+  const ctx = canvas.getContext('2d', {alpha:false});
+  
+  // Video element para frames
+  const v = document.createElement('video');
+  v.src = item.videoUrl;
+  v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
+  v.playbackRate = info.playbackRate || 1;
+  
+  await new Promise(res=>{
+    v.onloadedmetadata=()=>res();
+    v.onerror=()=>res();
+    v.load();
+  });
+  
+  // Buscar primer frame no negro: empezar en 0.3s para evitar negro inicial de mp4
+  const START_OFFSET = 0.3;
+  const fps = 30;
+  const frameDur = 1/fps;
+  const totalDur = info.finalDur || (item.audioDur || item.videoDur || 10);
+  const totalFrames = Math.ceil(totalDur * fps);
+  
+  // Audio
+  let ac=null, dest=null, audioEl=null;
+  if(item.audioUrl){
+    try{
+      ac = new (window.AudioContext||window.webkitAudioContext)();
+      dest = ac.createMediaStreamDestination();
+      audioEl = document.createElement('audio');
+      audioEl.src = item.audioUrl;
+      audioEl.crossOrigin='anonymous';
+      const src = ac.createMediaElementSource(audioEl);
+      src.connect(dest);
+      src.connect(ac.destination);
+    }catch{}
+  }
+  
+  const stream = canvas.captureStream(fps);
+  if(dest && dest.stream){
+    dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
+  }
+  
+  const chunks=[];
+  const rec = new MediaRecorder(stream, {mimeType:'video/webm;codecs=vp9', videoBitsPerSecond:5000000, audioBitsPerSecond:128000});
+  rec.ondataavailable=e=>{ if(e.data && e.data.size) chunks.push(e.data); };
+  
+  const recDone = new Promise(res=>{ rec.onstop=()=>res(); });
+  
+  // Funcion para dibujar frame actual
+  function drawCurrentFrame(){
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
+    if(v.videoWidth){
+      const vw=v.videoWidth, vh=v.videoHeight;
+      const tgt=720/900, r=vw/vh;
+      let sx=0,sy=0,sw=vw,sh=vh;
+      if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
+      try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{}
+    }
+    // Subs
+    try{ if(window.drawSubs) window.drawSubs(ctx, item, v.currentTime); else if(window.renderOverlay) window.renderOverlay(ctx, item); }catch{}
+    // Si tienes funcion de dibujo de preview, reusala
+    try{ if(window.drawFrame) window.drawFrame(ctx, item); }catch{}
+  }
+  
+  // Pre-seek a START_OFFSET y dibujar 5 frames antes de grabar para eliminar negro
+  v.currentTime = Math.min(START_OFFSET, v.duration-0.1 || START_OFFSET);
+  await new Promise(res=>{
+    const onSeek=()=>{ v.removeEventListener('seeked', onSeek); res(); };
+    v.addEventListener('seeked', onSeek);
+    setTimeout(res, 500);
+  });
+  for(let k=0;k<5;k++){ drawCurrentFrame(); await new Promise(r=>setTimeout(r, 20)); }
+  
+  rec.start(100);
+  if(audioEl){ try{ await audioEl.play(); }catch{} }
+  
+  // OFFLINE: avanzar frame por frame sin depender de v.play()
+  for(let i=0;i<totalFrames;i++){
+    const t = START_OFFSET + (i*frameDur*(info.playbackRate||1));
+    // Loop handling
+    let seekT = t;
+    if(v.duration && seekT >= v.duration-0.05){
+      if(info.useLoop){
+        seekT = START_OFFSET + (seekT % (v.duration-START_OFFSET-0.1));
+      }else{
+        seekT = v.duration-0.05;
+      }
+    }
+    if(Math.abs(v.currentTime - seekT) > 0.02){
+      v.currentTime = seekT;
+      await new Promise(res=>{
+        const onSeek=()=>{ v.removeEventListener('seeked', onSeek); res(); };
+        v.addEventListener('seeked', onSeek);
+        setTimeout(res, 60);
+      });
+    }
+    drawCurrentFrame();
+    if(onProgress) onProgress((i/totalFrames)*100);
+    // Esperar tiempo real de frame para mantener 30fps en stream
+    await new Promise(r=>setTimeout(r, frameDur*1000));
+  }
+  
+  rec.stop();
+  if(audioEl) try{ audioEl.pause(); }catch{}
+  await recDone;
+  if(ac) try{ await ac.close(); }catch{}
+  
+  const blob = new Blob(chunks, {type:'video/webm'});
+  const url = URL.createObjectURL(blob);
+  return {url, ext:'webm', blob};
+}
+window.renderSingle = renderSingle;
+
+
+<script>
+(function(){
+  // Fix doble descarga
+  window._downloadedNames = window._downloadedNames || new Set();
+  const origQueueDownload = window.queueDownload;
+  window.queueDownload = function(url, name){
+    if(window._downloadedNames.has(name)){
+      console.log('[DL DEDUP] Ya descargado '+name+' - evitando doble');
+      return;
+    }
+    window._downloadedNames.add(name);
+    if(origQueueDownload) origQueueDownload(url, name);
+    else {
+      // fallback
+      try{
+        const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),1200);
+      }catch{}
+    }
+    // Permitir re-descarga manual despues de 8s limpiando set
+    setTimeout(()=>{ window._downloadedNames.delete(name); }, 8000);
+  };
+  
+  // Evitar doble click en RENDERIZAR TODO
+  const btn = document.getElementById('btnRender');
+  if(btn){
+    btn.addEventListener('click', function(){
+      if(window._rendering) { console.log('Render ya en curso - bloqueado doble click'); return; }
+      window._rendering = true;
+      btn.disabled = true;
+      btn.textContent = '⏳ RENDERIZANDO...';
+      // Se reactivara al terminar (el otro handler lo hace, pero por si acaso)
+      setTimeout(()=>{
+        window._rendering = false;
+        btn.disabled = false;
+        btn.textContent = '⚡ RENDERIZAR TODO';
+      }, 120000);
+    }, true);
+    
+    // Al terminar render, reactivar
+    const origOverlay = document.getElementById('renderOverlay');
+    const obs = new MutationObserver(()=>{
+      if(origOverlay.style.display==='none'){
+        window._rendering = false;
+        btn.disabled = false;
+        btn.textContent = '⚡ RENDERIZAR TODO';
+      }
+    });
+    obs.observe(origOverlay, {attributes:true, attributeFilter:['style']});
+  }
+  
+  // Limpiar set al hacer LIMPIAR TODO
+  const oldLimpiar = window.limpiarTodo;
+  window.limpiarTodo = function(){
+    window._downloadedNames = new Set();
+    window._dlQueue = [];
+    if(oldLimpiar) oldLimpiar.apply(this, arguments);
+  };
+  
+  console.log('[FIX] Doble descarga corregido');
+})();
+</script>
+
+</body></html
