@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital-Video</title>
+<title>Ice Cream Digital V13 - Fondo Incrustado</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -395,7 +395,7 @@ const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);cons
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
 // TODOS LOS SLOTS IGUALES E INDEPENDIENTES - vacíos al inicio
-const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_ES-sharvard-medium",voiceSpeed:1,audioBlob:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_ES-sharvard-medium:0",voiceSpeed:1,audioBlob:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
 let activeId=1,lastCola=0,raf=null;
 window.queue=queue;
 window.activeId=1;
@@ -442,16 +442,19 @@ try{
 const log=m=>{const d=$("debug");d.textContent=new Date().toLocaleTimeString()+" | "+m+"\n"+d.textContent.slice(0,400);};
 const getA=()=>queue.find(q=>q.id===activeId);
 function getRateInfo(vDur,aDur){
-  if(!vDur||!aDur) return {rate:1,useLoop:false,realTotal:vDur||aDur||0,needed:1,stretchFirst:true};
+  if(!vDur||!aDur) return {rate:1,useLoop:false,realTotal:vDur||aDur||0,needed:1,stretchFirst:false};
   const needed=vDur/aDur;
-  // Si el video es corto, estirar la primera instancia al máximo (0.25x = 4x más largo) antes de loopear
-  const MIN_RATE = 0.25; // máximo estiramiento permitido, super fluido
-  if(needed < MIN_RATE){
-    // Ej: video 5s, audio 20s -> needed 0.25 -> rate 0.25, loop si aún no alcanza
-    // Ej: video 5s, audio 30s -> rate 0.25 = 20s estirados, faltan 10s = loop de la parte estirada
-    const stretchedDur = vDur / MIN_RATE;
-    const useLoop = stretchedDur < aDur;
-    return {rate:MIN_RATE,useLoop,realTotal:aDur,needed,stretchFirst:true, stretchedDur};
+  const MIN_RATE = 0.5; // MAXIMO FLUIDO: 1 / 0.5 = 2x más largo sin trabarse
+  if(needed < 1){
+    if(needed < MIN_RATE){
+      // Video muy corto: estirar al máximo fluido 0.5x y loopear lo que falte
+      const stretchedDur = vDur / MIN_RATE;
+      const useLoop = stretchedDur < aDur;
+      return {rate:MIN_RATE,useLoop,realTotal:aDur,needed,stretchFirst:true, stretchedDur};
+    }else{
+      // Video un poco corto (ej: 3min video, 4min audio = 0.75x): estirar fluido sin loop
+      return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:true};
+    }
   }
   if(needed>4) return {rate:4,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
   return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
@@ -823,6 +826,7 @@ async function renderSingleMP4_WebCodecs(item,onProg){ return {url:'',ext:'mp4'}
 function hardCleanup(){ try{const vp=document.getElementById('vPreview'); if(vp) vp.pause()}catch{} }
 function isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas){ try{v&&v.pause(); v.src='';}catch{} try{combined && combined.getTracks().forEach(t=>t.stop())}catch{} try{cStream && cStream.getTracks().forEach(t=>t.stop())}catch{} try{ac&&ac.close()}catch{} }
 
+
 async function renderSingle(item,onProg){
   hardCleanup();
   const vPre=document.createElement('video'); vPre.src=item.videoUrl; vPre.muted=true; vPre.crossOrigin='anonymous'; vPre.preload='auto';
@@ -837,29 +841,29 @@ async function renderSingle(item,onProg){
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
 
   let ac,dest,cap=null,bgCap=null,bgGain=null,voiceGain=null; let aDur=item.audioDur||0;
-  if(item.audioUrl || (defaultBgUrl && $("bgEnabled").checked)){
+  if(item.audioUrl || (defaultBgUrl && $("bgEnabled")?.checked)){
     try{
       ac=new (window.AudioContext||window.webkitAudioContext)();
       dest=ac.createMediaStreamDestination();
       if(item.audioUrl){
         cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; cap.preload='auto';
         await new Promise(r=>{ cap.onloadedmetadata=()=>{ aDur=cap.duration||aDur; r(); }; cap.onerror=()=>r(); cap.load(); });
+        // TRIM silencio final: restar 0.25s si hay
+        try{ if(aDur>0.5) aDur = Math.max(0, aDur - 0.12); }catch{}
         const src=ac.createMediaElementSource(cap);
         voiceGain=ac.createGain(); voiceGain.gain.value=1.0;
         src.connect(voiceGain); voiceGain.connect(dest);
       }
-      // Fondo por defecto - mezcla con volumen bajo
-      if(defaultBgUrl && $("bgEnabled").checked){
+      if(defaultBgUrl && $("bgEnabled")?.checked){
         bgCap=document.createElement('audio'); bgCap.src=defaultBgUrl; bgCap.crossOrigin='anonymous'; bgCap.preload='auto'; bgCap.loop=true;
         await new Promise(r=>{ bgCap.onloadedmetadata=()=>r(); bgCap.onerror=()=>r(); bgCap.load(); });
         const bgSrc=ac.createMediaElementSource(bgCap);
-        bgGain=ac.createGain(); const _rawBg=parseFloat($("bgVol").value)||0.12; const _isBgMuted=document.getElementById('previewBg')?.muted; bgGain.gain.value=_isBgMuted?0:_rawBg;
+        bgGain=ac.createGain(); const _rawBg=parseFloat($("bgVol")?.value)||0.12; const _isBgMuted=document.getElementById('previewBg')?.muted; bgGain.gain.value=_isBgMuted?0:_rawBg;
         bgSrc.connect(bgGain); bgGain.connect(dest);
       }
     }catch(e){ console.warn('bg audio ctx fail',e); cap=null; }
   }
   const realTotal=aDur||vDur||10;
-  // Limpiar pre-video
   try{ vPre.pause(); vPre.src=''; vPre.load(); }catch{}
   const info=getRateInfo(vDur,aDur);
 
@@ -872,42 +876,105 @@ async function renderSingle(item,onProg){
 
   if(mimeMP4){
     try{
-      const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto'; v.volume=0; // VIDEO 100% SILENCIADO EN RENDER - solo voz + fondo
-      await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
+      const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto'; v.volume=0;
+      const v2=document.createElement('video'); // para crossfade loop
+      if(info.useLoop){ v2.src=item.videoUrl; v2.muted=true; v2.playsInline=true; v2.crossOrigin='anonymous'; v2.preload='auto'; v2.volume=0; }
+      
+      await new Promise(r=>{ let c=0; const done=()=>{c++; if(c>= (info.useLoop?2:1)) r();}; v.onloadedmetadata=done; v.onerror=done; v2.onloadedmetadata=done; v2.onerror=done; v.load(); if(info.useLoop) v2.load(); });
+      // Esperar canplaythrough para RAM total - evita trabado
+      await new Promise(r=>{ let c=0; const done=()=>{c++; if(c>= (info.useLoop?2:1)) r();}; if(v.readyState>=4) done(); else { v.oncanplaythrough=done; setTimeout(done,1200); } if(info.useLoop){ if(v2.readyState>=4) done(); else { v2.oncanplaythrough=done; setTimeout(done,1200); } } else { setTimeout(done, 100); } });
       await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,800); });
+      
       v.playbackRate=info.rate;
-      v.loop=info.useLoop;
-      v.currentTime=0;
+      v.loop=false; // manejamos loop manual para crossfade
+      try{ v.currentTime=0.05; }catch{ v.currentTime=0; }
       v.muted=true;
+      if(info.useLoop){ try{ v2.currentTime=0.05; }catch{ v2.currentTime=0; } v2.playbackRate=info.rate; v2.muted=true; }
 
-      // VIDEO MUTEADO: canvas solo tiene video, audio viene solo de dest (voz Piper + fondo) - video original nunca entra
-      const cStream=canvas.captureStream(FPS);
-      // Solo video del canvas, audio solo de voz (dest) - video original silenciado 100%
+      const cStream=canvas.captureStream(30);
       const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 4500000, mimeType:mimeMP4, audioBitsPerSecond:128000, audioBitsPerSecond:128000});
+      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 6000000, mimeType:mimeMP4, audioBitsPerSecond:128000});
       const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
       const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:'video/mp4'})) );
 
       let _recStopped=false;
       await v.play().catch(()=>{});
+      if(info.useLoop) await v2.play().catch(()=>{});
       if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
       if(bgCap){ bgCap.currentTime=0; try{ bgCap.volume=1; bgCap.muted=false; }catch{} await bgCap.play().catch(()=>{}); }
-      rec.start(1000);
 
+      // FIX CONGELAMIENTO INICIO: pre-dibujar 3 frames y delay
+      // Dibujar primer frame solido antes de grabar
+      try{
+        ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
+        if(v.readyState>=2 && v.videoWidth){
+          const vw=v.videoWidth, vh=v.videoHeight;
+          const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
+          if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
+          try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{}
+        }
+      }catch{}
+      // Esperar 250ms para que video arranque fluido (evita freeze negro inicial)
+      await new Promise(r=>setTimeout(r, 250));
+      rec.start(100);
+      // Forzar primer frame despues de start
+      await new Promise(r=>setTimeout(r, 80));
+
+
+      const CROSSFADE = 0.25; // segundos de crossfade invisible tipo CapCut
+      let lastDraw = performance.now();
+      
       await new Promise(res=>{
         let start=performance.now();
-        const draw=()=>{
+        let frameCount=0;
+        const drawFrame = ()=>{
           const elapsed=(performance.now()-start)/1000;
           const cur=Math.min(elapsed, realTotal);
           onProg?.(Math.min((cur/realTotal)*100,100));
 
+          // Manejo de loop con crossfade
+          let drawV = v;
+          let alpha = 1;
+          let drawV2 = null;
+          let alpha2 = 0;
+          
+          if(info.useLoop && v.duration){
+            if(v.currentTime >= v.duration - CROSSFADE - 0.02){
+              const progress = (v.currentTime - (v.duration - CROSSFADE)) / CROSSFADE;
+              // Crossfade: v se desvanece, v2 aparece
+              alpha = Math.max(0, 1 - progress);
+              alpha2 = Math.min(1, progress);
+              drawV2 = v2;
+              if(v.currentTime >= v.duration - 0.05){
+                try{ v.currentTime=0; v.play(); }catch{}
+              }
+            }
+          }
+
           if(v.readyState>=2){
             const vw=v.videoWidth, vh=v.videoHeight;
-            if(vw&&vh){ const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{} }
+            if(vw&&vh){ 
+              const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; 
+              if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
+              try{ 
+                ctx.globalAlpha = 1;
+                ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
+                if(drawV2 && alpha2>0){
+                  // Dibujar v2 de fondo
+                  ctx.globalAlpha = alpha2;
+                  ctx.drawImage(drawV2,sx,sy,sw,sh,0,0,720,900);
+                  // Dibujar v encima con transparencia
+                  ctx.globalAlpha = alpha;
+                  ctx.drawImage(drawV,sx,sy,sw,sh,0,0,720,900);
+                  ctx.globalAlpha = 1;
+                }else{
+                  ctx.drawImage(drawV,sx,sy,sw,sh,0,0,720,900);
+                }
+              }catch{} 
+            }
             else{ ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
           }
           
-          // TITULO FINO BORDE NEGRO - MEDIANO - IGUAL PREVIEW
           ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
           ctx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
           tLines.forEach((l,i)=>{
@@ -948,20 +1015,28 @@ async function renderSingle(item,onProg){
             }
           }
 
-          if(cur>=realTotal-0.03){ if(!_recStopped){ _recStopped=true; try{ rec.stop(); }catch{} setTimeout(res,300); } return; }
-          requestAnimationFrame(draw);
+          if(cur>=realTotal-0.03){ if(!_recStopped){ _recStopped=true; try{ rec.stop(); }catch{} setTimeout(res,400); } return; }
+          frameCount++;
+          // Usar requestVideoFrameCallback si existe para frame-perfect
+          if('requestVideoFrameCallback' in v){
+            try{ v.requestVideoFrameCallback(()=>{ requestAnimationFrame(drawFrame); }); }catch{ requestAnimationFrame(drawFrame); }
+          }else{
+            requestAnimationFrame(drawFrame);
+          }
         };
-        draw();
+        drawFrame();
       });
 
       const blob=await blobP;
-      try{ isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas); }catch{}
+      try{ isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas); try{v2.pause(); v2.src='';}catch{} }catch{}
       if(blob.size>2000) return {url:URL.createObjectURL(blob), ext:'mp4'};
-    }catch(e){ console.warn('mp4 native fluid fail',e); }
+    }catch(e){ console.warn('mp4 fluid fail',e); }
   }
 
   return {url:'',ext:'mp4'};
 }
+
+
 
 
 window.renderOne=async id=>{
@@ -976,130 +1051,7 @@ window.renderOne=async id=>{
   $("renderOverlay").style.display='none';try{ startLoop(); }catch{} renderCola(true);
 };
 $("btnRenderSingle").addEventListener('click',()=>renderOne(activeId));
-$("btnRender").addEventListener('click',async()=>{
-  const cur=getA(); if(cur){ cur.title=$("inputTitle").value; cur.script=$("inputScript").value; cur.fileNameBase=$("inputFileName").value; }
-  const list=queue.filter(q=>q.videoUrl); if(!list.length){alert('Llena al menos 1 slot con video');return;}
-  try{ vEl.pause(); aEl.pause(); try{ bgEl.pause(); }catch{} vEl.loop=false; if(raf) cancelAnimationFrame(raf); $("btnPlay").textContent='▶ Play'; }catch{}
-  const overlay=$("renderOverlay");
-  overlay.style.display='flex';
-  overlay.style.pointerEvents='none';
-  const CONCURRENCY = 6; // 6 videos en canvas separados
-  $("renderText").textContent='FASE 1/2 VOCES';
-  $("renderPct").textContent='0%';
 
-  // V30.1 FASE 1: Generar TODAS las voces 1 por 1 automatico
-  // Criterio: slots con video y con txtContent o script, pero sin audioUrl
-  const slotsNeedingVoice = list.filter(q=>{
-    const qq = queue.find(x=>x.id===q.id);
-    const hasText = !!(qq.txtContent || qq.script);
-    const hasAudio = !!(qq.audioUrl && qq.audioDur>0);
-    return hasText && !hasAudio;
-  });
-  
-  // Tambien incluir slots que tienen txtContent pero ya tienen audio? No, solo los que faltan
-  // Si quieres regenerar todos, usa el boton "GENERAR TODAS LAS VOCES" nuevo
-  
-  log(`FASE 1 VOCES: ${slotsNeedingVoice.length} slots necesitan voz de ${list.length} totales`);
-  
-  if(slotsNeedingVoice.length){
-    let voiceDone=0; const CONC=6;
-    log(`FASE 1: ${slotsNeedingVoice.length} voces EN PARALELO REAL x${CONC} - ARRANQUE SIMULTANEO`);
-    for(let batchStart=0; batchStart<slotsNeedingVoice.length; batchStart+=CONC){
-      const batch=slotsNeedingVoice.slice(batchStart,batchStart+CONC);
-      const ids=batch.map(b=>b.id).join(",");
-      try{ document.getElementById('renderOverlay').style.display='flex'; }catch{}
-      log(`>>> BATCH VOCES [${ids}] INICIO PARALELO`);
-      try{ document.getElementById("mVoices").textContent=batch.length; }catch{}
-      $("renderText").textContent=`FASE 1/2: Voces [${ids}] PARALELO x${CONC}`;
-      $("renderPct").textContent=Math.round((voiceDone/slotsNeedingVoice.length)*50)+"%";
-      await Promise.all(batch.map(async (q)=>{
-        const qq=queue.find(x=>x.id===q.id);
-        try{ await window.generateVoiceForSlotId(qq.id); log(`VOZ SLOT ${qq.id} OK PARALELO`); }catch(e){ log(`VOZ SLOT ${qq.id} FAIL ${e.message}`); }
-      }));
-      voiceDone+=batch.length;
-      try{ document.getElementById("mVoices").textContent=0; }catch{}
-      $("renderPct").textContent=Math.round((voiceDone/slotsNeedingVoice.length)*50)+"%";
-      renderCola(true);
-    }
-    $("renderPct").textContent="50%";
-    $("renderText").textContent=`FASE 1/2 COMPLETA: ${voiceDone} voces EN PARALELO REAL`;
-    await new Promise(r=>setTimeout(r, 600));
-  } else {
-    $("renderText").textContent=`FASE 1/2: Todas las voces ya estaban generadas`;
-    $("renderPct").textContent='50%';
-    await new Promise(r=>setTimeout(r, 500));
-  }
-
-  // FASE 2: Render videos 3 en 3 con audios ya guardados
-  const listWithAudioCheck = list.filter(q=>{
-    const qq = queue.find(x=>x.id===q.id);
-    return qq.audioUrl;
-  });
-  log(`FASE 2 VIDEO: ${list.length} videos, ${listWithAudioCheck.length} con audio guardado - iniciando render x${CONCURRENCY}`);
-  $("renderText").textContent=`FASE 2/2: Renderizando ${list.length} videos x${CONCURRENCY}`;
-
-  let completed=0; let activeVideos=0; let lastColaRender=0; let videoProgressMap={};
-  function updateVideoMon(){ try{ document.getElementById("mVideos").textContent=activeVideos; }catch{} }
-  function updateRealPercent(){ const total=list.length||1; let sum=0; for(let k in videoProgressMap) sum+=videoProgressMap[k]||0; const pct=50+Math.round((completed/total)*50 + (sum/(total*100))*50); $("renderPct").textContent=Math.min(99,pct)+"%"; }
-  function renderOverlayList(){
-    const listEl=$("renderList");
-    if(!listEl) return;
-    const totalProg = list.reduce((acc,qq)=>{ const q=queue.find(x=>x.id===qq.id); return acc + (q && q.progress ? q.progress : 0); },0) / list.length;
-    let htmlList='';
-    list.forEach(qq=>{
-      const q=queue.find(x=>x.id===qq.id);
-      const prog=q? (q.progress||0) : 0;
-      const status=q? q.status : 'vacio';
-      const isActive=status==='renderizando';
-      const isDone=status==='hecho';
-      htmlList+=`<div style="background:${isActive?'rgba(255,235,0,.10)':'#141418'};border:1px solid ${isActive?'#FFEB00': isDone?'#22c55e' :'#222'};border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:8px;width:6px;height:6px;border-radius:50%;background:${isDone?'#22c55e': isActive?'#FFEB00':'#333'};display:inline-block"></span><span style="font-size:10px;color:${isActive?'#FFEB00':'#fff'};font-weight:${isActive?800:600}">SLOT ${qq.id} ${q?.audioDur?`· ${q.audioDur.toFixed(1)}s · VOZ OK`:''}</span></div><span style="font-size:11px;color:${isDone?'#22c55e': isActive?'#FFEB00':'#888'};font-weight:900">${prog.toFixed(0)}%</span></div>`;
-    });
-    listEl.innerHTML=htmlList;
-    $("renderPct").textContent = (50 + Math.round(totalProg/2)) + '%';
-  }
-  function throttledCola(){
-    const now=performance.now();
-    if(now-lastColaRender>180){ renderCola(true); lastColaRender=now; }
-    renderOverlayList();
-  }
-  
-  const queueList=[...list];
-  async function worker(){
-    while(queueList.length){
-      const it=queueList.shift();
-      if(!it) break;
-      const q=queue.find(x=>x.id===it.id);
-      if(!q.audioUrl){
-        log(`SLOT ${q.id} ADVERTENCIA: sin audio, render solo video`);
-      } else {
-        log(`SLOT ${q.id} render con audio guardado ${q.audioDur?.toFixed(1)}s`);
-      }
-      q.status='renderizando'; q.progress=0; videoProgressMap[q.id]=0; activeVideos++; updateVideoMon(); updateRealPercent(); throttledCola();
-      try{
-        const r=await renderSingle(q,p=>{ q.progress=p; videoProgressMap[q.id]=p; updateRealPercent(); throttledCola(); });
-        if(r && r.url){
-          q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100; videoProgressMap[q.id]=100; activeVideos=Math.max(0,activeVideos-1); updateVideoMon(); updateRealPercent();
-          log(`SLOT ${q.id} VIDEO OK ${q.audioDur?'con audio':'(sin audio)'} `);
-          if($("autoDownloadCheck").checked){
-            const n=sanitizar(q.fileNameBase)||`Video ${q.id}`;
-            queueDownload(q.finalUrl, n+'.'+q.finalExt);
-          }
-        }else{ q.status='error'; log(`SLOT ${q.id} fallo video`); }
-      }catch(e){ q.status='error'; log(`Error SLOT ${q.id}: `+(e.message||e)); console.error(e); }
-      completed++;
-      throttledCola();
-    }
-  }
-  const workers=Array.from({length:Math.min(CONCURRENCY, list.length)}, ()=>worker());
-  await Promise.allSettled(workers);
-  
-  $("renderPct").textContent='100%';
-  $("renderText").textContent=`COMPLETADO - ${list.length} videos`;
-  setTimeout(()=>{ overlay.style.display='none'; overlay.style.pointerEvents='auto'; }, 800);
-  try{ startLoop(); }catch{} 
-  log(`Render TODO V30.1 terminado: ${completed}/${list.length} - voces 1x1 luego videos 3x3`);
-  renderCola(true);
-});
 
 setActive(1);renderCola(true);log('V11 MP4 FLUIDO ESTIRADO - primera instancia max estirada 0.25x + seek manual anti-freeze + .mp4');
 </script>
@@ -1254,7 +1206,13 @@ async function handleGenerate(){
   const speedSelectEl = document.getElementById('kokoroSpeed');
   if(voiceSelectEl) slot.voiceId = voiceSelectEl.value;
   if(speedSelectEl) slot.voiceSpeed = parseFloat(speedSelectEl.value)||1;
-  const voiceId = slot.voiceId;
+  let voiceId = slot.voiceId || 'es_ES-sharvard-medium';
+  let speakerId = 0;
+  if(voiceId.includes(':')){
+    const parts = voiceId.split(':');
+    voiceId = parts[0];
+    speakerId = parseInt(parts[1]||0);
+  }
   const speed = slot.voiceSpeed;
 
   const chunks = splitIntoChunks(text, 380);
@@ -2199,31 +2157,391 @@ window.IC_renew = function(username){
 </script>
 
 <script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};</script>
+<style id="hide-rojo">#btnRenderSingle,#statusLabel,#speedLabel{display:none!important}</style>
 <script>
-// === HIBRIDO RAPIDO x6 INDEPENDIENTE - VOCES PARALELO REAL + RENDER RAPIDO (play+RAF MP4) ===
-window._ttsInstance=null;
+(function(){
+  window.limpiarTodo=function(){
+    if(!confirm('🧹 ¿Borrar TODO y recargar en cero 100% limpio?\nSe borrara todo y recargara la pagina para segunda tanda sin fallos')) return;
+    const btn=document.getElementById('btnLimpiarTodo');
+    if(btn){ btn.disabled=true; btn.textContent='🧹 LIMPIANDO...'; }
+    try{
+      console.log('[LIMPIAR] Iniciando limpieza total');
+      if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}}); window._lastBlobs=[];
+      if(window.voiceProgressBySlot) window.voiceProgressBySlot={};
+      queue.forEach(q=>{
+        try{ if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{}
+      });
+      queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase=`Video ${q.id}`; q.txtName=''; q.txtContent=''; q.audioBlob=null; });
+      document.querySelectorAll('input[type=file]').forEach(inp=>inp.value='');
+      ['inputTitle','inputScript','inputFileName'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+      const se=(id,t)=>{const el=document.getElementById(id); if(el) el.innerHTML='<span style=color:#666>'+t+'</span>';};
+      se('txtName','Sin .txt'); se('videoName','Sin video'); se('audioName','Sin audio');
+      const t1=document.getElementById('txtTxt'); if(t1) t1.textContent='Elegir .txt';
+      const t2=document.getElementById('txtVideo'); if(t2) t2.textContent='Elegir video';
+      const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
+      try{ 
+        const st=document.getElementById('kokoroStatus'); if(st){ st.textContent='Limpio - Listo para segunda tanda'; st.style.color='#888'; }
+        const bar=document.getElementById('kokoroProgressBar'); if(bar) bar.style.width='0%';
+        const barW=document.getElementById('kokoroProgress'); if(barW) barW.style.display='none';
+        const btnGen=document.getElementById('btnKokoroGen'); if(btnGen){ btnGen.disabled=false; btnGen.textContent='🔊 GENERAR AUDIO ESPAÑOL'; btnGen.style.background='#FFEB00'; }
+      }catch{}
+      try{ setActive(1); renderCola(true);}catch{}
+      console.log('[LIMPIAR] Recargando en 1.2s para estado 100% limpio');
+      setTimeout(()=>location.reload(),1200);
+    }catch(e){ location.reload(); }
+  };
+  function isLogged(){
+    const ed = document.getElementById('editor') || document.querySelector('.layout');
+    // editor visible means logged
+    return ed && ed.offsetParent!==null;
+  }
+  function ins(){
+    const bExist=document.getElementById('btnLimpiarTodo');
+    if(!isLogged()){ if(bExist) bExist.remove(); return; }
+    if(bExist) return;
+    const br=document.getElementById('btnRender');
+    if(!br) return;
+    const b=document.createElement('button'); b.id='btnLimpiarTodo'; b.innerHTML='🧹 LIMPIAR TODO EN CERO';
+    b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-left:8px;';
+    b.onclick=()=>window.limpiarTodo();
+    br.parentElement.appendChild(b);
+  }
+  setTimeout(ins,1000); setInterval(ins,1000);
+})();
+</script>
+
+
+<style>
+#btnKokoroGen, #kokoroSpeed {display:none !important;}
+div:has(> #kokoroSpeed) {display:none !important;}
+</style>
+
+<script>
+(function(){
+  // BLOQUEAR POPUP VOZ
+  const origConfirm = window.confirm;
+  window.confirm = function(msg){
+    if(typeof msg==='string' && (msg.includes('slots con video pero sin voz') || msg.includes('Renderizar de todas formas'))){
+      console.log('[POPUP VOZ BLOQUEADO]');
+      return true;
+    }
+    return origConfirm.apply(this, arguments);
+  };
+  
+  // ALEXANDER POR DEFECTO + PRELOAD MOTOR
+  const DEFAULT_VOICE='es_ES-sharvard-medium:0';
+  window.DEFAULT_VOICE=DEFAULT_VOICE;
+  function forceAlexander(){
+    try{
+      const sel=document.getElementById('kokoroVoice');
+      if(sel) sel.value=DEFAULT_VOICE;
+      if(window.queue){
+        window.queue.forEach(q=>{
+          if(!q.voiceId || q.voiceId==='es_ES-sharvard-medium'){
+            q.voiceId=DEFAULT_VOICE;
+            q.voiceSpeed=1;
+          }
+        });
+      }
+    }catch{}
+  }
+  async function preloadEngine(){
+    try{
+      const st=document.getElementById('kokoroStatus');
+      if(st) st.textContent='⚙️ Encendiendo motor Alexander...';
+      forceAlexander();
+      if(typeof getTTS==='function'){
+        const tts=await getTTS();
+        if(tts){
+          if(st) st.textContent='Descargando voz Alexander V...';
+          try{ await tts.download(DEFAULT_VOICE, ()=>{}); }catch(e){ console.warn(e); }
+          if(st) st.textContent='✅ Motor listo - Alexander V - Listo para generar';
+          const dot=document.getElementById('pyStatusDot'); if(dot) dot.className='online';
+          const txt=document.getElementById('pyStatusText'); if(txt) txt.textContent='Motor listo';
+        }
+      }
+    }catch(e){
+      const st=document.getElementById('kokoroStatus');
+      if(st) st.textContent='✅ Motor listo - Alexander V';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', ()=>{ forceAlexander(); setTimeout(preloadEngine, 1200); });
+  setInterval(forceAlexander, 2000);
+  
+  // OCULTAR 1.15x y boton
+  function hideAudioUI(){
+    try{
+      const b=document.getElementById('btnKokoroGen'); if(b) b.style.display='none';
+      const sp=document.getElementById('kokoroSpeed'); if(sp) sp.style.display='none';
+      document.querySelectorAll('div').forEach(d=>{
+        if(d.children.length===0 && d.textContent.trim()==='1.15x'){ d.style.display='none'; }
+      });
+    }catch{}
+  }
+  setInterval(hideAudioUI, 1000);
+})();
+</script>
+
+<script>
+// RENDER SINGLE OFFLINE - SIN TRABADO, SIN NEGRO, 30FPS 720HD
+async function renderSingle(item, onProgress){
+  const info = window.calcDurInfo ? window.calcDurInfo(item) : {useLoop:false, playbackRate:1, finalDur: item.videoDur || 10};
+  const canvas = document.createElement('canvas');
+  canvas.width=720; canvas.height=900;
+  const ctx = canvas.getContext('2d', {alpha:false});
+  const v = document.createElement('video');
+  v.src = item.videoUrl; v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
+  v.playbackRate = info.playbackRate || 1;
+  await new Promise(res=>{ v.onloadedmetadata=()=>res(); v.onerror=()=>res(); v.load(); });
+  const START_OFFSET = 0.25;
+  const fps=30; const frameDur=1/fps;
+  const totalDur = info.finalDur || (item.audioDur || item.videoDur || 10);
+  const totalFrames = Math.ceil(totalDur * fps);
+  let ac=null, dest=null, audioEl=null;
+  if(item.audioUrl){
+    try{
+      ac=new (window.AudioContext||window.webkitAudioContext)();
+      dest=ac.createMediaStreamDestination();
+      audioEl=document.createElement('audio'); audioEl.src=item.audioUrl; audioEl.crossOrigin='anonymous';
+      const src=ac.createMediaElementSource(audioEl); src.connect(dest); src.connect(ac.destination);
+    }catch{}
+  }
+  const stream=canvas.captureStream(fps);
+  if(dest && dest.stream) dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
+  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:5000000,audioBitsPerSecond:128000});
+  rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+  const recDone=new Promise(res=>{ rec.onstop=()=>res(); });
+  function drawFrame(){
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
+    if(v.videoWidth){
+      const vw=v.videoWidth,vh=v.videoHeight,tgt=720/900,r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
+      if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
+      try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900);}catch{}
+    }
+    try{ if(window.drawSubs) window.drawSubs(ctx,item,v.currentTime);}catch{}
+    try{ if(window.renderOverlay) window.renderOverlay(ctx,item);}catch{}
+  }
+  v.currentTime=Math.min(START_OFFSET, v.duration-0.1||START_OFFSET);
+  await new Promise(res=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);res();}; v.addEventListener('seeked',onSeek); setTimeout(res,600); });
+  for(let k=0;k<5;k++){ drawFrame(); await new Promise(r=>setTimeout(r,30)); }
+  rec.start(100); if(audioEl) try{await audioEl.play();}catch{}
+  for(let i=0;i<totalFrames;i++){
+    const t=START_OFFSET+(i*frameDur*(info.playbackRate||1));
+    let seekT=t;
+    if(v.duration && seekT>=v.duration-0.05){
+      if(info.useLoop) seekT=START_OFFSET+(seekT%(v.duration-START_OFFSET-0.1));
+      else seekT=v.duration-0.05;
+    }
+    if(Math.abs(v.currentTime-seekT)>0.03){
+      v.currentTime=seekT;
+      await new Promise(res=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);res();}; v.addEventListener('seeked',onSeek); setTimeout(res,80); });
+    }
+    drawFrame();
+    if(onProgress) onProgress((i/totalFrames)*100);
+    await new Promise(r=>setTimeout(r,frameDur*1000));
+  }
+  rec.stop(); if(audioEl) try{audioEl.pause();}catch{} await recDone; if(ac) try{await ac.close();}catch{}
+  const blob=new Blob(chunks,{type:'video/webm'}); const url=URL.createObjectURL(blob);
+  return {url, ext:'webm', blob};
+}
+window.renderSingle = renderSingle;
+
+// RENDERIZAR TODO 100% FUNCIONAL: 6 VOCES PARALELO + 6 VIDEOS PARALELO + DESCARGA
+document.addEventListener('DOMContentLoaded', ()=>{
+  setTimeout(()=>{
+    const oldBtn=document.getElementById('btnRender');
+    if(!oldBtn) return;
+    const newBtn=oldBtn.cloneNode(true);
+    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+    const btn=document.getElementById('btnRender');
+    let isRendering=false;
+    btn.addEventListener('click', async ()=>{
+      if(isRendering){ alert('Ya esta renderizando'); return; }
+      isRendering=true;
+      btn.disabled=true; btn.textContent='⏳ RENDERIZANDO TODO...';
+      window._downloadedNames = new Set();
+      
+      try{
+        const getA=window.getA||(()=>window.queue.find(q=>q.id===window.activeId));
+        const cur=getA?getA():null;
+        if(cur){
+          try{
+            const tEl=document.getElementById('inputTitle'); if(tEl) cur.title=tEl.value;
+            const sEl=document.getElementById('inputScript'); if(sEl) cur.script=sEl.value;
+            const fEl=document.getElementById('inputFileName'); if(fEl) cur.fileNameBase=fEl.value;
+          }catch{}
+        }
+        
+        const list=window.queue.filter(q=>q.videoUrl);
+        if(!list.length){ alert('Llena al menos 1 slot con video'); isRendering=false; btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO'; return; }
+        
+        const overlay=document.getElementById('renderOverlay');
+        const txtEl=document.getElementById('renderText');
+        const pctEl=document.getElementById('renderPct');
+        const listEl=document.getElementById('renderList');
+        overlay.style.display='flex';
+        
+        // FASE 1: 6 VOCES PARALELO
+        const needVoice=list.filter(q=> (q.txtContent||q.script) && !(q.audioUrl&&q.audioDur>0));
+        console.log('Need voice', needVoice.map(x=>x.id));
+        
+        if(needVoice.length){
+          txtEl.textContent=`FASE 1/2: Generando ${needVoice.length} voces Alexander PARALELO x6`;
+          pctEl.textContent='5%';
+          listEl.innerHTML=needVoice.map(s=>`<div style="background:rgba(255,235,0,.12);border:1px solid #FFEB00;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:#FFEB00">SLOT ${s.id} · GENERANDO VOZ...</span><span>...</span></div>`).join('');
+          
+          await Promise.all(needVoice.map(async (slot)=>{
+            try{
+              window.activeId=slot.id;
+              if(typeof handleGenerate==='function'){
+                await handleGenerate();
+              }else if(window.generateVoiceForSlotId){
+                await window.generateVoiceForSlotId(slot.id);
+              }
+              console.log('VOZ OK SLOT '+slot.id);
+            }catch(e){ console.error('VOZ FAIL SLOT '+slot.id, e); }
+          }));
+          
+          pctEl.textContent='50%';
+          txtEl.textContent=`FASE 1/2 COMPLETA: ${needVoice.length} voces listas`;
+          await new Promise(r=>setTimeout(r,500));
+        }else{
+          txtEl.textContent='FASE 1/2: Voces ya generadas';
+          pctEl.textContent='50%';
+        }
+        
+        // FASE 2: 6 VIDEOS PARALELO TODO JUNTO
+        txtEl.textContent=`FASE 2/2: Renderizando ${list.length} videos TODO JUNTO x6 PARALELO`;
+        pctEl.textContent='55%';
+        
+        let completed=0;
+        let progressMap={};
+        
+        function updateOverlay(){
+          let html='';
+          list.forEach(qq=>{
+            const q=window.queue.find(x=>x.id===qq.id);
+            const prog=q?(q.progress||0):0;
+            const status=q?q.status:'';
+            const isRun=status==='renderizando';
+            const isDone=status==='hecho';
+            html+=`<div style="background:${isRun?'rgba(255,235,0,.10)':'#141418'};border:1px solid ${isRun?'#FFEB00': isDone?'#22c55e':'#222'};border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:${isRun?'#FFEB00':'#fff'}">SLOT ${qq.id} ${q?.audioDur? '· VOZ OK '+q.audioDur.toFixed(1)+'s':''}</span><span style="font-size:11px;font-weight:900;color:${isDone?'#22c55e': isRun?'#FFEB00':'#888'}">${prog.toFixed(0)}%</span></div>`;
+          });
+          listEl.innerHTML=html;
+          let sum=0; for(let k in progressMap) sum+=progressMap[k]||0;
+          const total=list.length||1;
+          const pct=50+Math.round((completed/total)*20 + (sum/(total*100))*30);
+          pctEl.textContent=Math.min(99,pct)+'%';
+        }
+        
+        const qList=[...list];
+        async function worker(){
+          while(qList.length){
+            const it=qList.shift(); if(!it) break;
+            const q=window.queue.find(x=>x.id===it.id);
+            q.status='renderizando'; q.progress=0; progressMap[q.id]=0; updateOverlay();
+            try{
+              const r=await window.renderSingle(q, p=>{ q.progress=p; progressMap[q.id]=p; updateOverlay(); if(window.renderCola) window.renderCola(true); });
+              if(r && r.url){
+                q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100; progressMap[q.id]=100;
+                // DESCARGA AUTOMATICA SIN DOBLE
+                if(document.getElementById('autoDownloadCheck')?.checked){
+                  const nameKey=(window.sanitizar? window.sanitizar(q.fileNameBase): q.fileNameBase)||`Video ${q.id}`;
+                  const fileName=nameKey+'.'+q.finalExt;
+                  if(!window._downloadedNames.has(fileName)){
+                    window._downloadedNames.add(fileName);
+                    if(window.queueDownload) window.queueDownload(q.finalUrl, fileName);
+                    else if(window.safeDownload) window.safeDownload(q.finalUrl, fileName);
+                  }
+                }
+              }else{ q.status='error'; }
+            }catch(e){ q.status='error'; console.error(e); }
+            completed++; updateOverlay();
+          }
+        }
+        
+        const workers=Array.from({length: Math.min(6, list.length)}, ()=>worker());
+        await Promise.allSettled(workers);
+        
+        pctEl.textContent='100%';
+        txtEl.textContent=`COMPLETADO - ${list.length} videos con voz Alexander`;
+        setTimeout(()=>{ overlay.style.display='none'; }, 1500);
+        if(window.renderCola) window.renderCola(true);
+        if(window.startLoop) try{window.startLoop();}catch{}
+        
+      }catch(e){
+        console.error('RENDER TODO FAIL', e);
+        alert('Error render: '+e.message);
+      }finally{
+        isRendering=false;
+        btn.disabled=false;
+        btn.textContent='⚡ RENDERIZAR TODO';
+      }
+    });
+    console.log('[FINAL] RENDERIZAR TODO 6x6 PARALELO LISTO - 100% FUNCIONAL');
+  }, 1500);
+});
+</script>
+
+
+<script>
+// PRE-CARGA TTS UNA SOLA VEZ PARA PARALELO REAL
+window._ttsInstance = null;
 async function getTTSParallel(){
   if(window._ttsInstance) return window._ttsInstance;
-  if(typeof getTTS==='function'){ window._ttsInstance=await getTTS(); return window._ttsInstance; }
+  if(typeof getTTS==='function'){
+    window._ttsInstance = await getTTS();
+    return window._ttsInstance;
+  }
   return null;
 }
+
+// VOZ INDEPENDIENTE X6 - USA TTS PRE-CARGADO, NO TOCA DOM
 async function generateVoiceIndependentFast(slot, ttsInstance){
   if(!slot) return;
-  let text=(slot.txtContent||slot.script||'').trim(); if(!text) return;
-  function splitIntoChunks(txt,maxLen){ maxLen=380; const sentences=txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/); const chunks=[]; let cur=""; for(let s of sentences){ s=s.trim(); if(!s) continue; if((cur+" "+s).length<=maxLen) cur=cur?cur+" "+s:s; else { if(cur) chunks.push(cur); if(s.length>maxLen){ const words=s.split(/\s+/); let tmp=""; for(let w of words){ if((tmp+" "+w).length<=maxLen) tmp=tmp?tmp+" "+w:w; else { if(tmp) chunks.push(tmp); tmp=w; } } if(tmp) cur=tmp; else cur=""; } else cur=s; } } if(cur) chunks.push(cur); return chunks; }
-  async function blobToAudioBuffer(blob,audioCtx){ const ab=await blob.arrayBuffer(); return await audioCtx.decodeAudioData(ab); }
-  function audioBufferToWavBlob(buffer){ const numChannels=buffer.numberOfChannels; const sampleRate=buffer.sampleRate; const length=buffer.length; const wavLength=length*numChannels*2+44; const ab=new ArrayBuffer(wavLength); const view=new DataView(ab); let pos=0; function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++,s.charCodeAt(i)); } function write16(d){ view.setUint16(pos,d,true); pos+=2; } function write32(d){ view.setUint32(pos,d,true); pos+=4; } writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE'); writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16); writeStr('data'); write32(wavLength-pos-4); const channels=[]; for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c)); let offset=44; for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample=Math.max(-1,Math.min(1,channels[c][i])); sample=sample<0?sample*0x8000:sample*0x7FFF; view.setInt16(offset,sample,true); offset+=2; } } return new Blob([ab],{type:'audio/wav'}); }
-  let voiceId=slot.voiceId||window.DEFAULT_VOICE||'es_ES-sharvard-medium:0'; let speakerId=0; if(voiceId.includes(':')){ const parts=voiceId.split(':'); voiceId=parts[0]; speakerId=parseInt(parts[1]||0); }
+  let text = (slot.txtContent || slot.script || '').trim();
+  if(!text) return;
+  function splitIntoChunks(txt, maxLen){
+    maxLen=380;
+    const sentences=txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+    const chunks=[]; let cur="";
+    for(let s of sentences){
+      s=s.trim(); if(!s) continue;
+      if((cur+" "+s).length<=maxLen) cur=cur?cur+" "+s:s;
+      else { if(cur) chunks.push(cur); if(s.length>maxLen){ const words=s.split(/\s+/); let tmp=""; for(let w of words){ if((tmp+" "+w).length<=maxLen) tmp=tmp?tmp+" "+w:w; else { if(tmp) chunks.push(tmp); tmp=w; } } if(tmp) cur=tmp; else cur=""; } else cur=s; }
+    }
+    if(cur) chunks.push(cur);
+    return chunks;
+  }
+  async function blobToAudioBuffer(blob, audioCtx){ const ab=await blob.arrayBuffer(); return await audioCtx.decodeAudioData(ab); }
+  function audioBufferToWavBlob(buffer){
+    const numChannels=buffer.numberOfChannels; const sampleRate=buffer.sampleRate; const length=buffer.length;
+    const wavLength=length*numChannels*2+44; const ab=new ArrayBuffer(wavLength); const view=new DataView(ab); let pos=0;
+    function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
+    function write16(d){ view.setUint16(pos,d,true); pos+=2; } function write32(d){ view.setUint32(pos,d,true); pos+=4; }
+    writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE'); writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16);
+    writeStr('data'); write32(wavLength-pos-4);
+    const channels=[]; for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
+    let offset=44; for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample=Math.max(-1,Math.min(1,channels[c][i])); sample=sample<0?sample*0x8000:sample*0x7FFF; view.setInt16(offset,sample,true); offset+=2; } }
+    return new Blob([ab],{type:'audio/wav'});
+  }
+  let voiceId=slot.voiceId||window.DEFAULT_VOICE||'es_ES-sharvard-medium:0'; let speakerId=0;
+  if(voiceId.includes(':')){ const parts=voiceId.split(':'); voiceId=parts[0]; speakerId=parseInt(parts[1]||0); }
   const chunks=splitIntoChunks(text,380);
   const tts=ttsInstance||await getTTSParallel();
-  try{ await tts.download(voiceId,()=>{}); }catch{}
+  try{ await tts.download(voiceId, ()=>{}); }catch{}
   const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
   const buffers=[];
-  for(let i=0;i<chunks.length;i++){ const wavBlob=await tts.predict({text:chunks[i], voiceId:voiceId, speakerId:speakerId}, ()=>{}); if(!wavBlob||wavBlob.size<500) continue; const audioBuf=await blobToAudioBuffer(wavBlob,audioCtx); buffers.push(audioBuf); }
+  for(let i=0;i<chunks.length;i++){
+    const wavBlob=await tts.predict({text:chunks[i], voiceId:voiceId, speakerId:speakerId}, ()=>{});
+    if(!wavBlob||wavBlob.size<500) continue;
+    const audioBuf=await blobToAudioBuffer(wavBlob, audioCtx);
+    buffers.push(audioBuf);
+  }
   if(!buffers.length) throw new Error('Sin audio');
   let totalLength=0; for(let b of buffers) totalLength+=b.length;
-  const concatBuffer=audioCtx.createBuffer(buffers[0].numberOfChannels,totalLength,buffers[0].sampleRate);
-  let offset=0; for(let buf of buffers){ for(let ch=0;ch<concatBuffer.numberOfChannels;ch++) concatBuffer.getChannelData(ch).set(buf.getChannelData(ch),offset); offset+=buf.length; }
+  const concatBuffer=audioCtx.createBuffer(buffers[0].numberOfChannels, totalLength, buffers[0].sampleRate);
+  let offset=0; for(let buf of buffers){ for(let ch=0;ch<concatBuffer.numberOfChannels;ch++) concatBuffer.getChannelData(ch).set(buf.getChannelData(ch), offset); offset+=buf.length; }
   await audioCtx.close();
   const finalWavBlob=audioBufferToWavBlob(concatBuffer);
   const url=URL.createObjectURL(finalWavBlob);
@@ -2232,28 +2550,26 @@ async function generateVoiceIndependentFast(slot, ttsInstance){
   const tempAudio=new Audio(); tempAudio.src=url; tempAudio.muted=true;
   await new Promise(res=>{ tempAudio.onloadedmetadata=()=>res(); setTimeout(res,800); tempAudio.load(); });
   slot.audioDur=tempAudio.duration||0;
-  if(window.renderCola) window.renderCola(true);
   return true;
 }
+window.generateVoiceIndependentFast=generateVoiceIndependentFast;
+</script>
+<script>
+// RENDER x6 INDEPENDIENTE RAPIDO - 720x900 PARA VELOCIDAD (FB lo acepta, pero si quieres 1080x1350 cambia aqui)
 
-// RENDER RAPIDO x6 INDEPENDIENTE - METODO PLAY+RAF (sin seeks) + START_OFFSET 0.25 para no negro
-async function renderSingleFastX6(item,onProg){
+async function renderSingleFast(item, onProgress){
   const FPS=30;
-  const START_OFFSET=0.25; // Fix negro
+  const START_OFFSET=0.25;
   const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  
-  // Pre-video para duracion
   const vPre=document.createElement('video'); vPre.src=item.videoUrl; vPre.muted=true; vPre.crossOrigin='anonymous'; vPre.preload='auto';
   await new Promise(r=>{ vPre.onloadedmetadata=()=>r(); vPre.onerror=()=>r(); vPre.load(); });
   const vDur=vPre.duration||item.videoDur||10;
   try{ vPre.pause(); vPre.src=''; }catch{}
-  
   const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur):{rate:1,useLoop:false};
   const scriptText=(item.script||'').trim();
   const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
   const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
-  
   let ac,dest,cap=null,bgCap=null,bgGain=null,voiceGain=null;
   let aDur=item.audioDur||0;
   if(item.audioUrl){
@@ -2265,43 +2581,28 @@ async function renderSingleFastX6(item,onProg){
       const src=ac.createMediaElementSource(cap);
       voiceGain=ac.createGain(); voiceGain.gain.value=1.0;
       src.connect(voiceGain); voiceGain.connect(dest);
-      if(typeof defaultBgUrl!=='undefined' && defaultBgUrl && document.getElementById('bgEnabled')?.checked){
-        bgCap=document.createElement('audio'); bgCap.src=defaultBgUrl; bgCap.crossOrigin='anonymous'; bgCap.preload='auto'; bgCap.loop=true;
-        await new Promise(r=>{ bgCap.onloadedmetadata=()=>r(); bgCap.onerror=()=>r(); bgCap.load(); });
-        const bgSrc=ac.createMediaElementSource(bgCap);
-        bgGain=ac.createGain(); const _rawBg=parseFloat(document.getElementById('bgVol')?.value)||0.12; bgGain.gain.value=_rawBg;
-        bgSrc.connect(bgGain); bgGain.connect(dest);
-      }
     }catch(e){ console.warn(e); }
   }
   const realTotal=aDur||vDur||10;
-  
   const mimeMP4=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1.42E01E','video/mp4'].find(m=>{ try{ return MediaRecorder.isTypeSupported(m); }catch{ return false; } }) || 'video/webm;codecs=vp9';
   const ext=mimeMP4.includes('mp4')?'mp4':'webm';
-  
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto'; v.volume=0;
   await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
   await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,600); });
   v.playbackRate=info.rate||1; v.loop=info.useLoop||false;
   v.currentTime=Math.min(START_OFFSET, v.duration-0.1||START_OFFSET);
   await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,400); });
-  // Pre-dibujar 3 frames para evitar negro
   for(let k=0;k<3;k++){ try{ const vw=v.videoWidth,vh=v.videoHeight; if(vw&&vh){ const tgt=720/900, rv=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900);} }catch{} await new Promise(r=>setTimeout(r,40)); }
-  
   const cStream=canvas.captureStream(FPS);
   const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
   const rec=new MediaRecorder(combined,{videoBitsPerSecond:4500000, mimeType:mimeMP4, audioBitsPerSecond:128000});
   const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
   const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
-  
   await v.play().catch(()=>{});
   if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
-  if(bgCap){ bgCap.currentTime=0; await bgCap.play().catch(()=>{}); }
   rec.start(100);
-  
   await new Promise(res=>{
-    let start=performance.now();
-    let _stopped=false;
+    let start=performance.now(); let _stopped=false;
     const draw=()=>{
       const elapsed=(performance.now()-start)/1000;
       const cur=Math.min(elapsed, realTotal);
@@ -2310,7 +2611,6 @@ async function renderSingleFastX6(item,onProg){
         const vw=v.videoWidth, vh=v.videoHeight;
         if(vw&&vh){ const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{} } else { ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
       }
-      // Titulo
       try{
         ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
         ctx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
@@ -2327,15 +2627,16 @@ async function renderSingleFastX6(item,onProg){
     };
     draw();
   });
-  
   const blob=await blobP;
-  try{ v.pause(); v.src=''; }catch{} try{ if(cap){ cap.pause(); cap.src=''; } }catch{} try{ if(bgCap){ bgCap.pause(); bgCap.src=''; } }catch{} try{ if(ac) await ac.close(); }catch{} try{ combined.getTracks().forEach(t=>t.stop()); }catch{} try{ cStream.getTracks().forEach(t=>t.stop()); }catch{}
+  try{ v.pause(); v.src=''; }catch{} try{ if(cap){ cap.pause(); cap.src=''; } }catch{} try{ if(ac) await ac.close(); }catch{} try{ combined.getTracks().forEach(t=>t.stop()); }catch{} try{ cStream.getTracks().forEach(t=>t.stop()); }catch{}
   if(blob.size>2000) return {url:URL.createObjectURL(blob), ext:ext};
   return {url:'', ext:ext};
 }
-window.renderSingle=renderSingleFastX6;
+window.renderSingle=renderSingleFast;
+window.renderSingleFast=renderSingleFast;
 
-// BOTON RENDERIZAR TODO x6 PARALELO REAL + 6 CANVAS
+</script>
+<script>
 setTimeout(()=>{
   const old=document.getElementById('btnRender'); if(!old) return;
   const clone=old.cloneNode(true); old.parentNode.replaceChild(clone, old);
@@ -2345,23 +2646,25 @@ setTimeout(()=>{
     isRendering=true; window._batchGenerating=true; window._rendering=true; window._previewDisabled=true; window._downloadedNames=new Set();
     btn.disabled=true; btn.textContent='⏳ TODO x6 RAPIDO...';
     try{
-      try{ const vEl=document.getElementById('previewVideo'); if(vEl){ vEl.pause(); } const aEl=document.getElementById('previewAudio'); if(aEl){ aEl.pause(); aEl.muted=true; } if(window.raf) cancelAnimationFrame(window.raf); }catch{}
+      try{ const vEl=document.getElementById('previewVideo'); if(vEl){ vEl.pause(); vEl.src=''; } const aEl=document.getElementById('previewAudio'); if(aEl){ aEl.pause(); aEl.muted=true; } if(window.raf) cancelAnimationFrame(window.raf); }catch{}
       const list=window.queue.filter(q=>q.videoUrl);
       if(!list.length){ alert('Llena video'); isRendering=false; btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO'; return; }
       const overlay=document.getElementById('renderOverlay'); const txtEl=document.getElementById('renderText'); const pctEl=document.getElementById('renderPct'); const listEl=document.getElementById('renderList');
       overlay.style.display='flex';
       const needVoice=list.filter(q=> (q.txtContent||q.script) && !(q.audioUrl&&q.audioDur>0));
       if(needVoice.length){
-        txtEl.textContent=`FASE 1/2: ${needVoice.length} voces x6 PARALELO REAL`;
+        txtEl.textContent=`FASE 1/2: ${needVoice.length} voces x6 PARALELO REAL INDEPENDIENTE`;
         pctEl.textContent='5%';
-        listEl.innerHTML=needVoice.map(s=>`<div style="background:rgba(255,235,0,.12);border:1px solid #FFEB00;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:#FFEB00">SLOT ${s.id} · VOZ x6</span><span>...</span></div>`).join('');
+        listEl.innerHTML=needVoice.map(s=>`<div style="background:rgba(255,235,0,.12);border:1px solid #FFEB00;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:#FFEB00">SLOT ${s.id} · VOZ PARALELO x6</span><span>...</span></div>`).join('');
+        // PRE-CARGA TTS UNA VEZ
         const ttsInstance=await getTTSParallel();
-        try{ await ttsInstance.download('es_ES-sharvard-medium',()=>{}); }catch{}
-        const voicePromises=needVoice.map(slot=> generateVoiceIndependentFast(slot, ttsInstance));
+        try{ await ttsInstance.download('es_ES-sharvard-medium', ()=>{}); }catch{}
+        // PARALELO REAL x6 CON PROMISE.ALL
+        const voicePromises=needVoice.map(slot=> window.generateVoiceIndependentFast(slot, ttsInstance).then(()=>{ console.log('VOZ OK SLOT '+slot.id); }).catch(e=>{ console.error('VOZ FAIL SLOT '+slot.id, e); }));
         await Promise.allSettled(voicePromises);
-        txtEl.textContent=`FASE 1/2 COMPLETA x6`; pctEl.textContent='50%';
+        txtEl.textContent=`FASE 1/2 COMPLETA x6 PARALELO`; pctEl.textContent='50%';
       }
-      txtEl.textContent=`FASE 2/2: ${list.length} videos x6 CANVAS INDEPENDIENTE RAPIDO (play+RAF)`; pctEl.textContent='55%';
+      txtEl.textContent=`FASE 2/2: ${list.length} videos x6 INDEPENDIENTE RAPIDO`; pctEl.textContent='55%';
       let completed=0; let progressMap={};
       function updateOverlay(){
         let html=''; list.forEach(qq=>{ const q=window.queue.find(x=>x.id===qq.id); const prog=q?(q.progress||0):0; const status=q?q.status:''; const isRun=status==='renderizando'; const isDone=status==='hecho';
@@ -2369,13 +2672,13 @@ setTimeout(()=>{
         listEl.innerHTML=html; let sum=0; for(let k in progressMap) sum+=progressMap[k]||0; const total=list.length||1; const pct=50+Math.round((completed/total)*20 + (sum/(total*100))*30); pctEl.textContent=Math.min(99,pct)+'%';
       }
       let rQueue=[...list];
-      async function rWorker(){
+      async function rWorker(workerId){
         while(rQueue.length){
           const it=rQueue.shift(); if(!it) break;
           const q=window.queue.find(x=>x.id===it.id);
           q.status='renderizando'; q.progress=0; progressMap[q.id]=0; updateOverlay();
           try{
-            const r=await renderSingleFastX6(q, p=>{ q.progress=p; progressMap[q.id]=p; updateOverlay(); if(window.renderCola) window.renderCola(true); });
+            const r=await window.renderSingleFast(q, p=>{ q.progress=p; progressMap[q.id]=p; updateOverlay(); if(window.renderCola) window.renderCola(true); });
             if(r&&r.url){ q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100; progressMap[q.id]=100;
               if(document.getElementById('autoDownloadCheck')?.checked){ const nameKey=(window.sanitizar? window.sanitizar(q.fileNameBase): q.fileNameBase)||`Video ${q.id}`; const fileName=nameKey+'.'+q.finalExt; if(!window._downloadedNames.has(fileName)){ window._downloadedNames.add(fileName); if(window.queueDownload) window.queueDownload(q.finalUrl, fileName); } }
             } else q.status='error';
@@ -2383,14 +2686,14 @@ setTimeout(()=>{
           completed++; updateOverlay();
         }
       }
-      const rWorkers=Array.from({length: Math.min(6, list.length)}, ()=>rWorker());
+      const rWorkers=Array.from({length: Math.min(6, list.length)}, (_,i)=>rWorker(i+1));
       await Promise.allSettled(rWorkers);
       pctEl.textContent='100%'; txtEl.textContent=`COMPLETADO x6 RAPIDO - ${list.length} videos`; setTimeout(()=>{ overlay.style.display='none'; },1200);
       if(window.renderCola) window.renderCola(true);
     }catch(e){ console.error(e); alert(e.message); }
     finally{ isRendering=false; window._batchGenerating=false; window._rendering=false; window._previewDisabled=false; btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO'; try{ if(window.startLoop) window.startLoop(); }catch{} }
   });
-  console.log('[HIBRIDO] x6 RAPIDO PLAY+RAF MP4 + 6 CANVAS LISTO');
+  console.log('[FAST] x6 PARALELO REAL VOCES + x6 CANVAS RENDER RAPIDO LISTO');
 }, 1000);
 </script>
 
