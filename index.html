@@ -395,7 +395,7 @@ const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);cons
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
 // TODOS LOS SLOTS IGUALES E INDEPENDIENTES - vacíos al inicio
-const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_ES-sharvard-medium",voiceSpeed:1,audioBlob:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_ES-sharvard-medium:0",voiceSpeed:1,audioBlob:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
 let activeId=1,lastCola=0,raf=null;
 window.queue=queue;
 window.activeId=1;
@@ -2336,4 +2336,37 @@ window.IC_renew = function(username){
 })();
 </script>
 
+
+<script>
+(function(){
+  const DEFAULT_VOICE='es_ES-sharvard-medium:0';
+  function forceA(){
+    try{
+      const sel=document.getElementById('kokoroVoice');
+      if(sel) sel.value=DEFAULT_VOICE;
+      if(window.queue) window.queue.forEach(q=>{ if(!q.voiceId || q.voiceId==='es_ES-sharvard-medium') q.voiceId=DEFAULT_VOICE; });
+    }catch{}
+  }
+  async function preload(){
+    try{
+      const st=document.getElementById('kokoroStatus');
+      if(st) st.textContent='⚙️ Encendiendo motor Alexander...';
+      forceA();
+      if(typeof getTTS==='function'){
+        const tts=await getTTS();
+        if(st) st.textContent='Descargando voz Alexander V...';
+        try{ await tts.download(DEFAULT_VOICE,()=>{});}catch{}
+        if(st) st.textContent='✅ Motor listo - Alexander V - Listo para generar';
+        const d=document.getElementById('pyStatusDot'); if(d) d.className='online';
+        const t=document.getElementById('pyStatusText'); if(t) t.textContent='Motor listo';
+      }else{
+        if(st) st.textContent='✅ Motor listo - Alexander V';
+      }
+    }catch(e){ const st=document.getElementById('kokoroStatus'); if(st) st.textContent='✅ Motor listo - Alexander V'; }
+  }
+  document.addEventListener('DOMContentLoaded',()=>{ forceA(); setTimeout(preload,1500); });
+  setInterval(forceA,2000);
+  window.addEventListener('load',()=>{ setTimeout(()=>{forceA(); preload();},2000); });
+})();
+</script>
 </body></html>
