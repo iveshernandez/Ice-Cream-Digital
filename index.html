@@ -2257,8 +2257,11 @@ window.IC_renew = function(username){
 </script>
 
 <script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};
+
+
 window.limpiarTodo=function(){
-  if(!confirm('¿Borrar TODO del editor y dejar en cero para proximos 6?')) return;
+  if(!confirm('¿Borrar TODO del editor y dejar en cero para proximos 6?
+Se borraran videos, audios y .txt')) return;
   try{
     if(window._lastBlobs){ window._lastBlobs.forEach(u=>{ try{URL.revokeObjectURL(u)}catch{}}); window._lastBlobs=[]; }
     queue.forEach(q=>{
@@ -2266,23 +2269,46 @@ window.limpiarTodo=function(){
       try{ if(q.audioUrl && q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); }catch{}
       try{ if(q.finalUrl && q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl); }catch{}
     });
-    queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0; q.status='vacio'; q.finalUrl=''; q.finalExt=''; q.fileNameBase=''; q.progress=0; });
+    // Vaciar datos
+    queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=''; q.videoDur=0; q.audioUrl=''; q.audioDur=0; q.status='vacio'; q.finalUrl=''; q.finalExt=''; q.fileNameBase=''; q.progress=0; q.txtName=''; q.videoName=''; });
+    
+    // Limpiar storage solo nuestro
     try{
       const keep=['auth','token','session','login','user','firebase','supabase'];
       const toRemove=[];
       for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!k) continue; const low=k.toLowerCase(); if(keep.some(w=>low.includes(w))) continue; if(low.includes('punto')||low.includes('queue')||low.includes('render')||low.includes('cola')) toRemove.push(k); }
       toRemove.forEach(k=>{ try{ localStorage.removeItem(k);}catch{} });
     }catch{}
-    document.querySelectorAll('input[type=file]').forEach(inp=>{ inp.value=''; });
-    const ti=document.getElementById('inputTitle'); if(ti) ti.value=''; const si=document.getElementById('inputScript'); if(si) si.value=''; const fi=document.getElementById('inputFileName'); if(fi) fi.value='';
+
+    // Limpiar TODOS los inputs file
+    document.querySelectorAll('input[type=file]').forEach(inp=>{ try{ inp.value=''; }catch{} });
+
+    // Limpiar inputs texto editor
+    ['inputTitle','inputScript','inputFileName','inputVideo','inputTxt','inputAudio','inputBgMusic'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+
+    // LIMPIAR VISUAL .TXT y VIDEO y AUDIO (aqui es donde te quedaba el .txt)
+    const setEmpty = (id, txt) => { const el=document.getElementById(id); if(el) el.innerHTML='<span style="color:#666">'+txt+'</span>'; };
+    setEmpty('txtName','Sin .txt');
+    setEmpty('videoName','Sin video');
+    setEmpty('audioName','Sin audio');
+    const bgName=document.getElementById('bgName'); if(bgName) bgName.textContent='';
+    const txtTxt=document.getElementById('txtTxt'); if(txtTxt) txtTxt.textContent='Elegir .txt';
+    const txtVideo=document.getElementById('txtVideo'); if(txtVideo) txtVideo.textContent='Elegir video';
+    const txtAudio=document.getElementById('txtAudio'); if(txtAudio) txtAudio.textContent='Elegir audio';
+
+    // Limpiar previews
     try{ if(typeof vEl!=='undefined'&&vEl){ vEl.pause(); vEl.removeAttribute('src'); vEl.load(); } }catch{}
     try{ if(typeof aEl!=='undefined'&&aEl){ aEl.pause(); aEl.removeAttribute('src'); aEl.load(); } }catch{}
     try{ const vp=document.getElementById('vPreview'); if(vp){ vp.pause(); vp.removeAttribute('src'); vp.load(); } }catch{}
+
     try{ if(typeof renderCola==='function') renderCola(true); }catch{}
     try{ if(typeof hardCleanup==='function') hardCleanup(); }catch{}
-    alert('Editor limpio en cero');
-  }catch(e){ console.error(e); }
+    alert('Editor limpio en cero - sin .txt');
+  }catch(e){ console.error(e); alert('Error: '+e.message); }
 };
+
 (function(){
   // Esperar a que exista el contenedor del editor
   function insertBtnInEditor(){
