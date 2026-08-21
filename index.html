@@ -891,9 +891,9 @@ async function renderSingle(item,onProg){
       v.muted=true;
       if(info.useLoop){ try{ v2.currentTime=0.05; }catch{ v2.currentTime=0; } v2.playbackRate=info.rate; v2.muted=true; }
 
-      const cStream=canvas.captureStream(30);
+      const cStream=canvas.captureStream(30) || canvas.captureStream(30);
       const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 6000000, mimeType:mimeMP4, audioBitsPerSecond:128000});
+      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 5000000, mimeType:mimeMP4, audioBitsPerSecond:128000});
       const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
       const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:'video/mp4'})) );
 
@@ -903,7 +903,45 @@ async function renderSingle(item,onProg){
       if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
       if(bgCap){ bgCap.currentTime=0; try{ bgCap.volume=1; bgCap.muted=false; }catch{} await bgCap.play().catch(()=>{}); }
 
-      // FIX CONGELAMIENTO INICIO: pre-dibujar 3 frames y delay
+      // FIX DEFINITIVO NEGRO INICIO + 30FPS 720HD FLUIDO
+      // Asegurar calidad estandar: 720x900 30fps 5Mbps
+      try{ canvas.width=720; canvas.height=900; }catch{}
+      // Forzar video listo sin frame negro
+      try{
+        v.muted=true; v2.muted=true;
+        v.playbackRate=info.playbackRate || 1;
+        if(info.useLoop) v2.playbackRate=info.playbackRate || 1;
+        v.currentTime=0.01;
+        if(info.useLoop) v2.currentTime=0.01;
+        await v.play().catch(()=>{});
+        if(info.useLoop) await v2.play().catch(()=>{});
+        // Esperar a que tenga frame real (no negro)
+        await new Promise(res=>{
+          let tries=0;
+          const check=()=>{
+            if(v.readyState>=3 && v.currentTime>0.02){ res(); }
+            else if(tries++>30){ res(); }
+            else setTimeout(check, 40);
+          };
+          check();
+        });
+      }catch{}
+      // Pre-dibujar 5 frames solidos
+      for(let k=0;k<5;k++){
+        try{
+          ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
+          if(v.readyState>=2 && v.videoWidth){
+            const vw=v.videoWidth, vh=v.videoHeight;
+            const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
+            if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
+            ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900);
+          }
+          // Dibujar subs preview para que primer frame ya tenga subs
+          if(window.drawSubs) try{ window.drawSubs(ctx, getA()); }catch{}
+        }catch{}
+        await new Promise(r=>setTimeout(r, 30));
+      }
+
       // Dibujar primer frame solido antes de grabar
       try{
         ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
@@ -918,7 +956,7 @@ async function renderSingle(item,onProg){
       await new Promise(r=>setTimeout(r, 250));
       rec.start(100);
       // Forzar primer frame despues de start
-      await new Promise(r=>setTimeout(r, 80));
+      await new Promise(r=>setTimeout(r, 150)); // delay post-start para evitar negro
 
 
       const CROSSFADE = 0.25; // segundos de crossfade invisible tipo CapCut
