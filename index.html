@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital</title>
+<title>Ice Cream Digital V13 - Fondo Incrustado</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -442,16 +442,19 @@ try{
 const log=m=>{const d=$("debug");d.textContent=new Date().toLocaleTimeString()+" | "+m+"\n"+d.textContent.slice(0,400);};
 const getA=()=>queue.find(q=>q.id===activeId);
 function getRateInfo(vDur,aDur){
-  if(!vDur||!aDur) return {rate:1,useLoop:false,realTotal:vDur||aDur||0,needed:1,stretchFirst:true};
+  if(!vDur||!aDur) return {rate:1,useLoop:false,realTotal:vDur||aDur||0,needed:1,stretchFirst:false};
   const needed=vDur/aDur;
-  // Si el video es corto, estirar la primera instancia al máximo (0.25x = 4x más largo) antes de loopear
-  const MIN_RATE = 0.25; // máximo estiramiento permitido, super fluido
-  if(needed < MIN_RATE){
-    // Ej: video 5s, audio 20s -> needed 0.25 -> rate 0.25, loop si aún no alcanza
-    // Ej: video 5s, audio 30s -> rate 0.25 = 20s estirados, faltan 10s = loop de la parte estirada
-    const stretchedDur = vDur / MIN_RATE;
-    const useLoop = stretchedDur < aDur;
-    return {rate:MIN_RATE,useLoop,realTotal:aDur,needed,stretchFirst:true, stretchedDur};
+  const MIN_RATE = 0.5; // MAXIMO FLUIDO: 1 / 0.5 = 2x más largo sin trabarse
+  if(needed < 1){
+    if(needed < MIN_RATE){
+      // Video muy corto: estirar al máximo fluido 0.5x y loopear lo que falte
+      const stretchedDur = vDur / MIN_RATE;
+      const useLoop = stretchedDur < aDur;
+      return {rate:MIN_RATE,useLoop,realTotal:aDur,needed,stretchFirst:true, stretchedDur};
+    }else{
+      // Video un poco corto (ej: 3min video, 4min audio = 0.75x): estirar fluido sin loop
+      return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:true};
+    }
   }
   if(needed>4) return {rate:4,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
   return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
@@ -823,6 +826,7 @@ async function renderSingleMP4_WebCodecs(item,onProg){ return {url:'',ext:'mp4'}
 function hardCleanup(){ try{const vp=document.getElementById('vPreview'); if(vp) vp.pause()}catch{} }
 function isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas){ try{v&&v.pause(); v.src='';}catch{} try{combined && combined.getTracks().forEach(t=>t.stop())}catch{} try{cStream && cStream.getTracks().forEach(t=>t.stop())}catch{} try{ac&&ac.close()}catch{} }
 
+
 async function renderSingle(item,onProg){
   hardCleanup();
   const vPre=document.createElement('video'); vPre.src=item.videoUrl; vPre.muted=true; vPre.crossOrigin='anonymous'; vPre.preload='auto';
@@ -837,29 +841,29 @@ async function renderSingle(item,onProg){
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
 
   let ac,dest,cap=null,bgCap=null,bgGain=null,voiceGain=null; let aDur=item.audioDur||0;
-  if(item.audioUrl || (defaultBgUrl && $("bgEnabled").checked)){
+  if(item.audioUrl || (defaultBgUrl && $("bgEnabled")?.checked)){
     try{
       ac=new (window.AudioContext||window.webkitAudioContext)();
       dest=ac.createMediaStreamDestination();
       if(item.audioUrl){
         cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; cap.preload='auto';
         await new Promise(r=>{ cap.onloadedmetadata=()=>{ aDur=cap.duration||aDur; r(); }; cap.onerror=()=>r(); cap.load(); });
+        // TRIM silencio final: restar 0.25s si hay
+        try{ if(aDur>0.5) aDur = Math.max(0, aDur - 0.12); }catch{}
         const src=ac.createMediaElementSource(cap);
         voiceGain=ac.createGain(); voiceGain.gain.value=1.0;
         src.connect(voiceGain); voiceGain.connect(dest);
       }
-      // Fondo por defecto - mezcla con volumen bajo
-      if(defaultBgUrl && $("bgEnabled").checked){
+      if(defaultBgUrl && $("bgEnabled")?.checked){
         bgCap=document.createElement('audio'); bgCap.src=defaultBgUrl; bgCap.crossOrigin='anonymous'; bgCap.preload='auto'; bgCap.loop=true;
         await new Promise(r=>{ bgCap.onloadedmetadata=()=>r(); bgCap.onerror=()=>r(); bgCap.load(); });
         const bgSrc=ac.createMediaElementSource(bgCap);
-        bgGain=ac.createGain(); const _rawBg=parseFloat($("bgVol").value)||0.12; const _isBgMuted=document.getElementById('previewBg')?.muted; bgGain.gain.value=_isBgMuted?0:_rawBg;
+        bgGain=ac.createGain(); const _rawBg=parseFloat($("bgVol")?.value)||0.12; const _isBgMuted=document.getElementById('previewBg')?.muted; bgGain.gain.value=_isBgMuted?0:_rawBg;
         bgSrc.connect(bgGain); bgGain.connect(dest);
       }
     }catch(e){ console.warn('bg audio ctx fail',e); cap=null; }
   }
   const realTotal=aDur||vDur||10;
-  // Limpiar pre-video
   try{ vPre.pause(); vPre.src=''; vPre.load(); }catch{}
   const info=getRateInfo(vDur,aDur);
 
@@ -872,42 +876,88 @@ async function renderSingle(item,onProg){
 
   if(mimeMP4){
     try{
-      const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto'; v.volume=0; // VIDEO 100% SILENCIADO EN RENDER - solo voz + fondo
-      await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
+      const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto'; v.volume=0;
+      const v2=document.createElement('video'); // para crossfade loop
+      if(info.useLoop){ v2.src=item.videoUrl; v2.muted=true; v2.playsInline=true; v2.crossOrigin='anonymous'; v2.preload='auto'; v2.volume=0; }
+      
+      await new Promise(r=>{ let c=0; const done=()=>{c++; if(c>= (info.useLoop?2:1)) r();}; v.onloadedmetadata=done; v.onerror=done; v2.onloadedmetadata=done; v2.onerror=done; v.load(); if(info.useLoop) v2.load(); });
+      // Esperar canplaythrough para RAM total - evita trabado
+      await new Promise(r=>{ let c=0; const done=()=>{c++; if(c>= (info.useLoop?2:1)) r();}; if(v.readyState>=4) done(); else { v.oncanplaythrough=done; setTimeout(done,1200); } if(info.useLoop){ if(v2.readyState>=4) done(); else { v2.oncanplaythrough=done; setTimeout(done,1200); } } else { setTimeout(done, 100); } });
       await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,800); });
+      
       v.playbackRate=info.rate;
-      v.loop=info.useLoop;
+      v.loop=false; // manejamos loop manual para crossfade
       v.currentTime=0;
       v.muted=true;
+      if(info.useLoop){ v2.currentTime=0; v2.playbackRate=info.rate; v2.muted=true; }
 
-      // VIDEO MUTEADO: canvas solo tiene video, audio viene solo de dest (voz Piper + fondo) - video original nunca entra
-      const cStream=canvas.captureStream(FPS);
-      // Solo video del canvas, audio solo de voz (dest) - video original silenciado 100%
+      const cStream=canvas.captureStream(30);
       const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 4500000, mimeType:mimeMP4, audioBitsPerSecond:128000, audioBitsPerSecond:128000});
+      const rec=new MediaRecorder(combined, { videoBitsPerSecond: 6000000, mimeType:mimeMP4, audioBitsPerSecond:128000});
       const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
       const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:'video/mp4'})) );
 
       let _recStopped=false;
       await v.play().catch(()=>{});
+      if(info.useLoop) await v2.play().catch(()=>{});
       if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
       if(bgCap){ bgCap.currentTime=0; try{ bgCap.volume=1; bgCap.muted=false; }catch{} await bgCap.play().catch(()=>{}); }
-      rec.start(1000);
+      rec.start(100);
 
+      const CROSSFADE = 0.25; // segundos de crossfade invisible tipo CapCut
+      let lastDraw = performance.now();
+      
       await new Promise(res=>{
         let start=performance.now();
-        const draw=()=>{
+        let frameCount=0;
+        const drawFrame = ()=>{
           const elapsed=(performance.now()-start)/1000;
           const cur=Math.min(elapsed, realTotal);
           onProg?.(Math.min((cur/realTotal)*100,100));
 
+          // Manejo de loop con crossfade
+          let drawV = v;
+          let alpha = 1;
+          let drawV2 = null;
+          let alpha2 = 0;
+          
+          if(info.useLoop && v.duration){
+            if(v.currentTime >= v.duration - CROSSFADE - 0.02){
+              const progress = (v.currentTime - (v.duration - CROSSFADE)) / CROSSFADE;
+              // Crossfade: v se desvanece, v2 aparece
+              alpha = Math.max(0, 1 - progress);
+              alpha2 = Math.min(1, progress);
+              drawV2 = v2;
+              if(v.currentTime >= v.duration - 0.05){
+                try{ v.currentTime=0; v.play(); }catch{}
+              }
+            }
+          }
+
           if(v.readyState>=2){
             const vw=v.videoWidth, vh=v.videoHeight;
-            if(vw&&vh){ const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{} }
+            if(vw&&vh){ 
+              const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; 
+              if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
+              try{ 
+                ctx.globalAlpha = 1;
+                ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
+                if(drawV2 && alpha2>0){
+                  // Dibujar v2 de fondo
+                  ctx.globalAlpha = alpha2;
+                  ctx.drawImage(drawV2,sx,sy,sw,sh,0,0,720,900);
+                  // Dibujar v encima con transparencia
+                  ctx.globalAlpha = alpha;
+                  ctx.drawImage(drawV,sx,sy,sw,sh,0,0,720,900);
+                  ctx.globalAlpha = 1;
+                }else{
+                  ctx.drawImage(drawV,sx,sy,sw,sh,0,0,720,900);
+                }
+              }catch{} 
+            }
             else{ ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
           }
           
-          // TITULO FINO BORDE NEGRO - MEDIANO - IGUAL PREVIEW
           ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
           ctx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
           tLines.forEach((l,i)=>{
@@ -948,20 +998,28 @@ async function renderSingle(item,onProg){
             }
           }
 
-          if(cur>=realTotal-0.03){ if(!_recStopped){ _recStopped=true; try{ rec.stop(); }catch{} setTimeout(res,300); } return; }
-          requestAnimationFrame(draw);
+          if(cur>=realTotal-0.03){ if(!_recStopped){ _recStopped=true; try{ rec.stop(); }catch{} setTimeout(res,400); } return; }
+          frameCount++;
+          // Usar requestVideoFrameCallback si existe para frame-perfect
+          if('requestVideoFrameCallback' in v){
+            try{ v.requestVideoFrameCallback(()=>{ requestAnimationFrame(drawFrame); }); }catch{ requestAnimationFrame(drawFrame); }
+          }else{
+            requestAnimationFrame(drawFrame);
+          }
         };
-        draw();
+        drawFrame();
       });
 
       const blob=await blobP;
-      try{ isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas); }catch{}
+      try{ isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas); try{v2.pause(); v2.src='';}catch{} }catch{}
       if(blob.size>2000) return {url:URL.createObjectURL(blob), ext:'mp4'};
-    }catch(e){ console.warn('mp4 native fluid fail',e); }
+    }catch(e){ console.warn('mp4 fluid fail',e); }
   }
 
   return {url:'',ext:'mp4'};
 }
+
+
 
 
 window.renderOne=async id=>{
