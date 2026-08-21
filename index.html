@@ -1114,7 +1114,7 @@ $("btnRender").addEventListener('click',async()=>{
     return qq.audioUrl;
   });
   log(`FASE 2 VIDEO: ${list.length} videos, ${listWithAudioCheck.length} con audio guardado - iniciando render x${CONCURRENCY}`);
-  $("renderText").textContent=`FASE 2/2: Renderizando ${list.length} videos x${CONCURRENCY}`;
+  $("renderText").textContent=`FASE 2/2: Renderizando ${list.length} videos TODO JUNTO x6 PARALELO`;
 
   let completed=0; let activeVideos=0; let lastColaRender=0; let videoProgressMap={};
   function updateVideoMon(){ try{ document.getElementById("mVideos").textContent=activeVideos; }catch{} }
@@ -2483,36 +2483,56 @@ window.IC_renew = function(username){
     if(pctEl) pctEl.textContent = '0%';
     
     if(slotsNeedingVoice.length>0){
-      // Generar voces 1 por 1 secuencial para estabilidad
-      for(let i=0;i<slotsNeedingVoice.length;i++){
-        const slot = slotsNeedingVoice[i];
-        if(txtEl) txtEl.textContent = `FASE 1/2: Voz SLOT ${slot.id} (${i+1}/${slotsNeedingVoice.length})`;
-        if(pctEl) pctEl.textContent = Math.round((i/slotsNeedingVoice.length)*50)+'%';
+      // 6 VOCES EN SIMULTANEO como antes x6 PARALELO REAL
+      if(txtEl) txtEl.textContent = `FASE 1/2: Generando ${slotsNeedingVoice.length} voces en paralelo x6`;
+      if(pctEl) pctEl.textContent = '10%';
+      
+      // Mostrar todos como GENERANDO...
+      if(listEl){
+        listEl.innerHTML = slotsNeedingVoice.map(s=>{
+          return `<div style="background:rgba(255,235,0,.12);border:1px solid #FFEB00;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:#FFEB00">SLOT ${s.id} · GENERANDO...</span><span style="font-size:11px;font-weight:900;color:#FFEB00">...</span></div>`;
+        }).join('');
+      }
+      
+      const CONC_VOZ = 6;
+      let voiceDone=0;
+      for(let batchStart=0; batchStart<slotsNeedingVoice.length; batchStart+=CONC_VOZ){
+        const batch = slotsNeedingVoice.slice(batchStart, batchStart+CONC_VOZ);
+        const ids = batch.map(b=>b.id).join(',');
+        console.log('>>> BATCH VOCES PARALELO ['+ids+'] INICIO');
+        if(txtEl) txtEl.textContent = `FASE 1/2: Voces [${ids}] PARALELO x${CONC_VOZ}`;
+        
+        await Promise.all(batch.map(async (slot)=>{
+          try{
+            window.activeId = slot.id;
+            if(typeof handleGenerate==='function'){
+              // Generar voz para este slot sin cambiar UI global (usar version directa)
+              const origId = window.activeId;
+              window.activeId = slot.id;
+              await handleGenerate();
+              window.activeId = origId;
+            }else if(window.generateVoiceForSlotId){
+              await window.generateVoiceForSlotId(slot.id);
+            }
+            console.log('VOZ SLOT '+slot.id+' OK PARALELO');
+          }catch(e){
+            console.error('VOZ SLOT '+slot.id+' FAIL', e);
+          }
+        }));
+        
+        voiceDone+=batch.length;
+        if(pctEl) pctEl.textContent = Math.round((voiceDone/slotsNeedingVoice.length)*50)+'%';
         if(listEl){
           listEl.innerHTML = slotsNeedingVoice.map(s=>{
-            const done = s.id!==slot.id && window.queue.find(x=>x.id===s.id).audioUrl;
-            return `<div style="background:${s.id===slot.id?'rgba(255,235,0,.12)':'#141418'};border:1px solid ${s.id===slot.id?'#FFEB00': done?'#22c55e':'#222'};border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:${done?'#4ade80': s.id===slot.id?'#FFEB00':'#888'}">SLOT ${s.id} ${done?'· VOZ OK': s.id===slot.id?'· GENERANDO...':'· EN COLA'}</span><span style="font-size:11px;font-weight:900;color:${done?'#4ade80':'#666'}">${done?'100%': s.id===slot.id?'...':'0%'}</span></div>`;
+            const q = window.queue.find(x=>x.id===s.id);
+            const done = !!(q && q.audioUrl);
+            return `<div style="background:${done?'#141418':'rgba(255,235,0,.12)'};border:1px solid ${done?'#22c55e':'#FFEB00'};border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:${done?'#4ade80':'#FFEB00'}">SLOT ${s.id} ${done?'· VOZ OK':'· GENERANDO...'}</span><span style="font-size:11px;font-weight:900;color:${done?'#4ade80':'#FFEB00'}">${done?'100%':'...'}</span></div>`;
           }).join('');
         }
-        try{
-          window.activeId = slot.id;
-          if(window.setActive) window.setActive(slot.id);
-          await new Promise(r=>setTimeout(r,300));
-          if(typeof handleGenerate==='function'){
-            await handleGenerate();
-          }else if(window.generateVoiceForSlotId){
-            await window.generateVoiceForSlotId(slot.id);
-          }
-          console.log('VOZ SLOT '+slot.id+' OK');
-        }catch(e){
-          console.error('VOZ SLOT '+slot.id+' FAIL', e);
-          const st=document.getElementById('kokoroStatus');
-          if(st) st.textContent='❌ SLOT '+slot.id+' '+e.message;
-        }
-        await new Promise(r=>setTimeout(r,400));
       }
+      
       if(pctEl) pctEl.textContent='50%';
-      if(txtEl) txtEl.textContent='FASE 1/2 COMPLETA: Voces listas';
+      if(txtEl) txtEl.textContent=`FASE 1/2 COMPLETA: ${voiceDone} voces en paralelo x6`;
       await new Promise(r=>setTimeout(r,600));
     }else{
       if(txtEl) txtEl.textContent='FASE 1/2: Voces ya generadas - saltando a video';
@@ -2521,8 +2541,8 @@ window.IC_renew = function(username){
     }
     
     // FASE 2: RENDER VIDEOS
-    const CONCURRENCY = 3;
-    if(txtEl) txtEl.textContent=`FASE 2/2: Renderizando ${list.length} videos x${CONCURRENCY}`;
+    const CONCURRENCY = 6; // TODO JUNTO EN PARALELO x6
+    if(txtEl) txtEl.textContent=`FASE 2/2: Renderizando ${list.length} videos TODO JUNTO x6 PARALELO`;
     
     let completed=0;
     let videoProgressMap={};
