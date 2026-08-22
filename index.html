@@ -1124,7 +1124,7 @@ async function handleGenerate(){
         setKStatus(`[SLOT ${slot.id}] Descargando ${voiceName} ${pct}% - ${mbL}MB/${mbT}MB`);
         // barra removida
         // barra removida
-        if(barWrap) // barra removida
+        // barra eliminada
         if(bar) bar.style.width=(35 + Math.round(pct*0.35))+'%';
       } else if(prog && prog.loaded){
         setKStatus(`[SLOT ${slot.id}] Descargando ${voiceName} ${(prog.loaded/1024/1024).toFixed(1)}MB...`);
