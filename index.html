@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ice Cream Digital sub</title>
@@ -243,7 +244,7 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 
 <style>
 /* ELIMINAR MUSICA DE FONDO COMPLETAMENTE */
-#musicaFondoBar, [id*="musicaFondo"], [id*="bgVol"], #bgMusic, #bgMusicVol, #kokoroSpeed,
+#musicaFondoBar, [id*="musicaFondo"], [id*="bgVol"], #bgMusic, #bgMusicVol,
 div[style*="MÚSICA DE FONDO"], div[style*="MUSICA DE FONDO"] { display:none !important; }
 </style>
 <script>
@@ -257,6 +258,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
+
+<style>
+#kokoroVoice { display:block !important; visibility:visible !important; opacity:1 !important; }
+#btnKokoroGen { display:block !important; }
+#kokoroSpeed { display:block !important; width:70px; }
+</style>
 </head>
 <body>
 
@@ -341,8 +348,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   <div style="background:#0f0f12;border:1.5px solid #222;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px">
     <div style="display:flex;gap:6px">
                   <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
-        <option value="es_ES-sharvard-medium:0" selected>Alexander V - Español ES (Masculino)</option>
-        <option value="es_ES-sharvard-medium:1">Alejandra Pineda P - Español ES (Femenina)</option>
+        <option value="es_ES-sharvard-medium:0" selected>Ives</option>
+        <option value="es_ES-sharvard-medium:1">Rolina</option>
       </select>
       <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="0.95">0.95x</option>
@@ -533,7 +540,7 @@ window.setActive=id=>{
     const st=document.getElementById('kokoroStatus');
     if(st){
       if(it.audioUrl){
-        const nombre = (it.voiceId||'').includes('sharvard')?'Dora':(it.voiceId||'').includes('carlfm')?'Alex':it.voiceId;
+        const nombre = (voiceId.includes(':1') || (typeof speakerId!=='undefined' && speakerId===1)) ? 'Rolina' : 'Ives';
         st.textContent=`✅ SLOT ${it.id} - ${nombre} - ${it.audioDur?it.audioDur.toFixed(1)+'s':''} - LISTO`;
         st.style.color='#4ade80';
       } else {
@@ -828,87 +835,107 @@ function isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas){ try{v&&v.pause
 
 
 
+
 async function renderSingle(item,onProg){
-  const FPS=30;
-  const START_OFFSET=0.25;
-  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
-  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  const vPre=document.createElement('video'); vPre.src=item.videoUrl; vPre.muted=true; vPre.crossOrigin='anonymous'; vPre.preload='auto';
-  await new Promise(r=>{ vPre.onloadedmetadata=()=>r(); vPre.onerror=()=>r(); vPre.load(); });
-  const vDur=vPre.duration||item.videoDur||10;
-  try{ vPre.pause(); vPre.src=''; }catch{}
-  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): (typeof calcDurInfo==='function'?calcDurInfo(item): {rate:1,useLoop:false, finalDur:item.audioDur||vDur});
-  const scriptText=(item.script||'').trim();
-  const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-  const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
-  let ac,dest,cap=null;
-  let aDur=item.audioDur||0;
-  if(item.audioUrl){
+  const FPS=30, W=720, H=900;
+  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d',{alpha:false});
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto'; v.playsInline=true;
+  await new Promise(r=>{ v.onloadedmetadata=r; v.onerror=r; v.load(); });
+  await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=r; setTimeout(r,800); });
+  const info=typeof getRateInfo==='function'?getRateInfo(v.duration, item.audioDur||v.duration):{rate:1,useLoop:false};
+  let audioBuffer=null;
+  if(item.audioBlob){
     try{
-      ac=new (window.AudioContext||window.webkitAudioContext)();
-      dest=ac.createMediaStreamDestination();
-      cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; cap.preload='auto';
-      await new Promise(r=>{ cap.onloadedmetadata=()=>{ aDur=cap.duration||aDur; r(); }; cap.onerror=()=>r(); cap.load(); });
-      const src=ac.createMediaElementSource(cap);
-      src.connect(dest);
-    }catch(e){ console.warn(e); }
+      const ac=new (window.AudioContext||window.webkitAudioContext)();
+      audioBuffer=await ac.decodeAudioData((await item.audioBlob.arrayBuffer()).slice(0));
+      await ac.close();
+    }catch(e){ console.warn('audioBlob decode fail',e); }
+  } else if(item.audioUrl){
+    try{
+      const blob=await (await fetch(item.audioUrl)).blob();
+      const ac=new (window.AudioContext||window.webkitAudioContext)();
+      audioBuffer=await ac.decodeAudioData((await blob.arrayBuffer()).slice(0));
+      await ac.close();
+      item.audioBlob=blob;
+    }catch(e){ console.warn('audioUrl decode fail',e); }
   }
-  const realTotal=aDur||vDur||10;
-  const mimeMP4=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1.42E01E','video/mp4'].find(m=>{ try{ return MediaRecorder.isTypeSupported(m); }catch{ return false; } }) || 'video/webm;codecs=vp9';
-  const ext=mimeMP4.includes('mp4')?'mp4':'webm';
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto'; v.volume=0;
-  await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
-  await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,600); });
-  v.playbackRate=info.rate||info.playbackRate||1; v.loop=info.useLoop||false;
-  v.currentTime=Math.min(START_OFFSET, v.duration-0.1||START_OFFSET);
-  await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,400); });
-  for(let k=0;k<3;k++){ try{ const vw=v.videoWidth,vh=v.videoHeight; if(vw&&vh){ const tgt=720/900, rv=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height);} }catch{} await new Promise(r=>setTimeout(r,40)); }
-  const cStream=canvas.captureStream(FPS);
-  const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-  const rec=new MediaRecorder(combined,{videoBitsPerSecond:12000000, mimeType:mimeMP4, audioBitsPerSecond:128000});
-  const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
-  const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
-  await v.play().catch(()=>{});
-  if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
-  rec.start(100);
-  await new Promise(res=>{
-    let start=performance.now(); let _stopped=false;
-    let safetyTimeout=setTimeout(()=>{ if(!_stopped){ _stopped=true; try{ rec.stop(); }catch{} res(); } }, (realTotal+3)*1000);
-    const draw=()=>{
-      const elapsed=(performance.now()-start)/1000;
-      const cur=Math.min(elapsed, realTotal);
-      onProg?.(Math.min((cur/realTotal)*100,100));
-      // Anti-freeze: si video se pauso o termino y necesitamos loop, re-play
-      try{
-        if(v.paused && !v.ended && cur < realTotal-0.1){ v.play().catch(()=>{}); }
-        if(v.ended && info.useLoop){ v.currentTime=START_OFFSET; v.play().catch(()=>{}); }
-      }catch{}
-      if(v.readyState>=2){
-        const vw=v.videoWidth, vh=v.videoHeight;
-        if(vw&&vh){ const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height); }catch{} } else { ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
-      } else { ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
-      try{
-        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
-        ctx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
-        tLines.forEach((l,i)=>{ const y=42+i*40; const fw=ctx.measureText(l).width; ctx.save(); ctx.fillStyle='#000'; const padX=22,rh=34,rw=fw+padX*2; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2,y-rh/2,rw,rh,8); ctx.fill(); } else ctx.fillRect(360-rw/2,y-rh/2,rw,rh); ctx.restore(); ctx.lineWidth=3.5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(l,360,y); ctx.fillText(l,360,y); });
-        if(subs.length){
-          const audioCur=(cap&&!cap.paused)?cap.currentTime:cur;
-          const si=Math.min(Math.floor((audioCur/(aDur||realTotal))*subs.length),subs.length-1);
-          const curr=subs[si]||'';
-          if(curr){ const ls=typeof splitWords==='function'?splitWords(curr.toUpperCase(),22).slice(0,3):[curr]; ls.forEach((ln,j)=>{ const y=700+j*42; ctx.font='800 28px Plus Jakarta Sans'; const m=ctx.measureText(ln); const bw=m.width+36,bh=42; ctx.save(); ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.strokeStyle='rgba(255,235,0,0.25)'; ctx.lineWidth=1; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2,y-bh/2,bw,bh,12); ctx.fill(); ctx.stroke(); } ctx.restore(); ctx.font='800 28px Plus Jakarta Sans'; ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y); }); }
-        }
-      }catch{}
-      if(cur>=realTotal-0.05){ if(!_stopped){ _stopped=true; clearTimeout(safetyTimeout); try{ rec.stop(); }catch{} setTimeout(res,300); } return; }
-      requestAnimationFrame(draw);
-    };
-    draw();
+  const realTotal=item.audioDur||audioBuffer?.duration||v.duration||10;
+  const totalFrames=Math.ceil(realTotal*FPS);
+  if(window.__ensureFontsReady) await window.__ensureFontsReady();
+  else if(document.fonts?.ready) await document.fonts.ready;
+  const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
+  const target=new ArrayBufferTarget();
+  const muxer=new Muxer({
+    target,
+    video:{codec:'avc', width:W, height:H},
+    audio: audioBuffer ? {codec:'aac', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:audioBuffer.sampleRate} : undefined,
+    fastStart:'in-memory'
   });
-  const blob=await blobP;
-  try{ v.pause(); v.src=''; }catch{} try{ if(cap){ cap.pause(); cap.src=''; } }catch{} try{ if(ac) await ac.close(); }catch{} try{ combined.getTracks().forEach(t=>t.stop()); }catch{} try{ cStream.getTracks().forEach(t=>t.stop()); }catch{}
-  if(blob.size>2000) return {url:URL.createObjectURL(blob), ext:ext};
-  return {url:'', ext:ext};
+  const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error('VideoEncoder',e)});
+  vEnc.configure({codec:'avc1.42001E', width:W, height:H, bitrate:2500000, framerate:FPS, hardwareAcceleration:'prefer-hardware', avc:{format:'avc'}});
+  let aEnc=null;
+  if(audioBuffer){
+    aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error('AudioEncoder',e)});
+    aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:audioBuffer.sampleRate, bitrate:128000});
+  }
+  for(let f=0; f<totalFrames; f++){
+    const cur=f/FPS;
+    if(onProg) onProg(Math.min((cur/realTotal)*85,85));
+    let vt=info.useLoop?(cur*(info.rate||1))%v.duration:Math.min(cur*(info.rate||1), v.duration-0.05);
+    if(Math.abs(v.currentTime-vt)>0.02){
+      v.currentTime=vt;
+      await new Promise(r=>{
+        let done=false;
+        const fn=()=>{ if(!done){done=true; v.removeEventListener('seeked',fn); r(); } };
+        v.addEventListener('seeked',fn);
+        setTimeout(()=>{ if(!done){done=true; v.removeEventListener('seeked',fn); r(); } },80);
+      });
+    }
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+    try{
+      const vw=v.videoWidth, vh=v.videoHeight;
+      if(vw&&vh){
+        const tgt=W/H, rv=vw/vh;
+        let sx=0,sy=0,sw=vw,sh=vh;
+        if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
+        ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H);
+      }
+    }catch{}
+    try{
+      if(window.__drawOptimizedTitleSubtitle){
+        const subs=typeof chunkSubs==='function'?chunkSubs(item.script||''):[];
+        let sub=''; if(subs.length){ const idx=Math.min(Math.floor((cur/realTotal)*subs.length), subs.length-1); sub=subs[Math.max(0,idx)]||''; }
+        window.__drawOptimizedTitleSubtitle(ctx, item.title||'', sub, W, H);
+      }
+    }catch(e){}
+    const frame=new VideoFrame(canvas, {timestamp:cur*1e6, duration:(1/FPS)*1e6});
+    vEnc.encode(frame, {keyFrame:f%(FPS*2)===0});
+    frame.close();
+    if(f%10===0) await new Promise(r=>setTimeout(r,0));
+  }
+  await vEnc.flush(); vEnc.close();
+  if(audioBuffer && aEnc){
+    const ch=audioBuffer.numberOfChannels, sr=audioBuffer.sampleRate, total=audioBuffer.length;
+    for(let i=0;i<total;i+=1024){
+      const len=Math.min(1024, total-i);
+      const data=new Float32Array(len*ch);
+      for(let c=0;c<ch;c++){ const cd=audioBuffer.getChannelData(c); for(let s=0;s<len;s++) data[s*ch+c]=cd[i+s]; }
+      const ad=new AudioData({format:'f32', sampleRate:sr, numberOfChannels:ch, numberOfFrames:len, timestamp:(i/sr)*1e6, data});
+      aEnc.encode(ad); ad.close();
+      if(onProg) onProg(85+Math.min((i/total)*15,15));
+    }
+    await aEnc.flush(); aEnc.close();
+  }
+  muxer.finalize();
+  const blob=new Blob([target.buffer], {type:'video/mp4'});
+  try{ v.pause(); v.src=''; }catch{}
+  if(blob.size>1000) return {url:URL.createObjectURL(blob), ext:'mp4', blob};
+  throw new Error('MP4 vacio');
 }
 window.renderSingle=renderSingle;
+
 
 
 
@@ -961,13 +988,12 @@ try{
 
 
 
-<!-- V27 FIX DEFINITIVO - VOZ POR SLOT + SYNC SUBS -->
+<!-- V27 FIX DEFINITIVO - VOZ POR SLOT + SYNC SUBS - FIXED V17 ROBUST -->
 <script type="module">
 const $id = (id)=>document.getElementById(id);
 
 function getActiveSlot(){
   try{
-    // Usar window.activeId que ahora si existe
     const curId = window.activeId || 1;
     if(window.queue){
       return window.queue.find(q=>q.id===curId) || window.queue[0];
@@ -979,7 +1005,7 @@ function getActiveSlot(){
 function setKStatus(t, isError=false){
   const el=$id('kokoroStatus');
   if(el){ el.textContent=t; el.style.color=isError?'#ef4444':'#4ade80'; }
-  console.log('[Piper V27]', t);
+  console.log('[Piper V17]', t);
 }
 function setKProg(p){
   const bar=$id('kokoroProgress'); const fill=$id('kokoroProgressBar');
@@ -990,155 +1016,188 @@ function setKProg(p){
 let ttsLib = null;
 async function getTTS(){
   if(ttsLib) return ttsLib;
-  setKStatus('Cargando motor Piper...');
-  setKProg(20);
-  try{
-    ttsLib = await import('https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm');
-    setKProg(50);
-    setKStatus('Motor listo');
-    return ttsLib;
-  }catch(e){
-    console.error('CDN jsdelivr fallo', e);
+  setKStatus('Cargando motor Piper...'); setKProg(10);
+  const cdns=[
+    'https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm',
+    'https://esm.run/@mintplex-labs/piper-tts-web@1.0.4',
+    'https://cdn.skypack.dev/@mintplex-labs/piper-tts-web@1.0.4'
+  ];
+  for(let url of cdns){
     try{
-      ttsLib = await import('https://esm.run/@mintplex-labs/piper-tts-web@1.0.4');
+      console.log('[V17] intentando CDN', url);
+      setKStatus('Probando CDN: '+url.split('/')[2]+'...');
+      ttsLib = await import(url);
+      setKProg(30); setKStatus('Motor cargado OK - '+url.split('/')[2]);
+      window.ttsLib = ttsLib;
       return ttsLib;
-    }catch(e2){
-      throw new Error('No se pudo cargar Piper: '+e.message);
-    }
+    }catch(e){ console.warn('CDN fallo', url, e.message); }
   }
+  throw new Error('No se pudo cargar motor Piper - revisa internet / VPN');
 }
 
+function splitIntoChunks(txt, maxLen){
+  maxLen = maxLen || 340;
+  const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+  const chunks=[]; let cur="";
+  for(let s of sentences){
+    s=s.trim(); if(!s) continue;
+    if((cur + " " + s).length <= maxLen){ cur = cur ? cur + " " + s : s; }
+    else {
+      if(cur) chunks.push(cur);
+      if(s.length > maxLen){
+        const words=s.split(/\s+/); let tmp="";
+        for(let w of words){ if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w; else { if(tmp) chunks.push(tmp); tmp=w; } }
+        if(tmp) cur=tmp; else cur="";
+      } else cur=s;
+    }
+  }
+  if(cur) chunks.push(cur);
+  return chunks;
+}
+async function blobToAudioBuffer(blob, audioCtx){
+  const ab = await blob.arrayBuffer();
+  return await audioCtx.decodeAudioData(ab);
+}
+function audioBufferToWavBlob(buffer){
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const length = buffer.length;
+  const wavLength = length * numChannels * 2 + 44;
+  const ab = new ArrayBuffer(wavLength);
+  const view = new DataView(ab);
+  let pos=0;
+  function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
+  function write16(d){ view.setUint16(pos, d, true); pos+=2; }
+  function write32(d){ view.setUint32(pos, d, true); pos+=4; }
+  writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE');
+  writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16);
+  writeStr('data'); write32(wavLength-pos-4);
+  const channels=[]; for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
+  let offset=44;
+  for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample = Math.max(-1, Math.min(1, channels[c][i])); sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; view.setInt16(offset, sample, true); offset+=2; } }
+  return new Blob([ab], {type:'audio/wav'});
+}
 
 async function handleGenerate(){
   const capturedId = window.activeId || 1;
   const slot = window.queue ? window.queue.find(q=>q.id===capturedId) : null;
   if(!slot){ alert('No hay slot '+capturedId); return; }
   let text = (slot.txtContent || slot.script || document.getElementById('inputScript')?.value || '').trim();
-  if(!text){ alert('Carga .txt en paso 2'); return; }
+  if(!text){ alert('Carga .txt en paso 2 - SLOT '+capturedId+' vacio'); return; }
   
-  function splitIntoChunks(txt, maxLen){
-    maxLen = maxLen || 380;
-    const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
-    const chunks=[];
-    let cur="";
-    for(let s of sentences){
-      s=s.trim();
-      if(!s) continue;
-      if((cur + " " + s).length <= maxLen){
-        cur = cur ? cur + " " + s : s;
-      } else {
-        if(cur) chunks.push(cur);
-        if(s.length > maxLen){
-          const words=s.split(/\s+/);
-          let tmp="";
-          for(let w of words){
-            if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w;
-            else { if(tmp) chunks.push(tmp); tmp=w; }
-          }
-          if(tmp) cur=tmp; else cur="";
-        } else {
-          cur=s;
-        }
-      }
-    }
-    if(cur) chunks.push(cur);
-    return chunks;
-  }
-
-  async function blobToAudioBuffer(blob, audioCtx){
-    const ab = await blob.arrayBuffer();
-    return await audioCtx.decodeAudioData(ab);
-  }
-  function audioBufferToWavBlob(buffer){
-    const numChannels = buffer.numberOfChannels;
-    const sampleRate = buffer.sampleRate;
-    const length = buffer.length;
-    const wavLength = length * numChannels * 2 + 44;
-    const ab = new ArrayBuffer(wavLength);
-    const view = new DataView(ab);
-    let pos=0;
-    function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
-    function write16(d){ view.setUint16(pos, d, true); pos+=2; }
-    function write32(d){ view.setUint32(pos, d, true); pos+=4; }
-    writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE');
-    writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16);
-    writeStr('data'); write32(wavLength-pos-4);
-    const channels=[];
-    for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
-    let offset=44;
-    for(let i=0;i<length;i++){
-      for(let c=0;c<numChannels;c++){
-        let sample = Math.max(-1, Math.min(1, channels[c][i]));
-        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-        view.setInt16(offset, sample, true);
-        offset+=2;
-      }
-    }
-    return new Blob([ab], {type:'audio/wav'});
-  }
-
   const voiceSelectEl = document.getElementById('kokoroVoice');
   const speedSelectEl = document.getElementById('kokoroSpeed');
   if(voiceSelectEl) slot.voiceId = voiceSelectEl.value;
   if(speedSelectEl) slot.voiceSpeed = parseFloat(speedSelectEl.value)||1;
-  let voiceId = slot.voiceId || 'es_ES-sharvard-medium';
+  let voiceId = slot.voiceId || 'es_ES-sharvard-medium:0';
   let speakerId = 0;
-  if(voiceId.includes(':')){
-    const parts = voiceId.split(':');
-    voiceId = parts[0];
-    speakerId = parseInt(parts[1]||0);
-  }
-  const speed = slot.voiceSpeed;
+  if(voiceId.includes(':')){ const parts = voiceId.split(':'); voiceId = parts[0]; speakerId = parseInt(parts[1]||0); }
+  const speed = slot.voiceSpeed||1;
+  const voiceName = speakerId===1 ? 'Rolina' : 'Ives';
 
-  const chunks = splitIntoChunks(text, 380);
-  console.log('[V28] TXT total ' + text.length + ' chars -> ' + chunks.length + ' chunks');
+  const chunks = splitIntoChunks(text, 340);
+  console.log('[V17] SLOT '+slot.id+' TXT '+text.length+' chars -> '+chunks.length+' chunks voz '+voiceId+' speaker '+speakerId+' ('+voiceName+')');
 
   const btn=document.getElementById('btnKokoroGen');
-  btn.disabled=true;
-  btn.textContent='SLOT '+slot.id+' 0/'+chunks.length;
-  btn.style.background='#fff';
+  if(btn){ btn.disabled=true; btn.textContent='SLOT '+slot.id+' 0/'+chunks.length; }
 
   try{
     const tts = await getTTS();
-    document.getElementById('kokoroStatus').textContent='[SLOT '+slot.id+'] Descargando voz...';
-    const onProgress = function(prog){
+    setKStatus('[SLOT '+slot.id+'] Descargando modelo '+voiceName+' ('+voiceId+') 150MB - puede tardar...');
+    setKProg(35);
+    const onProgress = (prog)=>{
       if(prog && prog.loaded && prog.total){
         const pct = Math.round(prog.loaded*100/prog.total);
+        const mbL = (prog.loaded/1024/1024).toFixed(1);
+        const mbT = (prog.total/1024/1024).toFixed(1);
+        setKStatus(`[SLOT ${slot.id}] Descargando ${voiceName} ${pct}% - ${mbL}MB/${mbT}MB`);
         const bar=document.getElementById('kokoroProgressBar');
         const barWrap=document.getElementById('kokoroProgress');
         if(barWrap) barWrap.style.display='block';
-        if(bar) bar.style.width=(20 + Math.round(pct*0.3))+'%';
+        if(bar) bar.style.width=(35 + Math.round(pct*0.35))+'%';
+      } else if(prog && prog.loaded){
+        setKStatus(`[SLOT ${slot.id}] Descargando ${voiceName} ${(prog.loaded/1024/1024).toFixed(1)}MB...`);
       }
     };
-    try{ await tts.download(voiceId, onProgress); }catch(e){ console.warn(e); }
+    
+    // Descarga con 5 reintentos y espera
+    let downloaded=false;
+    let lastErr=null;
+    for(let attempt=1; attempt<=5 && !downloaded; attempt++){
+      try{
+        setKStatus(`[SLOT ${slot.id}] Intento ${attempt}/5 descargando ${voiceName}...`);
+        await tts.download(voiceId, onProgress);
+        downloaded=true;
+        console.log('[V17] download OK intento', attempt);
+      }catch(e){
+        lastErr=e;
+        console.warn('download intento '+attempt+' fallo', e);
+        setKStatus(`[SLOT ${slot.id}] Error descarga intento ${attempt}/5: ${e.message} - reintentando...`, true);
+        if(attempt<5) await new Promise(r=>setTimeout(r, 2000*attempt));
+      }
+    }
+    if(!downloaded){
+      throw new Error(`No se pudo descargar modelo ${voiceName} (${voiceId}) tras 5 intentos. Error: ${lastErr?.message || 'desconocido'}. Prueba: 1) Usa VPN, 2) Borra cache, 3) Revisa que HuggingFace no este bloqueado en HN, 4) Intenta con datos moviles`);
+    }
+
+    setKStatus(`[SLOT ${slot.id}] Modelo ${voiceName} listo - Generando ${chunks.length} partes...`);
+    setKProg(75);
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') await audioCtx.resume();
     const buffers = [];
 
     for(let i=0;i<chunks.length;i++){
-      try{ window.updateVoiceProgressCorrecto(slotId, i+1, chunks.length); }catch(e){}
+      try{ if(window.updateVoiceProgressCorrecto) window.updateVoiceProgressCorrecto(slot.id, i+1, chunks.length); }catch(e){}
 
       const chunk = chunks[i];
-      btn.textContent='SLOT '+slot.id+' GENERANDO '+(i+1)+'/'+chunks.length;
-      document.getElementById('kokoroStatus').textContent='[SLOT '+slot.id+'] Parte '+(i+1)+'/'+chunks.length+' ('+chunk.length+' chars)';
-      const prog = 50 + Math.round((i/chunks.length)*40);
-      const bar=document.getElementById('kokoroProgressBar');
-      if(bar) bar.style.width=prog+'%';
+      if(btn) btn.textContent=`SLOT ${slot.id} ${voiceName} ${i+1}/${chunks.length}`;
+      setKStatus(`[SLOT ${slot.id}] ${voiceName} Parte ${i+1}/${chunks.length} (${chunk.length} chars)`);
+      setKProg(75 + Math.round((i/chunks.length)*20));
 
-      const wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, onProgress);
-      if(!wavBlob || wavBlob.size<500){
-        console.warn('Chunk '+i+' vacio');
-        continue;
+      let wavBlob=null;
+      let chunkErr=null;
+      for(let retry=1; retry<=3; retry++){
+        try{
+          console.log(`[V17] predict chunk ${i} intento ${retry}: "${chunk.substring(0,50)}..."`);
+          wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, onProgress);
+          console.log(`[V17] chunk ${i} blob size`, wavBlob?.size, 'type', wavBlob?.type);
+          if(wavBlob && wavBlob.size>=800) break; // OK
+          console.warn('Chunk '+i+' vacio/pequeño intento '+retry, wavBlob?.size);
+          if(wavBlob && wavBlob.size>0 && wavBlob.size<800){
+            // Leer como texto por si es error JSON
+            try{
+              const txt = await wavBlob.text();
+              console.warn('Blob pequeño contenido:', txt.substring(0,200));
+              if(txt.includes('error') || txt.includes('Error')) throw new Error(txt.substring(0,200));
+            }catch{}
+          }
+        }catch(e){ 
+          chunkErr=e;
+          console.warn('predict fail chunk '+i+' intento '+retry, e); 
+          setKStatus(`[SLOT ${slot.id}] Error parte ${i+1} intento ${retry}: ${e.message}`, true);
+        }
+        await new Promise(r=>setTimeout(r,600));
       }
-      const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
-      buffers.push(audioBuf);
-      await new Promise(function(r){ setTimeout(r, 30); });
+      if(!wavBlob || wavBlob.size<800){ 
+        console.warn('Chunk '+i+' descartado vacio tras 3 intentos, err:', chunkErr);
+        setKStatus(`[SLOT ${slot.id}] Parte ${i+1} vacia tras 3 intentos - saltando`, true);
+        continue; 
+      }
+      try{
+        const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
+        buffers.push(audioBuf);
+        console.log('[V17] chunk '+i+' decode OK dur', audioBuf.duration);
+      }catch(e){ 
+        console.warn('decode fail chunk '+i, e); 
+        setKStatus(`[SLOT ${slot.id}] Error decodificando parte ${i+1}: ${e.message}`, true);
+      }
+      await new Promise(r=>setTimeout(r, 50));
     }
 
-    if(!buffers.length) throw new Error('No se genero audio');
+    if(!buffers.length) throw new Error(`No se genero audio - todos los ${chunks.length} chunks vacios. Causas: 1) El .onnx de ${voiceName} (${voiceId}) no se descargo completo (150MB) - revisa red/VPN, 2) HuggingFace bloqueado, 3) Texto con caracteres raros. Abre F12 > Console y mira logs [V17] blob size`);
 
-    let totalLength = 0;
-    for(let b of buffers) totalLength+=b.length;
+    let totalLength = 0; for(let b of buffers) totalLength+=b.length;
     let numberOfChannels = buffers[0].numberOfChannels;
     let sampleRate = buffers[0].sampleRate;
     const concatBuffer = audioCtx.createBuffer(numberOfChannels, totalLength, sampleRate);
@@ -1152,187 +1211,76 @@ async function handleGenerate(){
     await audioCtx.close();
 
     const finalWavBlob = audioBufferToWavBlob(concatBuffer);
+    console.log('[V17] final blob size', finalWavBlob.size, 'dur', concatBuffer.length/sampleRate);
+    if(finalWavBlob.size<1000) throw new Error('WAV final muy pequeño: '+finalWavBlob.size+' bytes - fallo concatenacion');
+
     const url=URL.createObjectURL(finalWavBlob);
     if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
     slot.audioUrl=url;
-    slot.audioName='SLOT'+slot.id+'-'+voiceId+'-'+text.length+'chars-'+chunks.length+'partes.wav';
+    slot.audioName='SLOT'+slot.id+'-'+voiceName+'-'+text.length+'chars-'+chunks.length+'partes.wav';
     slot.audioBlob=finalWavBlob;
 
-    const tempAudio = new Audio();
-    tempAudio.src = url;
-    await new Promise(function(res){
-      tempAudio.onloadedmetadata=function(){
+    const tempAudio = new Audio(); tempAudio.src = url;
+    await new Promise((res)=>{
+      tempAudio.onloadedmetadata=()=>{
         slot.audioDur = tempAudio.duration;
-        console.log('[V28] SLOT '+slot.id+' duracion FINAL real:', slot.audioDur, 'de '+chunks.length+' partes');
+        console.log('[V17] SLOT '+slot.id+' duracion REAL:', slot.audioDur);
         res();
       };
-      tempAudio.onerror=function(){ res(); };
+      tempAudio.onerror=()=>{ slot.audioDur=concatBuffer.length/concatBuffer.sampleRate; res(); };
       tempAudio.load();
     });
 
-    if(window.activeId === slot.id){
-      const aEl=document.getElementById('previewAudio');
-      const vEl2=document.getElementById('previewVideo');
-      if(aEl){
-        aEl.src=url; aEl.load(); aEl.playbackRate=speed; aEl.muted=false;
-        if(vEl2){ vEl2.muted=true; vEl2.volume=0; }
-      }
-      const audioNameEl=document.getElementById('audioName');
-      if(audioNameEl){
-        const nombre = voiceId.indexOf('sharvard')>=0 ? 'Dora' : voiceId.indexOf('carlfm')>=0 ? 'Alex' : voiceId;
-        audioNameEl.innerHTML='🎙️ <b>'+nombre+' SLOT '+slot.id+'</b> · TODO '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅';
-        audioNameEl.style.color='#4ade80';
-      }
-      if(window.renderCola) window.renderCola(true);
-      if(window.renderOverlay) window.renderOverlay();
-      if(window.calcDurInfo){
-        const di=window.calcDurInfo(slot);
-        if(di) document.getElementById('speedLabel').textContent=di.txt;
-      }
-    } else {
-      if(window.renderCola) window.renderCola(true);
+    slot.status='con audio';
+    if(window.renderCola) window.renderCola(true);
+    
+    const aEl=document.getElementById('previewAudio');
+    if(window.activeId===slot.id && aEl){
+      aEl.src=url; aEl.load(); aEl.playbackRate=speed; aEl.muted=false;
+      const vEl2=document.getElementById('previewVideo'); if(vEl2){ vEl2.muted=true; vEl2.volume=0; }
     }
-
-    document.getElementById('kokoroStatus').textContent='✅ SLOT '+slot.id+' COMPLETO - '+text.length+' chars - '+slot.audioDur.toFixed(1)+'s - '+chunks.length+' partes';
-    const bar2=document.getElementById('kokoroProgressBar');
-    if(bar2) bar2.style.width='100%';
-    setTimeout(function(){ const bw=document.getElementById('kokoroProgress'); if(bw) bw.style.display='none'; },1200);
+    const audioNameEl=document.getElementById('audioName');
+    if(audioNameEl){
+      audioNameEl.innerHTML='🎙️ <b>'+voiceName+' SLOT '+slot.id+'</b> · '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅';
+      audioNameEl.style.color='#4ade80';
+    }
+    setKStatus(`✅ SLOT ${slot.id} ${voiceName} COMPLETO - ${text.length} chars - ${slot.audioDur.toFixed(1)}s - ${chunks.length} partes`);
+    setKProg(100);
+    setTimeout(()=>setKProg(null),1500);
+    console.log('[V17] SLOT '+slot.id+' GUARDADO OK', {url: !!slot.audioUrl, dur: slot.audioDur, size: slot.audioBlob.size, status: slot.status, voz: voiceName});
+    return slot;
   }catch(e){
-    console.error(e);
+    console.error('[V17] ERROR SLOT', e);
     const st=document.getElementById('kokoroStatus');
     if(st){ st.textContent='[SLOT '+slot.id+'] ❌ '+e.message; st.style.color='#ef4444'; }
-    alert('Error SLOT '+slot.id+': '+e.message);
+    alert('Error SLOT '+slot.id+' ('+voiceName+'): '+e.message+'\n\nSoluciones:\n1) Abre F12 > Console y mira [V17] logs\n2) Prueba con VPN\n3) Borra cache y recarga\n4) Usa texto mas corto (200 chars) para probar');
+    throw e;
   }finally{
-    btn.disabled=false; btn.textContent='🔊 GENERAR AUDIO COMPLETO (TODO EL TXT)'; btn.style.background='#FFEB00';
+    if(btn){ btn.disabled=false; btn.textContent='🔊 GENERAR AUDIO '+voiceName; btn.style.background='#FFEB00'; }
   }
 }
 
-
-// V30.1 WRAPPER - Reusa el mismo handleGenerate que ya funciona perfecto en V28
 window.generateVoiceForSlotId = async function(slotId){
-  console.log('[V30.1] Generando voz para SLOT '+slotId+' usando motor V28 que funciona');
+  console.log('[V17] Generando voz SLOT '+slotId);
   const originalActive = window.activeId;
   try{
-    // Cambiar a ese slot
     if(window.setActive) window.setActive(slotId);
     else window.activeId = slotId;
-    
-    // Pequeña espera para que setActive restaure UI
-    await new Promise(r=>setTimeout(r, 100));
-    
+    await new Promise(r=>setTimeout(r,150));
     const slot = window.queue.find(q=>q.id===slotId);
-    if(!slot){ throw new Error('Slot '+slotId+' no existe'); }
-    if(!slot.txtContent && !slot.script){ throw new Error('SLOT '+slotId+' sin TXT'); }
-    
-    // Llamar directamente a la logica de handleGenerate pero sin depender del boton
-    // Duplicamos la logica exacta de handleGenerate que ya funciona:
-    let text = (slot.txtContent || slot.script || '').trim();
-    if(!text) throw new Error('Sin texto');
-    
-    function splitIntoChunks(txt, maxLen){
-      maxLen = maxLen || 380;
-      const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
-      const chunks=[]; let cur="";
-      for(let s of sentences){
-        s=s.trim(); if(!s) continue;
-        if((cur + " " + s).length <= maxLen){ cur = cur ? cur + " " + s : s; }
-        else {
-          if(cur) chunks.push(cur);
-          if(s.length > maxLen){
-            const words=s.split(/\s+/); let tmp="";
-            for(let w of words){ if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w; else { if(tmp) chunks.push(tmp); tmp=w; } }
-            if(tmp) cur=tmp; else cur="";
-          } else cur=s;
-        }
-      }
-      if(cur) chunks.push(cur);
-      return chunks;
-    }
-    async function blobToAudioBuffer(blob, audioCtx){ const ab = await blob.arrayBuffer(); return await audioCtx.decodeAudioData(ab); }
-    function audioBufferToWavBlob(buffer){
-      const numChannels = buffer.numberOfChannels; const sampleRate = buffer.sampleRate; const length = buffer.length;
-      const wavLength = length * numChannels * 2 + 44; const ab = new ArrayBuffer(wavLength); const view = new DataView(ab); let pos=0;
-      function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
-      function write16(d){ view.setUint16(pos, d, true); pos+=2; } function write32(d){ view.setUint32(pos, d, true); pos+=4; }
-      writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE'); writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16); writeStr('data'); write32(wavLength-pos-4);
-      const channels=[]; for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
-      let offset=44; for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample = Math.max(-1, Math.min(1, channels[c][i])); sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; view.setInt16(offset, sample, true); offset+=2; } } return new Blob([ab], {type:'audio/wav'});
-    }
-
-    const rawVoiceId = slot.voiceId || document.getElementById('kokoroVoice')?.value || 'es_ES-sharvard-medium:0';
-    const vp = rawVoiceId.split(':');
-    const voiceId = vp[0];
-    const speakerId = parseInt(vp[1]||'0',10);
-    const speed = slot.voiceSpeed || parseFloat(document.getElementById('kokoroSpeed')?.value)||1;
-    const chunks = splitIntoChunks(text, 380);
-    console.log('[V30.1] SLOT '+slotId+' '+text.length+' chars -> '+chunks.length+' chunks voz '+voiceId);
-
-    const tts = await getTTS();
-    try{ await tts.download(voiceId, ()=>{}); }catch(e){}
-
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const buffers=[];
-    for(let i=0;i<chunks.length;i++){
-      try{ window.updateVoiceProgressCorrecto(slotId, i+1, chunks.length); }catch(e){}
-
-      const chunk = chunks[i];
-      const st=document.getElementById('kokoroStatus');
-      if(st) st.textContent='[SLOT '+slotId+'] Generando '+ (i+1) +'/'+chunks.length+' ('+chunk.length+' chars)';
-      const btn=document.getElementById('btnKokoroGen');
-      if(btn) btn.textContent='SLOT '+slotId+' '+ (i+1) +'/'+chunks.length;
-      let wavBlob=null;
-      try{ wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }); }catch(e){ console.error('predict fail', e); continue; }
-      if(!wavBlob || wavBlob.size<500) continue;
-      const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
-      buffers.push(audioBuf);
-      await new Promise(r=>setTimeout(r, 20));
-    }
-    if(!buffers.length) throw new Error('No se genero audio SLOT '+slotId);
-    let totalLength=0; for(let b of buffers) totalLength+=b.length;
-    const concatBuffer = audioCtx.createBuffer(buffers[0].numberOfChannels, totalLength, buffers[0].sampleRate);
-    let off=0; for(let buf of buffers){ for(let ch=0; ch<concatBuffer.numberOfChannels; ch++){ concatBuffer.getChannelData(ch).set(buf.getChannelData(ch), off); } off+=buf.length; }
-    await audioCtx.close();
-    const finalWavBlob = audioBufferToWavBlob(concatBuffer);
-    const url = URL.createObjectURL(finalWavBlob);
-    if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
-    slot.audioUrl = url;
-    slot.audioBlob = finalWavBlob;
-    slot.audioName = 'SLOT'+slot.id+'-VOZ-COMPLETA.wav';
-    
-    const tempAudio = new Audio(); tempAudio.src=url;
-    await new Promise(function(res){
-      tempAudio.onloadedmetadata=function(){ slot.audioDur=tempAudio.duration; console.log('[V30.1] SLOT '+slot.id+' dur '+slot.audioDur); res(); };
-      tempAudio.onerror=function(){ slot.audioDur=concatBuffer.length/concatBuffer.sampleRate; res(); };
-      tempAudio.load();
-    });
-    
-    slot.status='con audio';
-    if(window.renderCola) window.renderCola(true);
-    if(window.renderOverlay) window.renderOverlay();
-    
-    console.log('[V30.1] SLOT '+slot.id+' GUARDADO OK', {url: !!slot.audioUrl, dur: slot.audioDur, size: slot.audioBlob.size});
-    
-    // Restaurar UI si es el slot activo original
-    const aEl=document.getElementById('previewAudio');
-    if(aEl && window.activeId===slotId){
-      aEl.src=url; aEl.load(); aEl.playbackRate=speed;
-      const audioNameEl=document.getElementById('audioName');
-      if(audioNameEl){
-        audioNameEl.innerHTML='🎙️ <b>SLOT '+slot.id+' VOZ COMPLETA</b> · '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅ GUARDADO';
-        audioNameEl.style.color='#4ade80';
-      }
-    }
-    
-    return slot;
+    if(!slot) throw new Error('Slot '+slotId+' no existe');
+    if(!slot.txtContent && !slot.script) throw new Error('SLOT '+slotId+' sin TXT - carga .txt primero');
+    window.activeId = slotId;
+    await handleGenerate();
+    window.activeId = originalActive;
+    const updated = window.queue.find(q=>q.id===slotId);
+    if(!updated.audioUrl) throw new Error('No se guardo audioUrl SLOT '+slotId);
+    return updated;
   } finally {
-    // Restaurar slot activo original
-    if(window.setActive && originalActive) {
-      try{ window.setActive(originalActive); }catch{}
-    }
+    if(window.setActive && originalActive){ try{ window.setActive(originalActive); }catch{} }
   }
 };
 
-// Mutex global para voces
 window.ttsLock = Promise.resolve();
 window.generateVoiceForSlotIdLocked = async function(slotId){
   let release;
@@ -1347,25 +1295,30 @@ window.generateVoiceForSlotIdLocked = async function(slotId){
   }
 };
 
-
 $id('btnKokoroGen')?.addEventListener('click', handleGenerate);
 document.getElementById('inputTxt')?.addEventListener('change', ()=>{
   setTimeout(()=>{
     const s=getActiveSlot();
-    if(s?.txtContent) setKStatus(`TXT SLOT ${s.id} listo (${s.txtContent.length} chars) → GENERAR`);
+    if(s?.txtContent) setKStatus(`TXT SLOT ${s.id} listo (${s.txtContent.length} chars) → GENERAR ${s.voiceId?.includes(':1')?'Rolina':'Ives'}`);
   },600);
 });
 document.getElementById('kokoroVoice')?.addEventListener('change', e=>{
   const it = window.getA ? window.getA() : getActiveSlot();
-  if(it){ it.voiceId = e.target.value; console.log(`SLOT ${it.id} voz -> ${e.target.value}`); }
+  if(it){ it.voiceId = e.target.value; console.log(`SLOT ${it.id} voz -> ${e.target.value} (${e.target.value.includes(':1')?'Rolina':'Ives'})`); }
+  const btn=document.getElementById('btnKokoroGen');
+  if(btn) btn.textContent='🔊 GENERAR AUDIO '+(e.target.value.includes(':1')?'Rolina':'Ives');
 });
 document.getElementById('kokoroSpeed')?.addEventListener('change', e=>{
   const it = window.getA ? window.getA() : getActiveSlot();
   if(it) it.voiceSpeed = parseFloat(e.target.value)||1;
 });
 
-setKStatus('✅ V27 FIX - Voz por SLOT + Subs sync audio real');
+setKStatus('✅ V17 ROBUST - Ives/Rolina - Motor listo para cargar');
+window.handleGenerate = handleGenerate;
+window.getTTS = getTTS;
 </script>
+
+
 
 
 <div id="perfMon" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:rgba(8,8,10,0.92);border:1px solid #222;border-radius:14px;padding:10px;min-width:200px;font-family:sans-serif"><div style="font-size:8px;color:#FFEB00;font-weight:900">⚡ V13 6x6 PARALELO REAL</div><div style="font-size:9px;color:#999;margin-top:6px">Voces: <b id="mVoices">0</b>/6 | Videos: <b id="mVideos">0</b>/6 | RAM: <b id="mRam">--</b></div></div><script>setInterval(()=>{try{const m=performance.memory; if(m){document.getElementById('mRam').textContent=Math.round(m.usedJSHeapSize/1048576)+'MB'} }catch{}},1000)</script>
@@ -2086,10 +2039,7 @@ window.IC_renew = function(username){
 </script>
 
 
-<style>
-#btnKokoroGen, #kokoroSpeed {display:none !important;}
-div:has(> #kokoroSpeed) {display:none !important;}
-</style>
+
 
 <script>
 (function(){
@@ -2106,7 +2056,7 @@ div:has(> #kokoroSpeed) {display:none !important;}
   // ALEXANDER POR DEFECTO + PRELOAD MOTOR
   const DEFAULT_VOICE='es_ES-sharvard-medium:0';
   window.DEFAULT_VOICE=DEFAULT_VOICE;
-  function forceAlexander(){
+  function forceIves(){
     try{
       const sel=document.getElementById('kokoroVoice');
       if(sel) sel.value=DEFAULT_VOICE;
@@ -2123,25 +2073,25 @@ div:has(> #kokoroSpeed) {display:none !important;}
   async function preloadEngine(){
     try{
       const st=document.getElementById('kokoroStatus');
-      if(st) st.textContent='⚙️ Encendiendo motor Alexander...';
-      forceAlexander();
+      if(st) st.textContent='⚙️ Encendiendo motor Ives...';
+      forceIves();
       if(typeof getTTS==='function'){
         const tts=await getTTS();
         if(tts){
-          if(st) st.textContent='Descargando voz Alexander V...';
+          if(st) st.textContent='Descargando voz Ives...';
           try{ await tts.download(DEFAULT_VOICE, ()=>{}); }catch(e){ console.warn(e); }
-          if(st) st.textContent='✅ Motor listo - Alexander V - Listo para generar';
+          if(st) st.textContent='✅ Motor listo - Ives - Listo para generar';
           const dot=document.getElementById('pyStatusDot'); if(dot) dot.className='online';
           const txt=document.getElementById('pyStatusText'); if(txt) txt.textContent='Motor listo';
         }
       }
     }catch(e){
       const st=document.getElementById('kokoroStatus');
-      if(st) st.textContent='✅ Motor listo - Alexander V';
+      if(st) st.textContent='✅ Motor listo - Ives';
     }
   }
-  document.addEventListener('DOMContentLoaded', ()=>{ forceAlexander(); setTimeout(preloadEngine, 1200); });
-  setInterval(forceAlexander, 2000);
+  document.addEventListener('DOMContentLoaded', ()=>{ forceIves(); setTimeout(preloadEngine, 1200); });
+  setInterval(forceIves, 2000);
   
   // OCULTAR 1.15x y boton
   function hideAudioUI(){
@@ -2162,7 +2112,7 @@ div:has(> #kokoroSpeed) {display:none !important;}
 async function renderSingle(item, onProgress){
   const info = window.calcDurInfo ? window.calcDurInfo(item) : {useLoop:false, playbackRate:1, finalDur: item.videoDur || 10};
   const canvas = document.createElement('canvas');
-  canvas.width=720; canvas.height=900;
+  canvas.width=1080; canvas.height=1350;
   const ctx = canvas.getContext('2d', {alpha:false, desynchronized:true});
   const v = document.createElement('video');
   v.src = item.videoUrl; v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
@@ -2261,7 +2211,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         console.log('Need voice', needVoice.map(x=>x.id));
         
         if(needVoice.length){
-          txtEl.textContent=`FASE 1/2: Generando ${needVoice.length} voces Alexander PARALELO x6`;
+          txtEl.textContent=`FASE 1/2: Generando ${needVoice.length} voces Ives PARALELO x6`;
           pctEl.textContent='5%';
           listEl.innerHTML=needVoice.map(s=>`<div style="background:rgba(255,235,0,.12);border:1px solid #FFEB00;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:#FFEB00">SLOT ${s.id} · GENERANDO VOZ...</span><span>...</span></div>`).join('');
           
@@ -2339,7 +2289,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         await Promise.allSettled(workers);
         
         pctEl.textContent='100%';
-        txtEl.textContent=`COMPLETADO - ${list.length} videos con voz Alexander`;
+        txtEl.textContent=`COMPLETADO - ${list.length} videos con voz Ives`;
         setTimeout(()=>{ overlay.style.display='none'; }, 1500);
         if(window.renderCola) window.renderCola(true);
         if(window.startLoop) try{window.startLoop();}catch{}
@@ -2365,7 +2315,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 async function renderSingleCapCut(item, onProg){
   const FPS=30;
   const START_OFFSET=0.25;
-  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
+  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1350;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
   
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
@@ -2406,20 +2356,23 @@ async function renderSingleCapCut(item, onProg){
         const titleLines=typeof splitWords==='function'?splitWords(titleText,20).slice(0,3):[titleText];
         ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
         titleLines.forEach((l,i)=>{
-          const y=45+i*48;
-          const fontSize = titleText.length>80?26: titleText.length>50?28:30;
+          const y=55+i*44;
+          const fontSize = titleText.length>80?30: titleText.length>50?34:38;
           ctx.font=`900 ${fontSize}px Anton`;
           const fw=ctx.measureText(l).width;
-          const rw=Math.min(fw+32, W*0.92);
-          const rh=34;
-          const cx=W/2;
+          // Fondo negro con esquinas redondeadas + borde amarillo fino
           ctx.save();
           ctx.fillStyle='rgba(0,0,0,0.92)';
-          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
-          else ctx.fillRect(cx-rw/2, y-rh/2, rw, rh);
+          const padX=26, rh=38, rw=fw+padX*2;
+          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
+          else ctx.fillRect(360-rw/2, y-rh/2, rw, rh);
+          // Borde sutil amarillo
+          ctx.strokeStyle='rgba(255,235,0,0.35)'; ctx.lineWidth=1;
+          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2, y-rh/2, rw, rh, 10); ctx.stroke(); }
           ctx.restore();
-          ctx.lineWidth=6; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00';
-          ctx.strokeText(l,cx,y); ctx.fillText(l,cx,y);
+          // Texto amarillo con borde negro grueso
+          ctx.lineWidth=5; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00';
+          ctx.strokeText(l,360,y); ctx.fillText(l,360,y);
         });
       }
     }catch(e){ console.warn('title draw fail',e); }
@@ -2434,27 +2387,25 @@ async function renderSingleCapCut(item, onProg){
         subText=(item.script||'').trim().split(/\s+/).slice(0,8).join(' ');
       }
       if(subText){
-        let ls = lines;
-        if(ls.length===1){ const w=ls[0].split(' '); const p=Math.ceil(w.length/3); ls=[w.slice(0,p).join(' '), w.slice(p,p*2).join(' '), w.slice(p*2).join(' ')].filter(Boolean); }
-        else if(ls.length===2){ const w=ls[1].split(' '); const p=Math.ceil(w.length/2); ls=[ls[0], w.slice(0,p).join(' '), w.slice(p).join(' ')].filter(Boolean); }
-        ls=ls.slice(0,3);
-        ls.forEach((ln,j)=>{
-          const y=620+j*40;
-          const fontSize=22;
+        const lines=typeof splitWords==='function'?splitWords(subText.toUpperCase(),24).slice(0,2):[subText.toUpperCase()];
+        lines.forEach((ln,j)=>{
+          const y=720+j*46;
+          const fontSize=26;
           ctx.font=`800 ${fontSize}px Plus Jakarta Sans`;
           const m=ctx.measureText(ln);
-          const bw=Math.min(m.width+36, W*0.90);
-          const bh=32;
-          const cx=W/2;
+          const bw=m.width+40, bh=44;
+          // Fondo negro 85% + borde amarillo sutil
           ctx.save();
-          ctx.fillStyle='rgba(0,0,0,0.85)';
-          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, 10); ctx.fill(); }
-          else { ctx.fillRect(cx-bw/2, y-bh/2, bw, bh); }
+          ctx.fillStyle='rgba(0,0,0,0.88)';
+          ctx.strokeStyle='rgba(255,235,0,0.30)'; ctx.lineWidth=1.2;
+          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2, y-bh/2, bw, bh, 14); ctx.fill(); ctx.stroke(); }
+          else { ctx.fillRect(360-bw/2, y-bh/2, bw, bh); }
           ctx.restore();
+          // Texto blanco con sombra negra gruesa para legibilidad maxima
           ctx.font=`800 ${fontSize}px Plus Jakarta Sans`;
-          ctx.lineWidth=5; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFFFFF';
+          ctx.lineWidth=6; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFFFFF';
           ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.strokeText(ln,cx,y); ctx.fillText(ln,cx,y);
+          ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y);
         });
       }
     }catch(e){ console.warn('sub draw fail',e); }
@@ -2471,7 +2422,7 @@ async function renderSingleCapCut(item, onProg){
     const target=new ArrayBufferTarget();
     const muxer=new Muxer({
       target: target,
-      video: { codec:'avc', width:720, height:900 },
+      video: { codec:'avc', width:1080, height:1350 },
       audio: audioBuffer? { codec:'aac', sampleRate: audioBuffer.sampleRate, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
       fastStart:'in-memory',
       firstTimestampBehavior:'offset'
@@ -2483,7 +2434,7 @@ async function renderSingleCapCut(item, onProg){
     });
     videoEncoder.configure({
       codec:'avc1.42E01E',
-      width:720, height:900,
+      width:1080, height:1350,
       bitrate:12_000_000,
       framerate:FPS,
       hardwareAcceleration:'prefer-hardware'
@@ -2582,7 +2533,7 @@ async function renderSingleCapCut(item, onProg){
 // Fallback rapido si WebCodecs falla - el anti-freeze anterior
 async function renderSingleFastCapCutFallback(item,onProg){
   const FPS=30; const START_OFFSET=0.25;
-  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
+  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1350;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true;
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
   await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
@@ -2682,21 +2633,21 @@ window.renderSingleFastCapCutFallback=renderSingleFastCapCutFallback;
 <script>
 // ===== OPTIMIZACION TITULO + SUBTITULO - PREVIEW Y DESCARGA FINAL GARANTIZADOS =====
 window.__TITLE_STYLES = {
-  viral: { // ESTILO 1 - VIRAL ACTUAL (el que dejamos activo)
-    titleFont: '900 42px Anton',
+  viral: { // FIX: TITULO 2 LINEAS ANCHO + SUB 3 LINEAS ANCHO
+    titleFont: '900 44px Anton',
     titleFill: '#FFEB00',
     titleStroke: '#000000',
-    titleStrokeW: 7,
+    titleStrokeW: 8,
     titleBg: 'rgba(0,0,0,0.92)',
     titleBorder: 'rgba(255,235,0,0.35)',
-    titlePadX: 16, titlePadY: 6, titleR: 10, titleGap: 48, titleY: 45, // 3 lineas centradas
-    subFont: '800 28px "Plus Jakarta Sans"',
+    titlePadX: 32, titlePadY: 10, titleR: 14, titleGap: 52, titleY: 52, // 2 lineas arriba ancho
+    subFont: '800 26px "Plus Jakarta Sans"',
     subFill: '#FFFFFF',
     subStroke: '#000000',
     subStrokeW: 6,
-    subBg: 'rgba(0,0,0,0.88)',
-    subBorder: 'rgba(255,235,0,0.30)',
-    subPadX: 18, subR: 10, subGap: 40, subY: 620
+    subBg: 'rgba(0,0,0,0.92)',
+    subBorder: 'rgba(255,255,255,0.28)',
+    subPadX: 28, subR: 14, subGap: 44, subY: 700
   },
   luxury: {
     titleFont: '800 40px "Plus Jakarta Sans"',
@@ -2746,13 +2697,13 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
   try{
     let t = (titleText||'').trim().toUpperCase();
     if(t){
-      let lines = (typeof splitWords==='function') ? splitWords(t, 20).slice(0,3) : [t];
+      let lines = (typeof splitWords==='function') ? splitWords(t, 28).slice(0,2) : [t]; // FIX 2 lineas ancho
       lines.forEach((line, i)=>{
         const y = style.titleY + i*style.titleGap;
         // Ajuste dinamico de tamaño
-        let fontSize = 28;
-        if(line.length > 28) fontSize = 26;
-        if(line.length > 38) fontSize = 24;
+        let fontSize = 44;
+        if(line.length > 26) fontSize = 38;
+        if(line.length > 34) fontSize = 34;
         const font = `900 ${fontSize}px Anton`;
         ctx.font = font;
         try{ ctx.font = font; }catch{}
@@ -2793,12 +2744,12 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
   try{
     let s = (subText||'').trim().toUpperCase();
     if(s){
-      let lines = (typeof splitWords==='function') ? splitWords(s, 24).slice(0,3) : [s]; // 3 lineas de subtitulo de un solo
+      let lines = (typeof splitWords==='function') ? splitWords(s, 34).slice(0,3) : [s]; // FIX 3 lineas ancho 34 chars
       lines.forEach((line, j)=>{
         const y = style.subY + j*style.subGap;
-        let fontSize = 22;
-        if(line.length > 30) fontSize = 20;
-        if(line.length > 40) fontSize = 18;
+        let fontSize = 26;
+        if(line.length > 32) fontSize = 24;
+        if(line.length > 42) fontSize = 22;
         const font = `800 ${fontSize}px \"Plus Jakarta Sans\"`;
         ctx.font = font;
         const m = ctx.measureText(line);
