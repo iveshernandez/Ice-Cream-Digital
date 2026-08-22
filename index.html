@@ -868,11 +868,11 @@ async function renderSingle(item,onProg){
     fastStart:'in-memory'
   });
   const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error('VideoEncoder',e)});
-  vEnc.configure({codec:'avc1.42001E', width:W, height:H, bitrate:2_500_000, // FB RECOMMENDED 2.5 Mbps para 720p
+  vEnc.configure({codec:'avc1.42001E', width:W, height:H, bitrate:2_500_000, framerate:FPS, hardwareAcceleration:'prefer-hardware', avc:{format:'avc'}});
   let aEnc=null;
   if(audioBuffer){
     aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error('AudioEncoder',e)});
-    aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:audioBuffer.sampleRate, bitrate:128_000});
+    aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:audioBuffer.sampleRate, bitrate:128000});
   }
   for(let f=0; f<totalFrames; f++){
     const cur=f/FPS;
@@ -2083,7 +2083,7 @@ async function renderSingle(item, onProgress){
   }
   const stream=canvas.captureStream(fps);
   if(dest && dest.stream) dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
-  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:2500000 // 2.5 Mbps = 70MB x 4min,audioBitsPerSecond:128000});
+  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:2500000,audioBitsPerSecond:128000});
   rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
   const recDone=new Promise(res=>{ rec.onstop=()=>res(); });
   function drawFrame(){
@@ -2373,7 +2373,7 @@ async function renderSingleCapCut(item, onProg){
     videoEncoder.configure({
       codec:'avc1.42E01E',
       width:W, height:H,
-      bitrate:2_500_000, // FB RECOMMENDED 2.5 Mbps para 720p
+      bitrate:2_500_000, // FB 2.5 Mbps optimal
       framerate:FPS,
       hardwareAcceleration:'prefer-hardware'
     });
@@ -2487,7 +2487,7 @@ async function renderSingleFastCapCutFallback(item,onProg){
   const ext=mimeMP4.includes('mp4')?'mp4':'webm';
   await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,500); });
   v.currentTime=START_OFFSET; await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,300); });
-  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:2500000 // 2.5 Mbps = 70MB x 4min, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
+  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:2500000, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
   await v.play().catch(()=>{}); if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); } rec.start(100);
   await new Promise(res=>{
     let start=performance.now(); let _stopped=false;
@@ -2760,4 +2760,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
+
+<script>
+// FIX CARGA ARCHIVOS - asegura click en labels
+document.addEventListener('DOMContentLoaded', ()=>{
+  const vLbl = document.getElementById('lblVideo');
+  const vInp = document.getElementById('inputVideo');
+  const aLbl = document.getElementById('lblAudio');
+  const aInp = document.getElementById('inputAudio');
+  const tLbl = document.getElementById('lblTxt');
+  const tInp = document.getElementById('inputTxt');
+  if(vLbl && vInp) vLbl.addEventListener('click', ()=> vInp.click());
+  if(aLbl && aInp) aLbl.addEventListener('click', ()=> aInp.click());
+  if(tLbl && tInp) tLbl.addEventListener('click', ()=> tInp.click());
+  // Fix pointer-events for file buttons
+  document.querySelectorAll('.file-btn').forEach(b=> b.style.pointerEvents='auto');
+});
+</script>
 </body></html>
