@@ -264,6 +264,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
 #btnKokoroGen { display:block !important; }
 #kokoroSpeed { display:block !important; width:70px; }
 </style>
+
+<style>
+#kokoroProgress, #kokoroProgressBar, div[id*="kokoroProgress"] { display:none !important; height:0 !important; margin:0 !important; padding:0 !important; visibility:hidden !important; }
+#kokoroStatus { min-height:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+</style>
+
+<style>
+#btnKokoroGen { display:none !important; visibility:hidden !important; height:0 !important; margin:0 !important; padding:0 !important; }
+#renderText, #renderPct, #renderDetail, #voiceProgressText, #renderVoiceStatus { display:none !important; }
+#renderOverlay .render-voice-label { display:none !important; }
+</style>
 </head>
 <body>
 
@@ -1007,8 +1018,8 @@ function setKStatus(t, isError=false){
   if(el){ el.textContent=t; el.style.color=isError?'#ef4444':'#4ade80'; }
   console.log('[Piper V17]', t);
 }
-function setKProg(p){
-  const bar=$id('kokoroProgress'); const fill=$id('kokoroProgressBar');
+function setKProg(p){ return; /* barra eliminada para no mover diseño */ const _p=p; 
+  // barra removida
   if(!bar) return;
   if(p==null){bar.style.display='none'; return;}
   bar.style.display='block'; fill.style.width=p+'%';
@@ -1111,9 +1122,9 @@ async function handleGenerate(){
         const mbL = (prog.loaded/1024/1024).toFixed(1);
         const mbT = (prog.total/1024/1024).toFixed(1);
         setKStatus(`[SLOT ${slot.id}] Descargando ${voiceName} ${pct}% - ${mbL}MB/${mbT}MB`);
-        const bar=document.getElementById('kokoroProgressBar');
-        const barWrap=document.getElementById('kokoroProgress');
-        if(barWrap) barWrap.style.display='block';
+        // barra removida
+        // barra removida
+        if(barWrap) // barra removida
         if(bar) bar.style.width=(35 + Math.round(pct*0.35))+'%';
       } else if(prog && prog.loaded){
         setKStatus(`[SLOT ${slot.id}] Descargando ${voiceName} ${(prog.loaded/1024/1024).toFixed(1)}MB...`);
@@ -2009,7 +2020,7 @@ window.IC_renew = function(username){
       const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
       try{ 
         const st=document.getElementById('kokoroStatus'); if(st){ st.textContent='Limpio - Listo para segunda tanda'; st.style.color='#888'; }
-        const bar=document.getElementById('kokoroProgressBar'); if(bar) bar.style.width='0%';
+        // barra removida
         const barW=document.getElementById('kokoroProgress'); if(barW) barW.style.display='none';
         const btnGen=document.getElementById('btnKokoroGen'); if(btnGen){ btnGen.disabled=false; btnGen.textContent='🔊 GENERAR AUDIO ESPAÑOL'; btnGen.style.background='#FFEB00'; }
       }catch{}
@@ -2821,4 +2832,52 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
+
+<script>
+(function(){
+  function cleanUI(){
+    try{
+      const b=document.getElementById('btnKokoroGen');
+      if(b) { b.style.display='none'; b.remove(); }
+      document.querySelectorAll('button').forEach(btn=>{
+        if(btn.textContent && btn.textContent.includes('GENERAR AUDIO ESPAÑOL')){
+          btn.style.display='none'; btn.remove();
+        }
+      });
+      // Remove GENERANDO VOZ text from overlay
+      document.querySelectorAll('#renderOverlay *').forEach(el=>{
+        if(el.textContent && el.textContent.includes('GENERANDO VOZ')){
+          el.style.display='none';
+          el.textContent='';
+        }
+        if(el.id==='renderText') el.style.display='none';
+      });
+      const pct=document.getElementById('renderPct');
+      if(pct && pct.textContent && pct.textContent.includes('%')){
+        // keep percentage but hide voice part - we keep it? user wants delete the 5% GENERANDO VOZ block
+        // Actually hide parent that contains both
+        let p=pct.parentElement;
+        if(p && p.textContent.includes('GENERANDO VOZ')){
+          // hide only the GENERANDO VOZ line, not the big 5%
+          Array.from(p.children).forEach(ch=>{
+            if(ch.textContent.includes('GENERANDO VOZ')) ch.style.display='none';
+          });
+        }
+      }
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded', cleanUI);
+  setInterval(cleanUI, 1000);
+  // Override setKStatus to never show GENERANDO VOZ in overlay
+  const origSetStatus = window.setKStatus;
+  if(window.setKStatus){
+    window.setKStatus = function(t, isError){
+      if(typeof t==='string' && t.includes('GENERANDO VOZ')){
+        return; // no mostrar en overlay
+      }
+      if(origSetStatus) return origSetStatus(t,isError);
+    }
+  }
+})();
+</script>
 </body></html>
