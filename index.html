@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital V13</title>
+<title>Ice Cream Digital Subtitulos mejorados</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -2387,10 +2387,6 @@ async function renderSingleCapCut(item, onProg){
   const realTotal=aDur||vDur||10;
   const totalFrames=Math.ceil(realTotal*FPS);
   
-  const scriptText=(item.script||'').trim();
-  const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-  const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
-  
   function drawFrame(currentVideoTime, curTime){
     ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
     if(v.videoWidth){ 
@@ -2399,7 +2395,43 @@ async function renderSingleCapCut(item, onProg){
       if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
       try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{} 
     }
-    // === TITULO MEJORADO - SIEMPRE VISIBLE EN DESCARGA FINAL ===
+    try{
+      window.drawViralTitle(ctx, (item.title||'').toString());
+    }catch{}
+    try{
+      let subText='';
+      if(subs.length){
+        const si=Math.min(Math.floor((curTime/(aDur||realTotal))*subs.length), subs.length-1);
+        subText=subs[si]||'';
+      } else if((item.script||'').trim()){
+        subText=(item.script||'').trim();
+      }
+      window.drawViralSubtitles(ctx, subText, curTime, realTotal, {startY:690});
+    }catch(e){}
+  }
+
+  
+  const scriptText=(item.script||'').trim();
+  const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
+  const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
+  
+  
+      try{
+      window.drawViralTitle(ctx, (item.title||'').toString());
+    }catch{}
+    try{
+      let subText='';
+      if(subs.length){
+        const si=Math.min(Math.floor((curTime/(aDur||realTotal))*subs.length), subs.length-1);
+        subText=subs[si]||'';
+      } else if((item.script||'').trim()){
+        subText=(item.script||'').trim();
+      }
+      window.drawViralSubtitles(ctx, subText, curTime, realTotal, {startY:690});
+    }catch(e){}
+  }
+
+  // PATCHED - SIEMPRE VISIBLE EN DESCARGA FINAL ===
     try{
       const titleText=(item.title||'').trim().toUpperCase();
       if(titleText){
@@ -2685,5 +2717,74 @@ window.renderSingleFastCapCutFallback=renderSingleFastCapCutFallback;
   console.log('[FIX] Voces no suenan durante render - mute total x6');
 })();
 </script>
+
+
+// === ESTILO SUBTITULO VIRAL COMPARTIDO - PREVIEW + DESCARGA FINAL ===
+window.drawViralSubtitles = function(ctx, subText, curTime, totalTime, opts){
+  opts = opts||{};
+  const startY = opts.startY||690;
+  const lineHeight = 52; // MAS SEPARADO
+  const fontSize = 22;
+  const minWidth = 440; // MAS ALARGADO A EXTREMOS
+  
+  if(!subText) return;
+  subText = subText.toUpperCase().replace(/\s+/g,' ').trim();
+  const words = subText.split(' ').filter(Boolean);
+  let lines=[];
+  if(words.length<=3){
+    lines = [...words];
+    while(lines.length<3) lines.push(lines[lines.length-1]||'');
+  } else {
+    const perLine=Math.ceil(words.length/3);
+    lines=[
+      words.slice(0,perLine).join(' '),
+      words.slice(perLine, perLine*2).join(' '),
+      words.slice(perLine*2).join(' ')
+    ];
+  }
+  lines=lines.slice(0,3);
+  
+  ctx.font=`900 ${fontSize}px Inter, Plus Jakarta Sans, Arial Black`;
+  let maxW=0;
+  lines.forEach(ln=>{ const w=ctx.measureText(ln).width; if(w>maxW) maxW=w; });
+  const elongatedW=Math.max(maxW+100, minWidth);
+  
+  lines.forEach((ln,j)=>{
+    if(!ln.trim()) return;
+    const y=startY + j*lineHeight;
+    const bh=36;
+    // Fondo negro solido como imagen
+    ctx.save();
+    ctx.fillStyle='#000000';
+    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-elongatedW/2, y-bh/2, elongatedW, bh, 6); ctx.fill(); }
+    else ctx.fillRect(360-elongatedW/2, y-bh/2, elongatedW, bh);
+    ctx.restore();
+    ctx.font=`900 ${fontSize}px Inter, Plus Jakarta Sans, Arial Black`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='#FFFFFF';
+    ctx.fillText(ln,360,y);
+  });
+};
+
+window.drawViralTitle = function(ctx, titleText){
+  if(!titleText) return;
+  titleText=titleText.toUpperCase();
+  const lines=typeof splitWords==='function'?splitWords(titleText,20).slice(0,3):[titleText];
+  lines.forEach((l,i)=>{
+    const y=55+i*44;
+    const fontSize = titleText.length>80?30: titleText.length>50?34:38;
+    ctx.font=`900 ${fontSize}px Anton`;
+    const fw=ctx.measureText(l).width;
+    ctx.save();
+    ctx.fillStyle='rgba(0,0,0,0.92)';
+    const padX=26, rh=38, rw=fw+padX*2;
+    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
+    else ctx.fillRect(360-rw/2, y-rh/2, rw, rh);
+    ctx.restore();
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.lineWidth=5; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00';
+    ctx.strokeText(l,360,y); ctx.fillText(l,360,y);
+  });
+};
 
 </body></html>
