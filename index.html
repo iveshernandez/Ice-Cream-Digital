@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital Subtitulos mejorados</title>
+<title>Ice Cream Digital sub</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -2387,6 +2387,10 @@ async function renderSingleCapCut(item, onProg){
   const realTotal=aDur||vDur||10;
   const totalFrames=Math.ceil(realTotal*FPS);
   
+  const scriptText=(item.script||'').trim();
+  const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
+  const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
+  
   function drawFrame(currentVideoTime, curTime){
     ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900);
     if(v.videoWidth){ 
@@ -2395,43 +2399,7 @@ async function renderSingleCapCut(item, onProg){
       if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
       try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{} 
     }
-    try{
-      window.drawViralTitle(ctx, (item.title||'').toString());
-    }catch{}
-    try{
-      let subText='';
-      if(subs.length){
-        const si=Math.min(Math.floor((curTime/(aDur||realTotal))*subs.length), subs.length-1);
-        subText=subs[si]||'';
-      } else if((item.script||'').trim()){
-        subText=(item.script||'').trim();
-      }
-      window.drawViralSubtitles(ctx, subText, curTime, realTotal, {startY:690});
-    }catch(e){}
-  }
-
-  
-  const scriptText=(item.script||'').trim();
-  const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-  const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
-  
-  
-      try{
-      window.drawViralTitle(ctx, (item.title||'').toString());
-    }catch{}
-    try{
-      let subText='';
-      if(subs.length){
-        const si=Math.min(Math.floor((curTime/(aDur||realTotal))*subs.length), subs.length-1);
-        subText=subs[si]||'';
-      } else if((item.script||'').trim()){
-        subText=(item.script||'').trim();
-      }
-      window.drawViralSubtitles(ctx, subText, curTime, realTotal, {startY:690});
-    }catch(e){}
-  }
-
-  // PATCHED - SIEMPRE VISIBLE EN DESCARGA FINAL ===
+    // === TITULO MEJORADO - SIEMPRE VISIBLE EN DESCARGA FINAL ===
     try{
       const titleText=(item.title||'').trim().toUpperCase();
       if(titleText){
@@ -2538,6 +2506,7 @@ async function renderSingleCapCut(item, onProg){
     
     v.currentTime=START_OFFSET;
     await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,400); });
+    await window.__ensureFontsReady();
     
     // Render OFFLINE frame por frame - como CapCut, nunca se congela
     for(let i=0;i<totalFrames;i++){
@@ -2639,20 +2608,12 @@ async function renderSingleFastCapCutFallback(item,onProg){
       if(v.readyState>=2){ const vw=v.videoWidth, vh=v.videoHeight, tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{} }
       const scriptText=(item.script||'').trim(); const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[]; const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
       try{
-        const titleText=(item.title||'').trim().toUpperCase();
-        if(titleText){
-          const titleLines=typeof splitWords==='function'?splitWords(titleText,20).slice(0,3):[titleText];
-          titleLines.forEach((l,i)=>{ const y=55+i*44; ctx.font=`900 36px Anton`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(l,360,y); ctx.fillText(l,360,y); });
-        }
+        // OPTIMIZADO FALLBACK
+        let subText='';
         const scriptText=(item.script||'').trim();
         const subsLocal=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-        if(subsLocal.length || scriptText){
-          let subText=subsLocal.length? subsLocal[Math.min(Math.floor((cur/(aDur||realTotal))*subsLocal.length),subsLocal.length-1)] : scriptText.split(/\s+/).slice(0,8).join(' ');
-          if(subText){
-            const lines=typeof splitWords==='function'?splitWords(subText.toUpperCase(),24).slice(0,2):[subText.toUpperCase()];
-            lines.forEach((ln,j)=>{ const y=720+j*46; ctx.font=`800 26px Plus Jakarta Sans`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineWidth=6; ctx.strokeStyle='#000'; ctx.fillStyle='#FFF'; ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y); });
-          }
-        }
+        if(subsLocal.length){ subText=subsLocal[Math.min(Math.floor((cur/(aDur||realTotal))*subsLocal.length),subsLocal.length-1)]||''; } else { subText=scriptText.split(/\s+/).slice(0,18).join(' '); } // 18 palabras = 3 lineas de subtitulo
+        window.__drawOptimizedTitleSubtitle(ctx, (item.title||''), subText, 720, 900);
       }catch{}
       if(cur>=realTotal-0.05){ if(!_stopped){ _stopped=true; try{ rec.stop(); }catch{} setTimeout(res,300); } return; } requestAnimationFrame(draw);
     }; draw();
@@ -2719,72 +2680,180 @@ window.renderSingleFastCapCutFallback=renderSingleFastCapCutFallback;
 </script>
 
 
-// === ESTILO SUBTITULO VIRAL COMPARTIDO - PREVIEW + DESCARGA FINAL ===
-window.drawViralSubtitles = function(ctx, subText, curTime, totalTime, opts){
-  opts = opts||{};
-  const startY = opts.startY||690;
-  const lineHeight = 52; // MAS SEPARADO
-  const fontSize = 22;
-  const minWidth = 440; // MAS ALARGADO A EXTREMOS
-  
-  if(!subText) return;
-  subText = subText.toUpperCase().replace(/\s+/g,' ').trim();
-  const words = subText.split(' ').filter(Boolean);
-  let lines=[];
-  if(words.length<=3){
-    lines = [...words];
-    while(lines.length<3) lines.push(lines[lines.length-1]||'');
-  } else {
-    const perLine=Math.ceil(words.length/3);
-    lines=[
-      words.slice(0,perLine).join(' '),
-      words.slice(perLine, perLine*2).join(' '),
-      words.slice(perLine*2).join(' ')
-    ];
+<script>
+// ===== OPTIMIZACION TITULO + SUBTITULO - PREVIEW Y DESCARGA FINAL GARANTIZADOS =====
+window.__TITLE_STYLES = {
+  viral: { // ESTILO 1 - VIRAL ACTUAL (el que dejamos activo)
+    titleFont: '900 42px Anton',
+    titleFill: '#FFEB00',
+    titleStroke: '#000000',
+    titleStrokeW: 7,
+    titleBg: 'rgba(0,0,0,0.92)',
+    titleBorder: 'rgba(255,235,0,0.35)',
+    titlePadX: 28, titlePadY: 10, titleR: 14, titleGap: 46, titleY: 58, // 3 lineas centradas
+    subFont: '800 28px "Plus Jakarta Sans"',
+    subFill: '#FFFFFF',
+    subStroke: '#000000',
+    subStrokeW: 6,
+    subBg: 'rgba(0,0,0,0.88)',
+    subBorder: 'rgba(255,235,0,0.30)',
+    subPadX: 22, subR: 14, subGap: 46, subY: 730
+  },
+  luxury: {
+    titleFont: '800 40px "Plus Jakarta Sans"',
+    titleFill: '#FFFFFF',
+    titleStroke: '#000000',
+    titleStrokeW: 6,
+    titleBg: 'rgba(15,15,18,0.92)',
+    titleBorder: 'rgba(255,255,255,0.15)',
+    titlePadX: 24, titlePadY: 8, titleR: 12, titleGap: 48, titleY: 58,
+    subFont: '700 24px "Plus Jakarta Sans"',
+    subFill: '#FFFFFF',
+    subStroke: '#000000',
+    subStrokeW: 5,
+    subBg: 'rgba(0,0,0,0.82)',
+    subBorder: 'rgba(255,255,255,0.20)',
+    subPadX: 20, subR: 12, subGap: 42, subY: 740
+  },
+  tiktok: {
+    titleFont: '900 48px Anton',
+    titleFill: '#FFE600',
+    titleStroke: '#000000',
+    titleStrokeW: 8,
+    titleBg: 'rgba(0,0,0,0.94)',
+    titleBorder: '#FFE600',
+    titlePadX: 30, titlePadY: 12, titleR: 16, titleGap: 54, titleY: 70,
+    subFont: '800 30px "Plus Jakarta Sans"',
+    subFill: '#FFFFFF',
+    subStroke: '#000000',
+    subStrokeW: 7,
+    subBg: 'rgba(0,0,0,0.90)',
+    subBorder: 'rgba(255,255,255,0.25)',
+    subPadX: 24, subR: 16, subGap: 48, subY: 720
   }
-  lines=lines.slice(0,3);
+};
+window.__ACTIVE_TITLE_STYLE = 'viral'; // cambia a 'luxury' o 'tiktok' para probar
+
+window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
+  const style = window.__TITLE_STYLES[window.__ACTIVE_TITLE_STYLE] || window.__TITLE_STYLES.viral;
+  W = W || 720; H = H || 900;
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.miterLimit = 10;
   
-  ctx.font=`900 ${fontSize}px Inter, Plus Jakarta Sans, Arial Black`;
-  let maxW=0;
-  lines.forEach(ln=>{ const w=ctx.measureText(ln).width; if(w>maxW) maxW=w; });
-  const elongatedW=Math.max(maxW+100, minWidth);
+  // ---- TITULO ----
+  try{
+    let t = (titleText||'').trim().toUpperCase();
+    if(t){
+      let lines = (typeof splitWords==='function') ? splitWords(t, 20).slice(0,3) : [t];
+      lines.forEach((line, i)=>{
+        const y = style.titleY + i*style.titleGap;
+        // Ajuste dinamico de tamaño
+        let fontSize = 42;
+        if(line.length > 28) fontSize = 36;
+        if(line.length > 38) fontSize = 32;
+        const font = `900 ${fontSize}px Anton`;
+        ctx.font = font;
+        try{ ctx.font = font; }catch{}
+        const metrics = ctx.measureText(line);
+        const rw = Math.min(metrics.width + style.titlePadX*2, W-40);
+        const rh = 44;
+        const cx = W/2;
+        
+        // Fondo pill con borde
+        ctx.save();
+        ctx.fillStyle = style.titleBg;
+        ctx.strokeStyle = style.titleBorder;
+        ctx.lineWidth = 1.2;
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 18;
+        ctx.shadowOffsetY = 6;
+        if(ctx.roundRect){
+          ctx.beginPath();
+          ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, style.titleR);
+          ctx.fill();
+          if(style.titleBorder){ ctx.stroke(); }
+        } else {
+          ctx.fillRect(cx-rw/2, y-rh/2, rw, rh);
+        }
+        ctx.restore();
+        
+        // Texto con stroke garantizado
+        ctx.lineWidth = style.titleStrokeW;
+        ctx.strokeStyle = style.titleStroke;
+        ctx.fillStyle = style.titleFill;
+        ctx.strokeText(line, cx, y);
+        ctx.fillText(line, cx, y);
+      });
+    }
+  }catch(e){ console.warn('title opt fail', e); }
   
-  lines.forEach((ln,j)=>{
-    if(!ln.trim()) return;
-    const y=startY + j*lineHeight;
-    const bh=36;
-    // Fondo negro solido como imagen
-    ctx.save();
-    ctx.fillStyle='#000000';
-    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-elongatedW/2, y-bh/2, elongatedW, bh, 6); ctx.fill(); }
-    else ctx.fillRect(360-elongatedW/2, y-bh/2, elongatedW, bh);
-    ctx.restore();
-    ctx.font=`900 ${fontSize}px Inter, Plus Jakarta Sans, Arial Black`;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillStyle='#FFFFFF';
-    ctx.fillText(ln,360,y);
-  });
+  // ---- SUBTITULO ----
+  try{
+    let s = (subText||'').trim().toUpperCase();
+    if(s){
+      let lines = (typeof splitWords==='function') ? splitWords(s, 24).slice(0,3) : [s]; // 3 lineas de subtitulo de un solo
+      lines.forEach((line, j)=>{
+        const y = style.subY + j*style.subGap;
+        let fontSize = 28;
+        if(line.length > 30) fontSize = 24;
+        if(line.length > 40) fontSize = 22;
+        const font = `800 ${fontSize}px \"Plus Jakarta Sans\"`;
+        ctx.font = font;
+        const m = ctx.measureText(line);
+        const bw = Math.min(m.width + style.subPadX*2, W-48);
+        const bh = 46;
+        const cx = W/2;
+        
+        // Fondo
+        ctx.save();
+        ctx.fillStyle = style.subBg;
+        ctx.strokeStyle = style.subBorder;
+        ctx.lineWidth = 1.2;
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 14;
+        ctx.shadowOffsetY = 4;
+        if(ctx.roundRect){
+          ctx.beginPath();
+          ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, style.subR);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(cx-bw/2, y-bh/2, bw, bh);
+        }
+        ctx.restore();
+        
+        // Texto
+        ctx.font = font;
+        ctx.lineWidth = style.subStrokeW;
+        ctx.strokeStyle = style.subStroke;
+        ctx.fillStyle = style.subFill;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.strokeText(line, cx, y);
+        ctx.fillText(line, cx, y);
+      });
+    }
+  }catch(e){ console.warn('sub opt fail', e); }
+  
+  ctx.restore();
 };
 
-window.drawViralTitle = function(ctx, titleText){
-  if(!titleText) return;
-  titleText=titleText.toUpperCase();
-  const lines=typeof splitWords==='function'?splitWords(titleText,20).slice(0,3):[titleText];
-  lines.forEach((l,i)=>{
-    const y=55+i*44;
-    const fontSize = titleText.length>80?30: titleText.length>50?34:38;
-    ctx.font=`900 ${fontSize}px Anton`;
-    const fw=ctx.measureText(l).width;
-    ctx.save();
-    ctx.fillStyle='rgba(0,0,0,0.92)';
-    const padX=26, rh=38, rw=fw+padX*2;
-    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
-    else ctx.fillRect(360-rw/2, y-rh/2, rw, rh);
-    ctx.restore();
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.lineWidth=5; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00';
-    ctx.strokeText(l,360,y); ctx.fillText(l,360,y);
-  });
+// Helper que asegura fuentes cargadas antes de dibujar en export
+window.__ensureFontsReady = async function(){
+  try{
+    if(document.fonts && document.fonts.ready){
+      await document.fonts.ready;
+      // Forzar carga Anton
+      if(document.fonts.check){
+        try{ await document.fonts.load('900 42px Anton'); }catch{}
+        try{ await document.fonts.load('800 28px "Plus Jakarta Sans"'); }catch{}
+      }
+    }
+  }catch{}
 };
+</script>
 
 </body></html>
