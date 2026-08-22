@@ -244,7 +244,7 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 
 <style>
 /* ELIMINAR MUSICA DE FONDO COMPLETAMENTE */
-#musicaFondoBar, [id*="musicaFondo"], [id*="bgVol"], #bgMusic, #bgMusicVol,
+#musicaFondoBar, [id*="musicaFondo"], [id*="bgVol"], #bgMusic, #bgMusicVol, #kokoroSpeed,
 div[style*="MÚSICA DE FONDO"], div[style*="MUSICA DE FONDO"] { display:none !important; }
 </style>
 <script>
@@ -258,23 +258,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
-
-<style>
-#kokoroVoice { display:block !important; visibility:visible !important; opacity:1 !important; }
-#btnKokoroGen { display:block !important; }
-#kokoroSpeed { display:block !important; width:70px; }
-</style>
-
-<style>
-#kokoroProgress, #kokoroProgressBar, div[id*="kokoroProgress"] { display:none !important; height:0 !important; margin:0 !important; padding:0 !important; visibility:hidden !important; }
-#kokoroStatus { min-height:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-</style>
-
-<style>
-#btnKokoroGen { display:none !important; visibility:hidden !important; height:0 !important; margin:0 !important; padding:0 !important; }
-#renderText, #renderPct, #renderDetail, #voiceProgressText, #renderVoiceStatus { display:none !important; }
-#renderOverlay .render-voice-label { display:none !important; }
-</style>
 </head>
 <body>
 
@@ -551,7 +534,7 @@ window.setActive=id=>{
     const st=document.getElementById('kokoroStatus');
     if(st){
       if(it.audioUrl){
-        const nombre = (voiceId.includes(':1') || (typeof speakerId!=='undefined' && speakerId===1)) ? 'Rolina' : 'Ives';
+        const nombre = (it.voiceId||'').includes('sharvard')?'Dora':(it.voiceId||'').includes('carlfm')?'Alex':it.voiceId;
         st.textContent=`✅ SLOT ${it.id} - ${nombre} - ${it.audioDur?it.audioDur.toFixed(1)+'s':''} - LISTO`;
         st.style.color='#4ade80';
       } else {
@@ -999,7 +982,7 @@ try{
 
 
 
-<!-- V27 FIX DEFINITIVO - VOZ POR SLOT + SYNC SUBS - FIXED V17 ROBUST -->
+<!-- V27 FIX DEFINITIVO - VOZ POR SLOT + SYNC SUBS - FIXED V14 -->
 <script type="module">
 const $id = (id)=>document.getElementById(id);
 
@@ -1016,10 +999,10 @@ function getActiveSlot(){
 function setKStatus(t, isError=false){
   const el=$id('kokoroStatus');
   if(el){ el.textContent=t; el.style.color=isError?'#ef4444':'#4ade80'; }
-  console.log('[Piper V17]', t);
+  console.log('[Piper V14]', t);
 }
-function setKProg(p){ return; /* barra eliminada para no mover diseño */ const _p=p; 
-  // barra removida
+function setKProg(p){
+  const bar=$id('kokoroProgress'); const fill=$id('kokoroProgressBar');
   if(!bar) return;
   if(p==null){bar.style.display='none'; return;}
   bar.style.display='block'; fill.style.width=p+'%';
@@ -1027,7 +1010,7 @@ function setKProg(p){ return; /* barra eliminada para no mover diseño */ const 
 let ttsLib = null;
 async function getTTS(){
   if(ttsLib) return ttsLib;
-  setKStatus('Cargando motor Piper...'); setKProg(10);
+  setKStatus('Cargando motor Piper...'); setKProg(20);
   const cdns=[
     'https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm',
     'https://esm.run/@mintplex-labs/piper-tts-web@1.0.4',
@@ -1035,19 +1018,17 @@ async function getTTS(){
   ];
   for(let url of cdns){
     try{
-      console.log('[V17] intentando CDN', url);
-      setKStatus('Probando CDN: '+url.split('/')[2]+'...');
+      console.log('[V14] intentando CDN', url);
       ttsLib = await import(url);
-      setKProg(30); setKStatus('Motor cargado OK - '+url.split('/')[2]);
-      window.ttsLib = ttsLib;
+      setKProg(50); setKStatus('Motor listo - '+url.split('/')[2]);
       return ttsLib;
     }catch(e){ console.warn('CDN fallo', url, e.message); }
   }
-  throw new Error('No se pudo cargar motor Piper - revisa internet / VPN');
+  throw new Error('No se pudo cargar Piper - revisa internet');
 }
 
 function splitIntoChunks(txt, maxLen){
-  maxLen = maxLen || 340;
+  maxLen = maxLen || 380;
   const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
   const chunks=[]; let cur="";
   for(let s of sentences){
@@ -1100,113 +1081,69 @@ async function handleGenerate(){
   const speedSelectEl = document.getElementById('kokoroSpeed');
   if(voiceSelectEl) slot.voiceId = voiceSelectEl.value;
   if(speedSelectEl) slot.voiceSpeed = parseFloat(speedSelectEl.value)||1;
-  let voiceId = slot.voiceId || 'es_ES-sharvard-medium:0';
+  let voiceId = slot.voiceId || 'es_ES-sharvard-medium';
   let speakerId = 0;
   if(voiceId.includes(':')){ const parts = voiceId.split(':'); voiceId = parts[0]; speakerId = parseInt(parts[1]||0); }
   const speed = slot.voiceSpeed||1;
-  const voiceName = speakerId===1 ? 'Rolina' : 'Ives';
 
-  const chunks = splitIntoChunks(text, 340);
-  console.log('[V17] SLOT '+slot.id+' TXT '+text.length+' chars -> '+chunks.length+' chunks voz '+voiceId+' speaker '+speakerId+' ('+voiceName+')');
+  const chunks = splitIntoChunks(text, 380);
+  console.log('[V14] SLOT '+slot.id+' TXT '+text.length+' chars -> '+chunks.length+' chunks');
 
   const btn=document.getElementById('btnKokoroGen');
-  if(btn){ btn.disabled=true; btn.textContent='SLOT '+slot.id+' 0/'+chunks.length; }
+  if(btn){ btn.disabled=true; btn.textContent='SLOT '+slot.id+' 0/'+chunks.length; btn.style.background='#fff'; }
 
   try{
     const tts = await getTTS();
-    setKStatus('[SLOT '+slot.id+'] Descargando modelo '+voiceName+' ('+voiceId+') 150MB - puede tardar...');
-    setKProg(35);
-    const onProgress = (prog)=>{
+    setKStatus('[SLOT '+slot.id+'] Descargando modelo voz '+voiceId+'...');
+        const onProgress = (prog)=>{
       if(prog && prog.loaded && prog.total){
         const pct = Math.round(prog.loaded*100/prog.total);
         const mbL = (prog.loaded/1024/1024).toFixed(1);
         const mbT = (prog.total/1024/1024).toFixed(1);
         setKStatus(`[SLOT ${slot.id}] Descargando ${voiceName} ${pct}% - ${mbL}MB/${mbT}MB`);
-        // barra removida
-        // barra removida
-        // barra eliminada
-        if(bar) bar.style.width=(35 + Math.round(pct*0.35))+'%';
       } else if(prog && prog.loaded){
         setKStatus(`[SLOT ${slot.id}] Descargando ${voiceName} ${(prog.loaded/1024/1024).toFixed(1)}MB...`);
       }
     };
-    
-    // Descarga con 5 reintentos y espera
+    // Descarga con retry real
     let downloaded=false;
-    let lastErr=null;
-    for(let attempt=1; attempt<=5 && !downloaded; attempt++){
-      try{
-        setKStatus(`[SLOT ${slot.id}] Intento ${attempt}/5 descargando ${voiceName}...`);
-        await tts.download(voiceId, onProgress);
-        downloaded=true;
-        console.log('[V17] download OK intento', attempt);
-      }catch(e){
-        lastErr=e;
-        console.warn('download intento '+attempt+' fallo', e);
-        setKStatus(`[SLOT ${slot.id}] Error descarga intento ${attempt}/5: ${e.message} - reintentando...`, true);
-        if(attempt<5) await new Promise(r=>setTimeout(r, 2000*attempt));
-      }
-    }
-    if(!downloaded){
-      throw new Error(`No se pudo descargar modelo ${voiceName} (${voiceId}) tras 5 intentos. Error: ${lastErr?.message || 'desconocido'}. Prueba: 1) Usa VPN, 2) Borra cache, 3) Revisa que HuggingFace no este bloqueado en HN, 4) Intenta con datos moviles`);
+    for(let attempt=1; attempt<=3 && !downloaded; attempt++){
+      try{ await tts.download(voiceId, onProgress); downloaded=true; }
+      catch(e){ console.warn('download intento '+attempt+' fallo', e); if(attempt<3) await new Promise(r=>setTimeout(r,1500)); else throw e; }
     }
 
-    setKStatus(`[SLOT ${slot.id}] Modelo ${voiceName} listo - Generando ${chunks.length} partes...`);
-    setKProg(75);
-
+    // AudioContext con resume obligatorio
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if(audioCtx.state==='suspended') await audioCtx.resume();
     const buffers = [];
 
     for(let i=0;i<chunks.length;i++){
-      try{ if(window.updateVoiceProgressCorrecto) window.updateVoiceProgressCorrecto(slot.id, i+1, chunks.length); }catch(e){}
+      // FIX BUG1: antes era slotId undefined, ahora slot.id correcto
+      try{ if(window.updateVoiceProgressCorrecto) window.updateVoiceProgressCorrecto(slot.id, i+1, chunks.length); }catch(e){ console.warn('progress fail', e); }
 
       const chunk = chunks[i];
-      if(btn) btn.textContent=`SLOT ${slot.id} ${voiceName} ${i+1}/${chunks.length}`;
-      setKStatus(`[SLOT ${slot.id}] ${voiceName} Parte ${i+1}/${chunks.length} (${chunk.length} chars)`);
-      setKProg(75 + Math.round((i/chunks.length)*20));
+      if(btn) btn.textContent='SLOT '+slot.id+' GENERANDO '+(i+1)+'/'+chunks.length;
+      setKStatus('[SLOT '+slot.id+'] Parte '+(i+1)+'/'+chunks.length+' ('+chunk.length+' chars)');
+      setKProg(50 + Math.round((i/chunks.length)*40));
 
       let wavBlob=null;
-      let chunkErr=null;
-      for(let retry=1; retry<=3; retry++){
+      for(let retry=1; retry<=2; retry++){
         try{
-          console.log(`[V17] predict chunk ${i} intento ${retry}: "${chunk.substring(0,50)}..."`);
           wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, onProgress);
-          console.log(`[V17] chunk ${i} blob size`, wavBlob?.size, 'type', wavBlob?.type);
-          if(wavBlob && wavBlob.size>=800) break; // OK
-          console.warn('Chunk '+i+' vacio/pequeño intento '+retry, wavBlob?.size);
-          if(wavBlob && wavBlob.size>0 && wavBlob.size<800){
-            // Leer como texto por si es error JSON
-            try{
-              const txt = await wavBlob.text();
-              console.warn('Blob pequeño contenido:', txt.substring(0,200));
-              if(txt.includes('error') || txt.includes('Error')) throw new Error(txt.substring(0,200));
-            }catch{}
-          }
-        }catch(e){ 
-          chunkErr=e;
-          console.warn('predict fail chunk '+i+' intento '+retry, e); 
-          setKStatus(`[SLOT ${slot.id}] Error parte ${i+1} intento ${retry}: ${e.message}`, true);
-        }
-        await new Promise(r=>setTimeout(r,600));
+          if(wavBlob && wavBlob.size>=500) break;
+          console.warn('Chunk '+i+' vacio intento '+retry, wavBlob?.size);
+        }catch(e){ console.warn('predict fail chunk '+i+' intento '+retry, e); }
+        await new Promise(r=>setTimeout(r,400));
       }
-      if(!wavBlob || wavBlob.size<800){ 
-        console.warn('Chunk '+i+' descartado vacio tras 3 intentos, err:', chunkErr);
-        setKStatus(`[SLOT ${slot.id}] Parte ${i+1} vacia tras 3 intentos - saltando`, true);
-        continue; 
-      }
+      if(!wavBlob || wavBlob.size<500){ console.warn('Chunk '+i+' descartado vacio'); continue; }
       try{
         const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
         buffers.push(audioBuf);
-        console.log('[V17] chunk '+i+' decode OK dur', audioBuf.duration);
-      }catch(e){ 
-        console.warn('decode fail chunk '+i, e); 
-        setKStatus(`[SLOT ${slot.id}] Error decodificando parte ${i+1}: ${e.message}`, true);
-      }
-      await new Promise(r=>setTimeout(r, 50));
+      }catch(e){ console.warn('decode fail chunk '+i, e); }
+      await new Promise(r=>setTimeout(r, 30));
     }
 
-    if(!buffers.length) throw new Error(`No se genero audio - todos los ${chunks.length} chunks vacios. Causas: 1) El .onnx de ${voiceName} (${voiceId}) no se descargo completo (150MB) - revisa red/VPN, 2) HuggingFace bloqueado, 3) Texto con caracteres raros. Abre F12 > Console y mira logs [V17] blob size`);
+    if(!buffers.length) throw new Error('No se genero audio - todos los chunks vacios. Revisa que el .onnx se descargo (150MB)');
 
     let totalLength = 0; for(let b of buffers) totalLength+=b.length;
     let numberOfChannels = buffers[0].numberOfChannels;
@@ -1222,26 +1159,27 @@ async function handleGenerate(){
     await audioCtx.close();
 
     const finalWavBlob = audioBufferToWavBlob(concatBuffer);
-    console.log('[V17] final blob size', finalWavBlob.size, 'dur', concatBuffer.length/sampleRate);
-    if(finalWavBlob.size<1000) throw new Error('WAV final muy pequeño: '+finalWavBlob.size+' bytes - fallo concatenacion');
+    console.log('[V14] final blob size', finalWavBlob.size, 'dur', concatBuffer.length/sampleRate);
+    if(finalWavBlob.size<1000) throw new Error('WAV final muy pequeño: '+finalWavBlob.size);
 
     const url=URL.createObjectURL(finalWavBlob);
     if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
     slot.audioUrl=url;
-    slot.audioName='SLOT'+slot.id+'-'+voiceName+'-'+text.length+'chars-'+chunks.length+'partes.wav';
+    slot.audioName='SLOT'+slot.id+'-'+voiceId+'-'+text.length+'chars-'+chunks.length+'partes.wav';
     slot.audioBlob=finalWavBlob;
 
     const tempAudio = new Audio(); tempAudio.src = url;
     await new Promise((res)=>{
       tempAudio.onloadedmetadata=()=>{
         slot.audioDur = tempAudio.duration;
-        console.log('[V17] SLOT '+slot.id+' duracion REAL:', slot.audioDur);
+        console.log('[V14] SLOT '+slot.id+' duracion REAL:', slot.audioDur);
         res();
       };
       tempAudio.onerror=()=>{ slot.audioDur=concatBuffer.length/concatBuffer.sampleRate; res(); };
       tempAudio.load();
     });
 
+    // Guardar y actualizar UI
     slot.status='con audio';
     if(window.renderCola) window.renderCola(true);
     
@@ -1252,27 +1190,29 @@ async function handleGenerate(){
     }
     const audioNameEl=document.getElementById('audioName');
     if(audioNameEl){
-      audioNameEl.innerHTML='🎙️ <b>'+voiceName+' SLOT '+slot.id+'</b> · '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅';
+      const nombre = voiceId.indexOf('sharvard')>=0 ? 'Alexander (Voz Masculina)' : voiceId;
+      audioNameEl.innerHTML='🎙️ <b>'+nombre+' SLOT '+slot.id+'</b> · '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅ GUARDADO REAL';
       audioNameEl.style.color='#4ade80';
     }
-    setKStatus(`✅ SLOT ${slot.id} ${voiceName} COMPLETO - ${text.length} chars - ${slot.audioDur.toFixed(1)}s - ${chunks.length} partes`);
+    setKStatus('✅ SLOT '+slot.id+' COMPLETO - '+text.length+' chars - '+slot.audioDur.toFixed(1)+'s - '+chunks.length+' partes - GUARDADO');
     setKProg(100);
     setTimeout(()=>setKProg(null),1500);
-    console.log('[V17] SLOT '+slot.id+' GUARDADO OK', {url: !!slot.audioUrl, dur: slot.audioDur, size: slot.audioBlob.size, status: slot.status, voz: voiceName});
+    console.log('[V14] SLOT '+slot.id+' GUARDADO OK', {url: !!slot.audioUrl, dur: slot.audioDur, size: slot.audioBlob.size, status: slot.status});
     return slot;
   }catch(e){
-    console.error('[V17] ERROR SLOT', e);
+    console.error('[V14] ERROR SLOT', e);
     const st=document.getElementById('kokoroStatus');
     if(st){ st.textContent='[SLOT '+slot.id+'] ❌ '+e.message; st.style.color='#ef4444'; }
-    alert('Error SLOT '+slot.id+' ('+voiceName+'): '+e.message+'\n\nSoluciones:\n1) Abre F12 > Console y mira [V17] logs\n2) Prueba con VPN\n3) Borra cache y recarga\n4) Usa texto mas corto (200 chars) para probar');
+    alert('Error SLOT '+slot.id+': '+e.message+'\nRevisa consola F12');
     throw e;
   }finally{
-    if(btn){ btn.disabled=false; btn.textContent='🔊 GENERAR AUDIO '+voiceName; btn.style.background='#FFEB00'; }
+    if(btn){ btn.disabled=false; btn.textContent='🔊 GENERAR AUDIO ESPAÑOL'; btn.style.background='#FFEB00'; }
   }
 }
 
+// Wrapper para slot especifico - mantiene tu logica original pero con fix de activeId
 window.generateVoiceForSlotId = async function(slotId){
-  console.log('[V17] Generando voz SLOT '+slotId);
+  console.log('[V14] Generando voz SLOT '+slotId);
   const originalActive = window.activeId;
   try{
     if(window.setActive) window.setActive(slotId);
@@ -1281,9 +1221,11 @@ window.generateVoiceForSlotId = async function(slotId){
     const slot = window.queue.find(q=>q.id===slotId);
     if(!slot) throw new Error('Slot '+slotId+' no existe');
     if(!slot.txtContent && !slot.script) throw new Error('SLOT '+slotId+' sin TXT - carga .txt primero');
+    // Llamar handleGenerate que ya tiene el fix
+    const prevActive = window.activeId;
     window.activeId = slotId;
     await handleGenerate();
-    window.activeId = originalActive;
+    window.activeId = prevActive;
     const updated = window.queue.find(q=>q.id===slotId);
     if(!updated.audioUrl) throw new Error('No se guardo audioUrl SLOT '+slotId);
     return updated;
@@ -1292,6 +1234,7 @@ window.generateVoiceForSlotId = async function(slotId){
   }
 };
 
+// Mutex para evitar pisadas - permite cola pero no paralelo real que rompe RAM
 window.ttsLock = Promise.resolve();
 window.generateVoiceForSlotIdLocked = async function(slotId){
   let release;
@@ -1310,25 +1253,22 @@ $id('btnKokoroGen')?.addEventListener('click', handleGenerate);
 document.getElementById('inputTxt')?.addEventListener('change', ()=>{
   setTimeout(()=>{
     const s=getActiveSlot();
-    if(s?.txtContent) setKStatus(`TXT SLOT ${s.id} listo (${s.txtContent.length} chars) → GENERAR ${s.voiceId?.includes(':1')?'Rolina':'Ives'}`);
+    if(s?.txtContent) setKStatus(`TXT SLOT ${s.id} listo (${s.txtContent.length} chars) → GENERAR`);
   },600);
 });
 document.getElementById('kokoroVoice')?.addEventListener('change', e=>{
   const it = window.getA ? window.getA() : getActiveSlot();
-  if(it){ it.voiceId = e.target.value; console.log(`SLOT ${it.id} voz -> ${e.target.value} (${e.target.value.includes(':1')?'Rolina':'Ives'})`); }
-  const btn=document.getElementById('btnKokoroGen');
-  if(btn) btn.textContent='🔊 GENERAR AUDIO '+(e.target.value.includes(':1')?'Rolina':'Ives');
+  if(it){ it.voiceId = e.target.value; console.log(`SLOT ${it.id} voz -> ${e.target.value}`); }
 });
 document.getElementById('kokoroSpeed')?.addEventListener('change', e=>{
   const it = window.getA ? window.getA() : getActiveSlot();
   if(it) it.voiceSpeed = parseFloat(e.target.value)||1;
 });
 
-setKStatus('✅ V17 ROBUST - Ives/Rolina - Motor listo para cargar');
+setKStatus('✅ V14 FIX - Voz por SLOT corregida - lista');
 window.handleGenerate = handleGenerate;
 window.getTTS = getTTS;
 </script>
-
 
 
 
@@ -2020,7 +1960,7 @@ window.IC_renew = function(username){
       const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
       try{ 
         const st=document.getElementById('kokoroStatus'); if(st){ st.textContent='Limpio - Listo para segunda tanda'; st.style.color='#888'; }
-        // barra removida
+        // barra eliminada // barra eliminada
         const barW=document.getElementById('kokoroProgress'); if(barW) barW.style.display='none';
         const btnGen=document.getElementById('btnKokoroGen'); if(btnGen){ btnGen.disabled=false; btnGen.textContent='🔊 GENERAR AUDIO ESPAÑOL'; btnGen.style.background='#FFEB00'; }
       }catch{}
@@ -2050,7 +1990,10 @@ window.IC_renew = function(username){
 </script>
 
 
-
+<style>
+#btnKokoroGen, #kokoroSpeed {display:none !important;}
+div:has(> #kokoroSpeed) {display:none !important;}
+</style>
 
 <script>
 (function(){
@@ -2067,7 +2010,7 @@ window.IC_renew = function(username){
   // ALEXANDER POR DEFECTO + PRELOAD MOTOR
   const DEFAULT_VOICE='es_ES-sharvard-medium:0';
   window.DEFAULT_VOICE=DEFAULT_VOICE;
-  function forceIves(){
+  function forceAlexander(){
     try{
       const sel=document.getElementById('kokoroVoice');
       if(sel) sel.value=DEFAULT_VOICE;
@@ -2084,25 +2027,25 @@ window.IC_renew = function(username){
   async function preloadEngine(){
     try{
       const st=document.getElementById('kokoroStatus');
-      if(st) st.textContent='⚙️ Encendiendo motor Ives...';
-      forceIves();
+      if(st) st.textContent='⚙️ Encendiendo motor Alexander...';
+      forceAlexander();
       if(typeof getTTS==='function'){
         const tts=await getTTS();
         if(tts){
-          if(st) st.textContent='Descargando voz Ives...';
+          if(st) st.textContent='Descargando voz Alexander V...';
           try{ await tts.download(DEFAULT_VOICE, ()=>{}); }catch(e){ console.warn(e); }
-          if(st) st.textContent='✅ Motor listo - Ives - Listo para generar';
+          if(st) st.textContent='✅ Motor listo - Alexander V - Listo para generar';
           const dot=document.getElementById('pyStatusDot'); if(dot) dot.className='online';
           const txt=document.getElementById('pyStatusText'); if(txt) txt.textContent='Motor listo';
         }
       }
     }catch(e){
       const st=document.getElementById('kokoroStatus');
-      if(st) st.textContent='✅ Motor listo - Ives';
+      if(st) st.textContent='✅ Motor listo - Alexander V';
     }
   }
-  document.addEventListener('DOMContentLoaded', ()=>{ forceIves(); setTimeout(preloadEngine, 1200); });
-  setInterval(forceIves, 2000);
+  document.addEventListener('DOMContentLoaded', ()=>{ forceAlexander(); setTimeout(preloadEngine, 1200); });
+  setInterval(forceAlexander, 2000);
   
   // OCULTAR 1.15x y boton
   function hideAudioUI(){
@@ -2222,7 +2165,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         console.log('Need voice', needVoice.map(x=>x.id));
         
         if(needVoice.length){
-          txtEl.textContent=`FASE 1/2: Generando ${needVoice.length} voces Ives PARALELO x6`;
+          txtEl.textContent=`FASE 1/2: Generando ${needVoice.length} voces Alexander PARALELO x6`;
           pctEl.textContent='5%';
           listEl.innerHTML=needVoice.map(s=>`<div style="background:rgba(255,235,0,.12);border:1px solid #FFEB00;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between"><span style="font-size:10px;color:#FFEB00">SLOT ${s.id} · GENERANDO VOZ...</span><span>...</span></div>`).join('');
           
@@ -2300,7 +2243,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         await Promise.allSettled(workers);
         
         pctEl.textContent='100%';
-        txtEl.textContent=`COMPLETADO - ${list.length} videos con voz Ives`;
+        txtEl.textContent=`COMPLETADO - ${list.length} videos con voz Alexander`;
         setTimeout(()=>{ overlay.style.display='none'; }, 1500);
         if(window.renderCola) window.renderCola(true);
         if(window.startLoop) try{window.startLoop();}catch{}
@@ -2644,21 +2587,21 @@ window.renderSingleFastCapCutFallback=renderSingleFastCapCutFallback;
 <script>
 // ===== OPTIMIZACION TITULO + SUBTITULO - PREVIEW Y DESCARGA FINAL GARANTIZADOS =====
 window.__TITLE_STYLES = {
-  viral: { // FIX: TITULO 2 LINEAS ANCHO + SUB 3 LINEAS ANCHO
-    titleFont: '900 44px Anton',
+  viral: { // ESTILO 1 - VIRAL ACTUAL (el que dejamos activo)
+    titleFont: '900 42px Anton',
     titleFill: '#FFEB00',
     titleStroke: '#000000',
-    titleStrokeW: 8,
+    titleStrokeW: 7,
     titleBg: 'rgba(0,0,0,0.92)',
     titleBorder: 'rgba(255,235,0,0.35)',
-    titlePadX: 32, titlePadY: 10, titleR: 14, titleGap: 52, titleY: 52, // 2 lineas arriba ancho
-    subFont: '800 26px "Plus Jakarta Sans"',
+    titlePadX: 28, titlePadY: 10, titleR: 14, titleGap: 46, titleY: 58, // 3 lineas centradas
+    subFont: '800 28px "Plus Jakarta Sans"',
     subFill: '#FFFFFF',
     subStroke: '#000000',
     subStrokeW: 6,
-    subBg: 'rgba(0,0,0,0.92)',
-    subBorder: 'rgba(255,255,255,0.28)',
-    subPadX: 28, subR: 14, subGap: 44, subY: 700
+    subBg: 'rgba(0,0,0,0.88)',
+    subBorder: 'rgba(255,235,0,0.30)',
+    subPadX: 22, subR: 14, subGap: 46, subY: 730
   },
   luxury: {
     titleFont: '800 40px "Plus Jakarta Sans"',
@@ -2708,13 +2651,13 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
   try{
     let t = (titleText||'').trim().toUpperCase();
     if(t){
-      let lines = (typeof splitWords==='function') ? splitWords(t, 28).slice(0,2) : [t]; // FIX 2 lineas ancho
+      let lines = (typeof splitWords==='function') ? splitWords(t, 28).slice(0,2) : [t];
       lines.forEach((line, i)=>{
         const y = style.titleY + i*style.titleGap;
         // Ajuste dinamico de tamaño
-        let fontSize = 44;
-        if(line.length > 26) fontSize = 38;
-        if(line.length > 34) fontSize = 34;
+        let fontSize = 42;
+        if(line.length > 28) fontSize = 36;
+        if(line.length > 38) fontSize = 32;
         const font = `900 ${fontSize}px Anton`;
         ctx.font = font;
         try{ ctx.font = font; }catch{}
@@ -2755,12 +2698,12 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
   try{
     let s = (subText||'').trim().toUpperCase();
     if(s){
-      let lines = (typeof splitWords==='function') ? splitWords(s, 34).slice(0,3) : [s]; // FIX 3 lineas ancho 34 chars
+      let lines = (typeof splitWords==='function') ? splitWords(s, 34).slice(0,3) : [s]; // 3 lineas de subtitulo de un solo
       lines.forEach((line, j)=>{
         const y = style.subY + j*style.subGap;
-        let fontSize = 26;
-        if(line.length > 32) fontSize = 24;
-        if(line.length > 42) fontSize = 22;
+        let fontSize = 28;
+        if(line.length > 30) fontSize = 24;
+        if(line.length > 40) fontSize = 22;
         const font = `800 ${fontSize}px \"Plus Jakarta Sans\"`;
         ctx.font = font;
         const m = ctx.measureText(line);
@@ -2832,52 +2775,4 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
-
-<script>
-(function(){
-  function cleanUI(){
-    try{
-      const b=document.getElementById('btnKokoroGen');
-      if(b) { b.style.display='none'; b.remove(); }
-      document.querySelectorAll('button').forEach(btn=>{
-        if(btn.textContent && btn.textContent.includes('GENERAR AUDIO ESPAÑOL')){
-          btn.style.display='none'; btn.remove();
-        }
-      });
-      // Remove GENERANDO VOZ text from overlay
-      document.querySelectorAll('#renderOverlay *').forEach(el=>{
-        if(el.textContent && el.textContent.includes('GENERANDO VOZ')){
-          el.style.display='none';
-          el.textContent='';
-        }
-        if(el.id==='renderText') el.style.display='none';
-      });
-      const pct=document.getElementById('renderPct');
-      if(pct && pct.textContent && pct.textContent.includes('%')){
-        // keep percentage but hide voice part - we keep it? user wants delete the 5% GENERANDO VOZ block
-        // Actually hide parent that contains both
-        let p=pct.parentElement;
-        if(p && p.textContent.includes('GENERANDO VOZ')){
-          // hide only the GENERANDO VOZ line, not the big 5%
-          Array.from(p.children).forEach(ch=>{
-            if(ch.textContent.includes('GENERANDO VOZ')) ch.style.display='none';
-          });
-        }
-      }
-    }catch(e){}
-  }
-  document.addEventListener('DOMContentLoaded', cleanUI);
-  setInterval(cleanUI, 1000);
-  // Override setKStatus to never show GENERANDO VOZ in overlay
-  const origSetStatus = window.setKStatus;
-  if(window.setKStatus){
-    window.setKStatus = function(t, isError){
-      if(typeof t==='string' && t.includes('GENERANDO VOZ')){
-        return; // no mostrar en overlay
-      }
-      if(origSetStatus) return origSetStatus(t,isError);
-    }
-  }
-})();
-</script>
 </body></html>
