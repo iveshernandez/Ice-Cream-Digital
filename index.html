@@ -342,8 +342,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   <div style="background:#0f0f12;border:1.5px solid #222;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px">
     <div style="display:flex;gap:6px">
                   <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
-        <option value="es_ES-sharvard-medium:0" selected>Ives</option>
-        <option value="es_ES-sharvard-medium:1">Rolina</option>
+        <option value="es_ES-sharvard-medium:0" selected>Alexander V - Español ES (Masculino)</option>
+        <option value="es_ES-sharvard-medium:1">Alejandra Pineda P - Español ES (Femenina)</option>
       </select>
       <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="0.95">0.95x</option>
@@ -615,7 +615,7 @@ function updSubs(){
   if(!canvas) return;
   const ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,720,900);
-  const tl=window._previewTL || splitWords((it.title||'').toUpperCase(),22).slice(0,3);
+  const tl=window._previewTL || splitWords((it.title||'').toUpperCase(),28).slice(0,2);
   const subs=window._previewSubs || chunkSubs(it.script||"");
   // DISEÑO MEJORADO TITULO
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
@@ -647,7 +647,7 @@ function updSubs(){
     if(curr){
       const ls=splitWords(curr.toUpperCase(),22).slice(0,3);
       ls.forEach((ln,j)=>{
-        const y=700+j*42;
+        const y=620+j*40;
         ctx.font='800 28px Plus Jakarta Sans';
         ctx.textAlign='center'; ctx.textBaseline='middle';
         const m=ctx.measureText(ln);
@@ -868,11 +868,11 @@ async function renderSingle(item,onProg){
     fastStart:'in-memory'
   });
   const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error('VideoEncoder',e)});
-  vEnc.configure({codec:'avc1.42001E', width:W, height:H, bitrate:2500000, framerate:FPS, hardwareAcceleration:'prefer-hardware', avc:{format:'avc'}});
+  vEnc.configure({codec:'avc1.42001E', width:W, height:H, bitrate:2_500_000, // FB RECOMMENDED 2.5 Mbps para 720p
   let aEnc=null;
   if(audioBuffer){
     aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error('AudioEncoder',e)});
-    aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:audioBuffer.sampleRate, bitrate:128000});
+    aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:audioBuffer.sampleRate, bitrate:128_000});
   }
   for(let f=0; f<totalFrames; f++){
     const cur=f/FPS;
@@ -1095,14 +1095,13 @@ async function handleGenerate(){
   try{
     const tts = await getTTS();
     setKStatus('[SLOT '+slot.id+'] Descargando modelo voz '+voiceId+'...');
-        const onProgress = (prog)=>{
+    const onProgress = (prog)=>{
       if(prog && prog.loaded && prog.total){
         const pct = Math.round(prog.loaded*100/prog.total);
-        const mbL = (prog.loaded/1024/1024).toFixed(1);
-        const mbT = (prog.total/1024/1024).toFixed(1);
-        setKStatus(`[SLOT ${slot.id}] Descargando ${voiceName} ${pct}% - ${mbL}MB/${mbT}MB`);
-      } else if(prog && prog.loaded){
-        setKStatus(`[SLOT ${slot.id}] Descargando ${voiceName} ${(prog.loaded/1024/1024).toFixed(1)}MB...`);
+        const bar=document.getElementById('kokoroProgressBar');
+        const barWrap=document.getElementById('kokoroProgress');
+        if(barWrap) barWrap.style.display='block';
+        if(bar) bar.style.width=(20 + Math.round(pct*0.3))+'%';
       }
     };
     // Descarga con retry real
@@ -1960,7 +1959,7 @@ window.IC_renew = function(username){
       const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
       try{ 
         const st=document.getElementById('kokoroStatus'); if(st){ st.textContent='Limpio - Listo para segunda tanda'; st.style.color='#888'; }
-        // barra eliminada // barra eliminada
+        const bar=document.getElementById('kokoroProgressBar'); if(bar) bar.style.width='0%';
         const barW=document.getElementById('kokoroProgress'); if(barW) barW.style.display='none';
         const btnGen=document.getElementById('btnKokoroGen'); if(btnGen){ btnGen.disabled=false; btnGen.textContent='🔊 GENERAR AUDIO ESPAÑOL'; btnGen.style.background='#FFEB00'; }
       }catch{}
@@ -1990,10 +1989,7 @@ window.IC_renew = function(username){
 </script>
 
 
-<style>
-#btnKokoroGen, #kokoroSpeed {display:none !important;}
-div:has(> #kokoroSpeed) {display:none !important;}
-</style>
+
 
 <script>
 (function(){
@@ -2066,7 +2062,7 @@ div:has(> #kokoroSpeed) {display:none !important;}
 async function renderSingle(item, onProgress){
   const info = window.calcDurInfo ? window.calcDurInfo(item) : {useLoop:false, playbackRate:1, finalDur: item.videoDur || 10};
   const canvas = document.createElement('canvas');
-  canvas.width=1080; canvas.height=1350;
+  canvas.width=720; canvas.height=900;
   const ctx = canvas.getContext('2d', {alpha:false, desynchronized:true});
   const v = document.createElement('video');
   v.src = item.videoUrl; v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
@@ -2087,7 +2083,7 @@ async function renderSingle(item, onProgress){
   }
   const stream=canvas.captureStream(fps);
   if(dest && dest.stream) dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
-  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:12000000,audioBitsPerSecond:128000});
+  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:2500000 // 2.5 Mbps = 70MB x 4min,audioBitsPerSecond:128000});
   rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
   const recDone=new Promise(res=>{ rec.onstop=()=>res(); });
   function drawFrame(){
@@ -2266,10 +2262,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="https://unpkg.com/mp4-muxer@5.2.1/build/mp4-muxer.js"></script>
 <script>
 // MOTOR TIPO CAPCUT - WEBCODECS OFFLINE - NUNCA SE CONGELA EN DESCARGA FINAL
+
 async function renderSingleCapCut(item, onProg){
   const FPS=30;
   const START_OFFSET=0.25;
-  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1350;
+  const W=720, H=900;
+  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
   
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
@@ -2291,83 +2289,69 @@ async function renderSingleCapCut(item, onProg){
   const realTotal=aDur||vDur||10;
   const totalFrames=Math.ceil(realTotal*FPS);
   
-  const scriptText=(item.script||'').trim();
-  const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-  const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
-  
-  function drawFrame(currentVideoTime, curTime){
-    ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  function drawFrame(curTime){
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
     if(v.videoWidth){ 
-      const vw=v.videoWidth, vh=v.videoHeight, tgt=720/900, r=vw/vh; 
+      const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; 
       let sx=0,sy=0,sw=vw,sh=vh; 
       if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
-      try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height); }catch{} 
+      try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} 
     }
-    // === TITULO MEJORADO - SIEMPRE VISIBLE EN DESCARGA FINAL ===
+    // TITULO 28 chars x 2 lineas - referencia
     try{
       const titleText=(item.title||'').trim().toUpperCase();
       if(titleText){
-        const titleLines=typeof splitWords==='function'?splitWords(titleText,20).slice(0,3):[titleText];
+        const titleLines=typeof splitWords==='function'?splitWords(titleText,28).slice(0,2):[titleText];
         ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
         titleLines.forEach((l,i)=>{
-          const y=55+i*44;
-          const fontSize = titleText.length>80?30: titleText.length>50?34:38;
-          ctx.font=`900 ${fontSize}px Anton`;
+          const y=45+i*48;
+          ctx.font=`900 28px Anton`;
           const fw=ctx.measureText(l).width;
-          // Fondo negro con esquinas redondeadas + borde amarillo fino
-          ctx.save();
+          const rw=Math.min(fw+32, W*0.92);
+          const rh=34;
+          const cx=W/2;
           ctx.fillStyle='rgba(0,0,0,0.92)';
-          const padX=26, rh=38, rw=fw+padX*2;
-          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
-          else ctx.fillRect(360-rw/2, y-rh/2, rw, rh);
-          // Borde sutil amarillo
-          ctx.strokeStyle='rgba(255,235,0,0.35)'; ctx.lineWidth=1;
-          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2, y-rh/2, rw, rh, 10); ctx.stroke(); }
-          ctx.restore();
-          // Texto amarillo con borde negro grueso
-          ctx.lineWidth=5; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00';
-          ctx.strokeText(l,360,y); ctx.fillText(l,360,y);
+          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
+          else ctx.fillRect(cx-rw/2, y-rh/2, rw, rh);
+          ctx.lineWidth=6; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00';
+          ctx.strokeText(l,cx,y); ctx.fillText(l,cx,y);
         });
       }
-    }catch(e){ console.warn('title draw fail',e); }
-    // === SUBTITULOS MEJORADOS - SIEMPRE VISIBLE EN DESCARGA FINAL ===
+    }catch(e){}
+    // SUBS 34 chars x 3 lineas
     try{
+      const scriptText=(item.script||'').trim();
+      const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
       let subText='';
       if(subs.length){
         const si=Math.min(Math.floor((curTime/(aDur||realTotal))*subs.length), subs.length-1);
         subText=subs[si]||'';
-      } else if((item.script||'').trim()){
-        // Fallback si chunkSubs falla: usar script directo
-        subText=(item.script||'').trim().split(/\s+/).slice(0,8).join(' ');
       }
       if(subText){
-        const lines=typeof splitWords==='function'?splitWords(subText.toUpperCase(),24).slice(0,2):[subText.toUpperCase()];
+        let lines=typeof splitWords==='function'?splitWords(subText.toUpperCase(),34).slice(0,3):[subText.toUpperCase()];
+        if(lines.length===1){ const w=lines[0].split(' '); const p=Math.ceil(w.length/3); lines=[w.slice(0,p).join(' '), w.slice(p,p*2).join(' '), w.slice(p*2).join(' ')].filter(Boolean); }
+        else if(lines.length===2){ const w=lines[1].split(' '); const p=Math.ceil(w.length/2); lines=[lines[0], w.slice(0,p).join(' '), w.slice(p).join(' ')].filter(Boolean); }
+        lines=lines.slice(0,3);
         lines.forEach((ln,j)=>{
-          const y=720+j*46;
-          const fontSize=26;
-          ctx.font=`800 ${fontSize}px Plus Jakarta Sans`;
+          const y=620+j*40;
+          ctx.font='800 22px "Plus Jakarta Sans"';
           const m=ctx.measureText(ln);
-          const bw=m.width+40, bh=44;
-          // Fondo negro 85% + borde amarillo sutil
-          ctx.save();
-          ctx.fillStyle='rgba(0,0,0,0.88)';
-          ctx.strokeStyle='rgba(255,235,0,0.30)'; ctx.lineWidth=1.2;
-          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2, y-bh/2, bw, bh, 14); ctx.fill(); ctx.stroke(); }
-          else { ctx.fillRect(360-bw/2, y-bh/2, bw, bh); }
-          ctx.restore();
-          // Texto blanco con sombra negra gruesa para legibilidad maxima
-          ctx.font=`800 ${fontSize}px Plus Jakarta Sans`;
-          ctx.lineWidth=6; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFFFFF';
+          const bw=Math.min(m.width+36, W*0.90);
+          const bh=32;
+          const cx=W/2;
+          ctx.fillStyle='rgba(0,0,0,0.85)';
+          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, 10); ctx.fill(); }
+          else ctx.fillRect(cx-bw/2, y-bh/2, bw, bh);
+          ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFF';
           ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y);
+          ctx.strokeText(ln,cx,y); ctx.fillText(ln,cx,y);
         });
       }
-    }catch(e){ console.warn('sub draw fail',e); }
+    }catch(e){}
   }
   
-  // Si WebCodecs no disponible, fallback al rapido anterior
   if(typeof VideoEncoder==='undefined' || typeof Mp4Muxer==='undefined'){
-    console.warn('WebCodecs no soportado, fallback a render rapido');
+    console.warn('WebCodecs no soportado, fallback');
     return await window.renderSingleFastCapCutFallback(item, onProg);
   }
   
@@ -2376,7 +2360,7 @@ async function renderSingleCapCut(item, onProg){
     const target=new ArrayBufferTarget();
     const muxer=new Muxer({
       target: target,
-      video: { codec:'avc', width:1080, height:1350 },
+      video: { codec:'avc', width:W, height:H },
       audio: audioBuffer? { codec:'aac', sampleRate: audioBuffer.sampleRate, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
       fastStart:'in-memory',
       firstTimestampBehavior:'offset'
@@ -2388,8 +2372,8 @@ async function renderSingleCapCut(item, onProg){
     });
     videoEncoder.configure({
       codec:'avc1.42E01E',
-      width:1080, height:1350,
-      bitrate:12_000_000,
+      width:W, height:H,
+      bitrate:2_500_000, // FB RECOMMENDED 2.5 Mbps para 720p
       framerate:FPS,
       hardwareAcceleration:'prefer-hardware'
     });
@@ -2409,10 +2393,9 @@ async function renderSingleCapCut(item, onProg){
     }
     
     v.currentTime=START_OFFSET;
-    await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,400); });
+    await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,200); });
     await window.__ensureFontsReady();
     
-    // Render OFFLINE frame por frame - como CapCut, nunca se congela
     for(let i=0;i<totalFrames;i++){
       const curTime=i/FPS;
       let targetVideoTime=START_OFFSET + (curTime * (info.rate||1));
@@ -2423,16 +2406,17 @@ async function renderSingleCapCut(item, onProg){
         targetVideoTime=Math.min(targetVideoTime, v.duration-0.05);
       }
       
-      if(Math.abs(v.currentTime - targetVideoTime) > 0.01){
+      if(Math.abs(v.currentTime - targetVideoTime) > 0.05){
         v.currentTime=targetVideoTime;
+        // FIX TRABADO: espera minima, no 80ms
         await new Promise(r=>{
           const onSeek=()=>{ v.removeEventListener('seeked',onSeek); r(); };
           v.addEventListener('seeked',onSeek);
-          setTimeout(r, 80);
+          setTimeout(r, 25);
         });
       }
       
-      drawFrame(v.currentTime, curTime);
+      drawFrame(curTime);
       
       const frame=new VideoFrame(canvas, { timestamp: Math.round(curTime*1_000_000) });
       const keyFrame = i % (FPS*2) === 0;
@@ -2441,7 +2425,7 @@ async function renderSingleCapCut(item, onProg){
       
       onProg?.((i/totalFrames)*90);
       
-      if(i%15===0) await new Promise(r=>setTimeout(r,0));
+      if(i%10===0) await new Promise(r=>setTimeout(r,0));
     }
     
     await videoEncoder.flush();
@@ -2484,10 +2468,11 @@ async function renderSingleCapCut(item, onProg){
   }
 }
 
+
 // Fallback rapido si WebCodecs falla - el anti-freeze anterior
 async function renderSingleFastCapCutFallback(item,onProg){
   const FPS=30; const START_OFFSET=0.25;
-  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1350;
+  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true;
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
   await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
@@ -2502,7 +2487,7 @@ async function renderSingleFastCapCutFallback(item,onProg){
   const ext=mimeMP4.includes('mp4')?'mp4':'webm';
   await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,500); });
   v.currentTime=START_OFFSET; await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,300); });
-  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:12000000, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
+  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:2500000 // 2.5 Mbps = 70MB x 4min, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
   await v.play().catch(()=>{}); if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); } rec.start(100);
   await new Promise(res=>{
     let start=performance.now(); let _stopped=false;
@@ -2651,7 +2636,7 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
   try{
     let t = (titleText||'').trim().toUpperCase();
     if(t){
-      let lines = (typeof splitWords==='function') ? splitWords(t, 28).slice(0,2) : [t];
+      let lines = (typeof splitWords==='function') ? splitWords(t, 20).slice(0,3) : [t];
       lines.forEach((line, i)=>{
         const y = style.titleY + i*style.titleGap;
         // Ajuste dinamico de tamaño
@@ -2698,7 +2683,7 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
   try{
     let s = (subText||'').trim().toUpperCase();
     if(s){
-      let lines = (typeof splitWords==='function') ? splitWords(s, 34).slice(0,3) : [s]; // 3 lineas de subtitulo de un solo
+      let lines = (typeof splitWords==='function') ? splitWords(s, 24).slice(0,3) : [s]; // 3 lineas de subtitulo de un solo
       lines.forEach((line, j)=>{
         const y = style.subY + j*style.subGap;
         let fontSize = 28;
