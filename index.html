@@ -257,6 +257,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
+
+<script type="importmap">
+{
+  "imports": {
+    "mp4-muxer": "https://cdn.jsdelivr.net/npm/mp4-muxer@5.0.2/+esm"
+  }
+}
+</script>
 </head>
 <body>
 
@@ -442,22 +450,20 @@ try{
 const log=m=>{const d=$("debug");d.textContent=new Date().toLocaleTimeString()+" | "+m+"\n"+d.textContent.slice(0,400);};
 const getA=()=>queue.find(q=>q.id===activeId);
 function getRateInfo(vDur,aDur){
-  if(!vDur||!aDur) return {rate:1,useLoop:false,realTotal:vDur||aDur||0,needed:1,stretchFirst:false};
+  // FIX LIMPIO anti-freeze: nunca < 0.6x para export
+  if(!vDur||!aDur) return {rate:1,useLoop:false,realTotal:vDur||aDur||0,needed:1,exportMode:'seek'};
   const needed=vDur/aDur;
-  const MIN_RATE = 0.5; // MAXIMO FLUIDO: 1 / 0.5 = 2x más largo sin trabarse
+  const MIN_RATE = 0.6;
+  const MAX_RATE = 4;
   if(needed < 1){
     if(needed < MIN_RATE){
-      // Video muy corto: estirar al máximo fluido 0.5x y loopear lo que falte
-      const stretchedDur = vDur / MIN_RATE;
-      const useLoop = stretchedDur < aDur;
-      return {rate:MIN_RATE,useLoop,realTotal:aDur,needed,stretchFirst:true, stretchedDur};
+      return {rate:MIN_RATE,useLoop:true,realTotal:aDur,needed,exportMode:'seek_loop'};
     }else{
-      // Video un poco corto (ej: 3min video, 4min audio = 0.75x): estirar fluido sin loop
-      return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:true};
+      return {rate:needed,useLoop:false,realTotal:aDur,needed,exportMode:'seek'};
     }
   }
-  if(needed>4) return {rate:4,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
-  return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
+  if(needed>MAX_RATE) return {rate:MAX_RATE,useLoop:false,realTotal:aDur,needed,exportMode:'seek'};
+  return {rate:needed,useLoop:false,realTotal:aDur,needed,exportMode:'seek'};
 }
 function calcDurInfo(q){
   if(!q.videoDur||!q.audioDur) return null;
@@ -828,87 +834,251 @@ function isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas){ try{v&&v.pause
 
 
 
+
+// ===== V13 CAPCUT STYLE - WebCodecs Fast Encoder =====
 async function renderSingle(item,onProg){
-  const FPS=30;
+  const FPS=30, W=720, H=900;
   const START_OFFSET=0.25;
-  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
-  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  
+  // Load video metadata
   const vPre=document.createElement('video'); vPre.src=item.videoUrl; vPre.muted=true; vPre.crossOrigin='anonymous'; vPre.preload='auto';
   await new Promise(r=>{ vPre.onloadedmetadata=()=>r(); vPre.onerror=()=>r(); vPre.load(); });
   const vDur=vPre.duration||item.videoDur||10;
   try{ vPre.pause(); vPre.src=''; }catch{}
-  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): (typeof calcDurInfo==='function'?calcDurInfo(item): {rate:1,useLoop:false, finalDur:item.audioDur||vDur});
+  
+  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): {rate:1,useLoop:false, realTotal:item.audioDur||vDur};
   const scriptText=(item.script||'').trim();
   const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
   const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
-  let ac,dest,cap=null;
+  
   let aDur=item.audioDur||0;
+  let audioBuffer=null;
+  let ac=null;
   if(item.audioUrl){
     try{
       ac=new (window.AudioContext||window.webkitAudioContext)();
-      dest=ac.createMediaStreamDestination();
-      cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; cap.preload='auto';
-      await new Promise(r=>{ cap.onloadedmetadata=()=>{ aDur=cap.duration||aDur; r(); }; cap.onerror=()=>r(); cap.load(); });
-      const src=ac.createMediaElementSource(cap);
-      src.connect(dest);
-    }catch(e){ console.warn(e); }
+      const resp=await fetch(item.audioUrl);
+      const ab=await resp.arrayBuffer();
+      audioBuffer=await ac.decodeAudioData(ab);
+      aDur=audioBuffer.duration;
+    }catch(e){ console.warn('audio decode fail',e); }
   }
   const realTotal=aDur||vDur||10;
-  const mimeMP4=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1.42E01E','video/mp4'].find(m=>{ try{ return MediaRecorder.isTypeSupported(m); }catch{ return false; } }) || 'video/webm;codecs=vp9';
-  const ext=mimeMP4.includes('mp4')?'mp4':'webm';
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto'; v.volume=0;
+  const totalFrames=Math.ceil(realTotal*FPS);
+  
+  // Canvas
+  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d',{alpha:false}); 
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  
+  // Video element for frame extraction (seek manual)
+  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto';
+  v.playbackRate=1; v.loop=false;
   await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
   await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,600); });
-  v.playbackRate=info.rate||info.playbackRate||1; v.loop=info.useLoop||false;
-  v.currentTime=Math.min(START_OFFSET, v.duration-0.1||START_OFFSET);
-  await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,400); });
-  for(let k=0;k<3;k++){ try{ const vw=v.videoWidth,vh=v.videoHeight; if(vw&&vh){ const tgt=720/900, rv=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900);} }catch{} await new Promise(r=>setTimeout(r,40)); }
+  v.pause();
+  
+  // Check WebCodecs support
+  const hasWebCodecs = typeof VideoEncoder !== 'undefined';
+  
+  if(hasWebCodecs){
+    try{
+      const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
+      const target=new ArrayBufferTarget();
+      const muxer=new Muxer({
+        target,
+        video:{ codec:'avc', width:W, height:H },
+        audio:{ codec:'aac', sampleRate:48000, numberOfChannels:2 },
+        fastStart:'in-memory'
+      });
+      
+      const videoEncoder=new VideoEncoder({
+        output:(chunk, meta)=>{
+          muxer.addVideoChunk(chunk, meta);
+        },
+        error:(e)=>console.error(e)
+      });
+      videoEncoder.configure({
+        codec:'avc1.42001f',
+        width:W, height:H,
+        bitrate:5_000_000,
+        framerate:FPS,
+        hardwareAcceleration:'prefer-hardware'
+      });
+      
+      let audioEncoder=null;
+      if(audioBuffer){
+        audioEncoder=new AudioEncoder({
+          output:(chunk, meta)=>{ muxer.addAudioChunk(chunk, meta); },
+          error:(e)=>console.error(e)
+        });
+        audioEncoder.configure({
+          codec:'mp4a.40.2',
+          sampleRate:48000,
+          numberOfChannels:2,
+          bitrate:128000
+        });
+      }
+      
+      // Fast render loop - NO tiempo real, va lo más rápido que puede (como CapCut)
+      for(let i=0;i<totalFrames;i++){
+        const cur=(i/FPS);
+        const progress=(i/totalFrames)*90;
+        onProg?.(progress);
+        
+        // SEEK MANUAL - mapeo sin playbackRate
+        let targetVTime;
+        const effectiveVdur = vDur - START_OFFSET;
+        if(info.useLoop){
+          const stretchFactor=Math.max(info.needed, 0.6);
+          const adjusted=(cur * stretchFactor) % effectiveVdur;
+          targetVTime=START_OFFSET+adjusted;
+        }else{
+          const ratio=effectiveVdur/realTotal;
+          targetVTime=START_OFFSET+(cur*ratio);
+        }
+        v.currentTime=Math.min(targetVTime, vDur-0.05);
+        await new Promise(r=>{
+          const handler=()=>{ v.removeEventListener('seeked',handler); r(); };
+          v.addEventListener('seeked',handler);
+          setTimeout(r, 80);
+        });
+        
+        // Draw
+        const vw=v.videoWidth, vh=v.videoHeight;
+        if(vw&&vh){ 
+          const tgt=W/H, rv=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; 
+          if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
+          try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} 
+        }
+        // Titles + Subs
+        try{
+          ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round';
+          ctx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
+          tLines.forEach((l,idx)=>{ const y=42+idx*40; const fw=ctx.measureText(l).width; ctx.save(); ctx.fillStyle='#000'; const padX=22,rh=34,rw=fw+padX*2; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2,y-rh/2,rw,rh,8); ctx.fill(); } else ctx.fillRect(360-rw/2,y-rh/2,rw,rh); ctx.restore(); ctx.lineWidth=3.5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(l,360,y); ctx.fillText(l,360,y); });
+          if(subs.length){
+            const si=Math.min(Math.floor((cur/(aDur||realTotal))*subs.length),subs.length-1);
+            const curr=subs[si]||'';
+            if(curr){ const ls=typeof splitWords==='function'?splitWords(curr.toUpperCase(),22).slice(0,3):[curr]; ls.forEach((ln,j)=>{ const y=700+j*42; ctx.font='800 28px Plus Jakarta Sans'; const m=ctx.measureText(ln); const bw=m.width+36,bh=42; ctx.save(); ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.strokeStyle='rgba(255,235,0,0.25)'; ctx.lineWidth=1; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2,y-bh/2,bw,bh,12); ctx.fill(); ctx.stroke(); } ctx.restore(); ctx.font='800 28px Plus Jakarta Sans'; ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#fff'; ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y); }); }
+          }
+        }catch{}
+        
+        const frame=new VideoFrame(canvas, {timestamp: i*1e6/FPS });
+        videoEncoder.encode(frame);
+        frame.close();
+        
+        // Yield to UI every 15 frames
+        if(i%15===0) await new Promise(r=>setTimeout(r,0));
+      }
+      
+      await videoEncoder.flush();
+      
+      // Audio encode
+      if(audioEncoder && audioBuffer){
+        const numChannels=2;
+        const sampleRate=48000;
+        const len=audioBuffer.length;
+        const chunkSize=1024;
+        for(let offset=0; offset<len; offset+=chunkSize){
+          const remaining=Math.min(chunkSize, len-offset);
+          const data=new Float32Array(remaining*numChannels);
+          // simple stereo interleave
+          for(let ch=0; ch<numChannels; ch++){
+            const chData=audioBuffer.getChannelData(Math.min(ch, audioBuffer.numberOfChannels-1));
+            for(let i=0;i<remaining;i++){
+              data[i*numChannels+ch]=chData[offset+i]||0;
+            }
+          }
+          const audioData=new AudioData({
+            format:'f32',
+            sampleRate:audioBuffer.sampleRate,
+            numberOfFrames:remaining,
+            numberOfChannels:numChannels,
+            timestamp: offset*1e6/audioBuffer.sampleRate,
+            data
+          });
+          audioEncoder.encode(audioData);
+          audioData.close();
+        }
+        await audioEncoder.flush();
+      }
+      
+      muxer.finalize();
+      const blob=new Blob([target.buffer], {type:'video/mp4'});
+      try{ v.pause(); v.src=''; }catch{}
+      try{ if(ac) await ac.close(); }catch{}
+      onProg?.(100);
+      if(blob.size>2000) return {url:URL.createObjectURL(blob), ext:'mp4'};
+      return {url:'', ext:'mp4'};
+      
+    }catch(e){
+      console.warn('WebCodecs fail, fallback to fast MediaRecorder', e);
+      // fallback abajo
+    }
+  }
+  
+  // FALLBACK RAPIDO (si no hay WebCodecs): MediaRecorder pero sin tiempo real
+  const mimeMP4=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1.42E01E','video/mp4'].find(m=>{ try{ return MediaRecorder.isTypeSupported(m); }catch{ return false; } }) || 'video/webm;codecs=vp9';
+  const ext=mimeMP4.includes('mp4')?'mp4':'webm';
   const cStream=canvas.captureStream(FPS);
+  let dest=null;
+  if(ac && audioBuffer){
+    dest=ac.createMediaStreamDestination();
+  }
   const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-  const rec=new MediaRecorder(combined,{videoBitsPerSecond:4500000, mimeType:mimeMP4, audioBitsPerSecond:128000});
+  const rec=new MediaRecorder(combined,{videoBitsPerSecond:5000000, mimeType:mimeMP4, audioBitsPerSecond:128000});
   const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
   const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
-  await v.play().catch(()=>{});
-  if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
   rec.start(100);
-  await new Promise(res=>{
-    let start=performance.now(); let _stopped=false;
-    let safetyTimeout=setTimeout(()=>{ if(!_stopped){ _stopped=true; try{ rec.stop(); }catch{} res(); } }, (realTotal+3)*1000);
-    const draw=()=>{
-      const elapsed=(performance.now()-start)/1000;
-      const cur=Math.min(elapsed, realTotal);
-      onProg?.(Math.min((cur/realTotal)*100,100));
-      // Anti-freeze: si video se pauso o termino y necesitamos loop, re-play
-      try{
-        if(v.paused && !v.ended && cur < realTotal-0.1){ v.play().catch(()=>{}); }
-        if(v.ended && info.useLoop){ v.currentTime=START_OFFSET; v.play().catch(()=>{}); }
-      }catch{}
-      if(v.readyState>=2){
-        const vw=v.videoWidth, vh=v.videoHeight;
-        if(vw&&vh){ const tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,720,900); }catch{} } else { ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
-      } else { ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
-      try{
-        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
-        ctx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
-        tLines.forEach((l,i)=>{ const y=42+i*40; const fw=ctx.measureText(l).width; ctx.save(); ctx.fillStyle='#000'; const padX=22,rh=34,rw=fw+padX*2; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2,y-rh/2,rw,rh,8); ctx.fill(); } else ctx.fillRect(360-rw/2,y-rh/2,rw,rh); ctx.restore(); ctx.lineWidth=3.5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(l,360,y); ctx.fillText(l,360,y); });
-        if(subs.length){
-          const audioCur=(cap&&!cap.paused)?cap.currentTime:cur;
-          const si=Math.min(Math.floor((audioCur/(aDur||realTotal))*subs.length),subs.length-1);
-          const curr=subs[si]||'';
-          if(curr){ const ls=typeof splitWords==='function'?splitWords(curr.toUpperCase(),22).slice(0,3):[curr]; ls.forEach((ln,j)=>{ const y=700+j*42; ctx.font='800 28px Plus Jakarta Sans'; const m=ctx.measureText(ln); const bw=m.width+36,bh=42; ctx.save(); ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.strokeStyle='rgba(255,235,0,0.25)'; ctx.lineWidth=1; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2,y-bh/2,bw,bh,12); ctx.fill(); ctx.stroke(); } ctx.restore(); ctx.font='800 28px Plus Jakarta Sans'; ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y); }); }
-        }
-      }catch{}
-      if(cur>=realTotal-0.05){ if(!_stopped){ _stopped=true; clearTimeout(safetyTimeout); try{ rec.stop(); }catch{} setTimeout(res,300); } return; }
-      requestAnimationFrame(draw);
-    };
-    draw();
-  });
+  
+  // Si hay audioBuffer, reproducirlo via WebAudio conectado a dest
+  if(ac && audioBuffer && dest){
+    const src=ac.createBufferSource(); src.buffer=audioBuffer; src.connect(dest); src.start();
+  }
+  
+  for(let i=0;i<totalFrames;i++){
+    const cur=i/FPS;
+    onProg?.((i/totalFrames)*100);
+    let targetVTime;
+    const effectiveVdur=vDur-START_OFFSET;
+    if(info.useLoop){
+      const stretchFactor=Math.max(info.needed,0.6);
+      const adjusted=(cur*stretchFactor)%effectiveVdur;
+      targetVTime=START_OFFSET+adjusted;
+    }else{
+      const ratio=effectiveVdur/realTotal;
+      targetVTime=START_OFFSET+(cur*ratio);
+    }
+    v.currentTime=Math.min(targetVTime, vDur-0.05);
+    await new Promise(r=>{ const h=()=>{v.removeEventListener('seeked',h); r();}; v.addEventListener('seeked',h); setTimeout(r,60); });
+    const vw=v.videoWidth, vh=v.videoHeight;
+    if(vw&&vh){ const tgt=W/H, rv=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} }
+    try{
+      ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round';
+      ctx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
+      tLines.forEach((l,idx)=>{ const y=42+idx*40; const fw=ctx.measureText(l).width; ctx.save(); ctx.fillStyle='#000'; const padX=22,rh=34,rw=fw+padX*2; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2,y-rh/2,rw,rh,8); ctx.fill(); } else ctx.fillRect(360-rw/2,y-rh/2,rw,rh); ctx.restore(); ctx.lineWidth=3.5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(l,360,y); ctx.fillText(l,360,y); });
+      if(subs.length){
+        const si=Math.min(Math.floor((cur/(aDur||realTotal))*subs.length),subs.length-1);
+        const curr=subs[si]||'';
+        if(curr){ const ls=typeof splitWords==='function'?splitWords(curr.toUpperCase(),22).slice(0,3):[curr]; ls.forEach((ln,j)=>{ const y=700+j*42; ctx.font='800 28px Plus Jakarta Sans'; const m=ctx.measureText(ln); const bw=m.width+36,bh=42; ctx.save(); ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.strokeStyle='rgba(255,235,0,0.25)'; ctx.lineWidth=1; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2,y-bh/2,bw,bh,12); ctx.fill(); ctx.stroke(); } ctx.restore(); ctx.font='800 28px Plus Jakarta Sans'; ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#fff'; ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y); }); }
+      }
+    }catch{}
+    await new Promise(r=>setTimeout(r, 1000/FPS)); // mantiene fps
+  }
+  
+  rec.stop();
   const blob=await blobP;
-  try{ v.pause(); v.src=''; }catch{} try{ if(cap){ cap.pause(); cap.src=''; } }catch{} try{ if(ac) await ac.close(); }catch{} try{ combined.getTracks().forEach(t=>t.stop()); }catch{} try{ cStream.getTracks().forEach(t=>t.stop()); }catch{}
+  try{ v.pause(); v.src=''; }catch{}
+  try{ if(ac) await ac.close(); }catch{}
+  try{ combined.getTracks().forEach(t=>t.stop()); }catch{}
+  try{ cStream.getTracks().forEach(t=>t.stop()); }catch{}
   if(blob.size>2000) return {url:URL.createObjectURL(blob), ext:ext};
   return {url:'', ext:ext};
 }
 window.renderSingle=renderSingle;
+// END V13
+
+
 
 
 
@@ -928,7 +1098,7 @@ window.renderOne=async id=>{
 $("btnRenderSingle").addEventListener('click',()=>renderOne(activeId));
 
 
-setActive(1);renderCola(true);log('V11 MP4 FLUIDO ESTIRADO - primera instancia max estirada 0.25x + seek manual anti-freeze + .mp4');
+setActive(1);renderCola(true);log('V12 FIX LIMPIO - seek manual anti-freeze 0.6x + loop');
 </script>
 
 <div style="position:fixed;bottom:12px;left:14px;z-index:100;font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-size:11px;color:#aaa;background:rgba(20,20,24,0.85);border:1px solid #222;padding:6px 10px;border-radius:8px;backdrop-filter:blur(4px);pointer-events:none;letter-spacing:0.2px">
