@@ -868,7 +868,7 @@ async function renderSingle(item,onProg){
     fastStart:'in-memory'
   });
   const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error('VideoEncoder',e)});
-  vEnc.configure({codec:'avc1.42001E', width:W, height:H, bitrate:2_500_000, framerate:FPS, hardwareAcceleration:'prefer-hardware', avc:{format:'avc'}});
+  vEnc.configure({codec:'avc1.42001E', width:W, height:H, bitrate:2_500_000, framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'avc'}});
   let aEnc=null;
   if(audioBuffer){
     aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error('AudioEncoder',e)});
@@ -2375,7 +2375,7 @@ async function renderSingleCapCut(item, onProg){
       width:W, height:H,
       bitrate:2_500_000, // FB 2.5 Mbps optimal
       framerate:FPS,
-      hardwareAcceleration:'prefer-hardware'
+      hardwareAcceleration:'prefer-hardware', latencyMode:'quality'
     });
     
     let audioEncoder=null;
@@ -2396,36 +2396,52 @@ async function renderSingleCapCut(item, onProg){
     await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,200); });
     await window.__ensureFontsReady();
     
+    // Pre-buffer: asegura que el video esté completamente listo
+    v.preload='auto';
+    if(v.readyState < 3){
+      await new Promise(r=>{
+        const check=()=>{ if(v.readyState>=3) r(); else setTimeout(check, 50); };
+        check();
+      });
+    }
+
     for(let i=0;i<totalFrames;i++){
       const curTime=i/FPS;
       let targetVideoTime=START_OFFSET + (curTime * (info.rate||1));
       if(info.useLoop && v.duration){
-        const loopDur=v.duration - START_OFFSET - 0.05;
+        const loopDur=v.duration - START_OFFSET - 0.10;
         if(loopDur>0) targetVideoTime=START_OFFSET + (targetVideoTime % loopDur);
       } else if(v.duration){
-        targetVideoTime=Math.min(targetVideoTime, v.duration-0.05);
+        targetVideoTime=Math.min(targetVideoTime, v.duration-0.10);
       }
       
-      if(Math.abs(v.currentTime - targetVideoTime) > 0.05){
-        v.currentTime=targetVideoTime;
-        // FIX TRABADO: espera minima, no 80ms
+      // FIX TRABADO EXPORT: solo hace seek si realmente cambia >100ms y usa fastSeek
+      if(Math.abs(v.currentTime - targetVideoTime) > 0.10){
         await new Promise(r=>{
           const onSeek=()=>{ v.removeEventListener('seeked',onSeek); r(); };
           v.addEventListener('seeked',onSeek);
-          setTimeout(r, 25);
+          try{
+            if('fastSeek' in v) v.fastSeek(targetVideoTime);
+            else v.currentTime=targetVideoTime;
+          }catch{ v.currentTime=targetVideoTime; }
+          setTimeout(r, 30);
         });
+        // Espera frame disponible
+        if(v.readyState < 2){
+          await new Promise(r=> setTimeout(r, 10));
+        }
       }
       
       drawFrame(curTime);
       
-      const frame=new VideoFrame(canvas, { timestamp: Math.round(curTime*1_000_000) });
-      const keyFrame = i % (FPS*2) === 0;
+      const frame=new VideoFrame(canvas, { timestamp: Math.round(curTime*1_000_000), duration: Math.round(1_000_000/FPS) });
+      const keyFrame = i % FPS === 0; // keyframe cada 1 seg = fluido
       videoEncoder.encode(frame, {keyFrame});
       frame.close();
       
       onProg?.((i/totalFrames)*90);
       
-      if(i%10===0) await new Promise(r=>setTimeout(r,0));
+      if(i%15===0) await new Promise(r=>setTimeout(r,0));
     }
     
     await videoEncoder.flush();
