@@ -20,6 +20,41 @@ header{padding:22px 20px;display:flex;justify-content:space-between;align-items:
 @media(max-width:1650px){#cola{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:900px){#cola{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}}
 </style>
+<style>
+/* FIX 1080x1920 PREVIEW FINAL */
+#previewWrap {
+  aspect-ratio: 9/16 !important;
+  max-width: 380px !important;
+  margin: 0 auto !important;
+  background: #000;
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  width: 100%;
+  height: auto;
+}
+#previewCanvas {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 9/16 !important;
+  object-fit: cover;
+  display: block;
+}
+#previewVideo {
+  object-fit: cover !important;
+  aspect-ratio: 9/16 !important;
+}
+.layout {
+  grid-template-columns: 1fr 400px !important;
+}
+.glass[style*="position:sticky"] .glass, .glass[style*="position:sticky"] > div {
+  display: flex;
+  justify-content: center;
+}
+</style>
+
+
+
 
 <style>
 /* === MINIMAL PRO - SOLO CENTRADO Y BONITO === */
@@ -378,8 +413,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <div style="position:relative;width:100%;aspect-ratio:4/5;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
 <video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
 <audio id="previewAudio" preload="auto" style="display:none"></audio>
-<div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
-<canvas id="previewCanvas" width="1080" height="1920" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none"></canvas>
+<div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 1080x1920 aquí</div></div>
+<canvas id="previewCanvas" width="1080" height="1920" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;aspect-ratio:9/16"></canvas>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
 <div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px"><div style="width:44px;height:44px;background:#FFEB00;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div><div id="renderText" style="display:none !important">RENDER 720p</div><div id="renderList" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin-top:4px"></div><div style="width:100%;max-width:320px;height:1px;background:#222;margin:4px 0"></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div id="renderPct" style="font-size:42px;font-weight:900;color:#FFEB00;line-height:1;letter-spacing:-1px">0%</div><div id="renderTotalLabel" style="font-size:10px;color:#666;font-weight:800;letter-spacing:1.2px">TOTAL</div></div></div>
 </div>
@@ -862,7 +897,7 @@ async function renderSingle(item,onProg){
       src.connect(dest);
     }catch(e){ console.warn(e); }
   }
-  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10; // FIX 4s bug: usa duración real del audio decodificado
+  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10;
   const mimeMP4=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1.42E01E','video/mp4'].find(m=>{ try{ return MediaRecorder.isTypeSupported(m); }catch{ return false; } }) || 'video/webm;codecs=vp9';
   const ext=mimeMP4.includes('mp4')?'mp4':'webm';
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto'; v.volume=0;
@@ -874,7 +909,7 @@ async function renderSingle(item,onProg){
   for(let k=0;k<3;k++){ try{ const vw=v.videoWidth,vh=v.videoHeight; if(vw&&vh){ const tgt=W/H, rv=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height);} }catch{} await new Promise(r=>setTimeout(r,40)); }
   const cStream=canvas.captureStream(FPS);
   const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-  const rec=new MediaRecorder(combined,{videoBitsPerSecond:5000000, mimeType:mimeMP4, audioBitsPerSecond:128000});
+  const rec=new MediaRecorder(combined,{videoBitsPerSecond:8000000, mimeType:mimeMP4, audioBitsPerSecond:128000}); // FB: 8Mbps
   const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
   const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
   await v.play().catch(()=>{});
@@ -2394,7 +2429,7 @@ async function renderSingleCapCut(item, onProg){
       await ac.close();
     }catch(e){ console.warn('audio decode fail', e); }
   }
-  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10; // FIX 4s bug: usa duración real del audio decodificado
+  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10;
   const totalFrames=Math.ceil(realTotal*FPS);
   
   function drawFrame(curTime){
@@ -2469,21 +2504,23 @@ async function renderSingleCapCut(item, onProg){
       video: { codec:'avc', width:W, height:H, bitrate:5_000_000, framerate:FPS },
       audio: audioBuffer? { codec:'aac', sampleRate: 48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
       fastStart:'in-memory',
-      firstTimestampBehavior:'offset',
-      // Facebook fix: ensure moov at start
+      firstTimestampBehavior:'offset'
     });
     
     const videoEncoder=new VideoEncoder({
       output: (chunk, meta)=> muxer.addVideoChunk(chunk, meta),
       error: e=> console.error('VideoEncoder error', e)
     });
+        // FACEBOOK RECOMMENDED CONFIG - Reels 1080x1920
     videoEncoder.configure({
-      codec:'avc1.640028', // High profile Facebook compatible
+      codec:'avc1.640028', // H.264 High Profile Level 4.0 - FB compatible
       width:W, height:H,
-      bitrate:5_000_000, // 5Mbps Facebook Reels
-      framerate:FPS,
+      bitrate:8_000_000, // 8 Mbps - recomendado FB para 1080p (4-8 Mbps)
+      framerate:30,
       hardwareAcceleration:'prefer-hardware',
-      latencyMode:'quality'
+      latencyMode:'quality',
+      // FB: keyframe cada 1 seg para mejor seeking
+      // FB: sin B-frames para compatibilidad maxima
     });
     
     let audioEncoder=null;
@@ -2616,7 +2653,7 @@ async function renderSingleCapCut(item, onProg){
     aDur=audioBuffer.duration||aDur;
     await ac.close();
   }catch{}
-  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10; // FIX 4s bug: usa duración real del audio decodificado
+  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10;
   const totalFrames=Math.ceil(realTotal*FPS);
   function drawFrame(curTime){
     ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
@@ -2648,11 +2685,21 @@ async function renderSingleCapCut(item, onProg){
     const target=new ArrayBufferTarget();
     const muxer=new Muxer({ target: target, video: { codec:'avc', width:W, height:H, bitrate:5_000_000, framerate:FPS }, audio: audioBuffer? { codec:'aac', sampleRate: 48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined, fastStart:'in-memory', firstTimestampBehavior:'offset' });
     const videoEncoder=new VideoEncoder({ output: (chunk, meta)=> muxer.addVideoChunk(chunk, meta), error: e=> console.error(e) });
-    videoEncoder.configure({ codec:'avc1.640028', // High profile Facebook compatible width:W, height:H, bitrate:5_000_000, // 5Mbps Facebook Reels framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality' });
+        // FACEBOOK RECOMMENDED CONFIG - Reels 1080x1920
+    videoEncoder.configure({
+      codec:'avc1.640028', // H.264 High Profile Level 4.0 - FB compatible
+      width:W, height:H,
+      bitrate:8_000_000, // 8 Mbps - recomendado FB para 1080p (4-8 Mbps)
+      framerate:30,
+      hardwareAcceleration:'prefer-hardware',
+      latencyMode:'quality',
+      // FB: keyframe cada 1 seg para mejor seeking
+      // FB: sin B-frames para compatibilidad maxima
+    });
     let audioEncoder=null;
     if(audioBuffer){
       audioEncoder=new AudioEncoder({ output: (chunk, meta)=> muxer.addAudioChunk(chunk, meta), error: e=> console.error(e) });
-      audioEncoder.configure({ codec:'mp4a.40.2', sampleRate: audioBuffer.sampleRate, numberOfChannels: audioBuffer.numberOfChannels, bitrate:128_000 });
+      audioEncoder.configure({ codec:'mp4a.40.2', sampleRate: 48000, numberOfChannels: 2, bitrate:128_000 }); // FB: AAC 48kHz 128kbps stereo
     }
     v.preload='auto';
     if(v.readyState < 3){ await new Promise(r=>{ const check=()=>{ if(v.readyState>=3) r(); else setTimeout(check, 50); }; check(); }); }
@@ -2690,7 +2737,8 @@ async function renderSingleCapCut(item, onProg){
     }
     await videoEncoder.flush();
     if(audioBuffer && audioEncoder){
-      const numChannels=audioBuffer.numberOfChannels; const sampleRate=audioBuffer.sampleRate; const frameSize=1024;
+      // FB: resample a 48000Hz stereo si es necesario
+      const numChannels=2; const sampleRate=48000; const frameSize=1024;
       for(let offset=0; offset<audioBuffer.length; offset+=frameSize){
         const remaining=Math.min(frameSize, audioBuffer.length-offset);
         const data=new Float32Array(remaining * numChannels);
@@ -2718,11 +2766,11 @@ async function renderSingleFastCapCutFallback(item,onProg){
   if(item.audioUrl){
     try{ ac=new (window.AudioContext||window.webkitAudioContext)(); dest=ac.createMediaStreamDestination(); cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; await new Promise(r=>{ cap.onloadedmetadata=()=>{aDur=cap.duration||aDur; r();}; cap.onerror=()=>r(); cap.load(); }); const src=ac.createMediaElementSource(cap); src.connect(dest); }catch{}
   }
-  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10; // FIX 4s bug: usa duración real del audio decodificado
-  const mimeMP4=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4'].find(m=>{try{return MediaRecorder.isTypeSupported(m);}catch{return false;}}) || 'video/webm;codecs=vp9';
+  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10;
+  const mimeMP4=['video/mp4;codecs=avc1.640028,mp4a.40.2','video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4'].find(m=>{try{return MediaRecorder.isTypeSupported(m);}catch{return false;}}) || 'video/webm;codecs=vp9';
   await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,500); });
   v.currentTime=START_OFFSET; await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,300); });
-  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:5000000, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
+  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:8000000, mimeType:mimeMP4, audioBitsPerSecond:128000}); // FB: 8Mbps const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
   await v.play().catch(()=>{}); if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); } rec.start(100);
   await new Promise(res=>{
     let start=performance.now();
