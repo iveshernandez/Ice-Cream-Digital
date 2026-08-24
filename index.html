@@ -23,15 +23,17 @@ header{padding:22px 20px;display:flex;justify-content:space-between;align-items:
 <style>
 /* FIX 1080x1920 PREVIEW FINAL */
 #previewWrap {
-  aspect-ratio: 9/16 !important;
+  width: 100% !important;
   max-width: 380px !important;
+  aspect-ratio: 9/16 !important;
+  min-height: 676px !important;
+  height: auto !important;
   margin: 0 auto !important;
-  background: #000;
-  position: relative;
-  overflow: hidden;
-  border-radius: 16px;
-  width: 100%;
-  height: auto;
+  background: #000 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  display: block !important;
 }
 #previewCanvas {
   width: 100% !important;
@@ -44,8 +46,19 @@ header{padding:22px 20px;display:flex;justify-content:space-between;align-items:
   object-fit: cover !important;
   aspect-ratio: 9/16 !important;
 }
-.layout {
-  grid-template-columns: 1fr 400px !important;
+.layout { grid-template-columns: 1fr 420px !important; }
+#previewWrap {
+  width: 100% !important;
+  max-width: 380px !important;
+  aspect-ratio: 9/16 !important;
+  min-height: 676px !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  background: #000 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  display: block !important;
 }
 .glass[style*="position:sticky"] .glass, .glass[style*="position:sticky"] > div {
   display: flex;
@@ -292,6 +305,29 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
+
+<style>
+/* PREVIEW 1080x1920 CENTRADO PERFECTO */
+#previewWrap {
+  width: 100% !important;
+  max-width: 380px !important;
+  aspect-ratio: 9/16 !important;
+  min-height: 676px !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  background: #000 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  display: block !important;
+}
+#previewCanvas {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+</style>
 </head>
 <body>
 
@@ -411,10 +447,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <div class="glass" style="padding:8px;height:fit-content;position:sticky;top:60px">
 <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW 720p 720x900 • SUBS VISIBLES</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
 <div style="position:relative;width:100%;aspect-ratio:4/5;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
+<div id="previewWrap" style="width:100%;max-width:380px;aspect-ratio:9/16;margin:0 auto;background:#000;position:relative;overflow:hidden;border-radius:16px;display:block">
 <video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
 <audio id="previewAudio" preload="auto" style="display:none"></audio>
-<div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 1080x1920 aquí</div></div>
-<canvas id="previewCanvas" width="1080" height="1920" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;aspect-ratio:9/16"></canvas>
+<div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">1080x1920 - Tu video aquí</div></div>
+<canvas id="previewCanvas" width="1080" height="1920" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none"></canvas>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
 <div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px"><div style="width:44px;height:44px;background:#FFEB00;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div><div id="renderText" style="display:none !important">RENDER 720p</div><div id="renderList" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin-top:4px"></div><div style="width:100%;max-width:320px;height:1px;background:#222;margin:4px 0"></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div id="renderPct" style="font-size:42px;font-weight:900;color:#FFEB00;line-height:1;letter-spacing:-1px">0%</div><div id="renderTotalLabel" style="font-size:10px;color:#666;font-weight:800;letter-spacing:1.2px">TOTAL</div></div></div>
 </div>
@@ -640,7 +677,7 @@ function updSubs(){
   ctx.clearRect(0,0,720,900);
   
   // === ESTILO REFERENCIA: AMARILLO ARRIBA / BLANCO ABAJO AJUSTADO AL ANCHO ===
-  const W=1080, H=1920; // FACEBOOK REELS 9:16
+  const W=1080, H=1920; // FB 1080x1920 9:16 Rec.709
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
   
   // TITULO
@@ -649,11 +686,11 @@ function updSubs(){
     if(t){
       let lines=splitWords(t,22).slice(0,3);
       lines.forEach((line,i)=>{
-        const y=42+i*42;
-        ctx.font=`900 28px Anton`;
+        const y=90+i*58;
+        ctx.font=`900 52px Anton`; // FB 1080x1920 centrado
         const textW=ctx.measureText(line).width;
         const bgW=Math.min(textW+32, W*0.92);
-        const bgH=34;
+        const bgH=52;
         const cx=360;
         // fondo negro ajustado
         ctx.fillStyle='rgba(0,0,0,0.92)';
@@ -690,11 +727,11 @@ function updSubs(){
       }
       lines=lines.slice(0,3);
       lines.forEach((line,j)=>{
-        const y=640+j*40;
-        ctx.font=`800 22px "Plus Jakarta Sans"`;
+        const y=1380+j*58;
+        ctx.font=`800 40px "Plus Jakarta Sans"`;
         const textW=ctx.measureText(line).width;
         const bgW=Math.min(textW+36, W*0.90);
-        const bgH=32;
+        const bgH=48;
         const cx=360;
         ctx.fillStyle='rgba(0,0,0,0.85)';
         ctx.beginPath();
@@ -2409,235 +2446,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 async function renderSingleCapCut(item, onProg){
   const FPS=30;
   const START_OFFSET=0.25;
-  const W=1080, H=1920; // FACEBOOK REELS 9:16
-  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
-  await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
-  const vDur=v.duration||item.videoDur||10;
-  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): {rate:1,useLoop:false, finalDur:item.audioDur||vDur};
-  let aDur=item.audioDur||0;
-  let audioBuffer=null;
-  let ac=null;
-  if(item.audioUrl){
-    try{
-      ac=new (window.AudioContext||window.webkitAudioContext)();
-      const resp=await fetch(item.audioUrl); const ab=await resp.arrayBuffer();
-      audioBuffer=await ac.decodeAudioData(ab);
-      aDur=audioBuffer.duration||aDur;
-      await ac.close();
-    }catch(e){ console.warn('audio decode fail', e); }
-  }
-  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10;
-  const totalFrames=Math.ceil(realTotal*FPS);
-  
-  function drawFrame(curTime){
-    ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-    if(v.videoWidth){ 
-      const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; 
-      let sx=0,sy=0,sw=vw,sh=vh; 
-      if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
-      try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} 
-    }
-    try{
-      const titleText=(item.title||'').trim().toUpperCase();
-      if(titleText){
-        const titleLines=typeof splitWords==='function'?splitWords(titleText,28).slice(0,2):[titleText];
-        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
-        titleLines.forEach((l,i)=>{
-          const y=45+i*48;
-          ctx.font=`900 28px Anton`;
-          const fw=ctx.measureText(l).width;
-          const rw=Math.min(fw+32, W*0.92);
-          const rh=34;
-          const cx=W/2;
-          ctx.fillStyle='rgba(0,0,0,0.92)';
-          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
-          else ctx.fillRect(cx-rw/2, y-rh/2, rw, rh);
-          ctx.lineWidth=6; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00';
-          ctx.strokeText(l,cx,y); ctx.fillText(l,cx,y);
-        });
-      }
-    }catch(e){}
-    try{
-      const scriptText=(item.script||'').trim();
-      const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-      let subText='';
-      if(subs.length){
-        const si=Math.min(Math.floor((curTime/(aDur||realTotal))*subs.length), subs.length-1);
-        subText=subs[si]||'';
-      }
-      if(subText){
-        let lines=typeof splitWords==='function'?splitWords(subText.toUpperCase(),34).slice(0,3):[subText.toUpperCase()];
-        if(lines.length===1){ const w=lines[0].split(' '); const p=Math.ceil(w.length/3); lines=[w.slice(0,p).join(' '), w.slice(p,p*2).join(' '), w.slice(p*2).join(' ')].filter(Boolean); }
-        else if(lines.length===2){ const w=lines[1].split(' '); const p=Math.ceil(w.length/2); lines=[lines[0], w.slice(0,p).join(' '), w.slice(p).join(' ')].filter(Boolean); }
-        lines=lines.slice(0,3);
-        lines.forEach((ln,j)=>{
-          const y=620+j*40;
-          ctx.font='800 22px "Plus Jakarta Sans"';
-          const m=ctx.measureText(ln);
-          const bw=Math.min(m.width+36, W*0.90);
-          const bh=32;
-          const cx=W/2;
-          ctx.fillStyle='rgba(0,0,0,0.85)';
-          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, 10); ctx.fill(); }
-          else ctx.fillRect(cx-bw/2, y-bh/2, bw, bh);
-          ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFF';
-          ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.strokeText(ln,cx,y); ctx.fillText(ln,cx,y);
-        });
-      }
-    }catch(e){}
-  }
-  
-  if(typeof VideoEncoder==='undefined' || typeof Mp4Muxer==='undefined'){
-    console.warn('WebCodecs no soportado, fallback');
-    return await window.renderSingleFastCapCutFallback(item, onProg);
-  }
-  
-  try{
-    const { Muxer, ArrayBufferTarget } = Mp4Muxer;
-    const target=new ArrayBufferTarget();
-    const muxer=new Muxer({
-      target: target,
-      video: { codec:'avc', width:W, height:H, bitrate:5_000_000, framerate:FPS },
-      audio: audioBuffer? { codec:'aac', sampleRate: 48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
-      fastStart:'in-memory',
-      firstTimestampBehavior:'offset'
-    });
-    
-    const videoEncoder=new VideoEncoder({
-      output: (chunk, meta)=> muxer.addVideoChunk(chunk, meta),
-      error: e=> console.error('VideoEncoder error', e)
-    });
-        // FACEBOOK RECOMMENDED CONFIG - Reels 1080x1920
-    videoEncoder.configure({
-      codec:'avc1.640028', // H.264 High Profile Level 4.0 - FB compatible
-      width:W, height:H,
-      bitrate:8_000_000, // 8 Mbps - recomendado FB para 1080p (4-8 Mbps)
-      framerate:30,
-      hardwareAcceleration:'prefer-hardware',
-      latencyMode:'quality',
-      // FB: keyframe cada 1 seg para mejor seeking
-      // FB: sin B-frames para compatibilidad maxima
-    });
-    
-    let audioEncoder=null;
-    if(audioBuffer){
-      audioEncoder=new AudioEncoder({
-        output: (chunk, meta)=> muxer.addAudioChunk(chunk, meta),
-        error: e=> console.error('AudioEncoder error', e)
-      });
-      audioEncoder.configure({
-        codec:'mp4a.40.2',
-        sampleRate: audioBuffer.sampleRate,
-        numberOfChannels: audioBuffer.numberOfChannels,
-        bitrate:128_000
-      });
-    }
-    
-    v.preload='auto';
-    if(v.readyState < 3){
-      await new Promise(r=>{
-        const check=()=>{ if(v.readyState>=3) r(); else setTimeout(check, 50); };
-        check();
-      });
-    }
-    v.currentTime=START_OFFSET;
-    await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,150); });
-    let lastValidFrame=null;
-    try{ lastValidFrame = ctx.getImageData(0,0,W,H); }catch{}
-    
-    await window.__ensureFontsReady();
-    
-    let accumulatedVideoTime = 0;
-    for(let i=0;i<totalFrames;i++){
-      const curTime=i/FPS;
-      const rate = info.rate || 1;
-      if(i>0) accumulatedVideoTime += (1/FPS) * rate;
-      let targetVideoTime = START_OFFSET + accumulatedVideoTime;
-      
-      if(info.useLoop && v.duration){
-        const loopDur = v.duration - START_OFFSET - 0.30;
-        if(loopDur>0){
-          targetVideoTime = START_OFFSET + (accumulatedVideoTime % loopDur);
-        }
-      } else if(v.duration){
-        targetVideoTime=Math.min(targetVideoTime, v.duration-0.10);
-      }
-      
-      if(Math.abs(v.currentTime - targetVideoTime) > 0.06){
-        await new Promise(r=>{
-          const onSeek=()=>{ v.removeEventListener('seeked',onSeek); r(); };
-          v.addEventListener('seeked',onSeek);
-          try{
-            if('fastSeek' in v) v.fastSeek(targetVideoTime);
-            else v.currentTime=targetVideoTime;
-          }catch{ v.currentTime=targetVideoTime; }
-          setTimeout(r, 18);
-        });
-      }
-      
-      if(v.readyState >= 2 && v.videoWidth){
-        drawFrame(curTime);
-        try{ lastValidFrame = ctx.getImageData(0,0,W,H); }catch{}
-      } else if(lastValidFrame){
-        try{ ctx.putImageData(lastValidFrame,0,0); }catch{ drawFrame(curTime); }
-      } else {
-        drawFrame(curTime);
-      }
-      
-      const frame=new VideoFrame(canvas, { timestamp: Math.round(curTime*1_000_000), duration: Math.round(1_000_000/FPS) });
-      const keyFrame = i % FPS === 0;
-      videoEncoder.encode(frame, {keyFrame});
-      frame.close();
-      
-      onProg?.((i/totalFrames)*90);
-      if(i%12===0) await new Promise(r=>setTimeout(r,0));
-    }
-    
-    await videoEncoder.flush();
-    
-    if(audioBuffer && audioEncoder){
-      const numChannels=audioBuffer.numberOfChannels;
-      const sampleRate=audioBuffer.sampleRate;
-      const frameSize=1024;
-      for(let offset=0; offset<audioBuffer.length; offset+=frameSize){
-        const remaining=Math.min(frameSize, audioBuffer.length-offset);
-        const data=new Float32Array(remaining * numChannels);
-        for(let ch=0; ch<numChannels; ch++){
-          const channelData=audioBuffer.getChannelData(ch);
-          for(let j=0;j<remaining;j++) data[j*numChannels+ch]=channelData[offset+j];
-        }
-        const audioData=new AudioData({
-          format:'f32',
-          sampleRate: sampleRate,
-          numberOfFrames: remaining,
-          numberOfChannels: numChannels,
-          timestamp: Math.round((offset/sampleRate)*1_000_000),
-          data: data
-        });
-        audioEncoder.encode(audioData);
-        audioData.close();
-      }
-      await audioEncoder.flush();
-    }
-    
-    muxer.finalize();
-    const buffer=target.buffer;
-    const blob=new Blob([buffer], {type:'video/mp4'});
-    return blob;
-  }catch(e){
-    console.error('renderSingleCapCut error', e);
-    return await window.renderSingleFastCapCutFallback(item, onProg);
-  }
-}
-
-async function renderSingleCapCut(item, onProg){
-  const FPS=30;
-  const START_OFFSET=0.25;
-  const W=1080, H=1920; // FACEBOOK REELS 9:16
+  const W=1080, H=1920; // FB 1080x1920 9:16 Rec.709 Full HD vertical
   const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
@@ -2655,54 +2464,117 @@ async function renderSingleCapCut(item, onProg){
   }catch{}
   const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10;
   const totalFrames=Math.ceil(realTotal*FPS);
+
   function drawFrame(curTime){
+    // Fondo negro Rec.709
     ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-    if(v.videoWidth){ const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} }
+    // Video cover 9:16 sin deformar, centrado
+    if(v.videoWidth){
+      const vw=v.videoWidth, vh=v.videoHeight;
+      const tgt=W/H, r=vw/vh;
+      let sx=0,sy=0,sw=vw,sh=vh;
+      if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
+      try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{}
+    }
+    // Titulo centrado top para 1080x1920
     try{
-      const t=(item.title||'').trim().toUpperCase();
-      if(t){
-        const lines=typeof splitWords==='function'?splitWords(t,28).slice(0,2):[t];
+      const titleText=(item.title||'').trim().toUpperCase();
+      if(titleText){
+        const titleLines=typeof splitWords==='function'?splitWords(titleText,22).slice(0,2):[titleText];
         ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
-        lines.forEach((l,i)=>{ const y=45+i*48; ctx.font='900 28px Anton'; const fw=ctx.measureText(l).width; const rw=Math.min(fw+32, W*0.92); const rh=34; const cx=W/2; ctx.fillStyle='rgba(0,0,0,0.92)'; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); } else ctx.fillRect(cx-rw/2, y-rh/2, rw, rh); ctx.lineWidth=6; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(l,cx,y); ctx.fillText(l,cx,y); });
+        titleLines.forEach((l,i)=>{
+          const y=120+i*72; // centrado top 1080x1920
+          ctx.font='900 54px Anton';
+          const fw=ctx.measureText(l).width;
+          const rw=Math.min(fw+48, W*0.90);
+          const rh=62;
+          const cx=W/2;
+          ctx.fillStyle='rgba(0,0,0,0.92)';
+          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, 12); ctx.fill(); }
+          else ctx.fillRect(cx-rw/2, y-rh/2, rw, rh);
+          ctx.lineWidth=8; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00';
+          ctx.strokeText(l,cx,y); ctx.fillText(l,cx,y);
+        });
       }
-    }catch{}
+    }catch(e){}
+    // Subtitulo centrado bottom para 1080x1920
     try{
       const scriptText=(item.script||'').trim();
       const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-      let subText=''; if(subs.length){ const si=Math.min(Math.floor((curTime/(aDur||realTotal))*subs.length), subs.length-1); subText=subs[si]||''; }
+      let subText='';
+      if(subs.length){
+        const si=Math.min(Math.floor((curTime/(aDur||realTotal))*subs.length), subs.length-1);
+        subText=subs[si]||'';
+      }
       if(subText){
-        let lines=typeof splitWords==='function'?splitWords(subText.toUpperCase(),34).slice(0,3):[subText.toUpperCase()];
+        let lines=typeof splitWords==='function'?splitWords(subText.toUpperCase(),28).slice(0,3):[subText.toUpperCase()];
         if(lines.length===1){ const w=lines[0].split(' '); const p=Math.ceil(w.length/3); lines=[w.slice(0,p).join(' '), w.slice(p,p*2).join(' '), w.slice(p*2).join(' ')].filter(Boolean); }
         else if(lines.length===2){ const w=lines[1].split(' '); const p=Math.ceil(w.length/2); lines=[lines[0], w.slice(0,p).join(' '), w.slice(p).join(' ')].filter(Boolean); }
         lines=lines.slice(0,3);
-        lines.forEach((ln,j)=>{ const y=620+j*40; ctx.font='800 22px \"Plus Jakarta Sans\"'; const m=ctx.measureText(ln); const bw=Math.min(m.width+36, W*0.90); const bh=32; const cx=W/2; ctx.fillStyle='rgba(0,0,0,0.85)'; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, 10); ctx.fill(); } else ctx.fillRect(cx-bw/2, y-bh/2, bw, bh); ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFF'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.strokeText(ln,cx,y); ctx.fillText(ln,cx,y); });
+        lines.forEach((ln,j)=>{
+          const y=1420+j*68; // centrado bottom 1080x1920
+          ctx.font='800 42px \"Plus Jakarta Sans\"';
+          const m=ctx.measureText(ln);
+          const bw=Math.min(m.width+48, W*0.88);
+          const bh=54;
+          const cx=W/2;
+          ctx.fillStyle='rgba(0,0,0,0.85)';
+          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, 12); ctx.fill(); }
+          else ctx.fillRect(cx-bw/2, y-bh/2, bw, bh);
+          ctx.lineWidth=6; ctx.strokeStyle='#000'; ctx.fillStyle='#FFF';
+          ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.strokeText(ln,cx,y); ctx.fillText(ln,cx,y);
+        });
       }
-    }catch{}
+    }catch(e){}
   }
+
   if(typeof VideoEncoder==='undefined' || typeof Mp4Muxer==='undefined'){ return await window.renderSingleFastCapCutFallback(item, onProg); }
+
   try{
     const { Muxer, ArrayBufferTarget } = Mp4Muxer;
     const target=new ArrayBufferTarget();
-    const muxer=new Muxer({ target: target, video: { codec:'avc', width:W, height:H, bitrate:5_000_000, framerate:FPS }, audio: audioBuffer? { codec:'aac', sampleRate: 48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined, fastStart:'in-memory', firstTimestampBehavior:'offset' });
-    const videoEncoder=new VideoEncoder({ output: (chunk, meta)=> muxer.addVideoChunk(chunk, meta), error: e=> console.error(e) });
-        // FACEBOOK RECOMMENDED CONFIG - Reels 1080x1920
+    const muxer=new Muxer({
+      target: target,
+      video: { codec:'avc', width:W, height:H },
+      audio: audioBuffer? { codec:'aac', sampleRate: 48000, numberOfChannels: 2 } : undefined,
+      fastStart:'in-memory',
+      firstTimestampBehavior:'offset'
+    });
+    const fpsForExport = 30;
+    const bitrateForExport = fpsForExport >= 60 ? 12000000 : 8000000;
+    const videoEncoder=new VideoEncoder({
+      output: (chunk, meta)=> muxer.addVideoChunk(chunk, meta),
+      error: e=> console.error('VideoEncoder error', e)
+    });
     videoEncoder.configure({
-      codec:'avc1.640028', // H.264 High Profile Level 4.0 - FB compatible
+      codec:'avc1.640028',
       width:W, height:H,
-      bitrate:8_000_000, // 8 Mbps - recomendado FB para 1080p (4-8 Mbps)
-      framerate:30,
+      bitrate:bitrateForExport,
+      framerate:fpsForExport,
       hardwareAcceleration:'prefer-hardware',
       latencyMode:'quality',
-      // FB: keyframe cada 1 seg para mejor seeking
-      // FB: sin B-frames para compatibilidad maxima
     });
     let audioEncoder=null;
     if(audioBuffer){
-      audioEncoder=new AudioEncoder({ output: (chunk, meta)=> muxer.addAudioChunk(chunk, meta), error: e=> console.error(e) });
-      audioEncoder.configure({ codec:'mp4a.40.2', sampleRate: 48000, numberOfChannels: 2, bitrate:128_000 }); // FB: AAC 48kHz 128kbps stereo
+      audioEncoder=new AudioEncoder({
+        output: (chunk, meta)=> muxer.addAudioChunk(chunk, meta),
+        error: e=> console.error('AudioEncoder error', e)
+      });
+      audioEncoder.configure({
+        codec:'mp4a.40.2',
+        sampleRate: 48000,
+        numberOfChannels: 2,
+        bitrate:128000
+      });
     }
     v.preload='auto';
-    if(v.readyState < 3){ await new Promise(r=>{ const check=()=>{ if(v.readyState>=3) r(); else setTimeout(check, 50); }; check(); }); }
+    if(v.readyState < 3){
+      await new Promise(r=>{
+        const check=()=>{ if(v.readyState>=3) r(); else setTimeout(check, 50); };
+        check();
+      });
+    }
     v.currentTime=START_OFFSET;
     await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,150); });
     let lastValidFrame=null;
@@ -2737,14 +2609,32 @@ async function renderSingleCapCut(item, onProg){
     }
     await videoEncoder.flush();
     if(audioBuffer && audioEncoder){
-      // FB: resample a 48000Hz stereo si es necesario
       const numChannels=2; const sampleRate=48000; const frameSize=1024;
-      for(let offset=0; offset<audioBuffer.length; offset+=frameSize){
-        const remaining=Math.min(frameSize, audioBuffer.length-offset);
+      // Resample si es necesario (simple: usa canal 0/1)
+      const srcChannels = audioBuffer.numberOfChannels;
+      const srcRate = audioBuffer.sampleRate;
+      const ratio = srcRate / sampleRate;
+      for(let offset=0; offset<audioBuffer.length; offset+=Math.round(frameSize*ratio)){
+        const remaining=Math.min(frameSize, Math.round((audioBuffer.length-offset)/ratio));
+        if(remaining<=0) break;
         const data=new Float32Array(remaining * numChannels);
-        for(let ch=0; ch<numChannels; ch++){ const channelData=audioBuffer.getChannelData(ch); for(let j=0;j<remaining;j++) data[j*numChannels+ch]=channelData[offset+j]; }
-        const audioData=new AudioData({ format:'f32', sampleRate: sampleRate, numberOfFrames: remaining, numberOfChannels: numChannels, timestamp: Math.round((offset/sampleRate)*1_000_000), data: data });
-        audioEncoder.encode(audioData); audioData.close();
+        for(let j=0;j<remaining;j++){
+          const srcIdx = Math.min(Math.floor(offset + j*ratio), audioBuffer.length-1);
+          for(let ch=0; ch<numChannels; ch++){
+            const srcCh = Math.min(ch, srcChannels-1);
+            data[j*numChannels+ch]=audioBuffer.getChannelData(srcCh)[srcIdx]||0;
+          }
+        }
+        const audioData=new AudioData({
+          format:'f32',
+          sampleRate: sampleRate,
+          numberOfFrames: remaining,
+          numberOfChannels: numChannels,
+          timestamp: Math.round((offset/srcRate)*1_000_000),
+          data: data
+        });
+        audioEncoder.encode(audioData);
+        audioData.close();
       }
       await audioEncoder.flush();
     }
@@ -2753,6 +2643,8 @@ async function renderSingleCapCut(item, onProg){
     return new Blob([buffer], {type:'video/mp4'});
   }catch(e){ console.error(e); return await window.renderSingleFastCapCutFallback(item, onProg); }
 }
+
+
 
 async function renderSingleFastCapCutFallback(item,onProg){
   const FPS=30; const START_OFFSET=0.25;
@@ -2800,11 +2692,11 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
     if(t){
       let lines=(typeof splitWords==='function')?splitWords(t,22).slice(0,3):[t];
       lines.forEach((line,i)=>{
-        const y=42+i*42;
-        ctx.font=`900 28px Anton`;
+        const y=90+i*58;
+        ctx.font=`900 52px Anton`; // FB 1080x1920 centrado
         const textW=ctx.measureText(line).width;
         const bgW=Math.min(textW+32, W*0.92);
-        const bgH=34;
+        const bgH=52;
         const cx=W/2;
         ctx.fillStyle='rgba(0,0,0,0.92)';
         ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(cx-bgW/2, y-bgH/2, bgW, bgH, 8); else ctx.rect(cx-bgW/2, y-bgH/2, bgW, bgH); ctx.fill();
@@ -2824,11 +2716,11 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
       } else { lines=[sub]; }
       lines=lines.slice(0,3);
       lines.forEach((line,j)=>{
-        const y=640+j*40;
-        ctx.font=`800 22px \"Plus Jakarta Sans\"`;
+        const y=1380+j*58;
+        ctx.font=`800 40px \"Plus Jakarta Sans\"`;
         const textW=ctx.measureText(line).width;
         const bgW=Math.min(textW+36, W*0.90);
-        const bgH=32;
+        const bgH=48;
         const cx=W/2;
         ctx.fillStyle='rgba(0,0,0,0.85)';
         ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(cx-bgW/2, y-bgH/2, bgW, bgH, 10); else ctx.rect(cx-bgW/2, y-bgH/2, bgW, bgH); ctx.fill();
