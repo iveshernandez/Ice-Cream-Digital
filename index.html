@@ -1,3 +1,4 @@
+<!-- V17 DEFINITIVO 2026-05-13 - 1080x1920 9:16 8/11Mbps H264 High AAC128k - Titulo 2 lineas / Sub 3 lineas ancho - Preview=Export identico - BorrarTodo fix - No autoplay -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -307,7 +308,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <div style="display:flex;gap:8px;align-items:center">
 <span style="font-size:10px;color:#666;background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222">720p • 30fps • 3Mbps • MP4 • FLUIDO</span>
 <label style="background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222;font-size:10px"><input type="checkbox" id="autoDownloadCheck" checked> Auto-descargar</label>
-<button id="btnRender" style="background:#FFEB00;color:#000;border:0;padding:10px 18px;border-radius:10px;font-weight:900;cursor:pointer">⚡ RENDERIZAR TODO</button>
+<button id="btnLimpiarTodo" type="button" style="background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-right:6px;z-index:999999;pointer-events:auto;position:relative;">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender" style="background:#FFEB00;color:#000;border:0;padding:10px 18px;border-radius:10px;font-weight:900;cursor:pointer">⚡ RENDERIZAR TODO</button>
 </div>
 </header>
 
@@ -378,7 +379,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW 720p 720x900 • SUBS VISIBLES</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
 <div style="position:relative;width:100%;aspect-ratio:9/16;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
 <video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
-<audio id="previewAudio" preload="auto" style="display:none"></audio>
+<audio id="previewAudio" muted preload="auto" style="display:none"></audio>
 <div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
 <canvas id="previewCanvas" width="1080" height="1920" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none"></canvas>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
@@ -592,38 +593,13 @@ function updSubs(){
     else { cur = hasAudio && !aEl.paused ? aEl.currentTime : 0; }
   } else { cur = vEl.currentTime||0; }
   const canvas=$("previewCanvas"); if(!canvas) return; const ctx=canvas.getContext('2d');
-  const W=canvas.width||1080, H=canvas.height||1920, CX=W/2; const scale=H/1920;
+  const W=canvas.width||1080, H=canvas.height||1920;
   ctx.clearRect(0,0,W,H);
-  const tl=splitWords((it.title||'').toUpperCase(),26).slice(0,2);
   const subs=chunkSubs(it.script||"");
-  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
-  tl.forEach((l,i)=>{
-    const y=(H*0.11)+i*(68*scale);
-    let fs=62*scale; if(l.length>24) fs=52*scale; if(l.length>32) fs=44*scale;
-    ctx.font=`900 ${fs}px Anton`; const fw=ctx.measureText(l).width;
-    ctx.save(); ctx.fillStyle='#000000'; ctx.shadowColor='rgba(0,0,0,0.55)'; ctx.shadowBlur=16*scale; ctx.shadowOffsetY=6*scale;
-    const rw=Math.min(fw+72*scale, W*0.96), rh=70*scale;
-    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-rw/2, y-rh/2, rw, rh, 16*scale); ctx.fill(); } else { ctx.fillRect(CX-rw/2, y-rh/2, rw, rh); }
-    ctx.restore();
-    ctx.lineWidth=8*scale; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00';
-    ctx.strokeText(l,CX,y); ctx.fillText(l,CX,y);
-  });
-  if(subs.length){
-    let idx=total>0.2?Math.floor((cur/total)*subs.length):0; idx=Math.max(0,Math.min(idx,subs.length-1));
-    const curr=subs[idx]||''; if(curr){
-      const ls=splitWords(curr.toUpperCase(),34).slice(0,3);
-      ls.forEach((ln,j)=>{
-        const y=(H*0.74)+j*(60*scale);
-        let fs=40*scale; if(ln.length>30) fs=34*scale; if(ln.length>40) fs=30*scale;
-        ctx.font=`800 ${fs}px "Plus Jakarta Sans"`; const m=ctx.measureText(ln);
-        const bw=Math.min(m.width+80*scale, W*0.96), bh=62*scale;
-        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.strokeStyle='rgba(255,235,0,0.22)'; ctx.lineWidth=1.2*scale;
-        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-bw/2, y-bh/2, bw, bh, 14*scale); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-bw/2, y-bh/2, bw, bh); }
-        ctx.restore();
-        ctx.font=`800 ${fs}px "Plus Jakarta Sans"`; ctx.lineWidth=6*scale; ctx.strokeStyle='#000'; ctx.fillStyle='#FFFFFF';
-        ctx.strokeText(ln,CX,y); ctx.fillText(ln,CX,y);
-      });
-    }
+  let sub=''; if(subs.length){ let idx=total>0.2?Math.floor((cur/total)*subs.length):0; idx=Math.max(0,Math.min(idx,subs.length-1)); sub=subs[idx]||''; }
+  // PREVIEW USA MISMA FUNCION QUE EXPORT -> 100% identico
+  if(window.__drawOptimizedTitleSubtitle){
+    window.__drawOptimizedTitleSubtitle(ctx, it.title||'', sub, W, H);
   }
   if(total>0) $("progressBar").style.width=Math.min((cur/total)*100,100)+'%';
 }
@@ -692,7 +668,7 @@ async function loadBgFile(file){
   const u=URL.createObjectURL(file);
   defaultBgUrl=u;
   defaultBgName=file.name;
-  bgEl.src=u; bgEl.load(); bgEl.volume=parseFloat($("bgVol").value);
+  bgEl.src=u; bgEl.load(); bgEl.volume=0; bgEl.muted=true; // silenciado por defecto hasta Play
   $("lblBg").classList.add('has'); $("txtBg").textContent="✓ "+file.name.slice(0,22);
   $("bgName").textContent=`🎵 ${file.name} · ${(file.size/1024/1024).toFixed(2)} MB - POR DEFECTO EN TODOS LOS VIDEOS`;
   try{ localStorage.setItem('ice_bg_name', file.name); }catch{}
@@ -792,7 +768,7 @@ function isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas){ try{v&&v.pause
 
 
 async function renderSingle(item,onProg){
-  const FPS=30, W=1080, H=1920;
+  const FPS=30,W=1080,H=1920;
   const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
   const ctx=canvas.getContext('2d',{alpha:false,colorSpace:'srgb'});
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
@@ -910,7 +886,8 @@ window.renderOne=async id=>{
 $("btnRenderSingle").addEventListener('click',()=>renderOne(activeId));
 
 
-setActive(1);renderCola(true);log('V11 MP4 FLUIDO ESTIRADO - primera instancia max estirada 0.25x + seek manual anti-freeze + .mp4');
+console.log('%c V17 PARCHES APLICADOS - 1080x1920 - Preview=Export - 2 arriba 3 abajo ','background:#FFEB00;color:#000;font-size:14px;font-weight:900;padding:6px');
+setActive(1);renderCola(true);log('V17 MP4 FLUIDO ESTIRADO - primera instancia max estirada 0.25x + seek manual anti-freeze + .mp4');
 </script>
 
 <div style="position:fixed;bottom:12px;left:14px;z-index:100;font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-size:11px;color:#aaa;background:rgba(20,20,24,0.85);border:1px solid #222;padding:6px 10px;border-radius:8px;backdrop-filter:blur(4px);pointer-events:none;letter-spacing:0.2px">
@@ -1095,7 +1072,7 @@ async function handleGenerate(){
         }catch(e){ console.warn('predict fail chunk '+i+' intento '+retry, e); }
         await new Promise(r=>setTimeout(r,400));
       }
-      if(!wavBlob || wavBlob.size<500){ console.warn('Chunk '+i+' descartado vacio'); continue; }
+      if(!wavBlob || wavBlob.size<800){ console.warn('Chunk '+i+' descartado vacio size='+ (wavBlob?.size||0)); continue; }
       try{
         const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
         buffers.push(audioBuf);
@@ -1103,7 +1080,12 @@ async function handleGenerate(){
       await new Promise(r=>setTimeout(r, 30));
     }
 
-    if(!buffers.length) throw new Error('No se genero audio - todos los chunks vacios. Revisa que el .onnx se descargo (150MB)');
+    if(!buffers.length) {
+      console.error('Piper buffers vacios - modelo onnx posiblemente no descargado');
+      // Intentar diagnosticar
+      const cacheInfo = await caches?.keys?.() ? await caches.keys() : [];
+      throw new Error('No se genero audio - todos los chunks vacios. Revisa: 1) Que el .onnx de 150MB se descargo completo (mira Network en F12), 2) Que no bloquea AdBlock, 3) Recarga con Ctrl+Shift+R. Cache: '+cacheInfo.join(','));
+    }
 
     let totalLength = 0; for(let b of buffers) totalLength+=b.length;
     let numberOfChannels = buffers[0].numberOfChannels;
@@ -1145,8 +1127,9 @@ async function handleGenerate(){
     
     const aEl=document.getElementById('previewAudio');
     if(window.activeId===slot.id && aEl){
-      aEl.src=url; aEl.load(); aEl.playbackRate=speed; aEl.muted=false;
-      const vEl2=document.getElementById('previewVideo'); if(vEl2){ vEl2.muted=true; vEl2.volume=0; }
+      aEl.src=url; aEl.load(); aEl.playbackRate=speed; aEl.muted=true; aEl.volume=0; // FIX: no autoplay, silenciado
+      // No reproducir automaticamente - usuario debe dar Play manualmente
+      const vEl2=document.getElementById('previewVideo'); if(vEl2){ vEl2.muted=true; vEl2.volume=0; aEl.muted=true; aEl.volume=0; }
     }
     const audioNameEl=document.getElementById('audioName');
     if(audioNameEl){
@@ -1896,62 +1879,6 @@ window.IC_renew = function(username){
 </script>
 
 <script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};</script>
-<style id="hide-rojo">#btnRenderSingle,#statusLabel,#speedLabel{display:none!important}</style>
-<script>
-(function(){
-  window.limpiarTodo=function(){
-    if(!confirm('🧹 ¿Borrar TODO y recargar en cero 100% limpio?\nSe borrara todo y recargara la pagina para segunda tanda sin fallos')) return;
-    const btn=document.getElementById('btnLimpiarTodo');
-    if(btn){ btn.disabled=true; btn.textContent='🧹 LIMPIANDO...'; }
-    try{
-      console.log('[LIMPIAR] Iniciando limpieza total');
-      if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}}); window._lastBlobs=[];
-      if(window.voiceProgressBySlot) window.voiceProgressBySlot={};
-      queue.forEach(q=>{
-        try{ if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{}
-      });
-      queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase=`Video ${q.id}`; q.txtName=''; q.txtContent=''; q.audioBlob=null; });
-      document.querySelectorAll('input[type=file]').forEach(inp=>inp.value='');
-      ['inputTitle','inputScript','inputFileName'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
-      const se=(id,t)=>{const el=document.getElementById(id); if(el) el.innerHTML='<span style=color:#666>'+t+'</span>';};
-      se('txtName','Sin .txt'); se('videoName','Sin video'); se('audioName','Sin audio');
-      const t1=document.getElementById('txtTxt'); if(t1) t1.textContent='Elegir .txt';
-      const t2=document.getElementById('txtVideo'); if(t2) t2.textContent='Elegir video';
-      const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
-      try{ 
-        const st=document.getElementById('kokoroStatus'); if(st){ st.textContent='Limpio - Listo para segunda tanda'; st.style.color='#888'; }
-        const bar=document.getElementById('kokoroProgressBar'); if(bar) bar.style.width='0%';
-        const barW=document.getElementById('kokoroProgress'); if(barW) barW.style.display='none';
-        const btnGen=document.getElementById('btnKokoroGen'); if(btnGen){ btnGen.disabled=false; btnGen.textContent='🔊 GENERAR AUDIO ESPAÑOL'; btnGen.style.background='#FFEB00'; }
-      }catch{}
-      try{ setActive(1); renderCola(true);}catch{}
-      console.log('[LIMPIAR] Recargando en 1.2s para estado 100% limpio');
-      setTimeout(()=>location.reload(),1200);
-    }catch(e){ location.reload(); }
-  };
-  function isLogged(){
-    const ed = document.getElementById('editor') || document.querySelector('.layout');
-    // editor visible means logged
-    return ed && ed.offsetParent!==null;
-  }
-  function ins(){
-    const bExist=document.getElementById('btnLimpiarTodo');
-    if(!isLogged()){ if(bExist) bExist.remove(); return; }
-    if(bExist) return;
-    const br=document.getElementById('btnRender');
-    if(!br) return;
-    const b=document.createElement('button'); b.id='btnLimpiarTodo'; b.innerHTML='🧹 LIMPIAR TODO EN CERO';
-    b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-left:8px;';
-    b.onclick=()=>window.limpiarTodo();
-    br.parentElement.appendChild(b);
-  }
-  setTimeout(ins,1000); setInterval(ins,1000);
-})();
-</script>
-
-
-
-
 <script>
 (function(){
   // BLOQUEAR POPUP VOZ
@@ -2023,7 +1950,7 @@ window.IC_renew = function(username){
 async function renderSingle(item, onProgress){
   const info = window.calcDurInfo ? window.calcDurInfo(item) : {useLoop:false, playbackRate:1, finalDur: item.videoDur || 10};
   const canvas = document.createElement('canvas');
-  canvas.width=720; canvas.height=900;
+  canvas.width=1080; canvas.height=1920;
   const ctx = canvas.getContext('2d', {alpha:false, desynchronized:true});
   const v = document.createElement('video');
   v.src = item.videoUrl; v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
@@ -2258,55 +2185,11 @@ async function renderSingleCapCut(item, onProg){
       if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
       try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} 
     }
-    // TITULO 28 chars x 2 lineas - referencia
+    // V23 PREVIEW=EXPORT IDENTICO
     try{
-      const titleText=(item.title||'').trim().toUpperCase();
-      if(titleText){
-        const titleLines=typeof splitWords==='function'?splitWords(titleText,28).slice(0,2):[titleText];
-        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
-        titleLines.forEach((l,i)=>{
-          const y=45+i*48;
-          ctx.font=`900 28px Anton`;
-          const fw=ctx.measureText(l).width;
-          const rw=Math.min(fw+32, W*0.92);
-          const rh=34;
-          const cx=W/2;
-          ctx.fillStyle='rgba(0,0,0,0.92)';
-          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
-          else ctx.fillRect(cx-rw/2, y-rh/2, rw, rh);
-          ctx.lineWidth=6; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00';
-          ctx.strokeText(l,cx,y); ctx.fillText(l,cx,y);
-        });
-      }
-    }catch(e){}
-    // SUBS 34 chars x 3 lineas
-    try{
-      const scriptText=(item.script||'').trim();
-      const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-      let subText='';
-      if(subs.length){
-        const si=Math.min(Math.floor((curTime/(aDur||realTotal))*subs.length), subs.length-1);
-        subText=subs[si]||'';
-      }
-      if(subText){
-        let lines=typeof splitWords==='function'?splitWords(subText.toUpperCase(),34).slice(0,3):[subText.toUpperCase()];
-        if(lines.length===1){ const w=lines[0].split(' '); const p=Math.ceil(w.length/3); lines=[w.slice(0,p).join(' '), w.slice(p,p*2).join(' '), w.slice(p*2).join(' ')].filter(Boolean); }
-        else if(lines.length===2){ const w=lines[1].split(' '); const p=Math.ceil(w.length/2); lines=[lines[0], w.slice(0,p).join(' '), w.slice(p).join(' ')].filter(Boolean); }
-        lines=lines.slice(0,3);
-        lines.forEach((ln,j)=>{
-          const y=620+j*40;
-          ctx.font='800 22px "Plus Jakarta Sans"';
-          const m=ctx.measureText(ln);
-          const bw=Math.min(m.width+36, W*0.90);
-          const bh=32;
-          const cx=W/2;
-          ctx.fillStyle='rgba(0,0,0,0.85)';
-          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, 10); ctx.fill(); }
-          else ctx.fillRect(cx-bw/2, y-bh/2, bw, bh);
-          ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFF';
-          ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.strokeText(ln,cx,y); ctx.fillText(ln,cx,y);
-        });
+      if(window.__drawOptimizedTitleSubtitle){
+        const subsLocal=typeof chunkSubs==='function'?chunkSubs(item.script||''):[]; let subText=''; if(subsLocal.length){ const idx=Math.min(Math.floor((curTime/(aDur||realTotal))*subsLocal.length), subsLocal.length-1); subText=subsLocal[Math.max(0,idx)]||''; }
+        window.__drawOptimizedTitleSubtitle(ctx, item.title||'', subText, W, H);
       }
     }catch(e){}
   }
@@ -2322,7 +2205,7 @@ async function renderSingleCapCut(item, onProg){
     const muxer=new Muxer({
       target: target,
       video: { codec:'avc', width:W, height:H },
-      audio: audioBuffer? { codec:'aac', sampleRate: audioBuffer.sampleRate, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
+      audio: audioBuffer? { codec:'aac', sampleRate:48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
       fastStart:'in-memory',
       firstTimestampBehavior:'offset'
     });
@@ -2347,7 +2230,7 @@ async function renderSingleCapCut(item, onProg){
       });
       audioEncoder.configure({
         codec:'mp4a.40.2',
-        sampleRate: audioBuffer.sampleRate,
+        sampleRate:48000,
         numberOfChannels: audioBuffer.numberOfChannels,
         bitrate:128_000
       });
@@ -2449,7 +2332,7 @@ async function renderSingleCapCut(item, onProg){
 // Fallback rapido si WebCodecs falla - el anti-freeze anterior
 async function renderSingleFastCapCutFallback(item,onProg){
   const FPS=30; const START_OFFSET=0.25;
-  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
+  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1920;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true;
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
   await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
@@ -2557,7 +2440,6 @@ window.__ACTIVE_TITLE_STYLE = 'viral'; // cambia a 'luxury' o 'tiktok' para prob
 
 window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
   W=W||1080; H=H||1920; const scale=H/1920, CX=W/2;
-  const style=window.__TITLE_STYLES[window.__ACTIVE_TITLE_STYLE]||window.__TITLE_STYLES.viral;
   ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
   try{
     let t=(titleText||'').trim().toUpperCase();
@@ -2568,13 +2450,13 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
         const y=baseY+i*(68*scale);
         let fs=62*scale; if(line.length>24) fs=52*scale; if(line.length>32) fs=44*scale;
         ctx.font=`900 ${fs}px Anton`; const rw=Math.min(ctx.measureText(line).width+72*scale, W*0.96), rh=70*scale;
-        ctx.save(); ctx.fillStyle=style.titleBg; ctx.strokeStyle=style.titleBorder; ctx.lineWidth=1.5*scale; ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=22*scale; ctx.shadowOffsetY=8*scale;
+        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.92)'; ctx.strokeStyle='rgba(255,235,0,0.40)'; ctx.lineWidth=1.5*scale; ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=22*scale; ctx.shadowOffsetY=8*scale;
         if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-rw/2, y-rh/2, rw, rh, 18*scale); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-rw/2, y-rh/2, rw, rh); }
         ctx.restore();
         ctx.lineWidth=10*scale; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
       });
     }
-  }catch(e){}
+  }catch(e){ console.warn('title draw fail',e); }
   try{
     let s=(subText||'').trim().toUpperCase();
     if(s){
@@ -2584,13 +2466,13 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
         const y=baseY+j*(60*scale);
         let fs=40*scale; if(line.length>30) fs=34*scale; if(line.length>40) fs=30*scale;
         ctx.font=`800 ${fs}px "Plus Jakarta Sans"`; const bw=Math.min(ctx.measureText(line).width+80*scale, W*0.96), bh=62*scale;
-        ctx.save(); ctx.fillStyle=style.subBg; ctx.strokeStyle=style.subBorder; ctx.lineWidth=1.5*scale; ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=18*scale; ctx.shadowOffsetY=6*scale;
+        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.strokeStyle='rgba(255,235,0,0.22)'; ctx.lineWidth=1.5*scale; ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=18*scale; ctx.shadowOffsetY=6*scale;
         if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-bw/2, y-bh/2, bw, bh, 18*scale); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-bw/2, y-bh/2, bw, bh); }
         ctx.restore();
         ctx.lineWidth=8*scale; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFFFFF'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
       });
     }
-  }catch(e){}
+  }catch(e){ console.warn('sub draw fail',e); }
   ctx.restore();
 };
 
@@ -2641,4 +2523,64 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.querySelectorAll('.file-btn').forEach(b=> b.style.pointerEvents='auto');
 });
 </script>
-</body></html>
+
+<script>
+// V23 FINAL - PREVIEW=EXPORT + BOTON ROJO SIN LOGOUT
+(function(){
+  // Asegurar __drawOptimized existe
+  if(!window.__drawOptimizedTitleSubtitle){ console.warn('__drawOptimized missing'); }
+  
+  window._doLimpiarReal = function(){
+    try{
+      const btn=document.getElementById('btnLimpiarTodo');
+      if(btn){ btn.textContent='🧹 LIMPIANDO...'; btn.disabled=true; }
+      if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});
+      window._lastBlobs=[];
+      if(window.voiceProgressBySlot) window.voiceProgressBySlot={};
+      if(window.queue){
+        window.queue.forEach(q=>{
+          try{ if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{}
+        });
+        window.queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase=`Video ${q.id}`; q.txtName=''; q.txtContent=''; q.audioBlob=null; });
+      }
+      document.querySelectorAll('input[type=file]').forEach(inp=>inp.value='');
+      ['inputTitle','inputScript','inputFileName'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+      const setText=(id,t)=>{const el=document.getElementById(id); if(el) el.innerHTML='<span style=color:#666>'+t+'</span>';};
+      setText('txtName','Sin .txt'); setText('videoName','Sin video'); setText('audioName','Sin audio');
+      const t1=document.getElementById('txtTxt'); if(t1) t1.textContent='Elegir .txt';
+      const t2=document.getElementById('txtVideo'); if(t2) t2.textContent='Elegir video';
+      const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
+      try{ if(window.setActive) setActive(1); if(window.renderCola) renderCola(true); if(window.renderOverlay) renderOverlay(); }catch{}
+      try{
+        const vEl = document.getElementById('vPreview') || document.getElementById('previewVideo') || document.querySelector('video');
+        if(vEl){ try{vEl.pause();}catch{} }
+        const canvas=document.getElementById('previewCanvas'); if(canvas){ const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); }
+        const bar=document.getElementById('progressBar'); if(bar) bar.style.width='0%';
+      }catch{}
+      setTimeout(()=>{
+        const b=document.getElementById('btnLimpiarTodo');
+        if(b){ b.textContent='✅ LIMPIO'; b.style.background='#22c55e'; b.disabled=false; setTimeout(()=>{ b.textContent='🧹 LIMPIAR TODO EN CERO'; b.style.background='#ff3b3b'; }, 2000); }
+      }, 300);
+    }catch(e){ console.error(e); }
+  };
+  window.limpiarTodo = function(e){
+    if(e){ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+    console.log('[V23] click rojo');
+    window._doLimpiarReal();
+  };
+  function bind(){
+    const b=document.getElementById('btnLimpiarTodo');
+    if(!b) return;
+    b.onclick = window.limpiarTodo;
+    b.style.pointerEvents='auto';
+    b.style.zIndex='999999';
+  }
+  bind();
+  document.addEventListener('DOMContentLoaded', bind);
+  setTimeout(bind, 500);
+  setInterval(bind, 1500);
+  console.log('[V23] listo preview=export + boton rojo sin logout');
+})();
+</script>
+</body>
+</html>
