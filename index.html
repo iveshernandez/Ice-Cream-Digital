@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital sub</title>
+<title>Ice Cream Digital-Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -20,54 +21,6 @@ header{padding:22px 20px;display:flex;justify-content:space-between;align-items:
 @media(max-width:1650px){#cola{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:900px){#cola{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}}
 </style>
-<style>
-/* FIX 1080x1920 PREVIEW FINAL */
-#previewWrap {
-  width: 100% !important;
-  max-width: 380px !important;
-  aspect-ratio: 9/16 !important;
-  min-height: 676px !important;
-  height: auto !important;
-  margin: 0 auto !important;
-  background: #000 !important;
-  position: relative !important;
-  overflow: hidden !important;
-  border-radius: 16px !important;
-  display: block !important;
-}
-#previewCanvas {
-  width: 100% !important;
-  height: 100% !important;
-  aspect-ratio: 9/16 !important;
-  object-fit: cover;
-  display: block;
-}
-#previewVideo {
-  object-fit: cover !important;
-  aspect-ratio: 9/16 !important;
-}
-.layout { grid-template-columns: 1fr 420px !important; }
-#previewWrap {
-  width: 100% !important;
-  max-width: 380px !important;
-  aspect-ratio: 9/16 !important;
-  min-height: 676px !important;
-  height: auto !important;
-  margin: 0 auto !important;
-  background: #000 !important;
-  position: relative !important;
-  overflow: hidden !important;
-  border-radius: 16px !important;
-  display: block !important;
-}
-.glass[style*="position:sticky"] .glass, .glass[style*="position:sticky"] > div {
-  display: flex;
-  justify-content: center;
-}
-</style>
-
-
-
 
 <style>
 /* === MINIMAL PRO - SOLO CENTRADO Y BONITO === */
@@ -149,7 +102,7 @@ body > div[style*="max-width:1750px"]{
 }
 
 /* Preview centrado */
-#previewCanvas, #vPreview{ aspect-ratio:9/16; 
+#previewCanvas, #vPreview{
   border-radius:12px;
 }
 .glass[style*="position:sticky"]{
@@ -305,29 +258,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
-
-<style>
-/* PREVIEW 1080x1920 CENTRADO PERFECTO */
-#previewWrap {
-  width: 100% !important;
-  max-width: 380px !important;
-  aspect-ratio: 9/16 !important;
-  min-height: 676px !important;
-  height: auto !important;
-  margin: 0 auto !important;
-  background: #000 !important;
-  position: relative !important;
-  overflow: hidden !important;
-  border-radius: 16px !important;
-  display: block !important;
-}
-#previewCanvas {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-</style>
 </head>
 <body>
 
@@ -375,7 +305,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <img src="data:image/png;base64,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" style="width:285px;height:auto;object-fit:contain;transform:scale(1.22)">
 </div>
 <div style="display:flex;gap:8px;align-items:center">
-<span style="font-size:10px;color:#666;background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222">720p • 30fps • 3Mbps • MP4 • FLUIDO</span>
+<span style="font-size:10px;color:#666;background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222">1080x1920 • 30/60fps • 8-11Mbps • H.264/AAC • 9:16</span>
 <label style="background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222;font-size:10px"><input type="checkbox" id="autoDownloadCheck" checked> Auto-descargar</label>
 <button id="btnRender" style="background:#FFEB00;color:#000;border:0;padding:10px 18px;border-radius:10px;font-weight:900;cursor:pointer">⚡ RENDERIZAR TODO</button>
 </div>
@@ -445,15 +375,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <div id="debug" style="margin-top:6px;font-size:9px;color:#666;background:#000;padding:6px;border-radius:6px;white-space:pre-wrap;max-height:70px;overflow:auto"></div>
 </div>
 <div class="glass" style="padding:8px;height:fit-content;position:sticky;top:60px">
-<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW 720p 720x900 • SUBS VISIBLES</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
-<div style="position:relative;width:100%;aspect-ratio:4/5;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
-<div id="previewWrap" style="width:100%;max-width:380px;aspect-ratio:9/16;margin:0 auto;background:#000;position:relative;overflow:hidden;border-radius:16px;display:block">
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW 1080x1920 9:16 • SUBS VISIBLES</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
+<div style="position:relative;width:100%;aspect-ratio:9/16;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
 <video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
 <audio id="previewAudio" preload="auto" style="display:none"></audio>
-<div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">1080x1920 - Tu video aquí</div></div>
+<div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 1080x1920 aquí</div></div>
 <canvas id="previewCanvas" width="1080" height="1920" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none"></canvas>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
-<div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px"><div style="width:44px;height:44px;background:#FFEB00;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div><div id="renderText" style="display:none !important">RENDER 720p</div><div id="renderList" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin-top:4px"></div><div style="width:100%;max-width:320px;height:1px;background:#222;margin:4px 0"></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div id="renderPct" style="font-size:42px;font-weight:900;color:#FFEB00;line-height:1;letter-spacing:-1px">0%</div><div id="renderTotalLabel" style="font-size:10px;color:#666;font-weight:800;letter-spacing:1.2px">TOTAL</div></div></div>
+<div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px"><div style="width:44px;height:44px;background:#FFEB00;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div><div id="renderText" style="display:none !important">RENDER 1080x1920</div><div id="renderList" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin-top:4px"></div><div style="width:100%;max-width:320px;height:1px;background:#222;margin:4px 0"></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div id="renderPct" style="font-size:42px;font-weight:900;color:#FFEB00;line-height:1;letter-spacing:-1px">0%</div><div id="renderTotalLabel" style="font-size:10px;color:#666;font-weight:800;letter-spacing:1.2px">TOTAL</div></div></div>
 </div>
 </div>
 </div>
@@ -516,15 +445,20 @@ const getA=()=>queue.find(q=>q.id===activeId);
 function getRateInfo(vDur,aDur){
   if(!vDur||!aDur) return {rate:1,useLoop:false,realTotal:vDur||aDur||0,needed:1,stretchFirst:false};
   const needed=vDur/aDur;
-  const MAX_AUDIO = 360; // 6 min max automatico
-  const a = Math.min(aDur, MAX_AUDIO);
-  const MIN_RATE = 0.5; // OPTIMO 0% TRABADO
-  if(needed >= MIN_RATE){
-    return {rate:needed,useLoop:false,realTotal:a,needed,stretchFirst:true, mode:`Optimo ${needed.toFixed(2)}x fluido`};
+  const MIN_RATE = 0.5; // MAXIMO FLUIDO: 1 / 0.5 = 2x más largo sin trabarse
+  if(needed < 1){
+    if(needed < MIN_RATE){
+      // Video muy corto: estirar al máximo fluido 0.5x y loopear lo que falte
+      const stretchedDur = vDur / MIN_RATE;
+      const useLoop = stretchedDur < aDur;
+      return {rate:MIN_RATE,useLoop,realTotal:aDur,needed,stretchFirst:true, stretchedDur};
+    }else{
+      // Video un poco corto (ej: 3min video, 4min audio = 0.75x): estirar fluido sin loop
+      return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:true};
+    }
   }
-  const stretchedPerLoop = vDur / MIN_RATE;
-  const loopsNeeded = Math.ceil(a / stretchedPerLoop);
-  return {rate:MIN_RATE,useLoop:true,realTotal:a,needed,stretchFirst:true, mode:`Optimo 0.5x fluido x${loopsNeeded} loops`, loops:loopsNeeded, dynamic:false};
+  if(needed>4) return {rate:4,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
+  return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
 }
 function calcDurInfo(q){
   if(!q.videoDur||!q.audioDur) return null;
@@ -655,95 +589,81 @@ function renderOverlay(){
   startLoop();
 }
 function updSubs(){
-  const it=getA(); if(!it) return;
-  let hasAudio=!!(it.audioUrl && it.audioDur);
-  const total=hasAudio?it.audioDur:(vEl.duration||0);
-  let cur=0;
+  const it=getA();
+  if(!it) return;
+  // V27 FIX DEFINITIVO: Subtitulo sincronizado a duracion REAL del audio generado de ESTE slot
+  const hasAudio = !!(it.audioUrl && it.audioDur && it.audioDur>0);
+  const total= hasAudio ? it.audioDur : (it.videoDur||vEl.duration||0);
+  let cur = 0;
   if(hasAudio){
-    if(it.audioUrl && aEl.src.includes('blob')){
-      cur=aEl.currentTime;
-    }else if(vEl.duration && !vEl.paused){
-      const videoProgress=vEl.currentTime/(it.videoDur||vEl.duration||1);
-      cur=videoProgress*it.audioDur;
-    }else{
-      cur=hasAudio && !aEl.paused?aEl.currentTime:0;
+    // Si estamos reproduciendo, usar currentTime del audio
+    // Si no, calcular progreso basado en video pero escalado a audioDur
+    if(!aEl.paused && aEl.src && it.audioUrl && aEl.src.includes('blob')){
+      cur = aEl.currentTime;
+    } else if(vEl.duration && !vEl.paused){
+      // Durante preview sin audio playing, escalar video time a audio time
+      const videoProgress = vEl.currentTime / (it.videoDur||vEl.duration||1);
+      cur = videoProgress * it.audioDur;
+    } else {
+      // Si todo pausado, usar 0 para mostrar primer subtitulo
+      cur = hasAudio && !aEl.paused ? aEl.currentTime : 0;
     }
-  }else{
-    cur=vEl.currentTime||0;
+  } else {
+    cur = vEl.currentTime||0;
   }
   const canvas=$("previewCanvas");
   if(!canvas) return;
   const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,720,900);
-  
-  // === ESTILO REFERENCIA: AMARILLO ARRIBA / BLANCO ABAJO AJUSTADO AL ANCHO ===
-  const W=1080, H=1920; // FB 1080x1920 9:16 Rec.709
+  ctx.clearRect(0,0,1080,1920);
+  const tl=window._previewTL || splitWords((it.title||'').toUpperCase(),28).slice(0,2);
+  const subs=window._previewSubs || chunkSubs(it.script||"");
+  // DISEÑO MEJORADO TITULO
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
-  
-  // TITULO
-  try{
-    let t=(it.title||'').trim().toUpperCase();
-    if(t){
-      let lines=splitWords(t,22).slice(0,3);
-      lines.forEach((line,i)=>{
-        const y=90+i*58;
-        ctx.font=`900 52px Anton`; // FB 1080x1920 centrado
-        const textW=ctx.measureText(line).width;
-        const bgW=Math.min(textW+32, W*0.92);
-        const bgH=52;
-        const cx=360;
-        // fondo negro ajustado
-        ctx.fillStyle='rgba(0,0,0,0.92)';
-        ctx.beginPath();
-        if(ctx.roundRect) ctx.roundRect(cx-bgW/2, y-bgH/2, bgW, bgH, 8);
-        else ctx.fillRect(cx-bgW/2, y-bgH/2, bgW, bgH);
-        ctx.fill();
-        // texto amarillo
-        ctx.lineWidth=7; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00';
-        ctx.strokeText(line,cx,y); ctx.fillText(line,cx,y);
-      });
-    }
-  }catch(e){ console.log('title err',e); }
-  
-  // SUBTITULOS - SIEMPRE 3 LINEAS
-  try{
-    let subs=[];
-    try{ subs=chunkSubs(it.script||""); }catch{ subs=[it.script||'']; }
-    let idx=0;
-    if(subs.length && total>0.2){ idx=Math.max(0,Math.min(Math.floor((cur/total)*subs.length),subs.length-1)); }
-    let curr=subs[idx]||'';
-    curr=curr.trim().toUpperCase();
+  ctx.font=`900 ${tl.join(' ').length>90?30:36}px Anton`;
+  tl.forEach((l,i)=>{
+    const y=45+i*48;
+    const fw = ctx.measureText(l).width;
+    // Fondo negro pill detrás del título para que resalte sin degradado
+    ctx.save();
+    ctx.fillStyle='#000000';
+    ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=12; ctx.shadowOffsetY=4;
+    const padX=28, padY=10;
+    const rw=fw+padX*2, rh=38;
+    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
+    else { ctx.fillRect(360-rw/2, y-rh/2, rw, rh); }
+    ctx.restore();
+    // Borde y relleno amarillo
+    ctx.lineWidth=6; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00';
+    ctx.strokeText(l,360,y); ctx.fillText(l,360,y);
+    // Brillo interior sutil
+    ctx.lineWidth=1.5; ctx.strokeStyle='rgba(255,255,255,0.25)';
+    ctx.strokeText(l,360,y);
+  });
+  ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+  if(subs.length){
+    let idx=total>0.2?Math.floor((cur/total)*subs.length):0;
+    idx=Math.max(0,Math.min(idx,subs.length-1));
+    const curr=subs[idx]||'';
     if(curr){
-      let lines=splitWords(curr,26);
-      // forzar 3 lineas
-      if(lines.length===1){
-        const words=lines[0].split(' ');
-        const p=Math.ceil(words.length/3);
-        lines=[words.slice(0,p).join(' '), words.slice(p,p*2).join(' '), words.slice(p*2).join(' ')].filter(Boolean);
-      }else if(lines.length===2){
-        const words=lines[1].split(' ');
-        const p=Math.ceil(words.length/2);
-        lines=[lines[0], words.slice(0,p).join(' '), words.slice(p).join(' ')].filter(Boolean);
-      }
-      lines=lines.slice(0,3);
-      lines.forEach((line,j)=>{
-        const y=1380+j*58;
-        ctx.font=`800 40px "Plus Jakarta Sans"`;
-        const textW=ctx.measureText(line).width;
-        const bgW=Math.min(textW+36, W*0.90);
-        const bgH=48;
-        const cx=360;
+      const ls=splitWords(curr.toUpperCase(),22).slice(0,3);
+      ls.forEach((ln,j)=>{
+        const y=620+j*40;
+        ctx.font='800 28px Plus Jakarta Sans';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        const m=ctx.measureText(ln);
+        const bw=m.width+36, bh=42;
+        // Fondo subtitulo mejorado - negro 85% con borde amarillo sutil
+        ctx.save();
         ctx.fillStyle='rgba(0,0,0,0.85)';
-        ctx.beginPath();
-        if(ctx.roundRect) ctx.roundRect(cx-bgW/2, y-bgH/2, bgW, bgH, 10);
-        else ctx.fillRect(cx-bgW/2, y-bgH/2, bgW, bgH);
-        ctx.fill();
-        ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFFFFF';
-        ctx.strokeText(line,cx,y); ctx.fillText(line,cx,y);
+        ctx.strokeStyle='rgba(255,235,0,0.25)'; ctx.lineWidth=1;
+        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2, y-bh/2, bw, bh, 12); ctx.fill(); ctx.stroke(); }
+        else { ctx.fillRect(360-bw/2, y-bh/2, bw, bh); }
+        ctx.restore();
+        ctx.font='800 28px Plus Jakarta Sans'; ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFFFFF';
+        ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y);
       });
     }
-  }catch(e){ console.log('sub err',e); }
-  
+  }
   if(total>0) $("progressBar").style.width=Math.min((cur/total)*100,100)+'%';
 }
 
@@ -876,7 +796,7 @@ $("btnPlay").addEventListener('click',()=>{
     $("btnPlay").textContent='▶ Play';
   }
 });
-const FPS=30,W=720,H=900;
+const FPS=30,W=1080,H=1920; // 9:16 FullHD
 
 function safeDownload(url, name){
   try{
@@ -909,87 +829,107 @@ function isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas){ try{v&&v.pause
 
 
 
+
 async function renderSingle(item,onProg){
-  const FPS=30;
-  const START_OFFSET=0.25;
-  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1920;
-  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  const vPre=document.createElement('video'); vPre.src=item.videoUrl; vPre.muted=true; vPre.crossOrigin='anonymous'; vPre.preload='auto';
-  await new Promise(r=>{ vPre.onloadedmetadata=()=>r(); vPre.onerror=()=>r(); vPre.load(); });
-  const vDur=vPre.duration||item.videoDur||10;
-  try{ vPre.pause(); vPre.src=''; }catch{}
-  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): (typeof calcDurInfo==='function'?calcDurInfo(item): {rate:1,useLoop:false, finalDur:item.audioDur||vDur});
-  const scriptText=(item.script||'').trim();
-  const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-  const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
-  let ac,dest,cap=null;
-  let aDur=item.audioDur||0;
-  if(item.audioUrl){
+  const FPS=30, W=1080, H=1920; // 9:16 FullHD
+  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d',{alpha:false,colorSpace:'srgb'});
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto'; v.playsInline=true;
+  await new Promise(r=>{ v.onloadedmetadata=r; v.onerror=r; v.load(); });
+  await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=r; setTimeout(r,800); });
+  const info=typeof getRateInfo==='function'?getRateInfo(v.duration, item.audioDur||v.duration):{rate:1,useLoop:false};
+  let audioBuffer=null;
+  if(item.audioBlob){
     try{
-      ac=new (window.AudioContext||window.webkitAudioContext)();
-      dest=ac.createMediaStreamDestination();
-      cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; cap.preload='auto';
-      await new Promise(r=>{ cap.onloadedmetadata=()=>{ aDur=cap.duration||aDur; r(); }; cap.onerror=()=>r(); cap.load(); });
-      const src=ac.createMediaElementSource(cap);
-      src.connect(dest);
-    }catch(e){ console.warn(e); }
+      const ac=new (window.AudioContext||window.webkitAudioContext)();
+      audioBuffer=await ac.decodeAudioData((await item.audioBlob.arrayBuffer()).slice(0));
+      await ac.close();
+    }catch(e){ console.warn('audioBlob decode fail',e); }
+  } else if(item.audioUrl){
+    try{
+      const blob=await (await fetch(item.audioUrl)).blob();
+      const ac=new (window.AudioContext||window.webkitAudioContext)();
+      audioBuffer=await ac.decodeAudioData((await blob.arrayBuffer()).slice(0));
+      await ac.close();
+      item.audioBlob=blob;
+    }catch(e){ console.warn('audioUrl decode fail',e); }
   }
-  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10;
-  const mimeMP4=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1.42E01E','video/mp4'].find(m=>{ try{ return MediaRecorder.isTypeSupported(m); }catch{ return false; } }) || 'video/webm;codecs=vp9';
-  const ext=mimeMP4.includes('mp4')?'mp4':'webm';
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto'; v.volume=0;
-  await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
-  await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,600); });
-  v.playbackRate=info.rate||info.playbackRate||1; v.loop=info.useLoop||false;
-  v.currentTime=Math.min(START_OFFSET, v.duration-0.1||START_OFFSET);
-  await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,400); });
-  for(let k=0;k<3;k++){ try{ const vw=v.videoWidth,vh=v.videoHeight; if(vw&&vh){ const tgt=W/H, rv=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height);} }catch{} await new Promise(r=>setTimeout(r,40)); }
-  const cStream=canvas.captureStream(FPS);
-  const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
-  const rec=new MediaRecorder(combined,{videoBitsPerSecond:8000000, mimeType:mimeMP4, audioBitsPerSecond:128000}); // FB: 8Mbps
-  const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
-  const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
-  await v.play().catch(()=>{});
-  if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
-  rec.start(100);
-  await new Promise(res=>{
-    let start=performance.now(); let _stopped=false;
-    let safetyTimeout=setTimeout(()=>{ if(!_stopped){ _stopped=true; try{ rec.stop(); }catch{} res(); } }, (realTotal+3)*1000);
-    const draw=()=>{
-      const elapsed=(performance.now()-start)/1000;
-      const cur=Math.min(elapsed, realTotal);
-      onProg?.(Math.min((cur/realTotal)*100,100));
-      // Anti-freeze: si video se pauso o termino y necesitamos loop, re-play
-      try{
-        if(v.paused && !v.ended && cur < realTotal-0.1){ v.play().catch(()=>{}); }
-        if(v.ended && info.useLoop){ v.currentTime=START_OFFSET; v.play().catch(()=>{}); }
-      }catch{}
-      if(v.readyState>=2){
-        const vw=v.videoWidth, vh=v.videoHeight;
-        if(vw&&vh){ const tgt=W/H, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height); }catch{} } else { ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
-      } else { ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
-      try{
-        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
-        ctx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
-        tLines.forEach((l,i)=>{ const y=42+i*40; const fw=ctx.measureText(l).width; ctx.save(); ctx.fillStyle='#000'; const padX=22,rh=34,rw=fw+padX*2; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2,y-rh/2,rw,rh,8); ctx.fill(); } else ctx.fillRect(360-rw/2,y-rh/2,rw,rh); ctx.restore(); ctx.lineWidth=3.5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(l,360,y); ctx.fillText(l,360,y); });
-        if(subs.length){
-          const audioCur=(cap&&!cap.paused)?cap.currentTime:cur;
-          const si=Math.min(Math.floor((audioCur/(aDur||realTotal))*subs.length),subs.length-1);
-          const curr=subs[si]||'';
-          if(curr){ const ls=typeof splitWords==='function'?splitWords(curr.toUpperCase(),22).slice(0,3):[curr]; ls.forEach((ln,j)=>{ const y=700+j*42; ctx.font='800 28px Plus Jakarta Sans'; const m=ctx.measureText(ln); const bw=m.width+36,bh=42; ctx.save(); ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.strokeStyle='rgba(255,235,0,0.25)'; ctx.lineWidth=1; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2,y-bh/2,bw,bh,12); ctx.fill(); ctx.stroke(); } ctx.restore(); ctx.font='800 28px Plus Jakarta Sans'; ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y); }); }
-        }
-      }catch{}
-      if(cur>=realTotal-0.05){ if(!_stopped){ _stopped=true; clearTimeout(safetyTimeout); try{ rec.stop(); }catch{} setTimeout(res,300); } return; }
-      requestAnimationFrame(draw);
-    };
-    draw();
+  const realTotal=item.audioDur||audioBuffer?.duration||v.duration||10;
+  const totalFrames=Math.ceil(realTotal*FPS);
+  if(window.__ensureFontsReady) await window.__ensureFontsReady();
+  else if(document.fonts?.ready) await document.fonts.ready;
+  const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
+  const target=new ArrayBufferTarget();
+  const muxer=new Muxer({
+    target,
+    video:{codec:'avc', width:W, height:H},
+    audio: audioBuffer ? {codec:'aac', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:48000 // AAC 48kHz Rec.709} : undefined,
+    fastStart:'in-memory'
   });
-  const blob=await blobP;
-  try{ v.pause(); v.src=''; }catch{} try{ if(cap){ cap.pause(); cap.src=''; } }catch{} try{ if(ac) await ac.close(); }catch{} try{ combined.getTracks().forEach(t=>t.stop()); }catch{} try{ cStream.getTracks().forEach(t=>t.stop()); }catch{}
-  if(blob.size>2000) return {url:URL.createObjectURL(blob), ext:ext};
-  return {url:'', ext:ext};
+  const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error('VideoEncoder',e)});
+  vEnc.configure({codec:'avc1.4D401F' // H.264 High Rec.709, width:W, height:H, bitrate: (typeof FPS!=="undefined" && FPS>=60 ? 11_000_000 : 8_000_000) // 8Mbps 30fps / 11Mbps 60fps, framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'avc'}});
+  let aEnc=null;
+  if(audioBuffer){
+    aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error('AudioEncoder',e)});
+    aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:48000 // AAC 48kHz Rec.709, bitrate:128000});
+  }
+  for(let f=0; f<totalFrames; f++){
+    const cur=f/FPS;
+    if(onProg) onProg(Math.min((cur/realTotal)*85,85));
+    let vt=info.useLoop?(cur*(info.rate||1))%v.duration:Math.min(cur*(info.rate||1), v.duration-0.05);
+    if(Math.abs(v.currentTime-vt)>0.02){
+      v.currentTime=vt;
+      await new Promise(r=>{
+        let done=false;
+        const fn=()=>{ if(!done){done=true; v.removeEventListener('seeked',fn); r(); } };
+        v.addEventListener('seeked',fn);
+        setTimeout(()=>{ if(!done){done=true; v.removeEventListener('seeked',fn); r(); } },80);
+      });
+    }
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+    try{
+      const vw=v.videoWidth, vh=v.videoHeight;
+      if(vw&&vh){
+        const tgt=W/H, rv=vw/vh;
+        let sx=0,sy=0,sw=vw,sh=vh;
+        if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
+        ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H);
+      }
+    }catch{}
+    try{
+      if(window.__drawOptimizedTitleSubtitle){
+        const subs=typeof chunkSubs==='function'?chunkSubs(item.script||''):[];
+        let sub=''; if(subs.length){ const idx=Math.min(Math.floor((cur/realTotal)*subs.length), subs.length-1); sub=subs[Math.max(0,idx)]||''; }
+        window.__drawOptimizedTitleSubtitle(ctx, item.title||'', sub, W, H);
+      }
+    }catch(e){}
+    const frame=new VideoFrame(canvas, {timestamp:cur*1e6, duration:(1/FPS)*1e6});
+    vEnc.encode(frame, {keyFrame:f%(FPS*2)===0});
+    frame.close();
+    if(f%10===0) await new Promise(r=>setTimeout(r,0));
+  }
+  await vEnc.flush(); vEnc.close();
+  if(audioBuffer && aEnc){
+    const ch=audioBuffer.numberOfChannels, sr=audioBuffer.sampleRate, total=audioBuffer.length;
+    for(let i=0;i<total;i+=1024){
+      const len=Math.min(1024, total-i);
+      const data=new Float32Array(len*ch);
+      for(let c=0;c<ch;c++){ const cd=audioBuffer.getChannelData(c); for(let s=0;s<len;s++) data[s*ch+c]=cd[i+s]; }
+      const ad=new AudioData({format:'f32', sampleRate:sr, numberOfChannels:ch, numberOfFrames:len, timestamp:(i/sr)*1e6, data});
+      aEnc.encode(ad); ad.close();
+      if(onProg) onProg(85+Math.min((i/total)*15,15));
+    }
+    await aEnc.flush(); aEnc.close();
+  }
+  muxer.finalize();
+  const blob=new Blob([target.buffer], {type:'video/mp4'});
+  try{ v.pause(); v.src=''; }catch{}
+  if(blob.size>1000) return {url:URL.createObjectURL(blob), ext:'mp4', blob};
+  throw new Error('MP4 vacio');
 }
 window.renderSingle=renderSingle;
+
 
 
 
@@ -1042,13 +982,12 @@ try{
 
 
 
-<!-- V27 FIX DEFINITIVO - VOZ POR SLOT + SYNC SUBS -->
+<!-- V27 FIX DEFINITIVO - VOZ POR SLOT + SYNC SUBS - FIXED V14 -->
 <script type="module">
 const $id = (id)=>document.getElementById(id);
 
 function getActiveSlot(){
   try{
-    // Usar window.activeId que ahora si existe
     const curId = window.activeId || 1;
     if(window.queue){
       return window.queue.find(q=>q.id===curId) || window.queue[0];
@@ -1060,7 +999,7 @@ function getActiveSlot(){
 function setKStatus(t, isError=false){
   const el=$id('kokoroStatus');
   if(el){ el.textContent=t; el.style.color=isError?'#ef4444':'#4ade80'; }
-  console.log('[Piper V27]', t);
+  console.log('[Piper V14]', t);
 }
 function setKProg(p){
   const bar=$id('kokoroProgress'); const fill=$id('kokoroProgressBar');
@@ -1071,118 +1010,92 @@ function setKProg(p){
 let ttsLib = null;
 async function getTTS(){
   if(ttsLib) return ttsLib;
-  setKStatus('Cargando motor Piper...');
-  setKProg(20);
-  try{
-    ttsLib = await import('https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm');
-    setKProg(50);
-    setKStatus('Motor listo');
-    return ttsLib;
-  }catch(e){
-    console.error('CDN jsdelivr fallo', e);
+  setKStatus('Cargando motor Piper...'); setKProg(20);
+  const cdns=[
+    'https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm',
+    'https://esm.run/@mintplex-labs/piper-tts-web@1.0.4',
+    'https://cdn.skypack.dev/@mintplex-labs/piper-tts-web@1.0.4'
+  ];
+  for(let url of cdns){
     try{
-      ttsLib = await import('https://esm.run/@mintplex-labs/piper-tts-web@1.0.4');
+      console.log('[V14] intentando CDN', url);
+      ttsLib = await import(url);
+      setKProg(50); setKStatus('Motor listo - '+url.split('/')[2]);
       return ttsLib;
-    }catch(e2){
-      throw new Error('No se pudo cargar Piper: '+e.message);
-    }
+    }catch(e){ console.warn('CDN fallo', url, e.message); }
   }
+  throw new Error('No se pudo cargar Piper - revisa internet');
 }
 
+function splitIntoChunks(txt, maxLen){
+  maxLen = maxLen || 380;
+  const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+  const chunks=[]; let cur="";
+  for(let s of sentences){
+    s=s.trim(); if(!s) continue;
+    if((cur + " " + s).length <= maxLen){ cur = cur ? cur + " " + s : s; }
+    else {
+      if(cur) chunks.push(cur);
+      if(s.length > maxLen){
+        const words=s.split(/\s+/); let tmp="";
+        for(let w of words){ if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w; else { if(tmp) chunks.push(tmp); tmp=w; } }
+        if(tmp) cur=tmp; else cur="";
+      } else cur=s;
+    }
+  }
+  if(cur) chunks.push(cur);
+  return chunks;
+}
+async function blobToAudioBuffer(blob, audioCtx){
+  const ab = await blob.arrayBuffer();
+  return await audioCtx.decodeAudioData(ab);
+}
+function audioBufferToWavBlob(buffer){
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const length = buffer.length;
+  const wavLength = length * numChannels * 2 + 44;
+  const ab = new ArrayBuffer(wavLength);
+  const view = new DataView(ab);
+  let pos=0;
+  function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
+  function write16(d){ view.setUint16(pos, d, true); pos+=2; }
+  function write32(d){ view.setUint32(pos, d, true); pos+=4; }
+  writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE');
+  writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16);
+  writeStr('data'); write32(wavLength-pos-4);
+  const channels=[]; for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
+  let offset=44;
+  for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample = Math.max(-1, Math.min(1, channels[c][i])); sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; view.setInt16(offset, sample, true); offset+=2; } }
+  return new Blob([ab], {type:'audio/wav'});
+}
 
 async function handleGenerate(){
   const capturedId = window.activeId || 1;
   const slot = window.queue ? window.queue.find(q=>q.id===capturedId) : null;
   if(!slot){ alert('No hay slot '+capturedId); return; }
   let text = (slot.txtContent || slot.script || document.getElementById('inputScript')?.value || '').trim();
-  if(!text){ alert('Carga .txt en paso 2'); return; }
+  if(!text){ alert('Carga .txt en paso 2 - SLOT '+capturedId+' vacio'); return; }
   
-  function splitIntoChunks(txt, maxLen){
-    maxLen = maxLen || 380;
-    const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
-    const chunks=[];
-    let cur="";
-    for(let s of sentences){
-      s=s.trim();
-      if(!s) continue;
-      if((cur + " " + s).length <= maxLen){
-        cur = cur ? cur + " " + s : s;
-      } else {
-        if(cur) chunks.push(cur);
-        if(s.length > maxLen){
-          const words=s.split(/\s+/);
-          let tmp="";
-          for(let w of words){
-            if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w;
-            else { if(tmp) chunks.push(tmp); tmp=w; }
-          }
-          if(tmp) cur=tmp; else cur="";
-        } else {
-          cur=s;
-        }
-      }
-    }
-    if(cur) chunks.push(cur);
-    return chunks;
-  }
-
-  async function blobToAudioBuffer(blob, audioCtx){
-    const ab = await blob.arrayBuffer();
-    return await audioCtx.decodeAudioData(ab);
-  }
-  function audioBufferToWavBlob(buffer){
-    const numChannels = buffer.numberOfChannels;
-    const sampleRate = buffer.sampleRate;
-    const length = buffer.length;
-    const wavLength = length * numChannels * 2 + 44;
-    const ab = new ArrayBuffer(wavLength);
-    const view = new DataView(ab);
-    let pos=0;
-    function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
-    function write16(d){ view.setUint16(pos, d, true); pos+=2; }
-    function write32(d){ view.setUint32(pos, d, true); pos+=4; }
-    writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE');
-    writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16);
-    writeStr('data'); write32(wavLength-pos-4);
-    const channels=[];
-    for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
-    let offset=44;
-    for(let i=0;i<length;i++){
-      for(let c=0;c<numChannels;c++){
-        let sample = Math.max(-1, Math.min(1, channels[c][i]));
-        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-        view.setInt16(offset, sample, true);
-        offset+=2;
-      }
-    }
-    return new Blob([ab], {type:'audio/wav'});
-  }
-
   const voiceSelectEl = document.getElementById('kokoroVoice');
   const speedSelectEl = document.getElementById('kokoroSpeed');
   if(voiceSelectEl) slot.voiceId = voiceSelectEl.value;
   if(speedSelectEl) slot.voiceSpeed = parseFloat(speedSelectEl.value)||1;
   let voiceId = slot.voiceId || 'es_ES-sharvard-medium';
   let speakerId = 0;
-  if(voiceId.includes(':')){
-    const parts = voiceId.split(':');
-    voiceId = parts[0];
-    speakerId = parseInt(parts[1]||0);
-  }
-  const speed = slot.voiceSpeed;
+  if(voiceId.includes(':')){ const parts = voiceId.split(':'); voiceId = parts[0]; speakerId = parseInt(parts[1]||0); }
+  const speed = slot.voiceSpeed||1;
 
   const chunks = splitIntoChunks(text, 380);
-  console.log('[V28] TXT total ' + text.length + ' chars -> ' + chunks.length + ' chunks');
+  console.log('[V14] SLOT '+slot.id+' TXT '+text.length+' chars -> '+chunks.length+' chunks');
 
   const btn=document.getElementById('btnKokoroGen');
-  btn.disabled=true;
-  btn.textContent='SLOT '+slot.id+' 0/'+chunks.length;
-  btn.style.background='#fff';
+  if(btn){ btn.disabled=true; btn.textContent='SLOT '+slot.id+' 0/'+chunks.length; btn.style.background='#fff'; }
 
   try{
     const tts = await getTTS();
-    document.getElementById('kokoroStatus').textContent='[SLOT '+slot.id+'] Descargando voz...';
-    const onProgress = function(prog){
+    setKStatus('[SLOT '+slot.id+'] Descargando modelo voz '+voiceId+'...');
+    const onProgress = (prog)=>{
       if(prog && prog.loaded && prog.total){
         const pct = Math.round(prog.loaded*100/prog.total);
         const bar=document.getElementById('kokoroProgressBar');
@@ -1191,35 +1104,47 @@ async function handleGenerate(){
         if(bar) bar.style.width=(20 + Math.round(pct*0.3))+'%';
       }
     };
-    try{ await tts.download(voiceId, onProgress); }catch(e){ console.warn(e); }
+    // Descarga con retry real
+    let downloaded=false;
+    for(let attempt=1; attempt<=3 && !downloaded; attempt++){
+      try{ await tts.download(voiceId, onProgress); downloaded=true; }
+      catch(e){ console.warn('download intento '+attempt+' fallo', e); if(attempt<3) await new Promise(r=>setTimeout(r,1500)); else throw e; }
+    }
 
+    // AudioContext con resume obligatorio
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') await audioCtx.resume();
     const buffers = [];
 
     for(let i=0;i<chunks.length;i++){
-      try{ window.updateVoiceProgressCorrecto(slotId, i+1, chunks.length); }catch(e){}
+      // FIX BUG1: antes era slotId undefined, ahora slot.id correcto
+      try{ if(window.updateVoiceProgressCorrecto) window.updateVoiceProgressCorrecto(slot.id, i+1, chunks.length); }catch(e){ console.warn('progress fail', e); }
 
       const chunk = chunks[i];
-      btn.textContent='SLOT '+slot.id+' GENERANDO '+(i+1)+'/'+chunks.length;
-      document.getElementById('kokoroStatus').textContent='[SLOT '+slot.id+'] Parte '+(i+1)+'/'+chunks.length+' ('+chunk.length+' chars)';
-      const prog = 50 + Math.round((i/chunks.length)*40);
-      const bar=document.getElementById('kokoroProgressBar');
-      if(bar) bar.style.width=prog+'%';
+      if(btn) btn.textContent='SLOT '+slot.id+' GENERANDO '+(i+1)+'/'+chunks.length;
+      setKStatus('[SLOT '+slot.id+'] Parte '+(i+1)+'/'+chunks.length+' ('+chunk.length+' chars)');
+      setKProg(50 + Math.round((i/chunks.length)*40));
 
-      const wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, onProgress);
-      if(!wavBlob || wavBlob.size<500){
-        console.warn('Chunk '+i+' vacio');
-        continue;
+      let wavBlob=null;
+      for(let retry=1; retry<=2; retry++){
+        try{
+          wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, onProgress);
+          if(wavBlob && wavBlob.size>=500) break;
+          console.warn('Chunk '+i+' vacio intento '+retry, wavBlob?.size);
+        }catch(e){ console.warn('predict fail chunk '+i+' intento '+retry, e); }
+        await new Promise(r=>setTimeout(r,400));
       }
-      const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
-      buffers.push(audioBuf);
-      await new Promise(function(r){ setTimeout(r, 30); });
+      if(!wavBlob || wavBlob.size<500){ console.warn('Chunk '+i+' descartado vacio'); continue; }
+      try{
+        const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
+        buffers.push(audioBuf);
+      }catch(e){ console.warn('decode fail chunk '+i, e); }
+      await new Promise(r=>setTimeout(r, 30));
     }
 
-    if(!buffers.length) throw new Error('No se genero audio');
+    if(!buffers.length) throw new Error('No se genero audio - todos los chunks vacios. Revisa que el .onnx se descargo (150MB)');
 
-    let totalLength = 0;
-    for(let b of buffers) totalLength+=b.length;
+    let totalLength = 0; for(let b of buffers) totalLength+=b.length;
     let numberOfChannels = buffers[0].numberOfChannels;
     let sampleRate = buffers[0].sampleRate;
     const concatBuffer = audioCtx.createBuffer(numberOfChannels, totalLength, sampleRate);
@@ -1233,187 +1158,82 @@ async function handleGenerate(){
     await audioCtx.close();
 
     const finalWavBlob = audioBufferToWavBlob(concatBuffer);
+    console.log('[V14] final blob size', finalWavBlob.size, 'dur', concatBuffer.length/sampleRate);
+    if(finalWavBlob.size<1000) throw new Error('WAV final muy pequeño: '+finalWavBlob.size);
+
     const url=URL.createObjectURL(finalWavBlob);
     if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
     slot.audioUrl=url;
     slot.audioName='SLOT'+slot.id+'-'+voiceId+'-'+text.length+'chars-'+chunks.length+'partes.wav';
     slot.audioBlob=finalWavBlob;
 
-    const tempAudio = new Audio();
-    tempAudio.src = url;
-    await new Promise(function(res){
-      tempAudio.onloadedmetadata=function(){
+    const tempAudio = new Audio(); tempAudio.src = url;
+    await new Promise((res)=>{
+      tempAudio.onloadedmetadata=()=>{
         slot.audioDur = tempAudio.duration;
-        console.log('[V28] SLOT '+slot.id+' duracion FINAL real:', slot.audioDur, 'de '+chunks.length+' partes');
+        console.log('[V14] SLOT '+slot.id+' duracion REAL:', slot.audioDur);
         res();
       };
-      tempAudio.onerror=function(){ res(); };
+      tempAudio.onerror=()=>{ slot.audioDur=concatBuffer.length/concatBuffer.sampleRate; res(); };
       tempAudio.load();
     });
 
-    if(window.activeId === slot.id){
-      const aEl=document.getElementById('previewAudio');
-      const vEl2=document.getElementById('previewVideo');
-      if(aEl){
-        aEl.src=url; aEl.load(); aEl.playbackRate=speed; aEl.muted=false;
-        if(vEl2){ vEl2.muted=true; vEl2.volume=0; }
-      }
-      const audioNameEl=document.getElementById('audioName');
-      if(audioNameEl){
-        const nombre = voiceId.indexOf('sharvard')>=0 ? 'Dora' : voiceId.indexOf('carlfm')>=0 ? 'Alex' : voiceId;
-        audioNameEl.innerHTML='🎙️ <b>'+nombre+' SLOT '+slot.id+'</b> · TODO '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅';
-        audioNameEl.style.color='#4ade80';
-      }
-      if(window.renderCola) window.renderCola(true);
-      if(window.renderOverlay) window.renderOverlay();
-      if(window.calcDurInfo){
-        const di=window.calcDurInfo(slot);
-        if(di) document.getElementById('speedLabel').textContent=di.txt;
-      }
-    } else {
-      if(window.renderCola) window.renderCola(true);
+    // Guardar y actualizar UI
+    slot.status='con audio';
+    if(window.renderCola) window.renderCola(true);
+    
+    const aEl=document.getElementById('previewAudio');
+    if(window.activeId===slot.id && aEl){
+      aEl.src=url; aEl.load(); aEl.playbackRate=speed; aEl.muted=false;
+      const vEl2=document.getElementById('previewVideo'); if(vEl2){ vEl2.muted=true; vEl2.volume=0; }
     }
-
-    document.getElementById('kokoroStatus').textContent='✅ SLOT '+slot.id+' COMPLETO - '+text.length+' chars - '+slot.audioDur.toFixed(1)+'s - '+chunks.length+' partes';
-    const bar2=document.getElementById('kokoroProgressBar');
-    if(bar2) bar2.style.width='100%';
-    setTimeout(function(){ const bw=document.getElementById('kokoroProgress'); if(bw) bw.style.display='none'; },1200);
+    const audioNameEl=document.getElementById('audioName');
+    if(audioNameEl){
+      const nombre = voiceId.indexOf('sharvard')>=0 ? 'Alexander (Voz Masculina)' : voiceId;
+      audioNameEl.innerHTML='🎙️ <b>'+nombre+' SLOT '+slot.id+'</b> · '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅ GUARDADO REAL';
+      audioNameEl.style.color='#4ade80';
+    }
+    setKStatus('✅ SLOT '+slot.id+' COMPLETO - '+text.length+' chars - '+slot.audioDur.toFixed(1)+'s - '+chunks.length+' partes - GUARDADO');
+    setKProg(100);
+    setTimeout(()=>setKProg(null),1500);
+    console.log('[V14] SLOT '+slot.id+' GUARDADO OK', {url: !!slot.audioUrl, dur: slot.audioDur, size: slot.audioBlob.size, status: slot.status});
+    return slot;
   }catch(e){
-    console.error(e);
+    console.error('[V14] ERROR SLOT', e);
     const st=document.getElementById('kokoroStatus');
     if(st){ st.textContent='[SLOT '+slot.id+'] ❌ '+e.message; st.style.color='#ef4444'; }
-    alert('Error SLOT '+slot.id+': '+e.message);
+    alert('Error SLOT '+slot.id+': '+e.message+'\nRevisa consola F12');
+    throw e;
   }finally{
-    btn.disabled=false; btn.textContent='🔊 GENERAR AUDIO COMPLETO (TODO EL TXT)'; btn.style.background='#FFEB00';
+    if(btn){ btn.disabled=false; btn.textContent='🔊 GENERAR AUDIO ESPAÑOL'; btn.style.background='#FFEB00'; }
   }
 }
 
-
-// V30.1 WRAPPER - Reusa el mismo handleGenerate que ya funciona perfecto en V28
+// Wrapper para slot especifico - mantiene tu logica original pero con fix de activeId
 window.generateVoiceForSlotId = async function(slotId){
-  console.log('[V30.1] Generando voz para SLOT '+slotId+' usando motor V28 que funciona');
+  console.log('[V14] Generando voz SLOT '+slotId);
   const originalActive = window.activeId;
   try{
-    // Cambiar a ese slot
     if(window.setActive) window.setActive(slotId);
     else window.activeId = slotId;
-    
-    // Pequeña espera para que setActive restaure UI
-    await new Promise(r=>setTimeout(r, 100));
-    
+    await new Promise(r=>setTimeout(r,150));
     const slot = window.queue.find(q=>q.id===slotId);
-    if(!slot){ throw new Error('Slot '+slotId+' no existe'); }
-    if(!slot.txtContent && !slot.script){ throw new Error('SLOT '+slotId+' sin TXT'); }
-    
-    // Llamar directamente a la logica de handleGenerate pero sin depender del boton
-    // Duplicamos la logica exacta de handleGenerate que ya funciona:
-    let text = (slot.txtContent || slot.script || '').trim();
-    if(!text) throw new Error('Sin texto');
-    
-    function splitIntoChunks(txt, maxLen){
-      maxLen = maxLen || 380;
-      const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
-      const chunks=[]; let cur="";
-      for(let s of sentences){
-        s=s.trim(); if(!s) continue;
-        if((cur + " " + s).length <= maxLen){ cur = cur ? cur + " " + s : s; }
-        else {
-          if(cur) chunks.push(cur);
-          if(s.length > maxLen){
-            const words=s.split(/\s+/); let tmp="";
-            for(let w of words){ if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w; else { if(tmp) chunks.push(tmp); tmp=w; } }
-            if(tmp) cur=tmp; else cur="";
-          } else cur=s;
-        }
-      }
-      if(cur) chunks.push(cur);
-      return chunks;
-    }
-    async function blobToAudioBuffer(blob, audioCtx){ const ab = await blob.arrayBuffer(); return await audioCtx.decodeAudioData(ab); }
-    function audioBufferToWavBlob(buffer){
-      const numChannels = buffer.numberOfChannels; const sampleRate = buffer.sampleRate; const length = buffer.length;
-      const wavLength = length * numChannels * 2 + 44; const ab = new ArrayBuffer(wavLength); const view = new DataView(ab); let pos=0;
-      function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
-      function write16(d){ view.setUint16(pos, d, true); pos+=2; } function write32(d){ view.setUint32(pos, d, true); pos+=4; }
-      writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE'); writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16); writeStr('data'); write32(wavLength-pos-4);
-      const channels=[]; for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
-      let offset=44; for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample = Math.max(-1, Math.min(1, channels[c][i])); sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; view.setInt16(offset, sample, true); offset+=2; } } return new Blob([ab], {type:'audio/wav'});
-    }
-
-    const rawVoiceId = slot.voiceId || document.getElementById('kokoroVoice')?.value || 'es_ES-sharvard-medium:0';
-    const vp = rawVoiceId.split(':');
-    const voiceId = vp[0];
-    const speakerId = parseInt(vp[1]||'0',10);
-    const speed = slot.voiceSpeed || parseFloat(document.getElementById('kokoroSpeed')?.value)||1;
-    const chunks = splitIntoChunks(text, 380);
-    console.log('[V30.1] SLOT '+slotId+' '+text.length+' chars -> '+chunks.length+' chunks voz '+voiceId);
-
-    const tts = await getTTS();
-    try{ await tts.download(voiceId, ()=>{}); }catch(e){}
-
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const buffers=[];
-    for(let i=0;i<chunks.length;i++){
-      try{ window.updateVoiceProgressCorrecto(slotId, i+1, chunks.length); }catch(e){}
-
-      const chunk = chunks[i];
-      const st=document.getElementById('kokoroStatus');
-      if(st) st.textContent='[SLOT '+slotId+'] Generando '+ (i+1) +'/'+chunks.length+' ('+chunk.length+' chars)';
-      const btn=document.getElementById('btnKokoroGen');
-      if(btn) btn.textContent='SLOT '+slotId+' '+ (i+1) +'/'+chunks.length;
-      let wavBlob=null;
-      try{ wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }); }catch(e){ console.error('predict fail', e); continue; }
-      if(!wavBlob || wavBlob.size<500) continue;
-      const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
-      buffers.push(audioBuf);
-      await new Promise(r=>setTimeout(r, 20));
-    }
-    if(!buffers.length) throw new Error('No se genero audio SLOT '+slotId);
-    let totalLength=0; for(let b of buffers) totalLength+=b.length;
-    const concatBuffer = audioCtx.createBuffer(buffers[0].numberOfChannels, totalLength, buffers[0].sampleRate);
-    let off=0; for(let buf of buffers){ for(let ch=0; ch<concatBuffer.numberOfChannels; ch++){ concatBuffer.getChannelData(ch).set(buf.getChannelData(ch), off); } off+=buf.length; }
-    await audioCtx.close();
-    const finalWavBlob = audioBufferToWavBlob(concatBuffer);
-    const url = URL.createObjectURL(finalWavBlob);
-    if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
-    slot.audioUrl = url;
-    slot.audioBlob = finalWavBlob;
-    slot.audioName = 'SLOT'+slot.id+'-VOZ-COMPLETA.wav';
-    
-    const tempAudio = new Audio(); tempAudio.src=url;
-    await new Promise(function(res){
-      tempAudio.onloadedmetadata=function(){ slot.audioDur=tempAudio.duration; console.log('[V30.1] SLOT '+slot.id+' dur '+slot.audioDur); res(); };
-      tempAudio.onerror=function(){ slot.audioDur=concatBuffer.length/concatBuffer.sampleRate; res(); };
-      tempAudio.load();
-    });
-    
-    slot.status='con audio';
-    if(window.renderCola) window.renderCola(true);
-    if(window.renderOverlay) window.renderOverlay();
-    
-    console.log('[V30.1] SLOT '+slot.id+' GUARDADO OK', {url: !!slot.audioUrl, dur: slot.audioDur, size: slot.audioBlob.size});
-    
-    // Restaurar UI si es el slot activo original
-    const aEl=document.getElementById('previewAudio');
-    if(aEl && window.activeId===slotId){
-      aEl.src=url; aEl.load(); aEl.playbackRate=speed;
-      const audioNameEl=document.getElementById('audioName');
-      if(audioNameEl){
-        audioNameEl.innerHTML='🎙️ <b>SLOT '+slot.id+' VOZ COMPLETA</b> · '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅ GUARDADO';
-        audioNameEl.style.color='#4ade80';
-      }
-    }
-    
-    return slot;
+    if(!slot) throw new Error('Slot '+slotId+' no existe');
+    if(!slot.txtContent && !slot.script) throw new Error('SLOT '+slotId+' sin TXT - carga .txt primero');
+    // Llamar handleGenerate que ya tiene el fix
+    const prevActive = window.activeId;
+    window.activeId = slotId;
+    await handleGenerate();
+    window.activeId = prevActive;
+    const updated = window.queue.find(q=>q.id===slotId);
+    if(!updated.audioUrl) throw new Error('No se guardo audioUrl SLOT '+slotId);
+    return updated;
   } finally {
-    // Restaurar slot activo original
-    if(window.setActive && originalActive) {
-      try{ window.setActive(originalActive); }catch{}
-    }
+    if(window.setActive && originalActive){ try{ window.setActive(originalActive); }catch{} }
   }
 };
 
-// Mutex global para voces
+// Mutex para evitar pisadas - permite cola pero no paralelo real que rompe RAM
 window.ttsLock = Promise.resolve();
 window.generateVoiceForSlotIdLocked = async function(slotId){
   let release;
@@ -1427,7 +1247,6 @@ window.generateVoiceForSlotIdLocked = async function(slotId){
     release();
   }
 };
-
 
 $id('btnKokoroGen')?.addEventListener('click', handleGenerate);
 document.getElementById('inputTxt')?.addEventListener('change', ()=>{
@@ -1445,8 +1264,11 @@ document.getElementById('kokoroSpeed')?.addEventListener('change', e=>{
   if(it) it.voiceSpeed = parseFloat(e.target.value)||1;
 });
 
-setKStatus('✅ V27 FIX - Voz por SLOT + Subs sync audio real');
+setKStatus('✅ V14 FIX - Voz por SLOT corregida - lista');
+window.handleGenerate = handleGenerate;
+window.getTTS = getTTS;
 </script>
+
 
 
 <div id="perfMon" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:rgba(8,8,10,0.92);border:1px solid #222;border-radius:14px;padding:10px;min-width:200px;font-family:sans-serif"><div style="font-size:8px;color:#FFEB00;font-weight:900">⚡ V13 6x6 PARALELO REAL</div><div style="font-size:9px;color:#999;margin-top:6px">Voces: <b id="mVoices">0</b>/6 | Videos: <b id="mVideos">0</b>/6 | RAM: <b id="mRam">--</b></div></div><script>setInterval(()=>{try{const m=performance.memory; if(m){document.getElementById('mRam').textContent=Math.round(m.usedJSHeapSize/1048576)+'MB'} }catch{}},1000)</script>
@@ -2167,10 +1989,7 @@ window.IC_renew = function(username){
 </script>
 
 
-<style>
-#btnKokoroGen, #kokoroSpeed {display:none !important;}
-div:has(> #kokoroSpeed) {display:none !important;}
-</style>
+
 
 <script>
 (function(){
@@ -2239,12 +2058,12 @@ div:has(> #kokoroSpeed) {display:none !important;}
 </script>
 
 <script>
-// RENDER SINGLE OFFLINE - SIN TRABADO, SIN NEGRO, 30FPS 720HD
+// RENDER SINGLE OFFLINE - SIN TRABADO, SIN NEGRO, 30FPS 1080x1920 FullHD
 async function renderSingle(item, onProgress){
   const info = window.calcDurInfo ? window.calcDurInfo(item) : {useLoop:false, playbackRate:1, finalDur: item.videoDur || 10};
   const canvas = document.createElement('canvas');
   canvas.width=1080; canvas.height=1920;
-  const ctx = canvas.getContext('2d', {alpha:false, desynchronized:true});
+  const ctx = canvas.getContext('2d', {alpha:false, desynchronized:true, colorSpace:'srgb'});
   const v = document.createElement('video');
   v.src = item.videoUrl; v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
   v.playbackRate = info.playbackRate || 1;
@@ -2264,13 +2083,13 @@ async function renderSingle(item, onProgress){
   }
   const stream=canvas.captureStream(fps);
   if(dest && dest.stream) dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
-  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:5000000,audioBitsPerSecond:128000});
+  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:2500000,audioBitsPerSecond:128000});
   rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
   const recDone=new Promise(res=>{ rec.onstop=()=>res(); });
   function drawFrame(){
     ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
     if(v.videoWidth){
-      const vw=v.videoWidth,vh=v.videoHeight,tgt=W/H,r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
+      const vw=v.videoWidth,vh=v.videoHeight,tgt=1080/1920,r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
       if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
       try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height);}catch{}
     }
@@ -2443,61 +2262,63 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="https://unpkg.com/mp4-muxer@5.2.1/build/mp4-muxer.js"></script>
 <script>
 // MOTOR TIPO CAPCUT - WEBCODECS OFFLINE - NUNCA SE CONGELA EN DESCARGA FINAL
+
 async function renderSingleCapCut(item, onProg){
   const FPS=30;
   const START_OFFSET=0.25;
-  const W=1080, H=1920; // FB 1080x1920 9:16 Rec.709 Full HD vertical
+  const W=1080, H=1920;
   const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true, colorSpace:'srgb'}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
   await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
   const vDur=v.duration||item.videoDur||10;
-  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): {rate:1,useLoop:false, finalDur:item.audioDur||vDur};
+  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): (typeof calcDurInfo==='function'?calcDurInfo(item): {rate:1,useLoop:false, finalDur:item.audioDur||vDur});
   let aDur=item.audioDur||0;
   let audioBuffer=null;
-  try{
-    const ac=new (window.AudioContext||window.webkitAudioContext)();
-    const resp=await fetch(item.audioUrl); const ab=await resp.arrayBuffer();
-    audioBuffer=await ac.decodeAudioData(ab);
-    aDur=audioBuffer.duration||aDur;
-    await ac.close();
-  }catch{}
-  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10;
+  let ac=null;
+  if(item.audioUrl){
+    try{
+      ac=new (window.AudioContext||window.webkitAudioContext)();
+      const resp=await fetch(item.audioUrl); const ab=await resp.arrayBuffer();
+      audioBuffer=await ac.decodeAudioData(ab);
+      aDur=audioBuffer.duration||aDur;
+      await ac.close();
+    }catch(e){ console.warn('audio decode fail', e); }
+  }
+  const realTotal=aDur||vDur||10;
   const totalFrames=Math.ceil(realTotal*FPS);
-
+  
   function drawFrame(curTime){
-    // Fondo negro Rec.709
     ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-    // Video cover 9:16 sin deformar, centrado
-    if(v.videoWidth){
-      const vw=v.videoWidth, vh=v.videoHeight;
-      const tgt=W/H, r=vw/vh;
-      let sx=0,sy=0,sw=vw,sh=vh;
-      if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
-      try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{}
+    if(v.videoWidth){ 
+      const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; 
+      let sx=0,sy=0,sw=vw,sh=vh; 
+      if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
+      try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} 
     }
-    // Titulo centrado top para 1080x1920
+    // TITULO 28 chars x 2 lineas - referencia
     try{
       const titleText=(item.title||'').trim().toUpperCase();
       if(titleText){
-        const titleLines=typeof splitWords==='function'?splitWords(titleText,22).slice(0,2):[titleText];
+        const titleLines=typeof splitWords==='function'?splitWords(titleText,28).slice(0,2):[titleText];
         ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
         titleLines.forEach((l,i)=>{
-          const y=120+i*72; // centrado top 1080x1920
-          ctx.font='900 54px Anton';
+          const y=45+i*48;
+          ctx.font=`900 28px Anton`;
           const fw=ctx.measureText(l).width;
-          const rw=Math.min(fw+48, W*0.90);
-          const rh=62;
+          const rw=Math.min(fw+32, W*0.92);
+          const rh=34;
           const cx=W/2;
           ctx.fillStyle='rgba(0,0,0,0.92)';
-          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, 12); ctx.fill(); }
+          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
           else ctx.fillRect(cx-rw/2, y-rh/2, rw, rh);
-          ctx.lineWidth=8; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00';
+          ctx.lineWidth=6; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00';
           ctx.strokeText(l,cx,y); ctx.fillText(l,cx,y);
         });
       }
     }catch(e){}
-    // Subtitulo centrado bottom para 1080x1920
+    // SUBS 34 chars x 3 lineas
     try{
       const scriptText=(item.script||'').trim();
       const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
@@ -2507,54 +2328,57 @@ async function renderSingleCapCut(item, onProg){
         subText=subs[si]||'';
       }
       if(subText){
-        let lines=typeof splitWords==='function'?splitWords(subText.toUpperCase(),28).slice(0,3):[subText.toUpperCase()];
+        let lines=typeof splitWords==='function'?splitWords(subText.toUpperCase(),34).slice(0,3):[subText.toUpperCase()];
         if(lines.length===1){ const w=lines[0].split(' '); const p=Math.ceil(w.length/3); lines=[w.slice(0,p).join(' '), w.slice(p,p*2).join(' '), w.slice(p*2).join(' ')].filter(Boolean); }
         else if(lines.length===2){ const w=lines[1].split(' '); const p=Math.ceil(w.length/2); lines=[lines[0], w.slice(0,p).join(' '), w.slice(p).join(' ')].filter(Boolean); }
         lines=lines.slice(0,3);
         lines.forEach((ln,j)=>{
-          const y=1420+j*68; // centrado bottom 1080x1920
-          ctx.font='800 42px \"Plus Jakarta Sans\"';
+          const y=620+j*40;
+          ctx.font='800 22px "Plus Jakarta Sans"';
           const m=ctx.measureText(ln);
-          const bw=Math.min(m.width+48, W*0.88);
-          const bh=54;
+          const bw=Math.min(m.width+36, W*0.90);
+          const bh=32;
           const cx=W/2;
           ctx.fillStyle='rgba(0,0,0,0.85)';
-          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, 12); ctx.fill(); }
+          if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, 10); ctx.fill(); }
           else ctx.fillRect(cx-bw/2, y-bh/2, bw, bh);
-          ctx.lineWidth=6; ctx.strokeStyle='#000'; ctx.fillStyle='#FFF';
+          ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFF';
           ctx.textAlign='center'; ctx.textBaseline='middle';
           ctx.strokeText(ln,cx,y); ctx.fillText(ln,cx,y);
         });
       }
     }catch(e){}
   }
-
-  if(typeof VideoEncoder==='undefined' || typeof Mp4Muxer==='undefined'){ return await window.renderSingleFastCapCutFallback(item, onProg); }
-
+  
+  if(typeof VideoEncoder==='undefined' || typeof Mp4Muxer==='undefined'){
+    console.warn('WebCodecs no soportado, fallback');
+    return await window.renderSingleFastCapCutFallback(item, onProg);
+  }
+  
   try{
     const { Muxer, ArrayBufferTarget } = Mp4Muxer;
     const target=new ArrayBufferTarget();
     const muxer=new Muxer({
       target: target,
+      fastStart: 'in-memory',
       video: { codec:'avc', width:W, height:H },
-      audio: audioBuffer? { codec:'aac', sampleRate: 48000, numberOfChannels: 2 } : undefined,
+      audio: audioBuffer? { codec:'aac', sampleRate: 48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
       fastStart:'in-memory',
       firstTimestampBehavior:'offset'
     });
-    const fpsForExport = 30;
-    const bitrateForExport = fpsForExport >= 60 ? 12000000 : 8000000;
+    
     const videoEncoder=new VideoEncoder({
       output: (chunk, meta)=> muxer.addVideoChunk(chunk, meta),
       error: e=> console.error('VideoEncoder error', e)
     });
     videoEncoder.configure({
-      codec:'avc1.640028',
+      codec:'avc1.42E01E',
       width:W, height:H,
-      bitrate:bitrateForExport,
-      framerate:fpsForExport,
-      hardwareAcceleration:'prefer-hardware',
-      latencyMode:'quality',
+      bitrate: (typeof FPS!=="undefined" && FPS>=60 ? 11_000_000 : 8_000_000) // 8Mbps 30fps / 11Mbps 60fps, // FB 2.5 Mbps optimal
+      framerate:FPS,
+      hardwareAcceleration:'prefer-hardware', latencyMode:'quality'
     });
+    
     let audioEncoder=null;
     if(audioBuffer){
       audioEncoder=new AudioEncoder({
@@ -2564,10 +2388,16 @@ async function renderSingleCapCut(item, onProg){
       audioEncoder.configure({
         codec:'mp4a.40.2',
         sampleRate: 48000,
-        numberOfChannels: 2,
-        bitrate:128000
+        numberOfChannels: audioBuffer.numberOfChannels,
+        bitrate:128_000
       });
     }
+    
+    v.currentTime=START_OFFSET;
+    await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,200); });
+    await window.__ensureFontsReady();
+    
+    // Pre-buffer: asegura que el video esté completamente listo
     v.preload='auto';
     if(v.readyState < 3){
       await new Promise(r=>{
@@ -2575,62 +2405,65 @@ async function renderSingleCapCut(item, onProg){
         check();
       });
     }
-    v.currentTime=START_OFFSET;
-    await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,150); });
-    let lastValidFrame=null;
-    await window.__ensureFontsReady();
-    let accumulatedVideoTime = 0;
+
     for(let i=0;i<totalFrames;i++){
       const curTime=i/FPS;
-      const rate = info.rate || 1;
-      if(i>0) accumulatedVideoTime += (1/FPS) * rate;
-      let targetVideoTime = START_OFFSET + accumulatedVideoTime;
+      let targetVideoTime=START_OFFSET + (curTime * (info.rate||1));
       if(info.useLoop && v.duration){
-        const loopDur = v.duration - START_OFFSET - 0.30;
-        if(loopDur>0) targetVideoTime = START_OFFSET + (accumulatedVideoTime % loopDur);
-      } else if(v.duration){ targetVideoTime=Math.min(targetVideoTime, v.duration-0.10); }
-      if(Math.abs(v.currentTime - targetVideoTime) > 0.06){
+        const loopDur=v.duration - START_OFFSET - 0.10;
+        if(loopDur>0) targetVideoTime=START_OFFSET + (targetVideoTime % loopDur);
+      } else if(v.duration){
+        targetVideoTime=Math.min(targetVideoTime, v.duration-0.10);
+      }
+      
+      // FIX TRABADO EXPORT: solo hace seek si realmente cambia >100ms y usa fastSeek
+      if(Math.abs(v.currentTime - targetVideoTime) > 0.10){
         await new Promise(r=>{
           const onSeek=()=>{ v.removeEventListener('seeked',onSeek); r(); };
           v.addEventListener('seeked',onSeek);
-          try{ if('fastSeek' in v) v.fastSeek(targetVideoTime); else v.currentTime=targetVideoTime; }catch{ v.currentTime=targetVideoTime; }
-          setTimeout(r, 18);
+          try{
+            if('fastSeek' in v) v.fastSeek(targetVideoTime);
+            else v.currentTime=targetVideoTime;
+          }catch{ v.currentTime=targetVideoTime; }
+          setTimeout(r, 30);
         });
+        // Espera frame disponible
+        if(v.readyState < 2){
+          await new Promise(r=> setTimeout(r, 10));
+        }
       }
-      if(v.readyState >= 2 && v.videoWidth){ drawFrame(curTime); try{ lastValidFrame = ctx.getImageData(0,0,W,H); }catch{} }
-      else if(lastValidFrame){ try{ ctx.putImageData(lastValidFrame,0,0); }catch{ drawFrame(curTime); } }
-      else { drawFrame(curTime); }
+      
+      drawFrame(curTime);
+      
       const frame=new VideoFrame(canvas, { timestamp: Math.round(curTime*1_000_000), duration: Math.round(1_000_000/FPS) });
-      const keyFrame = i % FPS === 0;
+      const keyFrame = i % FPS === 0; // keyframe cada 1 seg = fluido
       videoEncoder.encode(frame, {keyFrame});
       frame.close();
+      
       onProg?.((i/totalFrames)*90);
-      if(i%12===0) await new Promise(r=>setTimeout(r,0));
+      
+      if(i%15===0) await new Promise(r=>setTimeout(r,0));
     }
+    
     await videoEncoder.flush();
+    
     if(audioBuffer && audioEncoder){
-      const numChannels=2; const sampleRate=48000; const frameSize=1024;
-      // Resample si es necesario (simple: usa canal 0/1)
-      const srcChannels = audioBuffer.numberOfChannels;
-      const srcRate = audioBuffer.sampleRate;
-      const ratio = srcRate / sampleRate;
-      for(let offset=0; offset<audioBuffer.length; offset+=Math.round(frameSize*ratio)){
-        const remaining=Math.min(frameSize, Math.round((audioBuffer.length-offset)/ratio));
-        if(remaining<=0) break;
+      const numChannels=audioBuffer.numberOfChannels;
+      const sampleRate=audioBuffer.sampleRate;
+      const frameSize=1024;
+      for(let offset=0; offset<audioBuffer.length; offset+=frameSize){
+        const remaining=Math.min(frameSize, audioBuffer.length-offset);
         const data=new Float32Array(remaining * numChannels);
-        for(let j=0;j<remaining;j++){
-          const srcIdx = Math.min(Math.floor(offset + j*ratio), audioBuffer.length-1);
-          for(let ch=0; ch<numChannels; ch++){
-            const srcCh = Math.min(ch, srcChannels-1);
-            data[j*numChannels+ch]=audioBuffer.getChannelData(srcCh)[srcIdx]||0;
-          }
+        for(let ch=0; ch<numChannels; ch++){
+          const channelData=audioBuffer.getChannelData(ch);
+          for(let j=0;j<remaining;j++) data[j*numChannels+ch]=channelData[offset+j];
         }
         const audioData=new AudioData({
           format:'f32',
           sampleRate: sampleRate,
           numberOfFrames: remaining,
           numberOfChannels: numChannels,
-          timestamp: Math.round((offset/srcRate)*1_000_000),
+          timestamp: Math.round((offset/sampleRate)*1_000_000),
           data: data
         });
         audioEncoder.encode(audioData);
@@ -2638,18 +2471,26 @@ async function renderSingleCapCut(item, onProg){
       }
       await audioEncoder.flush();
     }
+    
     muxer.finalize();
     const buffer=target.buffer;
-    return new Blob([buffer], {type:'video/mp4'});
-  }catch(e){ console.error(e); return await window.renderSingleFastCapCutFallback(item, onProg); }
+    const blob=new Blob([buffer], {type:'video/mp4'});
+    const url=URL.createObjectURL(blob);
+    try{ v.src=''; }catch{}
+    return {url, ext:'mp4', blob};
+    
+  }catch(e){
+    console.error('WebCodecs fail, fallback', e);
+    return await window.renderSingleFastCapCutFallback(item, onProg);
+  }
 }
 
 
-
+// Fallback rapido si WebCodecs falla - el anti-freeze anterior
 async function renderSingleFastCapCutFallback(item,onProg){
   const FPS=30; const START_OFFSET=0.25;
   const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1920;
-  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true;
+  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true, colorSpace:'srgb'}); ctx.imageSmoothingEnabled=true;
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
   await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
   const vDur=v.duration||item.videoDur||10;
@@ -2658,93 +2499,272 @@ async function renderSingleFastCapCutFallback(item,onProg){
   if(item.audioUrl){
     try{ ac=new (window.AudioContext||window.webkitAudioContext)(); dest=ac.createMediaStreamDestination(); cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; await new Promise(r=>{ cap.onloadedmetadata=()=>{aDur=cap.duration||aDur; r();}; cap.onerror=()=>r(); cap.load(); }); const src=ac.createMediaElementSource(cap); src.connect(dest); }catch{}
   }
-  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10;
-  const mimeMP4=['video/mp4;codecs=avc1.640028,mp4a.40.2','video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4'].find(m=>{try{return MediaRecorder.isTypeSupported(m);}catch{return false;}}) || 'video/webm;codecs=vp9';
+  const realTotal=aDur||vDur||10;
+  const mimeMP4=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4'].find(m=>{try{return MediaRecorder.isTypeSupported(m);}catch{return false;}}) || 'video/webm;codecs=vp9';
+  const ext=mimeMP4.includes('mp4')?'mp4':'webm';
   await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,500); });
   v.currentTime=START_OFFSET; await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,300); });
-  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:8000000, mimeType:mimeMP4, audioBitsPerSecond:128000}); // FB: 8Mbps const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
+  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:2500000, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
   await v.play().catch(()=>{}); if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); } rec.start(100);
   await new Promise(res=>{
-    let start=performance.now();
+    let start=performance.now(); let _stopped=false;
     const draw=()=>{
       const elapsed=(performance.now()-start)/1000; const cur=Math.min(elapsed, realTotal); onProg?.(Math.min((cur/realTotal)*100,100));
       try{ if(v.paused && cur<realTotal-0.1) v.play().catch(()=>{}); }catch{}
-      if(v.readyState>=2){ const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height); }catch{} }
-      const scriptText=(item.script||'').trim(); 
-      const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-      let subText=''; 
-      if(subs.length){ subText=subs[Math.min(Math.floor((cur/(aDur||realTotal))*subs.length), subs.length-1)]||''; } else { subText=scriptText.split(/\s+/).slice(0,18).join(' '); }
-      try{ window.__drawOptimizedTitleSubtitle(ctx, item.title||'', subText, 1080, 1920); }catch{}
-      if(cur < realTotal-0.05) requestAnimationFrame(draw); else { rec.stop(); try{v.pause();}catch{} if(cap) try{cap.pause();}catch{} res(); }
+      if(v.readyState>=2){ const vw=v.videoWidth, vh=v.videoHeight, tgt=1080/1920, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height); }catch{} }
+      const scriptText=(item.script||'').trim(); const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[]; const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
+      try{
+        // OPTIMIZADO FALLBACK
+        let subText='';
+        const scriptText=(item.script||'').trim();
+        const subsLocal=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
+        if(subsLocal.length){ subText=subsLocal[Math.min(Math.floor((cur/(aDur||realTotal))*subsLocal.length),subsLocal.length-1)]||''; } else { subText=scriptText.split(/\s+/).slice(0,18).join(' '); } // 18 palabras = 3 lineas de subtitulo
+        window.__drawOptimizedTitleSubtitle(ctx, (item.title||''), subText, 1080, 1920);
+      }catch{}
+      if(cur>=realTotal-0.05){ if(!_stopped){ _stopped=true; try{ rec.stop(); }catch{} setTimeout(res,300); } return; } requestAnimationFrame(draw);
     }; draw();
   });
-  const blob=await blobP;
-  if(ac) try{await ac.close();}catch{}
-  return blob;
+  const blob=await blobP; try{ v.pause(); v.src=''; }catch{} try{ if(cap){ cap.pause(); } }catch{} try{ if(ac) await ac.close(); }catch{} try{ combined.getTracks().forEach(t=>t.stop()); }catch{} try{ cStream.getTracks().forEach(t=>t.stop()); }catch{}
+  return {url:URL.createObjectURL(blob), ext};
 }
+window.renderSingle=renderSingleCapCut;
+window.renderSingleCapCut=renderSingleCapCut;
+window.renderSingleFastCapCutFallback=renderSingleFastCapCutFallback;
+</script>
+
+
+<script>
+(function(){
+  const origGenerate=window.generateVoiceIndependentFast;
+  // Patch btnRender to mute everything before and after voices
+  setTimeout(()=>{
+    const btn=document.getElementById('btnRender');
+    if(!btn) return;
+    // Intercept to add muting before voices
+    const oldClick=btn.cloneNode(true);
+  },500);
+  
+  // Global mute during batch
+  window._originalRenderSingleCapCut=window.renderSingleCapCut;
+  // Ensure no audio plays during voice phase
+  const originalGenerateVoice=window.generateVoiceIndependentFast;
+  window.generateVoiceIndependentFast=async function(slot, ttsInstance){
+    // Silenciar todo antes de generar voz
+    try{
+      document.querySelectorAll('audio').forEach(a=>{ a.pause(); a.muted=true; });
+      const prevA=document.getElementById('previewAudio'); if(prevA){ prevA.pause(); prevA.muted=true; }
+      const prevV=document.getElementById('previewVideo'); if(prevV){ prevV.pause(); prevV.muted=true; }
+    }catch{}
+    const res=await originalGenerateVoice(slot, ttsInstance);
+    try{
+      document.querySelectorAll('audio').forEach(a=>{ if(a.id!=='previewAudio'){ a.pause(); a.muted=true; } });
+    }catch{}
+    return res;
+  };
+  
+  // Patch overlay to mute after voices
+  const observer=setInterval(()=>{
+    const overlay=document.getElementById('renderOverlay');
+    if(overlay){
+      const check=()=>{
+        if(window._batchGenerating){
+          try{
+            document.querySelectorAll('audio').forEach(a=>{
+              if(a.id==='previewAudio' || a.id===''){ /* previewAudio debe estar muteado durante batch */ a.muted=true; if(!a.paused) a.pause(); }
+            });
+            const bg=document.getElementById('previewBg'); if(bg){ bg.pause(); bg.muted=true; }
+          }catch{}
+        }
+      };
+      setInterval(check, 300);
+      clearInterval(observer);
+    }
+  },500);
+  
+  console.log('[FIX] Voces no suenan durante render - mute total x6');
+})();
+</script>
+
+
+<script>
+// ===== OPTIMIZACION TITULO + SUBTITULO - PREVIEW Y DESCARGA FINAL GARANTIZADOS =====
+window.__TITLE_STYLES = {
+  viral: { // ESTILO 1 - VIRAL ACTUAL (el que dejamos activo)
+    titleFont: '900 42px Anton',
+    titleFill: '#FFEB00',
+    titleStroke: '#000000',
+    titleStrokeW: 7,
+    titleBg: 'rgba(0,0,0,0.92)',
+    titleBorder: 'rgba(255,235,0,0.35)',
+    titlePadX: 28, titlePadY: 10, titleR: 14, titleGap: 46, titleY: 120, // 3 lineas centradas
+    subFont: '800 28px "Plus Jakarta Sans"',
+    subFill: '#FFFFFF',
+    subStroke: '#000000',
+    subStrokeW: 6,
+    subBg: 'rgba(0,0,0,0.88)',
+    subBorder: 'rgba(255,235,0,0.30)',
+    subPadX: 22, subR: 14, subGap: 46, subY: 730
+  },
+  luxury: {
+    titleFont: '800 40px "Plus Jakarta Sans"',
+    titleFill: '#FFFFFF',
+    titleStroke: '#000000',
+    titleStrokeW: 6,
+    titleBg: 'rgba(15,15,18,0.92)',
+    titleBorder: 'rgba(255,255,255,0.15)',
+    titlePadX: 24, titlePadY: 8, titleR: 12, titleGap: 48, titleY: 120,
+    subFont: '700 24px "Plus Jakarta Sans"',
+    subFill: '#FFFFFF',
+    subStroke: '#000000',
+    subStrokeW: 5,
+    subBg: 'rgba(0,0,0,0.82)',
+    subBorder: 'rgba(255,255,255,0.20)',
+    subPadX: 20, subR: 12, subGap: 42, subY: 1580
+  },
+  tiktok: {
+    titleFont: '900 48px Anton',
+    titleFill: '#FFE600',
+    titleStroke: '#000000',
+    titleStrokeW: 8,
+    titleBg: 'rgba(0,0,0,0.94)',
+    titleBorder: '#FFE600',
+    titlePadX: 30, titlePadY: 12, titleR: 16, titleGap: 54, titleY: 140,
+    subFont: '800 30px "Plus Jakarta Sans"',
+    subFill: '#FFFFFF',
+    subStroke: '#000000',
+    subStrokeW: 7,
+    subBg: 'rgba(0,0,0,0.90)',
+    subBorder: 'rgba(255,255,255,0.25)',
+    subPadX: 24, subR: 16, subGap: 48, subY: 1540
+  }
+};
+window.__ACTIVE_TITLE_STYLE = 'viral'; // cambia a 'luxury' o 'tiktok' para probar
 
 window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
-  W=W||1080; H=H||1920;
+  const style = window.__TITLE_STYLES[window.__ACTIVE_TITLE_STYLE] || window.__TITLE_STYLES.viral;
+  W = W || 1080; H = H || 1920;
   ctx.save();
-  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.miterLimit = 10;
+  
+  // ---- TITULO ----
   try{
-    let t=(titleText||'').trim().toUpperCase();
+    let t = (titleText||'').trim().toUpperCase();
     if(t){
-      let lines=(typeof splitWords==='function')?splitWords(t,22).slice(0,3):[t];
-      lines.forEach((line,i)=>{
-        const y=90+i*58;
-        ctx.font=`900 52px Anton`; // FB 1080x1920 centrado
-        const textW=ctx.measureText(line).width;
-        const bgW=Math.min(textW+32, W*0.92);
-        const bgH=52;
-        const cx=W/2;
-        ctx.fillStyle='rgba(0,0,0,0.92)';
-        ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(cx-bgW/2, y-bgH/2, bgW, bgH, 8); else ctx.rect(cx-bgW/2, y-bgH/2, bgW, bgH); ctx.fill();
-        ctx.lineWidth=7; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00';
-        ctx.strokeText(line,cx,y); ctx.fillText(line,cx,y);
+      let lines = (typeof splitWords==='function') ? splitWords(t, 20).slice(0,3) : [t];
+      lines.forEach((line, i)=>{
+        const y = style.titleY + i*style.titleGap;
+        // Ajuste dinamico de tamaño
+        let fontSize = 42;
+        if(line.length > 28) fontSize = 36;
+        if(line.length > 38) fontSize = 32;
+        const font = `900 ${fontSize}px Anton`;
+        ctx.font = font;
+        try{ ctx.font = font; }catch{}
+        const metrics = ctx.measureText(line);
+        const rw = Math.min(metrics.width + style.titlePadX*2, W-40);
+        const rh = 44;
+        const cx = W/2;
+        
+        // Fondo pill con borde
+        ctx.save();
+        ctx.fillStyle = style.titleBg;
+        ctx.strokeStyle = style.titleBorder;
+        ctx.lineWidth = 1.2;
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 18;
+        ctx.shadowOffsetY = 6;
+        if(ctx.roundRect){
+          ctx.beginPath();
+          ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, style.titleR);
+          ctx.fill();
+          if(style.titleBorder){ ctx.stroke(); }
+        } else {
+          ctx.fillRect(cx-rw/2, y-rh/2, rw, rh);
+        }
+        ctx.restore();
+        
+        // Texto con stroke garantizado
+        ctx.lineWidth = style.titleStrokeW;
+        ctx.strokeStyle = style.titleStroke;
+        ctx.fillStyle = style.titleFill;
+        ctx.strokeText(line, cx, y);
+        ctx.fillText(line, cx, y);
       });
     }
-  }catch(e){}
+  }catch(e){ console.warn('title opt fail', e); }
+  
+  // ---- SUBTITULO ----
   try{
-    let sub=(subText||'').trim().toUpperCase();
-    if(sub){
-      let lines;
-      if(typeof splitWords==='function'){
-        lines=splitWords(sub,26).slice(0,3);
-        if(lines.length===1){ const words=lines[0].split(' '); const p=Math.ceil(words.length/3); lines=[words.slice(0,p).join(' '), words.slice(p,p*2).join(' '), words.slice(p*2).join(' ')].filter(Boolean); }
-        else if(lines.length===2){ const words=lines[1].split(' '); const p=Math.ceil(words.length/2); lines=[lines[0], words.slice(0,p).join(' '), words.slice(p).join(' ')].filter(Boolean); }
-      } else { lines=[sub]; }
-      lines=lines.slice(0,3);
-      lines.forEach((line,j)=>{
-        const y=1380+j*58;
-        ctx.font=`800 40px \"Plus Jakarta Sans\"`;
-        const textW=ctx.measureText(line).width;
-        const bgW=Math.min(textW+36, W*0.90);
-        const bgH=48;
-        const cx=W/2;
-        ctx.fillStyle='rgba(0,0,0,0.85)';
-        ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(cx-bgW/2, y-bgH/2, bgW, bgH, 10); else ctx.rect(cx-bgW/2, y-bgH/2, bgW, bgH); ctx.fill();
-        ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFFFFF';
-        ctx.strokeText(line,cx,y); ctx.fillText(line,cx,y);
+    let s = (subText||'').trim().toUpperCase();
+    if(s){
+      let lines = (typeof splitWords==='function') ? splitWords(s, 24).slice(0,3) : [s]; // 3 lineas de subtitulo de un solo
+      lines.forEach((line, j)=>{
+        const y = style.subY + j*style.subGap;
+        let fontSize = 28;
+        if(line.length > 30) fontSize = 24;
+        if(line.length > 40) fontSize = 22;
+        const font = `800 ${fontSize}px \"Plus Jakarta Sans\"`;
+        ctx.font = font;
+        const m = ctx.measureText(line);
+        const bw = Math.min(m.width + style.subPadX*2, W-48);
+        const bh = 46;
+        const cx = W/2;
+        
+        // Fondo
+        ctx.save();
+        ctx.fillStyle = style.subBg;
+        ctx.strokeStyle = style.subBorder;
+        ctx.lineWidth = 1.2;
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 14;
+        ctx.shadowOffsetY = 4;
+        if(ctx.roundRect){
+          ctx.beginPath();
+          ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, style.subR);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(cx-bw/2, y-bh/2, bw, bh);
+        }
+        ctx.restore();
+        
+        // Texto
+        ctx.font = font;
+        ctx.lineWidth = style.subStrokeW;
+        ctx.strokeStyle = style.subStroke;
+        ctx.fillStyle = style.subFill;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.strokeText(line, cx, y);
+        ctx.fillText(line, cx, y);
       });
     }
-  }catch(e){}
+  }catch(e){ console.warn('sub opt fail', e); }
+  
   ctx.restore();
 };
 
+// Helper que asegura fuentes cargadas antes de dibujar en export
 window.__ensureFontsReady = async function(){
   try{
     if(document.fonts && document.fonts.ready){
       await document.fonts.ready;
+      // Forzar carga Anton
       if(document.fonts.check){
         try{ await document.fonts.load('900 42px Anton'); }catch{}
-        try{ await document.fonts.load('800 28px \"Plus Jakarta Sans\"'); }catch{}
+        try{ await document.fonts.load('800 28px "Plus Jakarta Sans"'); }catch{}
       }
     }
   }catch{}
 };
 </script>
+
+
 <script>
+// FIX PREVIEW PLAY - CapCut style low overhead
 document.addEventListener('DOMContentLoaded', ()=>{
   const vEl = document.getElementById('previewVideo');
   const c = document.getElementById('previewCanvas');
@@ -2752,7 +2772,26 @@ document.addEventListener('DOMContentLoaded', ()=>{
     vEl.addEventListener('loadedmetadata', ()=>{ console.log('[Preview] video loaded', vEl.videoWidth, vEl.videoHeight); });
     vEl.addEventListener('error', (e)=>{ console.error('[Preview] video error', e); });
   }
+  // Asegurar que el canvas no bloquee clicks
   if(c){ c.style.pointerEvents='none'; }
+});
+</script>
+
+
+<script>
+// FIX CARGA ARCHIVOS - asegura click en labels
+document.addEventListener('DOMContentLoaded', ()=>{
+  const vLbl = document.getElementById('lblVideo');
+  const vInp = document.getElementById('inputVideo');
+  const aLbl = document.getElementById('lblAudio');
+  const aInp = document.getElementById('inputAudio');
+  const tLbl = document.getElementById('lblTxt');
+  const tInp = document.getElementById('inputTxt');
+  if(vLbl && vInp) vLbl.addEventListener('click', ()=> vInp.click());
+  if(aLbl && aInp) aLbl.addEventListener('click', ()=> aInp.click());
+  if(tLbl && tInp) tLbl.addEventListener('click', ()=> tInp.click());
+  // Fix pointer-events for file buttons
+  document.querySelectorAll('.file-btn').forEach(b=> b.style.pointerEvents='auto');
 });
 </script>
 </body></html>
