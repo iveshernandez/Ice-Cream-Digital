@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital-Video</title>
+<title>Ice Cream Digital sub</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -102,7 +101,7 @@ body > div[style*="max-width:1750px"]{
 }
 
 /* Preview centrado */
-#previewCanvas, #vPreview{
+#previewCanvas, #vPreview{ aspect-ratio:9/16; 
   border-radius:12px;
 }
 .glass[style*="position:sticky"]{
@@ -380,7 +379,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
 <audio id="previewAudio" preload="auto" style="display:none"></audio>
 <div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
-<canvas id="previewCanvas" width="720" height="900" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none"></canvas>
+<canvas id="previewCanvas" width="1080" height="1920" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none"></canvas>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
 <div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px"><div style="width:44px;height:44px;background:#FFEB00;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div><div id="renderText" style="display:none !important">RENDER 720p</div><div id="renderList" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin-top:4px"></div><div style="width:100%;max-width:320px;height:1px;background:#222;margin:4px 0"></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div id="renderPct" style="font-size:42px;font-weight:900;color:#FFEB00;line-height:1;letter-spacing:-1px">0%</div><div id="renderTotalLabel" style="font-size:10px;color:#666;font-weight:800;letter-spacing:1.2px">TOTAL</div></div></div>
 </div>
@@ -445,20 +444,15 @@ const getA=()=>queue.find(q=>q.id===activeId);
 function getRateInfo(vDur,aDur){
   if(!vDur||!aDur) return {rate:1,useLoop:false,realTotal:vDur||aDur||0,needed:1,stretchFirst:false};
   const needed=vDur/aDur;
-  const MIN_RATE = 0.5; // MAXIMO FLUIDO: 1 / 0.5 = 2x más largo sin trabarse
-  if(needed < 1){
-    if(needed < MIN_RATE){
-      // Video muy corto: estirar al máximo fluido 0.5x y loopear lo que falte
-      const stretchedDur = vDur / MIN_RATE;
-      const useLoop = stretchedDur < aDur;
-      return {rate:MIN_RATE,useLoop,realTotal:aDur,needed,stretchFirst:true, stretchedDur};
-    }else{
-      // Video un poco corto (ej: 3min video, 4min audio = 0.75x): estirar fluido sin loop
-      return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:true};
-    }
+  const MAX_AUDIO = 360; // 6 min max automatico
+  const a = Math.min(aDur, MAX_AUDIO);
+  const MIN_RATE = 0.5; // OPTIMO 0% TRABADO
+  if(needed >= MIN_RATE){
+    return {rate:needed,useLoop:false,realTotal:a,needed,stretchFirst:true, mode:`Optimo ${needed.toFixed(2)}x fluido`};
   }
-  if(needed>4) return {rate:4,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
-  return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
+  const stretchedPerLoop = vDur / MIN_RATE;
+  const loopsNeeded = Math.ceil(a / stretchedPerLoop);
+  return {rate:MIN_RATE,useLoop:true,realTotal:a,needed,stretchFirst:true, mode:`Optimo 0.5x fluido x${loopsNeeded} loops`, loops:loopsNeeded, dynamic:false};
 }
 function calcDurInfo(q){
   if(!q.videoDur||!q.audioDur) return null;
@@ -589,81 +583,95 @@ function renderOverlay(){
   startLoop();
 }
 function updSubs(){
-  const it=getA();
-  if(!it) return;
-  // V27 FIX DEFINITIVO: Subtitulo sincronizado a duracion REAL del audio generado de ESTE slot
-  const hasAudio = !!(it.audioUrl && it.audioDur && it.audioDur>0);
-  const total= hasAudio ? it.audioDur : (it.videoDur||vEl.duration||0);
-  let cur = 0;
+  const it=getA(); if(!it) return;
+  let hasAudio=!!(it.audioUrl && it.audioDur);
+  const total=hasAudio?it.audioDur:(vEl.duration||0);
+  let cur=0;
   if(hasAudio){
-    // Si estamos reproduciendo, usar currentTime del audio
-    // Si no, calcular progreso basado en video pero escalado a audioDur
-    if(!aEl.paused && aEl.src && it.audioUrl && aEl.src.includes('blob')){
-      cur = aEl.currentTime;
-    } else if(vEl.duration && !vEl.paused){
-      // Durante preview sin audio playing, escalar video time a audio time
-      const videoProgress = vEl.currentTime / (it.videoDur||vEl.duration||1);
-      cur = videoProgress * it.audioDur;
-    } else {
-      // Si todo pausado, usar 0 para mostrar primer subtitulo
-      cur = hasAudio && !aEl.paused ? aEl.currentTime : 0;
+    if(it.audioUrl && aEl.src.includes('blob')){
+      cur=aEl.currentTime;
+    }else if(vEl.duration && !vEl.paused){
+      const videoProgress=vEl.currentTime/(it.videoDur||vEl.duration||1);
+      cur=videoProgress*it.audioDur;
+    }else{
+      cur=hasAudio && !aEl.paused?aEl.currentTime:0;
     }
-  } else {
-    cur = vEl.currentTime||0;
+  }else{
+    cur=vEl.currentTime||0;
   }
   const canvas=$("previewCanvas");
   if(!canvas) return;
   const ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,720,900);
-  const tl=window._previewTL || splitWords((it.title||'').toUpperCase(),28).slice(0,2);
-  const subs=window._previewSubs || chunkSubs(it.script||"");
-  // DISEÑO MEJORADO TITULO
+  
+  // === ESTILO REFERENCIA: AMARILLO ARRIBA / BLANCO ABAJO AJUSTADO AL ANCHO ===
+  const W=1080, H=1920; // FACEBOOK REELS 9:16
   ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
-  ctx.font=`900 ${tl.join(' ').length>90?30:36}px Anton`;
-  tl.forEach((l,i)=>{
-    const y=45+i*48;
-    const fw = ctx.measureText(l).width;
-    // Fondo negro pill detrás del título para que resalte sin degradado
-    ctx.save();
-    ctx.fillStyle='#000000';
-    ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=12; ctx.shadowOffsetY=4;
-    const padX=28, padY=10;
-    const rw=fw+padX*2, rh=38;
-    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); }
-    else { ctx.fillRect(360-rw/2, y-rh/2, rw, rh); }
-    ctx.restore();
-    // Borde y relleno amarillo
-    ctx.lineWidth=6; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00';
-    ctx.strokeText(l,360,y); ctx.fillText(l,360,y);
-    // Brillo interior sutil
-    ctx.lineWidth=1.5; ctx.strokeStyle='rgba(255,255,255,0.25)';
-    ctx.strokeText(l,360,y);
-  });
-  ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
-  if(subs.length){
-    let idx=total>0.2?Math.floor((cur/total)*subs.length):0;
-    idx=Math.max(0,Math.min(idx,subs.length-1));
-    const curr=subs[idx]||'';
-    if(curr){
-      const ls=splitWords(curr.toUpperCase(),22).slice(0,3);
-      ls.forEach((ln,j)=>{
-        const y=620+j*40;
-        ctx.font='800 28px Plus Jakarta Sans';
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        const m=ctx.measureText(ln);
-        const bw=m.width+36, bh=42;
-        // Fondo subtitulo mejorado - negro 85% con borde amarillo sutil
-        ctx.save();
-        ctx.fillStyle='rgba(0,0,0,0.85)';
-        ctx.strokeStyle='rgba(255,235,0,0.25)'; ctx.lineWidth=1;
-        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2, y-bh/2, bw, bh, 12); ctx.fill(); ctx.stroke(); }
-        else { ctx.fillRect(360-bw/2, y-bh/2, bw, bh); }
-        ctx.restore();
-        ctx.font='800 28px Plus Jakarta Sans'; ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFFFFF';
-        ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y);
+  
+  // TITULO
+  try{
+    let t=(it.title||'').trim().toUpperCase();
+    if(t){
+      let lines=splitWords(t,22).slice(0,3);
+      lines.forEach((line,i)=>{
+        const y=42+i*42;
+        ctx.font=`900 28px Anton`;
+        const textW=ctx.measureText(line).width;
+        const bgW=Math.min(textW+32, W*0.92);
+        const bgH=34;
+        const cx=360;
+        // fondo negro ajustado
+        ctx.fillStyle='rgba(0,0,0,0.92)';
+        ctx.beginPath();
+        if(ctx.roundRect) ctx.roundRect(cx-bgW/2, y-bgH/2, bgW, bgH, 8);
+        else ctx.fillRect(cx-bgW/2, y-bgH/2, bgW, bgH);
+        ctx.fill();
+        // texto amarillo
+        ctx.lineWidth=7; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00';
+        ctx.strokeText(line,cx,y); ctx.fillText(line,cx,y);
       });
     }
-  }
+  }catch(e){ console.log('title err',e); }
+  
+  // SUBTITULOS - SIEMPRE 3 LINEAS
+  try{
+    let subs=[];
+    try{ subs=chunkSubs(it.script||""); }catch{ subs=[it.script||'']; }
+    let idx=0;
+    if(subs.length && total>0.2){ idx=Math.max(0,Math.min(Math.floor((cur/total)*subs.length),subs.length-1)); }
+    let curr=subs[idx]||'';
+    curr=curr.trim().toUpperCase();
+    if(curr){
+      let lines=splitWords(curr,26);
+      // forzar 3 lineas
+      if(lines.length===1){
+        const words=lines[0].split(' ');
+        const p=Math.ceil(words.length/3);
+        lines=[words.slice(0,p).join(' '), words.slice(p,p*2).join(' '), words.slice(p*2).join(' ')].filter(Boolean);
+      }else if(lines.length===2){
+        const words=lines[1].split(' ');
+        const p=Math.ceil(words.length/2);
+        lines=[lines[0], words.slice(0,p).join(' '), words.slice(p).join(' ')].filter(Boolean);
+      }
+      lines=lines.slice(0,3);
+      lines.forEach((line,j)=>{
+        const y=640+j*40;
+        ctx.font=`800 22px "Plus Jakarta Sans"`;
+        const textW=ctx.measureText(line).width;
+        const bgW=Math.min(textW+36, W*0.90);
+        const bgH=32;
+        const cx=360;
+        ctx.fillStyle='rgba(0,0,0,0.85)';
+        ctx.beginPath();
+        if(ctx.roundRect) ctx.roundRect(cx-bgW/2, y-bgH/2, bgW, bgH, 10);
+        else ctx.fillRect(cx-bgW/2, y-bgH/2, bgW, bgH);
+        ctx.fill();
+        ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFFFFF';
+        ctx.strokeText(line,cx,y); ctx.fillText(line,cx,y);
+      });
+    }
+  }catch(e){ console.log('sub err',e); }
+  
   if(total>0) $("progressBar").style.width=Math.min((cur/total)*100,100)+'%';
 }
 
@@ -829,107 +837,87 @@ function isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas){ try{v&&v.pause
 
 
 
-
 async function renderSingle(item,onProg){
-  const FPS=30, W=720, H=900;
-  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d',{alpha:false});
-  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto'; v.playsInline=true;
-  await new Promise(r=>{ v.onloadedmetadata=r; v.onerror=r; v.load(); });
-  await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=r; setTimeout(r,800); });
-  const info=typeof getRateInfo==='function'?getRateInfo(v.duration, item.audioDur||v.duration):{rate:1,useLoop:false};
-  let audioBuffer=null;
-  if(item.audioBlob){
+  const FPS=30;
+  const START_OFFSET=0.25;
+  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1920;
+  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  const vPre=document.createElement('video'); vPre.src=item.videoUrl; vPre.muted=true; vPre.crossOrigin='anonymous'; vPre.preload='auto';
+  await new Promise(r=>{ vPre.onloadedmetadata=()=>r(); vPre.onerror=()=>r(); vPre.load(); });
+  const vDur=vPre.duration||item.videoDur||10;
+  try{ vPre.pause(); vPre.src=''; }catch{}
+  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): (typeof calcDurInfo==='function'?calcDurInfo(item): {rate:1,useLoop:false, finalDur:item.audioDur||vDur});
+  const scriptText=(item.script||'').trim();
+  const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
+  const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
+  let ac,dest,cap=null;
+  let aDur=item.audioDur||0;
+  if(item.audioUrl){
     try{
-      const ac=new (window.AudioContext||window.webkitAudioContext)();
-      audioBuffer=await ac.decodeAudioData((await item.audioBlob.arrayBuffer()).slice(0));
-      await ac.close();
-    }catch(e){ console.warn('audioBlob decode fail',e); }
-  } else if(item.audioUrl){
-    try{
-      const blob=await (await fetch(item.audioUrl)).blob();
-      const ac=new (window.AudioContext||window.webkitAudioContext)();
-      audioBuffer=await ac.decodeAudioData((await blob.arrayBuffer()).slice(0));
-      await ac.close();
-      item.audioBlob=blob;
-    }catch(e){ console.warn('audioUrl decode fail',e); }
+      ac=new (window.AudioContext||window.webkitAudioContext)();
+      dest=ac.createMediaStreamDestination();
+      cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; cap.preload='auto';
+      await new Promise(r=>{ cap.onloadedmetadata=()=>{ aDur=cap.duration||aDur; r(); }; cap.onerror=()=>r(); cap.load(); });
+      const src=ac.createMediaElementSource(cap);
+      src.connect(dest);
+    }catch(e){ console.warn(e); }
   }
-  const realTotal=item.audioDur||audioBuffer?.duration||v.duration||10;
-  const totalFrames=Math.ceil(realTotal*FPS);
-  if(window.__ensureFontsReady) await window.__ensureFontsReady();
-  else if(document.fonts?.ready) await document.fonts.ready;
-  const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
-  const target=new ArrayBufferTarget();
-  const muxer=new Muxer({
-    target,
-    video:{codec:'avc', width:W, height:H},
-    audio: audioBuffer ? {codec:'aac', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:audioBuffer.sampleRate} : undefined,
-    fastStart:'in-memory'
+  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10; // FIX 4s bug: usa duración real del audio decodificado
+  const mimeMP4=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1.42E01E','video/mp4'].find(m=>{ try{ return MediaRecorder.isTypeSupported(m); }catch{ return false; } }) || 'video/webm;codecs=vp9';
+  const ext=mimeMP4.includes('mp4')?'mp4':'webm';
+  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.crossOrigin='anonymous'; v.preload='auto'; v.volume=0;
+  await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
+  await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,600); });
+  v.playbackRate=info.rate||info.playbackRate||1; v.loop=info.useLoop||false;
+  v.currentTime=Math.min(START_OFFSET, v.duration-0.1||START_OFFSET);
+  await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,400); });
+  for(let k=0;k<3;k++){ try{ const vw=v.videoWidth,vh=v.videoHeight; if(vw&&vh){ const tgt=W/H, rv=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height);} }catch{} await new Promise(r=>setTimeout(r,40)); }
+  const cStream=canvas.captureStream(FPS);
+  const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]);
+  const rec=new MediaRecorder(combined,{videoBitsPerSecond:5000000, mimeType:mimeMP4, audioBitsPerSecond:128000});
+  const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+  const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
+  await v.play().catch(()=>{});
+  if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); }
+  rec.start(100);
+  await new Promise(res=>{
+    let start=performance.now(); let _stopped=false;
+    let safetyTimeout=setTimeout(()=>{ if(!_stopped){ _stopped=true; try{ rec.stop(); }catch{} res(); } }, (realTotal+3)*1000);
+    const draw=()=>{
+      const elapsed=(performance.now()-start)/1000;
+      const cur=Math.min(elapsed, realTotal);
+      onProg?.(Math.min((cur/realTotal)*100,100));
+      // Anti-freeze: si video se pauso o termino y necesitamos loop, re-play
+      try{
+        if(v.paused && !v.ended && cur < realTotal-0.1){ v.play().catch(()=>{}); }
+        if(v.ended && info.useLoop){ v.currentTime=START_OFFSET; v.play().catch(()=>{}); }
+      }catch{}
+      if(v.readyState>=2){
+        const vw=v.videoWidth, vh=v.videoHeight;
+        if(vw&&vh){ const tgt=W/H, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height); }catch{} } else { ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
+      } else { ctx.fillStyle='#000'; ctx.fillRect(0,0,720,900); }
+      try{
+        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
+        ctx.font=`900 ${tLines.join(' ').length>90?28:34}px Anton`;
+        tLines.forEach((l,i)=>{ const y=42+i*40; const fw=ctx.measureText(l).width; ctx.save(); ctx.fillStyle='#000'; const padX=22,rh=34,rw=fw+padX*2; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-rw/2,y-rh/2,rw,rh,8); ctx.fill(); } else ctx.fillRect(360-rw/2,y-rh/2,rw,rh); ctx.restore(); ctx.lineWidth=3.5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(l,360,y); ctx.fillText(l,360,y); });
+        if(subs.length){
+          const audioCur=(cap&&!cap.paused)?cap.currentTime:cur;
+          const si=Math.min(Math.floor((audioCur/(aDur||realTotal))*subs.length),subs.length-1);
+          const curr=subs[si]||'';
+          if(curr){ const ls=typeof splitWords==='function'?splitWords(curr.toUpperCase(),22).slice(0,3):[curr]; ls.forEach((ln,j)=>{ const y=700+j*42; ctx.font='800 28px Plus Jakarta Sans'; const m=ctx.measureText(ln); const bw=m.width+36,bh=42; ctx.save(); ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.strokeStyle='rgba(255,235,0,0.25)'; ctx.lineWidth=1; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(360-bw/2,y-bh/2,bw,bh,12); ctx.fill(); ctx.stroke(); } ctx.restore(); ctx.font='800 28px Plus Jakarta Sans'; ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.strokeText(ln,360,y); ctx.fillText(ln,360,y); }); }
+        }
+      }catch{}
+      if(cur>=realTotal-0.05){ if(!_stopped){ _stopped=true; clearTimeout(safetyTimeout); try{ rec.stop(); }catch{} setTimeout(res,300); } return; }
+      requestAnimationFrame(draw);
+    };
+    draw();
   });
-  const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error('VideoEncoder',e)});
-  vEnc.configure({codec:'avc1.42001E', width:W, height:H, bitrate:2_500_000, framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'avc'}});
-  let aEnc=null;
-  if(audioBuffer){
-    aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error('AudioEncoder',e)});
-    aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:audioBuffer.sampleRate, bitrate:128000});
-  }
-  for(let f=0; f<totalFrames; f++){
-    const cur=f/FPS;
-    if(onProg) onProg(Math.min((cur/realTotal)*85,85));
-    let vt=info.useLoop?(cur*(info.rate||1))%v.duration:Math.min(cur*(info.rate||1), v.duration-0.05);
-    if(Math.abs(v.currentTime-vt)>0.02){
-      v.currentTime=vt;
-      await new Promise(r=>{
-        let done=false;
-        const fn=()=>{ if(!done){done=true; v.removeEventListener('seeked',fn); r(); } };
-        v.addEventListener('seeked',fn);
-        setTimeout(()=>{ if(!done){done=true; v.removeEventListener('seeked',fn); r(); } },80);
-      });
-    }
-    ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-    try{
-      const vw=v.videoWidth, vh=v.videoHeight;
-      if(vw&&vh){
-        const tgt=W/H, rv=vw/vh;
-        let sx=0,sy=0,sw=vw,sh=vh;
-        if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
-        ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H);
-      }
-    }catch{}
-    try{
-      if(window.__drawOptimizedTitleSubtitle){
-        const subs=typeof chunkSubs==='function'?chunkSubs(item.script||''):[];
-        let sub=''; if(subs.length){ const idx=Math.min(Math.floor((cur/realTotal)*subs.length), subs.length-1); sub=subs[Math.max(0,idx)]||''; }
-        window.__drawOptimizedTitleSubtitle(ctx, item.title||'', sub, W, H);
-      }
-    }catch(e){}
-    const frame=new VideoFrame(canvas, {timestamp:cur*1e6, duration:(1/FPS)*1e6});
-    vEnc.encode(frame, {keyFrame:f%(FPS*2)===0});
-    frame.close();
-    if(f%10===0) await new Promise(r=>setTimeout(r,0));
-  }
-  await vEnc.flush(); vEnc.close();
-  if(audioBuffer && aEnc){
-    const ch=audioBuffer.numberOfChannels, sr=audioBuffer.sampleRate, total=audioBuffer.length;
-    for(let i=0;i<total;i+=1024){
-      const len=Math.min(1024, total-i);
-      const data=new Float32Array(len*ch);
-      for(let c=0;c<ch;c++){ const cd=audioBuffer.getChannelData(c); for(let s=0;s<len;s++) data[s*ch+c]=cd[i+s]; }
-      const ad=new AudioData({format:'f32', sampleRate:sr, numberOfChannels:ch, numberOfFrames:len, timestamp:(i/sr)*1e6, data});
-      aEnc.encode(ad); ad.close();
-      if(onProg) onProg(85+Math.min((i/total)*15,15));
-    }
-    await aEnc.flush(); aEnc.close();
-  }
-  muxer.finalize();
-  const blob=new Blob([target.buffer], {type:'video/mp4'});
-  try{ v.pause(); v.src=''; }catch{}
-  if(blob.size>1000) return {url:URL.createObjectURL(blob), ext:'mp4', blob};
-  throw new Error('MP4 vacio');
+  const blob=await blobP;
+  try{ v.pause(); v.src=''; }catch{} try{ if(cap){ cap.pause(); cap.src=''; } }catch{} try{ if(ac) await ac.close(); }catch{} try{ combined.getTracks().forEach(t=>t.stop()); }catch{} try{ cStream.getTracks().forEach(t=>t.stop()); }catch{}
+  if(blob.size>2000) return {url:URL.createObjectURL(blob), ext:ext};
+  return {url:'', ext:ext};
 }
 window.renderSingle=renderSingle;
-
 
 
 
@@ -982,12 +970,13 @@ try{
 
 
 
-<!-- V27 FIX DEFINITIVO - VOZ POR SLOT + SYNC SUBS - FIXED V14 -->
+<!-- V27 FIX DEFINITIVO - VOZ POR SLOT + SYNC SUBS -->
 <script type="module">
 const $id = (id)=>document.getElementById(id);
 
 function getActiveSlot(){
   try{
+    // Usar window.activeId que ahora si existe
     const curId = window.activeId || 1;
     if(window.queue){
       return window.queue.find(q=>q.id===curId) || window.queue[0];
@@ -999,7 +988,7 @@ function getActiveSlot(){
 function setKStatus(t, isError=false){
   const el=$id('kokoroStatus');
   if(el){ el.textContent=t; el.style.color=isError?'#ef4444':'#4ade80'; }
-  console.log('[Piper V14]', t);
+  console.log('[Piper V27]', t);
 }
 function setKProg(p){
   const bar=$id('kokoroProgress'); const fill=$id('kokoroProgressBar');
@@ -1010,92 +999,118 @@ function setKProg(p){
 let ttsLib = null;
 async function getTTS(){
   if(ttsLib) return ttsLib;
-  setKStatus('Cargando motor Piper...'); setKProg(20);
-  const cdns=[
-    'https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm',
-    'https://esm.run/@mintplex-labs/piper-tts-web@1.0.4',
-    'https://cdn.skypack.dev/@mintplex-labs/piper-tts-web@1.0.4'
-  ];
-  for(let url of cdns){
+  setKStatus('Cargando motor Piper...');
+  setKProg(20);
+  try{
+    ttsLib = await import('https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm');
+    setKProg(50);
+    setKStatus('Motor listo');
+    return ttsLib;
+  }catch(e){
+    console.error('CDN jsdelivr fallo', e);
     try{
-      console.log('[V14] intentando CDN', url);
-      ttsLib = await import(url);
-      setKProg(50); setKStatus('Motor listo - '+url.split('/')[2]);
+      ttsLib = await import('https://esm.run/@mintplex-labs/piper-tts-web@1.0.4');
       return ttsLib;
-    }catch(e){ console.warn('CDN fallo', url, e.message); }
-  }
-  throw new Error('No se pudo cargar Piper - revisa internet');
-}
-
-function splitIntoChunks(txt, maxLen){
-  maxLen = maxLen || 380;
-  const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
-  const chunks=[]; let cur="";
-  for(let s of sentences){
-    s=s.trim(); if(!s) continue;
-    if((cur + " " + s).length <= maxLen){ cur = cur ? cur + " " + s : s; }
-    else {
-      if(cur) chunks.push(cur);
-      if(s.length > maxLen){
-        const words=s.split(/\s+/); let tmp="";
-        for(let w of words){ if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w; else { if(tmp) chunks.push(tmp); tmp=w; } }
-        if(tmp) cur=tmp; else cur="";
-      } else cur=s;
+    }catch(e2){
+      throw new Error('No se pudo cargar Piper: '+e.message);
     }
   }
-  if(cur) chunks.push(cur);
-  return chunks;
 }
-async function blobToAudioBuffer(blob, audioCtx){
-  const ab = await blob.arrayBuffer();
-  return await audioCtx.decodeAudioData(ab);
-}
-function audioBufferToWavBlob(buffer){
-  const numChannels = buffer.numberOfChannels;
-  const sampleRate = buffer.sampleRate;
-  const length = buffer.length;
-  const wavLength = length * numChannels * 2 + 44;
-  const ab = new ArrayBuffer(wavLength);
-  const view = new DataView(ab);
-  let pos=0;
-  function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
-  function write16(d){ view.setUint16(pos, d, true); pos+=2; }
-  function write32(d){ view.setUint32(pos, d, true); pos+=4; }
-  writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE');
-  writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16);
-  writeStr('data'); write32(wavLength-pos-4);
-  const channels=[]; for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
-  let offset=44;
-  for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample = Math.max(-1, Math.min(1, channels[c][i])); sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; view.setInt16(offset, sample, true); offset+=2; } }
-  return new Blob([ab], {type:'audio/wav'});
-}
+
 
 async function handleGenerate(){
   const capturedId = window.activeId || 1;
   const slot = window.queue ? window.queue.find(q=>q.id===capturedId) : null;
   if(!slot){ alert('No hay slot '+capturedId); return; }
   let text = (slot.txtContent || slot.script || document.getElementById('inputScript')?.value || '').trim();
-  if(!text){ alert('Carga .txt en paso 2 - SLOT '+capturedId+' vacio'); return; }
+  if(!text){ alert('Carga .txt en paso 2'); return; }
   
+  function splitIntoChunks(txt, maxLen){
+    maxLen = maxLen || 380;
+    const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+    const chunks=[];
+    let cur="";
+    for(let s of sentences){
+      s=s.trim();
+      if(!s) continue;
+      if((cur + " " + s).length <= maxLen){
+        cur = cur ? cur + " " + s : s;
+      } else {
+        if(cur) chunks.push(cur);
+        if(s.length > maxLen){
+          const words=s.split(/\s+/);
+          let tmp="";
+          for(let w of words){
+            if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w;
+            else { if(tmp) chunks.push(tmp); tmp=w; }
+          }
+          if(tmp) cur=tmp; else cur="";
+        } else {
+          cur=s;
+        }
+      }
+    }
+    if(cur) chunks.push(cur);
+    return chunks;
+  }
+
+  async function blobToAudioBuffer(blob, audioCtx){
+    const ab = await blob.arrayBuffer();
+    return await audioCtx.decodeAudioData(ab);
+  }
+  function audioBufferToWavBlob(buffer){
+    const numChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const length = buffer.length;
+    const wavLength = length * numChannels * 2 + 44;
+    const ab = new ArrayBuffer(wavLength);
+    const view = new DataView(ab);
+    let pos=0;
+    function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
+    function write16(d){ view.setUint16(pos, d, true); pos+=2; }
+    function write32(d){ view.setUint32(pos, d, true); pos+=4; }
+    writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE');
+    writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16);
+    writeStr('data'); write32(wavLength-pos-4);
+    const channels=[];
+    for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
+    let offset=44;
+    for(let i=0;i<length;i++){
+      for(let c=0;c<numChannels;c++){
+        let sample = Math.max(-1, Math.min(1, channels[c][i]));
+        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+        view.setInt16(offset, sample, true);
+        offset+=2;
+      }
+    }
+    return new Blob([ab], {type:'audio/wav'});
+  }
+
   const voiceSelectEl = document.getElementById('kokoroVoice');
   const speedSelectEl = document.getElementById('kokoroSpeed');
   if(voiceSelectEl) slot.voiceId = voiceSelectEl.value;
   if(speedSelectEl) slot.voiceSpeed = parseFloat(speedSelectEl.value)||1;
   let voiceId = slot.voiceId || 'es_ES-sharvard-medium';
   let speakerId = 0;
-  if(voiceId.includes(':')){ const parts = voiceId.split(':'); voiceId = parts[0]; speakerId = parseInt(parts[1]||0); }
-  const speed = slot.voiceSpeed||1;
+  if(voiceId.includes(':')){
+    const parts = voiceId.split(':');
+    voiceId = parts[0];
+    speakerId = parseInt(parts[1]||0);
+  }
+  const speed = slot.voiceSpeed;
 
   const chunks = splitIntoChunks(text, 380);
-  console.log('[V14] SLOT '+slot.id+' TXT '+text.length+' chars -> '+chunks.length+' chunks');
+  console.log('[V28] TXT total ' + text.length + ' chars -> ' + chunks.length + ' chunks');
 
   const btn=document.getElementById('btnKokoroGen');
-  if(btn){ btn.disabled=true; btn.textContent='SLOT '+slot.id+' 0/'+chunks.length; btn.style.background='#fff'; }
+  btn.disabled=true;
+  btn.textContent='SLOT '+slot.id+' 0/'+chunks.length;
+  btn.style.background='#fff';
 
   try{
     const tts = await getTTS();
-    setKStatus('[SLOT '+slot.id+'] Descargando modelo voz '+voiceId+'...');
-    const onProgress = (prog)=>{
+    document.getElementById('kokoroStatus').textContent='[SLOT '+slot.id+'] Descargando voz...';
+    const onProgress = function(prog){
       if(prog && prog.loaded && prog.total){
         const pct = Math.round(prog.loaded*100/prog.total);
         const bar=document.getElementById('kokoroProgressBar');
@@ -1104,47 +1119,35 @@ async function handleGenerate(){
         if(bar) bar.style.width=(20 + Math.round(pct*0.3))+'%';
       }
     };
-    // Descarga con retry real
-    let downloaded=false;
-    for(let attempt=1; attempt<=3 && !downloaded; attempt++){
-      try{ await tts.download(voiceId, onProgress); downloaded=true; }
-      catch(e){ console.warn('download intento '+attempt+' fallo', e); if(attempt<3) await new Promise(r=>setTimeout(r,1500)); else throw e; }
-    }
+    try{ await tts.download(voiceId, onProgress); }catch(e){ console.warn(e); }
 
-    // AudioContext con resume obligatorio
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state==='suspended') await audioCtx.resume();
     const buffers = [];
 
     for(let i=0;i<chunks.length;i++){
-      // FIX BUG1: antes era slotId undefined, ahora slot.id correcto
-      try{ if(window.updateVoiceProgressCorrecto) window.updateVoiceProgressCorrecto(slot.id, i+1, chunks.length); }catch(e){ console.warn('progress fail', e); }
+      try{ window.updateVoiceProgressCorrecto(slotId, i+1, chunks.length); }catch(e){}
 
       const chunk = chunks[i];
-      if(btn) btn.textContent='SLOT '+slot.id+' GENERANDO '+(i+1)+'/'+chunks.length;
-      setKStatus('[SLOT '+slot.id+'] Parte '+(i+1)+'/'+chunks.length+' ('+chunk.length+' chars)');
-      setKProg(50 + Math.round((i/chunks.length)*40));
+      btn.textContent='SLOT '+slot.id+' GENERANDO '+(i+1)+'/'+chunks.length;
+      document.getElementById('kokoroStatus').textContent='[SLOT '+slot.id+'] Parte '+(i+1)+'/'+chunks.length+' ('+chunk.length+' chars)';
+      const prog = 50 + Math.round((i/chunks.length)*40);
+      const bar=document.getElementById('kokoroProgressBar');
+      if(bar) bar.style.width=prog+'%';
 
-      let wavBlob=null;
-      for(let retry=1; retry<=2; retry++){
-        try{
-          wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, onProgress);
-          if(wavBlob && wavBlob.size>=500) break;
-          console.warn('Chunk '+i+' vacio intento '+retry, wavBlob?.size);
-        }catch(e){ console.warn('predict fail chunk '+i+' intento '+retry, e); }
-        await new Promise(r=>setTimeout(r,400));
+      const wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, onProgress);
+      if(!wavBlob || wavBlob.size<500){
+        console.warn('Chunk '+i+' vacio');
+        continue;
       }
-      if(!wavBlob || wavBlob.size<500){ console.warn('Chunk '+i+' descartado vacio'); continue; }
-      try{
-        const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
-        buffers.push(audioBuf);
-      }catch(e){ console.warn('decode fail chunk '+i, e); }
-      await new Promise(r=>setTimeout(r, 30));
+      const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
+      buffers.push(audioBuf);
+      await new Promise(function(r){ setTimeout(r, 30); });
     }
 
-    if(!buffers.length) throw new Error('No se genero audio - todos los chunks vacios. Revisa que el .onnx se descargo (150MB)');
+    if(!buffers.length) throw new Error('No se genero audio');
 
-    let totalLength = 0; for(let b of buffers) totalLength+=b.length;
+    let totalLength = 0;
+    for(let b of buffers) totalLength+=b.length;
     let numberOfChannels = buffers[0].numberOfChannels;
     let sampleRate = buffers[0].sampleRate;
     const concatBuffer = audioCtx.createBuffer(numberOfChannels, totalLength, sampleRate);
@@ -1158,82 +1161,187 @@ async function handleGenerate(){
     await audioCtx.close();
 
     const finalWavBlob = audioBufferToWavBlob(concatBuffer);
-    console.log('[V14] final blob size', finalWavBlob.size, 'dur', concatBuffer.length/sampleRate);
-    if(finalWavBlob.size<1000) throw new Error('WAV final muy pequeño: '+finalWavBlob.size);
-
     const url=URL.createObjectURL(finalWavBlob);
     if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
     slot.audioUrl=url;
     slot.audioName='SLOT'+slot.id+'-'+voiceId+'-'+text.length+'chars-'+chunks.length+'partes.wav';
     slot.audioBlob=finalWavBlob;
 
-    const tempAudio = new Audio(); tempAudio.src = url;
-    await new Promise((res)=>{
-      tempAudio.onloadedmetadata=()=>{
+    const tempAudio = new Audio();
+    tempAudio.src = url;
+    await new Promise(function(res){
+      tempAudio.onloadedmetadata=function(){
         slot.audioDur = tempAudio.duration;
-        console.log('[V14] SLOT '+slot.id+' duracion REAL:', slot.audioDur);
+        console.log('[V28] SLOT '+slot.id+' duracion FINAL real:', slot.audioDur, 'de '+chunks.length+' partes');
         res();
       };
-      tempAudio.onerror=()=>{ slot.audioDur=concatBuffer.length/concatBuffer.sampleRate; res(); };
+      tempAudio.onerror=function(){ res(); };
       tempAudio.load();
     });
 
-    // Guardar y actualizar UI
-    slot.status='con audio';
-    if(window.renderCola) window.renderCola(true);
-    
-    const aEl=document.getElementById('previewAudio');
-    if(window.activeId===slot.id && aEl){
-      aEl.src=url; aEl.load(); aEl.playbackRate=speed; aEl.muted=false;
-      const vEl2=document.getElementById('previewVideo'); if(vEl2){ vEl2.muted=true; vEl2.volume=0; }
+    if(window.activeId === slot.id){
+      const aEl=document.getElementById('previewAudio');
+      const vEl2=document.getElementById('previewVideo');
+      if(aEl){
+        aEl.src=url; aEl.load(); aEl.playbackRate=speed; aEl.muted=false;
+        if(vEl2){ vEl2.muted=true; vEl2.volume=0; }
+      }
+      const audioNameEl=document.getElementById('audioName');
+      if(audioNameEl){
+        const nombre = voiceId.indexOf('sharvard')>=0 ? 'Dora' : voiceId.indexOf('carlfm')>=0 ? 'Alex' : voiceId;
+        audioNameEl.innerHTML='🎙️ <b>'+nombre+' SLOT '+slot.id+'</b> · TODO '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅';
+        audioNameEl.style.color='#4ade80';
+      }
+      if(window.renderCola) window.renderCola(true);
+      if(window.renderOverlay) window.renderOverlay();
+      if(window.calcDurInfo){
+        const di=window.calcDurInfo(slot);
+        if(di) document.getElementById('speedLabel').textContent=di.txt;
+      }
+    } else {
+      if(window.renderCola) window.renderCola(true);
     }
-    const audioNameEl=document.getElementById('audioName');
-    if(audioNameEl){
-      const nombre = voiceId.indexOf('sharvard')>=0 ? 'Alexander (Voz Masculina)' : voiceId;
-      audioNameEl.innerHTML='🎙️ <b>'+nombre+' SLOT '+slot.id+'</b> · '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅ GUARDADO REAL';
-      audioNameEl.style.color='#4ade80';
-    }
-    setKStatus('✅ SLOT '+slot.id+' COMPLETO - '+text.length+' chars - '+slot.audioDur.toFixed(1)+'s - '+chunks.length+' partes - GUARDADO');
-    setKProg(100);
-    setTimeout(()=>setKProg(null),1500);
-    console.log('[V14] SLOT '+slot.id+' GUARDADO OK', {url: !!slot.audioUrl, dur: slot.audioDur, size: slot.audioBlob.size, status: slot.status});
-    return slot;
+
+    document.getElementById('kokoroStatus').textContent='✅ SLOT '+slot.id+' COMPLETO - '+text.length+' chars - '+slot.audioDur.toFixed(1)+'s - '+chunks.length+' partes';
+    const bar2=document.getElementById('kokoroProgressBar');
+    if(bar2) bar2.style.width='100%';
+    setTimeout(function(){ const bw=document.getElementById('kokoroProgress'); if(bw) bw.style.display='none'; },1200);
   }catch(e){
-    console.error('[V14] ERROR SLOT', e);
+    console.error(e);
     const st=document.getElementById('kokoroStatus');
     if(st){ st.textContent='[SLOT '+slot.id+'] ❌ '+e.message; st.style.color='#ef4444'; }
-    alert('Error SLOT '+slot.id+': '+e.message+'\nRevisa consola F12');
-    throw e;
+    alert('Error SLOT '+slot.id+': '+e.message);
   }finally{
-    if(btn){ btn.disabled=false; btn.textContent='🔊 GENERAR AUDIO ESPAÑOL'; btn.style.background='#FFEB00'; }
+    btn.disabled=false; btn.textContent='🔊 GENERAR AUDIO COMPLETO (TODO EL TXT)'; btn.style.background='#FFEB00';
   }
 }
 
-// Wrapper para slot especifico - mantiene tu logica original pero con fix de activeId
+
+// V30.1 WRAPPER - Reusa el mismo handleGenerate que ya funciona perfecto en V28
 window.generateVoiceForSlotId = async function(slotId){
-  console.log('[V14] Generando voz SLOT '+slotId);
+  console.log('[V30.1] Generando voz para SLOT '+slotId+' usando motor V28 que funciona');
   const originalActive = window.activeId;
   try{
+    // Cambiar a ese slot
     if(window.setActive) window.setActive(slotId);
     else window.activeId = slotId;
-    await new Promise(r=>setTimeout(r,150));
+    
+    // Pequeña espera para que setActive restaure UI
+    await new Promise(r=>setTimeout(r, 100));
+    
     const slot = window.queue.find(q=>q.id===slotId);
-    if(!slot) throw new Error('Slot '+slotId+' no existe');
-    if(!slot.txtContent && !slot.script) throw new Error('SLOT '+slotId+' sin TXT - carga .txt primero');
-    // Llamar handleGenerate que ya tiene el fix
-    const prevActive = window.activeId;
-    window.activeId = slotId;
-    await handleGenerate();
-    window.activeId = prevActive;
-    const updated = window.queue.find(q=>q.id===slotId);
-    if(!updated.audioUrl) throw new Error('No se guardo audioUrl SLOT '+slotId);
-    return updated;
+    if(!slot){ throw new Error('Slot '+slotId+' no existe'); }
+    if(!slot.txtContent && !slot.script){ throw new Error('SLOT '+slotId+' sin TXT'); }
+    
+    // Llamar directamente a la logica de handleGenerate pero sin depender del boton
+    // Duplicamos la logica exacta de handleGenerate que ya funciona:
+    let text = (slot.txtContent || slot.script || '').trim();
+    if(!text) throw new Error('Sin texto');
+    
+    function splitIntoChunks(txt, maxLen){
+      maxLen = maxLen || 380;
+      const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+      const chunks=[]; let cur="";
+      for(let s of sentences){
+        s=s.trim(); if(!s) continue;
+        if((cur + " " + s).length <= maxLen){ cur = cur ? cur + " " + s : s; }
+        else {
+          if(cur) chunks.push(cur);
+          if(s.length > maxLen){
+            const words=s.split(/\s+/); let tmp="";
+            for(let w of words){ if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w; else { if(tmp) chunks.push(tmp); tmp=w; } }
+            if(tmp) cur=tmp; else cur="";
+          } else cur=s;
+        }
+      }
+      if(cur) chunks.push(cur);
+      return chunks;
+    }
+    async function blobToAudioBuffer(blob, audioCtx){ const ab = await blob.arrayBuffer(); return await audioCtx.decodeAudioData(ab); }
+    function audioBufferToWavBlob(buffer){
+      const numChannels = buffer.numberOfChannels; const sampleRate = buffer.sampleRate; const length = buffer.length;
+      const wavLength = length * numChannels * 2 + 44; const ab = new ArrayBuffer(wavLength); const view = new DataView(ab); let pos=0;
+      function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
+      function write16(d){ view.setUint16(pos, d, true); pos+=2; } function write32(d){ view.setUint32(pos, d, true); pos+=4; }
+      writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE'); writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16); writeStr('data'); write32(wavLength-pos-4);
+      const channels=[]; for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
+      let offset=44; for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample = Math.max(-1, Math.min(1, channels[c][i])); sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; view.setInt16(offset, sample, true); offset+=2; } } return new Blob([ab], {type:'audio/wav'});
+    }
+
+    const rawVoiceId = slot.voiceId || document.getElementById('kokoroVoice')?.value || 'es_ES-sharvard-medium:0';
+    const vp = rawVoiceId.split(':');
+    const voiceId = vp[0];
+    const speakerId = parseInt(vp[1]||'0',10);
+    const speed = slot.voiceSpeed || parseFloat(document.getElementById('kokoroSpeed')?.value)||1;
+    const chunks = splitIntoChunks(text, 380);
+    console.log('[V30.1] SLOT '+slotId+' '+text.length+' chars -> '+chunks.length+' chunks voz '+voiceId);
+
+    const tts = await getTTS();
+    try{ await tts.download(voiceId, ()=>{}); }catch(e){}
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const buffers=[];
+    for(let i=0;i<chunks.length;i++){
+      try{ window.updateVoiceProgressCorrecto(slotId, i+1, chunks.length); }catch(e){}
+
+      const chunk = chunks[i];
+      const st=document.getElementById('kokoroStatus');
+      if(st) st.textContent='[SLOT '+slotId+'] Generando '+ (i+1) +'/'+chunks.length+' ('+chunk.length+' chars)';
+      const btn=document.getElementById('btnKokoroGen');
+      if(btn) btn.textContent='SLOT '+slotId+' '+ (i+1) +'/'+chunks.length;
+      let wavBlob=null;
+      try{ wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }); }catch(e){ console.error('predict fail', e); continue; }
+      if(!wavBlob || wavBlob.size<500) continue;
+      const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
+      buffers.push(audioBuf);
+      await new Promise(r=>setTimeout(r, 20));
+    }
+    if(!buffers.length) throw new Error('No se genero audio SLOT '+slotId);
+    let totalLength=0; for(let b of buffers) totalLength+=b.length;
+    const concatBuffer = audioCtx.createBuffer(buffers[0].numberOfChannels, totalLength, buffers[0].sampleRate);
+    let off=0; for(let buf of buffers){ for(let ch=0; ch<concatBuffer.numberOfChannels; ch++){ concatBuffer.getChannelData(ch).set(buf.getChannelData(ch), off); } off+=buf.length; }
+    await audioCtx.close();
+    const finalWavBlob = audioBufferToWavBlob(concatBuffer);
+    const url = URL.createObjectURL(finalWavBlob);
+    if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
+    slot.audioUrl = url;
+    slot.audioBlob = finalWavBlob;
+    slot.audioName = 'SLOT'+slot.id+'-VOZ-COMPLETA.wav';
+    
+    const tempAudio = new Audio(); tempAudio.src=url;
+    await new Promise(function(res){
+      tempAudio.onloadedmetadata=function(){ slot.audioDur=tempAudio.duration; console.log('[V30.1] SLOT '+slot.id+' dur '+slot.audioDur); res(); };
+      tempAudio.onerror=function(){ slot.audioDur=concatBuffer.length/concatBuffer.sampleRate; res(); };
+      tempAudio.load();
+    });
+    
+    slot.status='con audio';
+    if(window.renderCola) window.renderCola(true);
+    if(window.renderOverlay) window.renderOverlay();
+    
+    console.log('[V30.1] SLOT '+slot.id+' GUARDADO OK', {url: !!slot.audioUrl, dur: slot.audioDur, size: slot.audioBlob.size});
+    
+    // Restaurar UI si es el slot activo original
+    const aEl=document.getElementById('previewAudio');
+    if(aEl && window.activeId===slotId){
+      aEl.src=url; aEl.load(); aEl.playbackRate=speed;
+      const audioNameEl=document.getElementById('audioName');
+      if(audioNameEl){
+        audioNameEl.innerHTML='🎙️ <b>SLOT '+slot.id+' VOZ COMPLETA</b> · '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅ GUARDADO';
+        audioNameEl.style.color='#4ade80';
+      }
+    }
+    
+    return slot;
   } finally {
-    if(window.setActive && originalActive){ try{ window.setActive(originalActive); }catch{} }
+    // Restaurar slot activo original
+    if(window.setActive && originalActive) {
+      try{ window.setActive(originalActive); }catch{}
+    }
   }
 };
 
-// Mutex para evitar pisadas - permite cola pero no paralelo real que rompe RAM
+// Mutex global para voces
 window.ttsLock = Promise.resolve();
 window.generateVoiceForSlotIdLocked = async function(slotId){
   let release;
@@ -1247,6 +1355,7 @@ window.generateVoiceForSlotIdLocked = async function(slotId){
     release();
   }
 };
+
 
 $id('btnKokoroGen')?.addEventListener('click', handleGenerate);
 document.getElementById('inputTxt')?.addEventListener('change', ()=>{
@@ -1264,11 +1373,8 @@ document.getElementById('kokoroSpeed')?.addEventListener('change', e=>{
   if(it) it.voiceSpeed = parseFloat(e.target.value)||1;
 });
 
-setKStatus('✅ V14 FIX - Voz por SLOT corregida - lista');
-window.handleGenerate = handleGenerate;
-window.getTTS = getTTS;
+setKStatus('✅ V27 FIX - Voz por SLOT + Subs sync audio real');
 </script>
-
 
 
 <div id="perfMon" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:rgba(8,8,10,0.92);border:1px solid #222;border-radius:14px;padding:10px;min-width:200px;font-family:sans-serif"><div style="font-size:8px;color:#FFEB00;font-weight:900">⚡ V13 6x6 PARALELO REAL</div><div style="font-size:9px;color:#999;margin-top:6px">Voces: <b id="mVoices">0</b>/6 | Videos: <b id="mVideos">0</b>/6 | RAM: <b id="mRam">--</b></div></div><script>setInterval(()=>{try{const m=performance.memory; if(m){document.getElementById('mRam').textContent=Math.round(m.usedJSHeapSize/1048576)+'MB'} }catch{}},1000)</script>
@@ -1989,7 +2095,10 @@ window.IC_renew = function(username){
 </script>
 
 
-
+<style>
+#btnKokoroGen, #kokoroSpeed {display:none !important;}
+div:has(> #kokoroSpeed) {display:none !important;}
+</style>
 
 <script>
 (function(){
@@ -2062,7 +2171,7 @@ window.IC_renew = function(username){
 async function renderSingle(item, onProgress){
   const info = window.calcDurInfo ? window.calcDurInfo(item) : {useLoop:false, playbackRate:1, finalDur: item.videoDur || 10};
   const canvas = document.createElement('canvas');
-  canvas.width=720; canvas.height=900;
+  canvas.width=1080; canvas.height=1920;
   const ctx = canvas.getContext('2d', {alpha:false, desynchronized:true});
   const v = document.createElement('video');
   v.src = item.videoUrl; v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
@@ -2083,13 +2192,13 @@ async function renderSingle(item, onProgress){
   }
   const stream=canvas.captureStream(fps);
   if(dest && dest.stream) dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
-  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:2500000,audioBitsPerSecond:128000});
+  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:5000000,audioBitsPerSecond:128000});
   rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
   const recDone=new Promise(res=>{ rec.onstop=()=>res(); });
   function drawFrame(){
     ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
     if(v.videoWidth){
-      const vw=v.videoWidth,vh=v.videoHeight,tgt=720/900,r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
+      const vw=v.videoWidth,vh=v.videoHeight,tgt=W/H,r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh;
       if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
       try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height);}catch{}
     }
@@ -2262,18 +2371,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="https://unpkg.com/mp4-muxer@5.2.1/build/mp4-muxer.js"></script>
 <script>
 // MOTOR TIPO CAPCUT - WEBCODECS OFFLINE - NUNCA SE CONGELA EN DESCARGA FINAL
-
 async function renderSingleCapCut(item, onProg){
   const FPS=30;
   const START_OFFSET=0.25;
-  const W=720, H=900;
+  const W=1080, H=1920; // FACEBOOK REELS 9:16
   const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
   
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
   await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
   const vDur=v.duration||item.videoDur||10;
-  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): (typeof calcDurInfo==='function'?calcDurInfo(item): {rate:1,useLoop:false, finalDur:item.audioDur||vDur});
+  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): {rate:1,useLoop:false, finalDur:item.audioDur||vDur};
   let aDur=item.audioDur||0;
   let audioBuffer=null;
   let ac=null;
@@ -2286,7 +2394,7 @@ async function renderSingleCapCut(item, onProg){
       await ac.close();
     }catch(e){ console.warn('audio decode fail', e); }
   }
-  const realTotal=aDur||vDur||10;
+  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10; // FIX 4s bug: usa duración real del audio decodificado
   const totalFrames=Math.ceil(realTotal*FPS);
   
   function drawFrame(curTime){
@@ -2297,7 +2405,6 @@ async function renderSingleCapCut(item, onProg){
       if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
       try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} 
     }
-    // TITULO 28 chars x 2 lineas - referencia
     try{
       const titleText=(item.title||'').trim().toUpperCase();
       if(titleText){
@@ -2318,7 +2425,6 @@ async function renderSingleCapCut(item, onProg){
         });
       }
     }catch(e){}
-    // SUBS 34 chars x 3 lineas
     try{
       const scriptText=(item.script||'').trim();
       const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
@@ -2360,10 +2466,11 @@ async function renderSingleCapCut(item, onProg){
     const target=new ArrayBufferTarget();
     const muxer=new Muxer({
       target: target,
-      video: { codec:'avc', width:W, height:H },
-      audio: audioBuffer? { codec:'aac', sampleRate: audioBuffer.sampleRate, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
+      video: { codec:'avc', width:W, height:H, bitrate:5_000_000, framerate:FPS },
+      audio: audioBuffer? { codec:'aac', sampleRate: 48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
       fastStart:'in-memory',
-      firstTimestampBehavior:'offset'
+      firstTimestampBehavior:'offset',
+      // Facebook fix: ensure moov at start
     });
     
     const videoEncoder=new VideoEncoder({
@@ -2371,11 +2478,12 @@ async function renderSingleCapCut(item, onProg){
       error: e=> console.error('VideoEncoder error', e)
     });
     videoEncoder.configure({
-      codec:'avc1.42E01E',
+      codec:'avc1.640028', // High profile Facebook compatible
       width:W, height:H,
-      bitrate:2_500_000, // FB 2.5 Mbps optimal
+      bitrate:5_000_000, // 5Mbps Facebook Reels
       framerate:FPS,
-      hardwareAcceleration:'prefer-hardware', latencyMode:'quality'
+      hardwareAcceleration:'prefer-hardware',
+      latencyMode:'quality'
     });
     
     let audioEncoder=null;
@@ -2392,11 +2500,6 @@ async function renderSingleCapCut(item, onProg){
       });
     }
     
-    v.currentTime=START_OFFSET;
-    await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,200); });
-    await window.__ensureFontsReady();
-    
-    // Pre-buffer: asegura que el video esté completamente listo
     v.preload='auto';
     if(v.readyState < 3){
       await new Promise(r=>{
@@ -2404,19 +2507,30 @@ async function renderSingleCapCut(item, onProg){
         check();
       });
     }
-
+    v.currentTime=START_OFFSET;
+    await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,150); });
+    let lastValidFrame=null;
+    try{ lastValidFrame = ctx.getImageData(0,0,W,H); }catch{}
+    
+    await window.__ensureFontsReady();
+    
+    let accumulatedVideoTime = 0;
     for(let i=0;i<totalFrames;i++){
       const curTime=i/FPS;
-      let targetVideoTime=START_OFFSET + (curTime * (info.rate||1));
+      const rate = info.rate || 1;
+      if(i>0) accumulatedVideoTime += (1/FPS) * rate;
+      let targetVideoTime = START_OFFSET + accumulatedVideoTime;
+      
       if(info.useLoop && v.duration){
-        const loopDur=v.duration - START_OFFSET - 0.10;
-        if(loopDur>0) targetVideoTime=START_OFFSET + (targetVideoTime % loopDur);
+        const loopDur = v.duration - START_OFFSET - 0.30;
+        if(loopDur>0){
+          targetVideoTime = START_OFFSET + (accumulatedVideoTime % loopDur);
+        }
       } else if(v.duration){
         targetVideoTime=Math.min(targetVideoTime, v.duration-0.10);
       }
       
-      // FIX TRABADO EXPORT: solo hace seek si realmente cambia >100ms y usa fastSeek
-      if(Math.abs(v.currentTime - targetVideoTime) > 0.10){
+      if(Math.abs(v.currentTime - targetVideoTime) > 0.06){
         await new Promise(r=>{
           const onSeek=()=>{ v.removeEventListener('seeked',onSeek); r(); };
           v.addEventListener('seeked',onSeek);
@@ -2424,24 +2538,26 @@ async function renderSingleCapCut(item, onProg){
             if('fastSeek' in v) v.fastSeek(targetVideoTime);
             else v.currentTime=targetVideoTime;
           }catch{ v.currentTime=targetVideoTime; }
-          setTimeout(r, 30);
+          setTimeout(r, 18);
         });
-        // Espera frame disponible
-        if(v.readyState < 2){
-          await new Promise(r=> setTimeout(r, 10));
-        }
       }
       
-      drawFrame(curTime);
+      if(v.readyState >= 2 && v.videoWidth){
+        drawFrame(curTime);
+        try{ lastValidFrame = ctx.getImageData(0,0,W,H); }catch{}
+      } else if(lastValidFrame){
+        try{ ctx.putImageData(lastValidFrame,0,0); }catch{ drawFrame(curTime); }
+      } else {
+        drawFrame(curTime);
+      }
       
       const frame=new VideoFrame(canvas, { timestamp: Math.round(curTime*1_000_000), duration: Math.round(1_000_000/FPS) });
-      const keyFrame = i % FPS === 0; // keyframe cada 1 seg = fluido
+      const keyFrame = i % FPS === 0;
       videoEncoder.encode(frame, {keyFrame});
       frame.close();
       
       onProg?.((i/totalFrames)*90);
-      
-      if(i%15===0) await new Promise(r=>setTimeout(r,0));
+      if(i%12===0) await new Promise(r=>setTimeout(r,0));
     }
     
     await videoEncoder.flush();
@@ -2474,21 +2590,125 @@ async function renderSingleCapCut(item, onProg){
     muxer.finalize();
     const buffer=target.buffer;
     const blob=new Blob([buffer], {type:'video/mp4'});
-    const url=URL.createObjectURL(blob);
-    try{ v.src=''; }catch{}
-    return {url, ext:'mp4', blob};
-    
+    return blob;
   }catch(e){
-    console.error('WebCodecs fail, fallback', e);
+    console.error('renderSingleCapCut error', e);
     return await window.renderSingleFastCapCutFallback(item, onProg);
   }
 }
 
+async function renderSingleCapCut(item, onProg){
+  const FPS=30;
+  const START_OFFSET=0.25;
+  const W=1080, H=1920; // FACEBOOK REELS 9:16
+  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
+  await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
+  const vDur=v.duration||item.videoDur||10;
+  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): {rate:1,useLoop:false, finalDur:item.audioDur||vDur};
+  let aDur=item.audioDur||0;
+  let audioBuffer=null;
+  try{
+    const ac=new (window.AudioContext||window.webkitAudioContext)();
+    const resp=await fetch(item.audioUrl); const ab=await resp.arrayBuffer();
+    audioBuffer=await ac.decodeAudioData(ab);
+    aDur=audioBuffer.duration||aDur;
+    await ac.close();
+  }catch{}
+  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10; // FIX 4s bug: usa duración real del audio decodificado
+  const totalFrames=Math.ceil(realTotal*FPS);
+  function drawFrame(curTime){
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+    if(v.videoWidth){ const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} }
+    try{
+      const t=(item.title||'').trim().toUpperCase();
+      if(t){
+        const lines=typeof splitWords==='function'?splitWords(t,28).slice(0,2):[t];
+        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
+        lines.forEach((l,i)=>{ const y=45+i*48; ctx.font='900 28px Anton'; const fw=ctx.measureText(l).width; const rw=Math.min(fw+32, W*0.92); const rh=34; const cx=W/2; ctx.fillStyle='rgba(0,0,0,0.92)'; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, 10); ctx.fill(); } else ctx.fillRect(cx-rw/2, y-rh/2, rw, rh); ctx.lineWidth=6; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(l,cx,y); ctx.fillText(l,cx,y); });
+      }
+    }catch{}
+    try{
+      const scriptText=(item.script||'').trim();
+      const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
+      let subText=''; if(subs.length){ const si=Math.min(Math.floor((curTime/(aDur||realTotal))*subs.length), subs.length-1); subText=subs[si]||''; }
+      if(subText){
+        let lines=typeof splitWords==='function'?splitWords(subText.toUpperCase(),34).slice(0,3):[subText.toUpperCase()];
+        if(lines.length===1){ const w=lines[0].split(' '); const p=Math.ceil(w.length/3); lines=[w.slice(0,p).join(' '), w.slice(p,p*2).join(' '), w.slice(p*2).join(' ')].filter(Boolean); }
+        else if(lines.length===2){ const w=lines[1].split(' '); const p=Math.ceil(w.length/2); lines=[lines[0], w.slice(0,p).join(' '), w.slice(p).join(' ')].filter(Boolean); }
+        lines=lines.slice(0,3);
+        lines.forEach((ln,j)=>{ const y=620+j*40; ctx.font='800 22px \"Plus Jakarta Sans\"'; const m=ctx.measureText(ln); const bw=Math.min(m.width+36, W*0.90); const bh=32; const cx=W/2; ctx.fillStyle='rgba(0,0,0,0.85)'; if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, 10); ctx.fill(); } else ctx.fillRect(cx-bw/2, y-bh/2, bw, bh); ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFF'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.strokeText(ln,cx,y); ctx.fillText(ln,cx,y); });
+      }
+    }catch{}
+  }
+  if(typeof VideoEncoder==='undefined' || typeof Mp4Muxer==='undefined'){ return await window.renderSingleFastCapCutFallback(item, onProg); }
+  try{
+    const { Muxer, ArrayBufferTarget } = Mp4Muxer;
+    const target=new ArrayBufferTarget();
+    const muxer=new Muxer({ target: target, video: { codec:'avc', width:W, height:H, bitrate:5_000_000, framerate:FPS }, audio: audioBuffer? { codec:'aac', sampleRate: 48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined, fastStart:'in-memory', firstTimestampBehavior:'offset' });
+    const videoEncoder=new VideoEncoder({ output: (chunk, meta)=> muxer.addVideoChunk(chunk, meta), error: e=> console.error(e) });
+    videoEncoder.configure({ codec:'avc1.640028', // High profile Facebook compatible width:W, height:H, bitrate:5_000_000, // 5Mbps Facebook Reels framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality' });
+    let audioEncoder=null;
+    if(audioBuffer){
+      audioEncoder=new AudioEncoder({ output: (chunk, meta)=> muxer.addAudioChunk(chunk, meta), error: e=> console.error(e) });
+      audioEncoder.configure({ codec:'mp4a.40.2', sampleRate: audioBuffer.sampleRate, numberOfChannels: audioBuffer.numberOfChannels, bitrate:128_000 });
+    }
+    v.preload='auto';
+    if(v.readyState < 3){ await new Promise(r=>{ const check=()=>{ if(v.readyState>=3) r(); else setTimeout(check, 50); }; check(); }); }
+    v.currentTime=START_OFFSET;
+    await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,150); });
+    let lastValidFrame=null;
+    await window.__ensureFontsReady();
+    let accumulatedVideoTime = 0;
+    for(let i=0;i<totalFrames;i++){
+      const curTime=i/FPS;
+      const rate = info.rate || 1;
+      if(i>0) accumulatedVideoTime += (1/FPS) * rate;
+      let targetVideoTime = START_OFFSET + accumulatedVideoTime;
+      if(info.useLoop && v.duration){
+        const loopDur = v.duration - START_OFFSET - 0.30;
+        if(loopDur>0) targetVideoTime = START_OFFSET + (accumulatedVideoTime % loopDur);
+      } else if(v.duration){ targetVideoTime=Math.min(targetVideoTime, v.duration-0.10); }
+      if(Math.abs(v.currentTime - targetVideoTime) > 0.06){
+        await new Promise(r=>{
+          const onSeek=()=>{ v.removeEventListener('seeked',onSeek); r(); };
+          v.addEventListener('seeked',onSeek);
+          try{ if('fastSeek' in v) v.fastSeek(targetVideoTime); else v.currentTime=targetVideoTime; }catch{ v.currentTime=targetVideoTime; }
+          setTimeout(r, 18);
+        });
+      }
+      if(v.readyState >= 2 && v.videoWidth){ drawFrame(curTime); try{ lastValidFrame = ctx.getImageData(0,0,W,H); }catch{} }
+      else if(lastValidFrame){ try{ ctx.putImageData(lastValidFrame,0,0); }catch{ drawFrame(curTime); } }
+      else { drawFrame(curTime); }
+      const frame=new VideoFrame(canvas, { timestamp: Math.round(curTime*1_000_000), duration: Math.round(1_000_000/FPS) });
+      const keyFrame = i % FPS === 0;
+      videoEncoder.encode(frame, {keyFrame});
+      frame.close();
+      onProg?.((i/totalFrames)*90);
+      if(i%12===0) await new Promise(r=>setTimeout(r,0));
+    }
+    await videoEncoder.flush();
+    if(audioBuffer && audioEncoder){
+      const numChannels=audioBuffer.numberOfChannels; const sampleRate=audioBuffer.sampleRate; const frameSize=1024;
+      for(let offset=0; offset<audioBuffer.length; offset+=frameSize){
+        const remaining=Math.min(frameSize, audioBuffer.length-offset);
+        const data=new Float32Array(remaining * numChannels);
+        for(let ch=0; ch<numChannels; ch++){ const channelData=audioBuffer.getChannelData(ch); for(let j=0;j<remaining;j++) data[j*numChannels+ch]=channelData[offset+j]; }
+        const audioData=new AudioData({ format:'f32', sampleRate: sampleRate, numberOfFrames: remaining, numberOfChannels: numChannels, timestamp: Math.round((offset/sampleRate)*1_000_000), data: data });
+        audioEncoder.encode(audioData); audioData.close();
+      }
+      await audioEncoder.flush();
+    }
+    muxer.finalize();
+    const buffer=target.buffer;
+    return new Blob([buffer], {type:'video/mp4'});
+  }catch(e){ console.error(e); return await window.renderSingleFastCapCutFallback(item, onProg); }
+}
 
-// Fallback rapido si WebCodecs falla - el anti-freeze anterior
 async function renderSingleFastCapCutFallback(item,onProg){
   const FPS=30; const START_OFFSET=0.25;
-  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=900;
+  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1920;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true;
   const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
   await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
@@ -2498,272 +2718,93 @@ async function renderSingleFastCapCutFallback(item,onProg){
   if(item.audioUrl){
     try{ ac=new (window.AudioContext||window.webkitAudioContext)(); dest=ac.createMediaStreamDestination(); cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; await new Promise(r=>{ cap.onloadedmetadata=()=>{aDur=cap.duration||aDur; r();}; cap.onerror=()=>r(); cap.load(); }); const src=ac.createMediaElementSource(cap); src.connect(dest); }catch{}
   }
-  const realTotal=aDur||vDur||10;
+  const realTotal=(audioBuffer?audioBuffer.duration:aDur)||vDur||10; // FIX 4s bug: usa duración real del audio decodificado
   const mimeMP4=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4'].find(m=>{try{return MediaRecorder.isTypeSupported(m);}catch{return false;}}) || 'video/webm;codecs=vp9';
-  const ext=mimeMP4.includes('mp4')?'mp4':'webm';
   await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,500); });
   v.currentTime=START_OFFSET; await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,300); });
-  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:2500000, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
+  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:5000000, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
   await v.play().catch(()=>{}); if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); } rec.start(100);
   await new Promise(res=>{
-    let start=performance.now(); let _stopped=false;
+    let start=performance.now();
     const draw=()=>{
       const elapsed=(performance.now()-start)/1000; const cur=Math.min(elapsed, realTotal); onProg?.(Math.min((cur/realTotal)*100,100));
       try{ if(v.paused && cur<realTotal-0.1) v.play().catch(()=>{}); }catch{}
-      if(v.readyState>=2){ const vw=v.videoWidth, vh=v.videoHeight, tgt=720/900, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height); }catch{} }
-      const scriptText=(item.script||'').trim(); const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[]; const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
-      try{
-        // OPTIMIZADO FALLBACK
-        let subText='';
-        const scriptText=(item.script||'').trim();
-        const subsLocal=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-        if(subsLocal.length){ subText=subsLocal[Math.min(Math.floor((cur/(aDur||realTotal))*subsLocal.length),subsLocal.length-1)]||''; } else { subText=scriptText.split(/\s+/).slice(0,18).join(' '); } // 18 palabras = 3 lineas de subtitulo
-        window.__drawOptimizedTitleSubtitle(ctx, (item.title||''), subText, 720, 900);
-      }catch{}
-      if(cur>=realTotal-0.05){ if(!_stopped){ _stopped=true; try{ rec.stop(); }catch{} setTimeout(res,300); } return; } requestAnimationFrame(draw);
+      if(v.readyState>=2){ const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height); }catch{} }
+      const scriptText=(item.script||'').trim(); 
+      const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
+      let subText=''; 
+      if(subs.length){ subText=subs[Math.min(Math.floor((cur/(aDur||realTotal))*subs.length), subs.length-1)]||''; } else { subText=scriptText.split(/\s+/).slice(0,18).join(' '); }
+      try{ window.__drawOptimizedTitleSubtitle(ctx, item.title||'', subText, 1080, 1920); }catch{}
+      if(cur < realTotal-0.05) requestAnimationFrame(draw); else { rec.stop(); try{v.pause();}catch{} if(cap) try{cap.pause();}catch{} res(); }
     }; draw();
   });
-  const blob=await blobP; try{ v.pause(); v.src=''; }catch{} try{ if(cap){ cap.pause(); } }catch{} try{ if(ac) await ac.close(); }catch{} try{ combined.getTracks().forEach(t=>t.stop()); }catch{} try{ cStream.getTracks().forEach(t=>t.stop()); }catch{}
-  return {url:URL.createObjectURL(blob), ext};
+  const blob=await blobP;
+  if(ac) try{await ac.close();}catch{}
+  return blob;
 }
-window.renderSingle=renderSingleCapCut;
-window.renderSingleCapCut=renderSingleCapCut;
-window.renderSingleFastCapCutFallback=renderSingleFastCapCutFallback;
-</script>
-
-
-<script>
-(function(){
-  const origGenerate=window.generateVoiceIndependentFast;
-  // Patch btnRender to mute everything before and after voices
-  setTimeout(()=>{
-    const btn=document.getElementById('btnRender');
-    if(!btn) return;
-    // Intercept to add muting before voices
-    const oldClick=btn.cloneNode(true);
-  },500);
-  
-  // Global mute during batch
-  window._originalRenderSingleCapCut=window.renderSingleCapCut;
-  // Ensure no audio plays during voice phase
-  const originalGenerateVoice=window.generateVoiceIndependentFast;
-  window.generateVoiceIndependentFast=async function(slot, ttsInstance){
-    // Silenciar todo antes de generar voz
-    try{
-      document.querySelectorAll('audio').forEach(a=>{ a.pause(); a.muted=true; });
-      const prevA=document.getElementById('previewAudio'); if(prevA){ prevA.pause(); prevA.muted=true; }
-      const prevV=document.getElementById('previewVideo'); if(prevV){ prevV.pause(); prevV.muted=true; }
-    }catch{}
-    const res=await originalGenerateVoice(slot, ttsInstance);
-    try{
-      document.querySelectorAll('audio').forEach(a=>{ if(a.id!=='previewAudio'){ a.pause(); a.muted=true; } });
-    }catch{}
-    return res;
-  };
-  
-  // Patch overlay to mute after voices
-  const observer=setInterval(()=>{
-    const overlay=document.getElementById('renderOverlay');
-    if(overlay){
-      const check=()=>{
-        if(window._batchGenerating){
-          try{
-            document.querySelectorAll('audio').forEach(a=>{
-              if(a.id==='previewAudio' || a.id===''){ /* previewAudio debe estar muteado durante batch */ a.muted=true; if(!a.paused) a.pause(); }
-            });
-            const bg=document.getElementById('previewBg'); if(bg){ bg.pause(); bg.muted=true; }
-          }catch{}
-        }
-      };
-      setInterval(check, 300);
-      clearInterval(observer);
-    }
-  },500);
-  
-  console.log('[FIX] Voces no suenan durante render - mute total x6');
-})();
-</script>
-
-
-<script>
-// ===== OPTIMIZACION TITULO + SUBTITULO - PREVIEW Y DESCARGA FINAL GARANTIZADOS =====
-window.__TITLE_STYLES = {
-  viral: { // ESTILO 1 - VIRAL ACTUAL (el que dejamos activo)
-    titleFont: '900 42px Anton',
-    titleFill: '#FFEB00',
-    titleStroke: '#000000',
-    titleStrokeW: 7,
-    titleBg: 'rgba(0,0,0,0.92)',
-    titleBorder: 'rgba(255,235,0,0.35)',
-    titlePadX: 28, titlePadY: 10, titleR: 14, titleGap: 46, titleY: 58, // 3 lineas centradas
-    subFont: '800 28px "Plus Jakarta Sans"',
-    subFill: '#FFFFFF',
-    subStroke: '#000000',
-    subStrokeW: 6,
-    subBg: 'rgba(0,0,0,0.88)',
-    subBorder: 'rgba(255,235,0,0.30)',
-    subPadX: 22, subR: 14, subGap: 46, subY: 730
-  },
-  luxury: {
-    titleFont: '800 40px "Plus Jakarta Sans"',
-    titleFill: '#FFFFFF',
-    titleStroke: '#000000',
-    titleStrokeW: 6,
-    titleBg: 'rgba(15,15,18,0.92)',
-    titleBorder: 'rgba(255,255,255,0.15)',
-    titlePadX: 24, titlePadY: 8, titleR: 12, titleGap: 48, titleY: 58,
-    subFont: '700 24px "Plus Jakarta Sans"',
-    subFill: '#FFFFFF',
-    subStroke: '#000000',
-    subStrokeW: 5,
-    subBg: 'rgba(0,0,0,0.82)',
-    subBorder: 'rgba(255,255,255,0.20)',
-    subPadX: 20, subR: 12, subGap: 42, subY: 740
-  },
-  tiktok: {
-    titleFont: '900 48px Anton',
-    titleFill: '#FFE600',
-    titleStroke: '#000000',
-    titleStrokeW: 8,
-    titleBg: 'rgba(0,0,0,0.94)',
-    titleBorder: '#FFE600',
-    titlePadX: 30, titlePadY: 12, titleR: 16, titleGap: 54, titleY: 70,
-    subFont: '800 30px "Plus Jakarta Sans"',
-    subFill: '#FFFFFF',
-    subStroke: '#000000',
-    subStrokeW: 7,
-    subBg: 'rgba(0,0,0,0.90)',
-    subBorder: 'rgba(255,255,255,0.25)',
-    subPadX: 24, subR: 16, subGap: 48, subY: 720
-  }
-};
-window.__ACTIVE_TITLE_STYLE = 'viral'; // cambia a 'luxury' o 'tiktok' para probar
 
 window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
-  const style = window.__TITLE_STYLES[window.__ACTIVE_TITLE_STYLE] || window.__TITLE_STYLES.viral;
-  W = W || 720; H = H || 900;
+  W=W||1080; H=H||1920;
   ctx.save();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.lineJoin = 'round';
-  ctx.miterLimit = 10;
-  
-  // ---- TITULO ----
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
   try{
-    let t = (titleText||'').trim().toUpperCase();
+    let t=(titleText||'').trim().toUpperCase();
     if(t){
-      let lines = (typeof splitWords==='function') ? splitWords(t, 20).slice(0,3) : [t];
-      lines.forEach((line, i)=>{
-        const y = style.titleY + i*style.titleGap;
-        // Ajuste dinamico de tamaño
-        let fontSize = 42;
-        if(line.length > 28) fontSize = 36;
-        if(line.length > 38) fontSize = 32;
-        const font = `900 ${fontSize}px Anton`;
-        ctx.font = font;
-        try{ ctx.font = font; }catch{}
-        const metrics = ctx.measureText(line);
-        const rw = Math.min(metrics.width + style.titlePadX*2, W-40);
-        const rh = 44;
-        const cx = W/2;
-        
-        // Fondo pill con borde
-        ctx.save();
-        ctx.fillStyle = style.titleBg;
-        ctx.strokeStyle = style.titleBorder;
-        ctx.lineWidth = 1.2;
-        ctx.shadowColor = 'rgba(0,0,0,0.6)';
-        ctx.shadowBlur = 18;
-        ctx.shadowOffsetY = 6;
-        if(ctx.roundRect){
-          ctx.beginPath();
-          ctx.roundRect(cx-rw/2, y-rh/2, rw, rh, style.titleR);
-          ctx.fill();
-          if(style.titleBorder){ ctx.stroke(); }
-        } else {
-          ctx.fillRect(cx-rw/2, y-rh/2, rw, rh);
-        }
-        ctx.restore();
-        
-        // Texto con stroke garantizado
-        ctx.lineWidth = style.titleStrokeW;
-        ctx.strokeStyle = style.titleStroke;
-        ctx.fillStyle = style.titleFill;
-        ctx.strokeText(line, cx, y);
-        ctx.fillText(line, cx, y);
+      let lines=(typeof splitWords==='function')?splitWords(t,22).slice(0,3):[t];
+      lines.forEach((line,i)=>{
+        const y=42+i*42;
+        ctx.font=`900 28px Anton`;
+        const textW=ctx.measureText(line).width;
+        const bgW=Math.min(textW+32, W*0.92);
+        const bgH=34;
+        const cx=W/2;
+        ctx.fillStyle='rgba(0,0,0,0.92)';
+        ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(cx-bgW/2, y-bgH/2, bgW, bgH, 8); else ctx.rect(cx-bgW/2, y-bgH/2, bgW, bgH); ctx.fill();
+        ctx.lineWidth=7; ctx.strokeStyle='#000'; ctx.fillStyle='#FFEB00';
+        ctx.strokeText(line,cx,y); ctx.fillText(line,cx,y);
       });
     }
-  }catch(e){ console.warn('title opt fail', e); }
-  
-  // ---- SUBTITULO ----
+  }catch(e){}
   try{
-    let s = (subText||'').trim().toUpperCase();
-    if(s){
-      let lines = (typeof splitWords==='function') ? splitWords(s, 24).slice(0,3) : [s]; // 3 lineas de subtitulo de un solo
-      lines.forEach((line, j)=>{
-        const y = style.subY + j*style.subGap;
-        let fontSize = 28;
-        if(line.length > 30) fontSize = 24;
-        if(line.length > 40) fontSize = 22;
-        const font = `800 ${fontSize}px \"Plus Jakarta Sans\"`;
-        ctx.font = font;
-        const m = ctx.measureText(line);
-        const bw = Math.min(m.width + style.subPadX*2, W-48);
-        const bh = 46;
-        const cx = W/2;
-        
-        // Fondo
-        ctx.save();
-        ctx.fillStyle = style.subBg;
-        ctx.strokeStyle = style.subBorder;
-        ctx.lineWidth = 1.2;
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 14;
-        ctx.shadowOffsetY = 4;
-        if(ctx.roundRect){
-          ctx.beginPath();
-          ctx.roundRect(cx-bw/2, y-bh/2, bw, bh, style.subR);
-          ctx.fill();
-          ctx.stroke();
-        } else {
-          ctx.fillRect(cx-bw/2, y-bh/2, bw, bh);
-        }
-        ctx.restore();
-        
-        // Texto
-        ctx.font = font;
-        ctx.lineWidth = style.subStrokeW;
-        ctx.strokeStyle = style.subStroke;
-        ctx.fillStyle = style.subFill;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.strokeText(line, cx, y);
-        ctx.fillText(line, cx, y);
+    let sub=(subText||'').trim().toUpperCase();
+    if(sub){
+      let lines;
+      if(typeof splitWords==='function'){
+        lines=splitWords(sub,26).slice(0,3);
+        if(lines.length===1){ const words=lines[0].split(' '); const p=Math.ceil(words.length/3); lines=[words.slice(0,p).join(' '), words.slice(p,p*2).join(' '), words.slice(p*2).join(' ')].filter(Boolean); }
+        else if(lines.length===2){ const words=lines[1].split(' '); const p=Math.ceil(words.length/2); lines=[lines[0], words.slice(0,p).join(' '), words.slice(p).join(' ')].filter(Boolean); }
+      } else { lines=[sub]; }
+      lines=lines.slice(0,3);
+      lines.forEach((line,j)=>{
+        const y=640+j*40;
+        ctx.font=`800 22px \"Plus Jakarta Sans\"`;
+        const textW=ctx.measureText(line).width;
+        const bgW=Math.min(textW+36, W*0.90);
+        const bgH=32;
+        const cx=W/2;
+        ctx.fillStyle='rgba(0,0,0,0.85)';
+        ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(cx-bgW/2, y-bgH/2, bgW, bgH, 10); else ctx.rect(cx-bgW/2, y-bgH/2, bgW, bgH); ctx.fill();
+        ctx.lineWidth=5; ctx.strokeStyle='#000'; ctx.fillStyle='#FFFFFF';
+        ctx.strokeText(line,cx,y); ctx.fillText(line,cx,y);
       });
     }
-  }catch(e){ console.warn('sub opt fail', e); }
-  
+  }catch(e){}
   ctx.restore();
 };
 
-// Helper que asegura fuentes cargadas antes de dibujar en export
 window.__ensureFontsReady = async function(){
   try{
     if(document.fonts && document.fonts.ready){
       await document.fonts.ready;
-      // Forzar carga Anton
       if(document.fonts.check){
         try{ await document.fonts.load('900 42px Anton'); }catch{}
-        try{ await document.fonts.load('800 28px "Plus Jakarta Sans"'); }catch{}
+        try{ await document.fonts.load('800 28px \"Plus Jakarta Sans\"'); }catch{}
       }
     }
   }catch{}
 };
 </script>
-
-
 <script>
-// FIX PREVIEW PLAY - CapCut style low overhead
 document.addEventListener('DOMContentLoaded', ()=>{
   const vEl = document.getElementById('previewVideo');
   const c = document.getElementById('previewCanvas');
@@ -2771,26 +2812,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     vEl.addEventListener('loadedmetadata', ()=>{ console.log('[Preview] video loaded', vEl.videoWidth, vEl.videoHeight); });
     vEl.addEventListener('error', (e)=>{ console.error('[Preview] video error', e); });
   }
-  // Asegurar que el canvas no bloquee clicks
   if(c){ c.style.pointerEvents='none'; }
-});
-</script>
-
-
-<script>
-// FIX CARGA ARCHIVOS - asegura click en labels
-document.addEventListener('DOMContentLoaded', ()=>{
-  const vLbl = document.getElementById('lblVideo');
-  const vInp = document.getElementById('inputVideo');
-  const aLbl = document.getElementById('lblAudio');
-  const aInp = document.getElementById('inputAudio');
-  const tLbl = document.getElementById('lblTxt');
-  const tInp = document.getElementById('inputTxt');
-  if(vLbl && vInp) vLbl.addEventListener('click', ()=> vInp.click());
-  if(aLbl && aInp) aLbl.addEventListener('click', ()=> aInp.click());
-  if(tLbl && tInp) tLbl.addEventListener('click', ()=> tInp.click());
-  // Fix pointer-events for file buttons
-  document.querySelectorAll('.file-btn').forEach(b=> b.style.pointerEvents='auto');
 });
 </script>
 </body></html>
