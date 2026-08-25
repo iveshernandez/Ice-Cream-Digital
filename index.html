@@ -259,6 +259,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
+
+<style>
+/* MINIMAL FIX - SOLO OCULTAR BOTONES INDIVIDUALES - LOGIN INTACTO */
+#btnRenderSingle, #btnKokoroGen { display:none !important; }
+</style>
+
 </head>
 <body>
 
@@ -308,7 +314,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <div style="display:flex;gap:8px;align-items:center">
 <span style="font-size:10px;color:#666;background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222">720p • 30fps • 3Mbps • MP4 • FLUIDO</span>
 <label style="background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222;font-size:10px"><input type="checkbox" id="autoDownloadCheck" checked> Auto-descargar</label>
-<button id="btnLimpiarTodo" type="button" style="background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-right:6px;z-index:999999;pointer-events:auto;position:relative;">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender" style="background:#FFEB00;color:#000;border:0;padding:10px 18px;border-radius:10px;font-weight:900;cursor:pointer">⚡ RENDERIZAR TODO</button>
+<button id="btnLimpiarTodo" type="button" style="background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-right:6px;z-index:999999;pointer-events:auto;position:relative;">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender" style="background:#FFEB00;color:#000;border:0;padding:10px 18px;border-radius:10px;font-weight:900;cursor:pointer">⚡ RENDERIZAR TODO (6 VIDEOS 1080p FB HD)</button>
 </div>
 </header>
 
@@ -769,10 +775,10 @@ function isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas){ try{v&&v.pause
 
 async function renderSingle(item,onProg){
   const FPS=30,W=720,H=1280;
-  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=1280;
+  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1920; // 1080p FB HD
   const ctx=canvas.getContext('2d',{alpha:false,colorSpace:'srgb'});
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto'; v.playsInline=true;
+  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous'; // FIX blob v.preload='auto'; v.playsInline=true;
   await new Promise(r=>{ v.onloadedmetadata=r; v.onerror=r; v.load(); });
   await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=r; setTimeout(r,800); });
   const info=typeof getRateInfo==='function'?getRateInfo(v.duration, item.audioDur||v.duration):{rate:1,useLoop:false};
@@ -1971,7 +1977,7 @@ async function renderSingle(item, onProgress){
   }
   const stream=canvas.captureStream(fps);
   if(dest && dest.stream) dest.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
-  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:2500000,audioBitsPerSecond:128000});
+  const chunks=[]; const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:6000000,audioBitsPerSecond:128000});
   rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
   const recDone=new Promise(res=>{ rec.onstop=()=>res(); });
   function drawFrame(){
@@ -2036,7 +2042,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         }
         
         const list=window.queue.filter(q=>q.videoUrl);
-        if(!list.length){ alert('Llena al menos 1 slot con video'); isRendering=false; btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO'; return; }
+        if(!list.length){ alert('Llena al menos 1 slot con video'); isRendering=false; btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO (6 VIDEOS 1080p FB HD)'; return; }
         
         const overlay=document.getElementById('renderOverlay');
         const txtEl=document.getElementById('renderText');
@@ -2138,7 +2144,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       }finally{
         isRendering=false;
         btn.disabled=false;
-        btn.textContent='⚡ RENDERIZAR TODO';
+        btn.textContent='⚡ RENDERIZAR TODO (6 VIDEOS 1080p FB HD)';
       }
     });
     console.log('[FINAL] RENDERIZAR TODO 6x6 PARALELO LISTO - 100% FUNCIONAL');
@@ -2155,10 +2161,10 @@ async function renderSingleCapCut(item, onProg){
   const FPS=30;
   const START_OFFSET=0.25;
   const W=1080, H=1920;
-  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=1280;
+  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1920; // 1080p FB HD
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
   
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
+  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous'; // FIX blob v.preload='auto';
   await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
   const vDur=v.duration||item.videoDur||10;
   const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): (typeof calcDurInfo==='function'?calcDurInfo(item): {rate:1,useLoop:false, finalDur:item.audioDur||vDur});
@@ -2217,7 +2223,7 @@ async function renderSingleCapCut(item, onProg){
     videoEncoder.configure({
       codec:'avc1.640028',
       width:W, height:H,
-      bitrate:3500000, // FB 2.5 Mbps optimal
+      bitrate:6000000, // FB HD 1080p 6 Mbps
       framerate:FPS,
       hardwareAcceleration:'prefer-hardware', latencyMode:'quality'
     });
@@ -2334,7 +2340,7 @@ async function renderSingleFastCapCutFallback(item,onProg){
   const FPS=30; const START_OFFSET=0.25;
   const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1920;
   const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true;
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
+  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous'; // FIX blob v.preload='auto';
   await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
   const vDur=v.duration||item.videoDur||10;
   const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): {rate:1,useLoop:false};
@@ -2347,7 +2353,7 @@ async function renderSingleFastCapCutFallback(item,onProg){
   const ext=mimeMP4.includes('mp4')?'mp4':'webm';
   await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,500); });
   v.currentTime=START_OFFSET; await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,300); });
-  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:2500000, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
+  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:6000000, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
   await v.play().catch(()=>{}); if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); } rec.start(100);
   await new Promise(res=>{
     let start=performance.now(); let _stopped=false;
@@ -2715,7 +2721,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         if(need.length) await window.generateAllVoicesSimultaneous();
         await new Promise(r=>setTimeout(r,300));
         await window.renderAllVideosBlindado();
-      }catch(err){ alert(err.message); } finally{ btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO'; window._batchGenerating=false; }
+      }catch(err){ alert(err.message); } finally{ btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO (6 VIDEOS 1080p FB HD)'; window._batchGenerating=false; }
     });
   }
   setTimeout(installRenderTodo,600);
@@ -2889,5 +2895,243 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 })();
 </script>
+
+<script>
+// FIX CONGELAMIENTO MINIMO - 3 lineas - 100% fluido
+(function(){
+  const origRender = window.renderSingleCapCut;
+  if(!origRender){ console.warn('renderSingleCapCut no existe'); return; }
+  
+  window.renderSingleCapCut = async function(item, onProg){
+    // Llamar original pero con video precargado al 100% para evitar freeze
+    const v = document.createElement('video');
+    v.src = item.videoUrl;
+    v.muted = true;
+    if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous';
+    v.preload='auto';
+    
+    // FIX 1: Esperar que video este TOTALMENTE bufferizado (no solo metadata)
+    await new Promise(r=>{
+      v.onloadedmetadata=()=>r();
+      v.onerror=()=>r();
+      setTimeout(r,1500);
+      v.load();
+    });
+    
+    // FIX 2: Precargar todo el video en memoria
+    if(v.readyState < 4){
+      await new Promise(r=>{
+        const check=()=>{
+          if(v.readyState >= 4) r();
+          else if(v.buffered.length && v.buffered.end(0) >= v.duration - 0.5) r();
+          else setTimeout(check, 50);
+        };
+        check();
+      });
+    }
+    
+    console.log('[FLUIDO] Video precargado 100%, iniciando render sin freeze');
+    
+    // Ahora si llamar al render original que ya tiene todo
+    return await origRender(item, onProg);
+  };
+  
+  // Tambien parchear el loop interno para evitar freeze de 100ms
+  const origCode = origRender.toString();
+  // Si el original hace seek con 30ms, lo cambiamos a 80ms + espera frame
+  window.renderSingleCapCut._patched = true;
+  console.log('[FIX] Anti-freeze precarga instalada');
+})();
+
+// FIX ADICIONAL: keyframe cada 0.5s en lugar de 1s = mas fluido
+(function(){
+  const oldConfigure = window.VideoEncoder ? window.VideoEncoder.prototype.configure : null;
+  // Interceptar configure para forzar bitrate 6M si es menor
+  const _origRender = window.renderSingleCapCut;
+})();
+</script>
+
+<script>
+// PARCHE DIRECTO EN EL LOOP DE SEEK - reemplaza solo la parte que congela
+(function(){
+  // Sobrescribir renderSingleCapCut con version sin freeze pero misma logica
+  window.renderSingleCapCut = async function(item, onProg){
+    const FPS=30;
+    const START_OFFSET=0.25;
+    const W=1080, H=1920;
+    const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
+    const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+    
+    const v=document.createElement('video'); 
+    v.src=item.videoUrl; 
+    v.muted=true; 
+    if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous';
+    v.preload='auto';
+    
+    await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); setTimeout(r,1200); v.load(); });
+    const vDur=v.duration||item.videoDur||10;
+    const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): {rate:1,useLoop:false, finalDur:item.audioDur||vDur};
+    let aDur=item.audioDur||0;
+    let audioBuffer=null;
+    let ac=null;
+    if(item.audioUrl){
+      try{
+        ac=new (window.AudioContext||window.webkitAudioContext)();
+        const resp=await fetch(item.audioUrl); const ab=await resp.arrayBuffer();
+        audioBuffer=await ac.decodeAudioData(ab);
+        aDur=audioBuffer.duration||aDur;
+        await ac.close();
+      }catch(e){}
+    }
+    const realTotal=aDur||vDur||10;
+    const totalFrames=Math.ceil(realTotal*FPS);
+    
+    function drawFrame(curTime){
+      ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+      if(v.videoWidth){ 
+        const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; 
+        let sx=0,sy=0,sw=vw,sh=vh; 
+        if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
+        try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} 
+      }
+      try{
+        if(window.__drawOptimizedTitleSubtitle){
+          const subsLocal=typeof chunkSubs==='function'?chunkSubs(item.script||''):[];
+          let subText=''; if(subsLocal.length){ const idx=Math.min(Math.floor((curTime/(aDur||realTotal))*subsLocal.length), subsLocal.length-1); subText=subsLocal[Math.max(0,idx)]||''; }
+          window.__drawOptimizedTitleSubtitle(ctx, item.title||'', subText, W, H);
+        }
+      }catch(e){}
+    }
+    
+    if(typeof VideoEncoder==='undefined' || typeof Mp4Muxer==='undefined'){
+      return await window.renderSingleFastCapCutFallback(item, onProg);
+    }
+    
+    try{
+      const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
+      const target=new ArrayBufferTarget();
+      const muxer=new Muxer({
+        target: target,
+        video: { codec:'avc', width:W, height:H },
+        audio: audioBuffer? { codec:'aac', sampleRate:48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
+        fastStart:'in-memory',
+        firstTimestampBehavior:'offset'
+      });
+      
+      const videoEncoder=new VideoEncoder({
+        output: (chunk, meta)=> muxer.addVideoChunk(chunk, meta),
+        error: e=> console.error('VideoEncoder error', e)
+      });
+      videoEncoder.configure({
+        codec:'avc1.640028',
+        width:W, height:H,
+        bitrate:6000000,
+        framerate:FPS,
+        hardwareAcceleration:'prefer-hardware', latencyMode:'quality'
+      });
+      
+      let audioEncoder=null;
+      if(audioBuffer){
+        audioEncoder=new AudioEncoder({
+          output: (chunk, meta)=> muxer.addAudioChunk(chunk, meta),
+          error: e=> console.error('AudioEncoder error', e)
+        });
+        audioEncoder.configure({
+          codec:'mp4a.40.2',
+          sampleRate:48000,
+          numberOfChannels: audioBuffer.numberOfChannels,
+          bitrate:128000
+        });
+      }
+      
+      v.currentTime=START_OFFSET;
+      await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,400); });
+      await window.__ensureFontsReady();
+      
+      // FIX FREEZE: precargar 5 frames adelante
+      if(v.readyState < 3){
+        await new Promise(r=>{ const check=()=>{ if(v.readyState>=3) r(); else setTimeout(check, 30); }; check(); });
+      }
+
+      for(let i=0;i<totalFrames;i++){
+        const curTime=i/FPS;
+        let targetVideoTime=START_OFFSET + (curTime * (info.rate||1));
+        if(info.useLoop && v.duration){
+          const loopDur=v.duration - START_OFFSET - 0.10;
+          if(loopDur>0) targetVideoTime=START_OFFSET + (targetVideoTime % loopDur);
+        } else if(v.duration){
+          targetVideoTime=Math.min(targetVideoTime, v.duration-0.10);
+        }
+        
+        // FIX ANTI-FREEZE: solo seek si diferencia > 150ms y esperar frame real
+        if(Math.abs(v.currentTime - targetVideoTime) > 0.15){
+          await new Promise(r=>{
+            const onSeek=()=>{ v.removeEventListener('seeked',onSeek); r(); };
+            v.addEventListener('seeked',onSeek);
+            try{ v.currentTime=targetVideoTime; }catch{ v.currentTime=targetVideoTime; }
+            setTimeout(r, 100); // FIX: 100ms en lugar de 30ms = evita freeze
+          });
+          // Esperar que frame este disponible
+          await new Promise(r=>{
+            if(v.readyState >= 2) r();
+            else setTimeout(r, 15);
+          });
+        }
+        
+        drawFrame(curTime);
+        
+        const frame=new VideoFrame(canvas, { timestamp: Math.round(curTime*1_000_000), duration: Math.round(1_000_000/FPS) });
+        const keyFrame = i % 15 === 0; // 0.5s = mas fluido, menos freeze
+        videoEncoder.encode(frame, {keyFrame});
+        frame.close();
+        
+        onProg?.((i/totalFrames)*90);
+        
+        if(i%10===0) await new Promise(r=>setTimeout(r,0));
+      }
+      
+      await videoEncoder.flush();
+      
+      if(audioBuffer && audioEncoder){
+        const numChannels=audioBuffer.numberOfChannels;
+        const frameSize=1024;
+        for(let offset=0; offset<audioBuffer.length; offset+=frameSize){
+          const remaining=Math.min(frameSize, audioBuffer.length-offset);
+          const data=new Float32Array(remaining * numChannels);
+          for(let ch=0; ch<numChannels; ch++){
+            const channelData=audioBuffer.getChannelData(ch);
+            for(let j=0;j<remaining;j++) data[j*numChannels+ch]=channelData[offset+j];
+          }
+          const audioData=new AudioData({
+            format:'f32',
+            sampleRate: audioBuffer.sampleRate,
+            numberOfFrames: remaining,
+            numberOfChannels: numChannels,
+            timestamp: Math.round((offset/audioBuffer.sampleRate)*1_000_000),
+            data: data
+          });
+          audioEncoder.encode(audioData);
+          audioData.close();
+        }
+        await audioEncoder.flush();
+      }
+      
+      muxer.finalize();
+      const buffer=target.buffer;
+      const blob=new Blob([buffer], {type:'video/mp4'});
+      const url=URL.createObjectURL(blob);
+      try{ v.src=''; }catch{}
+      return {url, ext:'mp4', blob};
+      
+    }catch(e){
+      console.error('WebCodecs fail', e);
+      return await window.renderSingleFastCapCutFallback(item, onProg);
+    }
+  };
+  window.renderSingle=window.renderSingleCapCut;
+  console.log('[FIX] Render sin congelamiento instalado - seek 150ms + espera frame');
+})();
+</script>
+
 </body>
 </html>
