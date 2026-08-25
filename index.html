@@ -1,4 +1,4 @@
-<!-- V17 DEFINITIVO 2026-05-13 - 1080x1920 9:16 8/11Mbps H264 High AAC128k - Titulo 2 lineas / Sub 3 lineas ancho - Preview=Export identico - BorrarTodo fix - No autoplay -->
+<!-- V17 DEFINITIVO 2026-05-13 - 720x1280 9:16 8/11Mbps H264 High AAC128k - Titulo 2 lineas / Sub 3 lineas ancho - Preview=Export identico - BorrarTodo fix - No autoplay -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <div style="display:flex;gap:8px;align-items:center">
 <span style="font-size:10px;color:#666;background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222">720p • 30fps • 3Mbps • MP4 • FLUIDO</span>
 <label style="background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222;font-size:10px"><input type="checkbox" id="autoDownloadCheck" checked> Auto-descargar</label>
-<button id="btnLimpiarTodo" type="button" style="background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-right:6px;z-index:999999;pointer-events:auto;position:relative;">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender" style="background:#FFEB00;color:#000;border:0;padding:10px 18px;border-radius:10px;font-weight:900;cursor:pointer">⚡ RENDERIZAR TODO</button>
+<button id="btnLimpiarTodo" type="button" onclick="window._doLimpiarReal()" style="background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-right:6px;z-index:999999;pointer-events:auto;position:relative;display:inline-block;">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender" style="background:#FFEB00;color:#000;border:0;padding:10px 18px;border-radius:10px;font-weight:900;cursor:pointer">⚡ RENDERIZAR TODO</button>
 </div>
 </header>
 
@@ -446,15 +446,15 @@ const getA=()=>queue.find(q=>q.id===activeId);
 function getRateInfo(vDur,aDur){
   if(!vDur||!aDur) return {rate:1,useLoop:false,realTotal:vDur||aDur||0,needed:1,stretchFirst:false};
   const needed=vDur/aDur;
-  const MIN_RATE = 0.5; // MAXIMO FLUIDO: 1 / 0.5 = 2x más largo sin trabarse
+  const MIN_RATE = 0.40; // SOLUCION USUARIO: estirar hasta 0.40x luego loop
   if(needed < 1){
     if(needed < MIN_RATE){
-      // Video muy corto: estirar al máximo fluido 0.5x y loopear lo que falte
+      // Video muy corto: estirar al max fluido 0.40x (2.5x) y loopear lo que falte - sin trabarse
       const stretchedDur = vDur / MIN_RATE;
       const useLoop = stretchedDur < aDur;
       return {rate:MIN_RATE,useLoop,realTotal:aDur,needed,stretchFirst:true, stretchedDur};
     }else{
-      // Video un poco corto (ej: 3min video, 4min audio = 0.75x): estirar fluido sin loop
+      // Estiramiento fluido directo 0.40-1.0x sin loop
       return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:true};
     }
   }
@@ -733,7 +733,7 @@ $("btnPlay").addEventListener('click',()=>{
     $("btnPlay").textContent='▶ Play';
   }
 });
-const FPS=30,W=1080,H=1920;
+const FPS=30,W=720,H=1280;
 
 function safeDownload(url, name){
   try{
@@ -757,10 +757,6 @@ function queueDownload(url,name){
 
 
 
-async function renderSingleMP4_WebCodecs(item,onProg){ return {url:'',ext:'mp4'}; }
-
-
-
 function hardCleanup(){ try{const vp=document.getElementById('vPreview'); if(vp) vp.pause()}catch{} }
 function isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas){ try{v&&v.pause(); v.src='';}catch{} try{combined && combined.getTracks().forEach(t=>t.stop())}catch{} try{cStream && cStream.getTracks().forEach(t=>t.stop())}catch{} try{ac&&ac.close()}catch{} }
 
@@ -768,13 +764,13 @@ function isolatedCleanup(v,cap,bgCap,ac,cStream,combined,canvas){ try{v&&v.pause
 
 
 async function renderSingle(item,onProg){
-  const FPS=30,W=1080,H=1920;
-  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
+  const FPS=30,W=720,H=1280;
+  const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=1280;
   const ctx=canvas.getContext('2d',{alpha:false,colorSpace:'srgb'});
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto'; v.playsInline=true;
+  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto'; v.playsInline=true; v.loop=false;
   await new Promise(r=>{ v.onloadedmetadata=r; v.onerror=r; v.load(); });
-  await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=r; setTimeout(r,800); });
+  await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=r; setTimeout(r,500); });
   const info=typeof getRateInfo==='function'?getRateInfo(v.duration, item.audioDur||v.duration):{rate:1,useLoop:false};
   let audioBuffer=null;
   if(item.audioBlob){
@@ -782,7 +778,7 @@ async function renderSingle(item,onProg){
       const ac=new (window.AudioContext||window.webkitAudioContext)();
       audioBuffer=await ac.decodeAudioData((await item.audioBlob.arrayBuffer()).slice(0));
       await ac.close();
-    }catch(e){ console.warn('audioBlob decode fail',e); }
+    }catch(e){}
   } else if(item.audioUrl){
     try{
       const blob=await (await fetch(item.audioUrl)).blob();
@@ -790,7 +786,7 @@ async function renderSingle(item,onProg){
       audioBuffer=await ac.decodeAudioData((await blob.arrayBuffer()).slice(0));
       await ac.close();
       item.audioBlob=blob;
-    }catch(e){ console.warn('audioUrl decode fail',e); }
+    }catch(e){}
   }
   const realTotal=item.audioDur||audioBuffer?.duration||v.duration||10;
   const totalFrames=Math.ceil(realTotal*FPS);
@@ -804,25 +800,27 @@ async function renderSingle(item,onProg){
     audio: audioBuffer ? {codec:'aac', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:48000} : undefined,
     fastStart:'in-memory'
   });
-  const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error('VideoEncoder',e)});
-  vEnc.configure({codec:'avc1.4D401F', width:W, height:H, bitrate:(FPS>=60?11000000:8000000), framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'avc'}});
+  const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error(e)});
+  vEnc.configure({codec:'avc1.4D401F', width:W, height:H, bitrate:8000000, framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'avc'}});
   let aEnc=null;
   if(audioBuffer){
-    aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error('AudioEncoder',e)});
+    aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error(e)});
     aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:48000, bitrate:128000});
   }
+  v.pause();
+  let lastVt=-999;
+  // V38 FAST: sin esperar seeked lento, solo 5ms + check rapido
   for(let f=0; f<totalFrames; f++){
     const cur=f/FPS;
-    if(onProg) onProg(Math.min((cur/realTotal)*85,85));
-    let vt=info.useLoop?(cur*(info.rate||1))%v.duration:Math.min(cur*(info.rate||1), v.duration-0.05);
-    if(Math.abs(v.currentTime-vt)>0.02){
-      v.currentTime=vt;
-      await new Promise(r=>{
-        let done=false;
-        const fn=()=>{ if(!done){done=true; v.removeEventListener('seeked',fn); r(); } };
-        v.addEventListener('seeked',fn);
-        setTimeout(()=>{ if(!done){done=true; v.removeEventListener('seeked',fn); r(); } },80);
-      });
+    if(onProg && f%15===0) onProg(Math.min((cur/realTotal)*85,85));
+    let rawVt = cur * (info.rate || 1);
+    let vt = info.useLoop ? (v.duration ? (rawVt % v.duration) : rawVt) : (v.duration ? Math.min(rawVt, Math.max(0, v.duration-0.05)) : rawVt);
+    // Solo seek si diferencia >0.05s (evita seek innecesario)
+    if(Math.abs(v.currentTime-vt)>0.05 || Math.abs(lastVt-vt)>0.08){
+      try{ if(v.fastSeek) v.fastSeek(vt); else v.currentTime=vt; }catch{ v.currentTime=vt; }
+      // Espera ultra rapida sin evento seeked (el evento es lento)
+      if(f%3===0) await new Promise(r=>setTimeout(r,2));
+      lastVt=vt;
     }
     ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
     try{
@@ -836,15 +834,14 @@ async function renderSingle(item,onProg){
     }catch{}
     try{
       if(window.__drawOptimizedTitleSubtitle){
-        const subs=typeof chunkSubs==='function'?chunkSubs(item.script||''):[];
-        let sub=''; if(subs.length){ const idx=Math.min(Math.floor((cur/realTotal)*subs.length), subs.length-1); sub=subs[Math.max(0,idx)]||''; }
+        const subs=typeof chunkSubs==='function'?chunkSubs(item.script||''):[]; let sub=''; if(subs.length){ const idx=Math.min(Math.floor((cur/realTotal)*subs.length), subs.length-1); sub=subs[Math.max(0,idx)]||''; }
         window.__drawOptimizedTitleSubtitle(ctx, item.title||'', sub, W, H);
       }
     }catch(e){}
     const frame=new VideoFrame(canvas, {timestamp:cur*1e6, duration:(1/FPS)*1e6});
-    vEnc.encode(frame, {keyFrame:f%(FPS*2)===0});
+    vEnc.encode(frame, {keyFrame:f%60===0});
     frame.close();
-    if(f%10===0) await new Promise(r=>setTimeout(r,0));
+    if(f%30===0) await new Promise(r=>setTimeout(r,0));
   }
   await vEnc.flush(); vEnc.close();
   if(audioBuffer && aEnc){
@@ -855,7 +852,7 @@ async function renderSingle(item,onProg){
       for(let c=0;c<ch;c++){ const cd=audioBuffer.getChannelData(c); for(let s=0;s<len;s++) data[s*ch+c]=cd[i+s]; }
       const ad=new AudioData({format:'f32', sampleRate:sr, numberOfChannels:ch, numberOfFrames:len, timestamp:(i/sr)*1e6, data});
       aEnc.encode(ad); ad.close();
-      if(onProg) onProg(85+Math.min((i/total)*15,15));
+      if(onProg && i%8192===0) onProg(85+Math.min((i/total)*15,15));
     }
     await aEnc.flush(); aEnc.close();
   }
@@ -886,7 +883,7 @@ window.renderOne=async id=>{
 $("btnRenderSingle").addEventListener('click',()=>renderOne(activeId));
 
 
-console.log('%c V17 PARCHES APLICADOS - 1080x1920 - Preview=Export - 2 arriba 3 abajo ','background:#FFEB00;color:#000;font-size:14px;font-weight:900;padding:6px');
+console.log('%c V17 PARCHES APLICADOS - 720x1280 - Preview=Export - 2 arriba 3 abajo ','background:#FFEB00;color:#000;font-size:14px;font-weight:900;padding:6px');
 setActive(1);renderCola(true);log('V17 MP4 FLUIDO ESTIRADO - primera instancia max estirada 0.25x + seek manual anti-freeze + .mp4');
 </script>
 
@@ -1879,6 +1876,62 @@ window.IC_renew = function(username){
 </script>
 
 <script>window.createLightBgMusic=function(t,d,a){var r=a.sampleRate,e=Math.floor(d*r),n=a.createBuffer(2,e,r);for(let a=0;a<2;a++){let o=n.getChannelData(a);for(let a=0;a<e;a++){let e=a/r;o[a]=Math.sin(2*Math.PI*220*e)*.12}}return n};</script>
+<style id="hide-rojo">#btnRenderSingle,#statusLabel,#speedLabel{display:none!important}</style>
+<script>
+(function(){
+  window.limpiarTodo=function(){
+    if(!confirm('🧹 ¿Borrar TODO y recargar en cero 100% limpio?\nSe borrara todo y recargara la pagina para segunda tanda sin fallos')) return;
+    const btn=document.getElementById('btnLimpiarTodo');
+    if(btn){ btn.disabled=true; btn.textContent='🧹 LIMPIANDO...'; }
+    try{
+      console.log('[LIMPIAR] Iniciando limpieza total');
+      if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}}); window._lastBlobs=[];
+      if(window.voiceProgressBySlot) window.voiceProgressBySlot={};
+      queue.forEach(q=>{
+        try{ if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{}
+      });
+      queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase=`Video ${q.id}`; q.txtName=''; q.txtContent=''; q.audioBlob=null; });
+      document.querySelectorAll('input[type=file]').forEach(inp=>inp.value='');
+      ['inputTitle','inputScript','inputFileName'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+      const se=(id,t)=>{const el=document.getElementById(id); if(el) el.innerHTML='<span style=color:#666>'+t+'</span>';};
+      se('txtName','Sin .txt'); se('videoName','Sin video'); se('audioName','Sin audio');
+      const t1=document.getElementById('txtTxt'); if(t1) t1.textContent='Elegir .txt';
+      const t2=document.getElementById('txtVideo'); if(t2) t2.textContent='Elegir video';
+      const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
+      try{ 
+        const st=document.getElementById('kokoroStatus'); if(st){ st.textContent='Limpio - Listo para segunda tanda'; st.style.color='#888'; }
+        const bar=document.getElementById('kokoroProgressBar'); if(bar) bar.style.width='0%';
+        const barW=document.getElementById('kokoroProgress'); if(barW) barW.style.display='none';
+        const btnGen=document.getElementById('btnKokoroGen'); if(btnGen){ btnGen.disabled=false; btnGen.textContent='🔊 GENERAR AUDIO ESPAÑOL'; btnGen.style.background='#FFEB00'; }
+      }catch{}
+      try{ setActive(1); renderCola(true);}catch{}
+      console.log('[LIMPIAR] Recargando en 1.2s para estado 100% limpio');
+      setTimeout(()=>location.reload(),1200);
+    }catch(e){ location.reload(); }
+  };
+  function isLogged(){
+    const ed = document.getElementById('editor') || document.querySelector('.layout');
+    // editor visible means logged
+    return ed && ed.offsetParent!==null;
+  }
+  function ins(){
+    const bExist=document.getElementById('btnLimpiarTodo');
+    if(!isLogged()){ if(bExist) bExist.remove(); return; }
+    if(bExist) return;
+    const br=document.getElementById('btnRender');
+    if(!br) return;
+    const b=document.createElement('button'); b.id='btnLimpiarTodo'; b.innerHTML='🧹 LIMPIAR TODO EN CERO';
+    b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-left:8px;';
+    b.onclick=()=>window.limpiarTodo();
+    br.parentElement.appendChild(b);
+  }
+  setTimeout(ins,1000); setInterval(ins,1000);
+})();
+</script>
+
+
+
+
 <script>
 (function(){
   // BLOQUEAR POPUP VOZ
@@ -1950,7 +2003,7 @@ window.IC_renew = function(username){
 async function renderSingle(item, onProgress){
   const info = window.calcDurInfo ? window.calcDurInfo(item) : {useLoop:false, playbackRate:1, finalDur: item.videoDur || 10};
   const canvas = document.createElement('canvas');
-  canvas.width=1080; canvas.height=1920;
+  canvas.width=720; canvas.height=900;
   const ctx = canvas.getContext('2d', {alpha:false, desynchronized:true});
   const v = document.createElement('video');
   v.src = item.videoUrl; v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
@@ -2151,227 +2204,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script>
 // MOTOR TIPO CAPCUT - WEBCODECS OFFLINE - NUNCA SE CONGELA EN DESCARGA FINAL
 
-async function renderSingleCapCut(item, onProg){
-  const FPS=30;
-  const START_OFFSET=0.25;
-  const W=1080, H=1920;
-  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
-  await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
-  const vDur=v.duration||item.videoDur||10;
-  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): (typeof calcDurInfo==='function'?calcDurInfo(item): {rate:1,useLoop:false, finalDur:item.audioDur||vDur});
-  let aDur=item.audioDur||0;
-  let audioBuffer=null;
-  let ac=null;
-  if(item.audioUrl){
-    try{
-      ac=new (window.AudioContext||window.webkitAudioContext)();
-      const resp=await fetch(item.audioUrl); const ab=await resp.arrayBuffer();
-      audioBuffer=await ac.decodeAudioData(ab);
-      aDur=audioBuffer.duration||aDur;
-      await ac.close();
-    }catch(e){ console.warn('audio decode fail', e); }
-  }
-  const realTotal=aDur||vDur||10;
-  const totalFrames=Math.ceil(realTotal*FPS);
-  
-  function drawFrame(curTime){
-    ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-    if(v.videoWidth){ 
-      const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; 
-      let sx=0,sy=0,sw=vw,sh=vh; 
-      if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
-      try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} 
-    }
-    // V23 PREVIEW=EXPORT IDENTICO
-    try{
-      if(window.__drawOptimizedTitleSubtitle){
-        const subsLocal=typeof chunkSubs==='function'?chunkSubs(item.script||''):[]; let subText=''; if(subsLocal.length){ const idx=Math.min(Math.floor((curTime/(aDur||realTotal))*subsLocal.length), subsLocal.length-1); subText=subsLocal[Math.max(0,idx)]||''; }
-        window.__drawOptimizedTitleSubtitle(ctx, item.title||'', subText, W, H);
-      }
-    }catch(e){}
-  }
-  
-  if(typeof VideoEncoder==='undefined' || typeof Mp4Muxer==='undefined'){
-    console.warn('WebCodecs no soportado, fallback');
-    return await window.renderSingleFastCapCutFallback(item, onProg);
-  }
-  
-  try{
-    const { Muxer, ArrayBufferTarget } = Mp4Muxer;
-    const target=new ArrayBufferTarget();
-    const muxer=new Muxer({
-      target: target,
-      video: { codec:'avc', width:W, height:H },
-      audio: audioBuffer? { codec:'aac', sampleRate:48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
-      fastStart:'in-memory',
-      firstTimestampBehavior:'offset'
-    });
-    
-    const videoEncoder=new VideoEncoder({
-      output: (chunk, meta)=> muxer.addVideoChunk(chunk, meta),
-      error: e=> console.error('VideoEncoder error', e)
-    });
-    videoEncoder.configure({
-      codec:'avc1.42E01E',
-      width:W, height:H,
-      bitrate:(FPS>=60?11000000:8000000), // FB 2.5 Mbps optimal
-      framerate:FPS,
-      hardwareAcceleration:'prefer-hardware', latencyMode:'quality'
-    });
-    
-    let audioEncoder=null;
-    if(audioBuffer){
-      audioEncoder=new AudioEncoder({
-        output: (chunk, meta)=> muxer.addAudioChunk(chunk, meta),
-        error: e=> console.error('AudioEncoder error', e)
-      });
-      audioEncoder.configure({
-        codec:'mp4a.40.2',
-        sampleRate:48000,
-        numberOfChannels: audioBuffer.numberOfChannels,
-        bitrate:128_000
-      });
-    }
-    
-    v.currentTime=START_OFFSET;
-    await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,200); });
-    await window.__ensureFontsReady();
-    
-    // Pre-buffer: asegura que el video esté completamente listo
-    v.preload='auto';
-    if(v.readyState < 3){
-      await new Promise(r=>{
-        const check=()=>{ if(v.readyState>=3) r(); else setTimeout(check, 50); };
-        check();
-      });
-    }
-
-    for(let i=0;i<totalFrames;i++){
-      const curTime=i/FPS;
-      let targetVideoTime=START_OFFSET + (curTime * (info.rate||1));
-      if(info.useLoop && v.duration){
-        const loopDur=v.duration - START_OFFSET - 0.10;
-        if(loopDur>0) targetVideoTime=START_OFFSET + (targetVideoTime % loopDur);
-      } else if(v.duration){
-        targetVideoTime=Math.min(targetVideoTime, v.duration-0.10);
-      }
-      
-      // FIX TRABADO EXPORT: solo hace seek si realmente cambia >100ms y usa fastSeek
-      if(Math.abs(v.currentTime - targetVideoTime) > 0.10){
-        await new Promise(r=>{
-          const onSeek=()=>{ v.removeEventListener('seeked',onSeek); r(); };
-          v.addEventListener('seeked',onSeek);
-          try{
-            if('fastSeek' in v) v.fastSeek(targetVideoTime);
-            else v.currentTime=targetVideoTime;
-          }catch{ v.currentTime=targetVideoTime; }
-          setTimeout(r, 30);
-        });
-        // Espera frame disponible
-        if(v.readyState < 2){
-          await new Promise(r=> setTimeout(r, 10));
-        }
-      }
-      
-      drawFrame(curTime);
-      
-      const frame=new VideoFrame(canvas, { timestamp: Math.round(curTime*1_000_000), duration: Math.round(1_000_000/FPS) });
-      const keyFrame = i % FPS === 0; // keyframe cada 1 seg = fluido
-      videoEncoder.encode(frame, {keyFrame});
-      frame.close();
-      
-      onProg?.((i/totalFrames)*90);
-      
-      if(i%15===0) await new Promise(r=>setTimeout(r,0));
-    }
-    
-    await videoEncoder.flush();
-    
-    if(audioBuffer && audioEncoder){
-      const numChannels=audioBuffer.numberOfChannels;
-      const sampleRate=audioBuffer.sampleRate;
-      const frameSize=1024;
-      for(let offset=0; offset<audioBuffer.length; offset+=frameSize){
-        const remaining=Math.min(frameSize, audioBuffer.length-offset);
-        const data=new Float32Array(remaining * numChannels);
-        for(let ch=0; ch<numChannels; ch++){
-          const channelData=audioBuffer.getChannelData(ch);
-          for(let j=0;j<remaining;j++) data[j*numChannels+ch]=channelData[offset+j];
-        }
-        const audioData=new AudioData({
-          format:'f32',
-          sampleRate: sampleRate,
-          numberOfFrames: remaining,
-          numberOfChannels: numChannels,
-          timestamp: Math.round((offset/sampleRate)*1_000_000),
-          data: data
-        });
-        audioEncoder.encode(audioData);
-        audioData.close();
-      }
-      await audioEncoder.flush();
-    }
-    
-    muxer.finalize();
-    const buffer=target.buffer;
-    const blob=new Blob([buffer], {type:'video/mp4'});
-    const url=URL.createObjectURL(blob);
-    try{ v.src=''; }catch{}
-    return {url, ext:'mp4', blob};
-    
-  }catch(e){
-    console.error('WebCodecs fail, fallback', e);
-    return await window.renderSingleFastCapCutFallback(item, onProg);
-  }
-}
-
-
-// Fallback rapido si WebCodecs falla - el anti-freeze anterior
-async function renderSingleFastCapCutFallback(item,onProg){
-  const FPS=30; const START_OFFSET=0.25;
-  const canvas=document.createElement('canvas'); canvas.width=1080; canvas.height=1920;
-  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true;
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.crossOrigin='anonymous'; v.preload='auto';
-  await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
-  const vDur=v.duration||item.videoDur||10;
-  const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): {rate:1,useLoop:false};
-  let aDur=item.audioDur||0; let ac,dest,cap=null;
-  if(item.audioUrl){
-    try{ ac=new (window.AudioContext||window.webkitAudioContext)(); dest=ac.createMediaStreamDestination(); cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; await new Promise(r=>{ cap.onloadedmetadata=()=>{aDur=cap.duration||aDur; r();}; cap.onerror=()=>r(); cap.load(); }); const src=ac.createMediaElementSource(cap); src.connect(dest); }catch{}
-  }
-  const realTotal=aDur||vDur||10;
-  const mimeMP4=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4'].find(m=>{try{return MediaRecorder.isTypeSupported(m);}catch{return false;}}) || 'video/webm;codecs=vp9';
-  const ext=mimeMP4.includes('mp4')?'mp4':'webm';
-  await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,500); });
-  v.currentTime=START_OFFSET; await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,300); });
-  const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:2500000, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
-  await v.play().catch(()=>{}); if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); } rec.start(100);
-  await new Promise(res=>{
-    let start=performance.now(); let _stopped=false;
-    const draw=()=>{
-      const elapsed=(performance.now()-start)/1000; const cur=Math.min(elapsed, realTotal); onProg?.(Math.min((cur/realTotal)*100,100));
-      try{ if(v.paused && cur<realTotal-0.1) v.play().catch(()=>{}); }catch{}
-      if(v.readyState>=2){ const vw=v.videoWidth, vh=v.videoHeight, tgt=1080/1920, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height); }catch{} }
-      const scriptText=(item.script||'').trim(); const subs=typeof chunkSubs==='function'?chunkSubs(scriptText):[]; const tLines=typeof splitWords==='function'?splitWords((item.title||'').toUpperCase(),22).slice(0,3):[(item.title||'').toUpperCase()];
-      try{
-        // OPTIMIZADO FALLBACK
-        let subText='';
-        const scriptText=(item.script||'').trim();
-        const subsLocal=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
-        if(subsLocal.length){ subText=subsLocal[Math.min(Math.floor((cur/(aDur||realTotal))*subsLocal.length),subsLocal.length-1)]||''; } else { subText=scriptText.split(/\s+/).slice(0,18).join(' '); } // 18 palabras = 3 lineas de subtitulo
-        window.__drawOptimizedTitleSubtitle(ctx, (item.title||''), subText, 1080, 1920);
-      }catch{}
-      if(cur>=realTotal-0.05){ if(!_stopped){ _stopped=true; try{ rec.stop(); }catch{} setTimeout(res,300); } return; } requestAnimationFrame(draw);
-    }; draw();
-  });
-  const blob=await blobP; try{ v.pause(); v.src=''; }catch{} try{ if(cap){ cap.pause(); } }catch{} try{ if(ac) await ac.close(); }catch{} try{ combined.getTracks().forEach(t=>t.stop()); }catch{} try{ cStream.getTracks().forEach(t=>t.stop()); }catch{}
-  return {url:URL.createObjectURL(blob), ext};
-}
-window.renderSingle=renderSingleCapCut;
-window.renderSingleCapCut=renderSingleCapCut;
+window.renderSingleCapCut=function(i,p){return window.renderSingle(i,p);};
 window.renderSingleFastCapCutFallback=renderSingleFastCapCutFallback;
 </script>
 
@@ -2524,62 +2357,220 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
+
 <script>
-// V23 FINAL - PREVIEW=EXPORT + BOTON ROJO SIN LOGOUT
+// V36 FINAL DEFINITIVA - RENDERIZAR TODO AUTOMATICO COMPLETO BLINDADO
+// Flujo: 6 voces simultaneas (si faltan) -> 6 videos 0.40+loop fluido 11Mbps -> export auto
+// Sin botones extra, todo controlado por RENDERIZAR TODO
+
 (function(){
-  // Asegurar __drawOptimized existe
-  if(!window.__drawOptimizedTitleSubtitle){ console.warn('__drawOptimized missing'); }
-  
-  window._doLimpiarReal = function(){
-    try{
-      const btn=document.getElementById('btnLimpiarTodo');
-      if(btn){ btn.textContent='🧹 LIMPIANDO...'; btn.disabled=true; }
-      if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});
-      window._lastBlobs=[];
-      if(window.voiceProgressBySlot) window.voiceProgressBySlot={};
-      if(window.queue){
-        window.queue.forEach(q=>{
-          try{ if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{}
-        });
-        window.queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase=`Video ${q.id}`; q.txtName=''; q.txtContent=''; q.audioBlob=null; });
-      }
-      document.querySelectorAll('input[type=file]').forEach(inp=>inp.value='');
-      ['inputTitle','inputScript','inputFileName'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
-      const setText=(id,t)=>{const el=document.getElementById(id); if(el) el.innerHTML='<span style=color:#666>'+t+'</span>';};
-      setText('txtName','Sin .txt'); setText('videoName','Sin video'); setText('audioName','Sin audio');
-      const t1=document.getElementById('txtTxt'); if(t1) t1.textContent='Elegir .txt';
-      const t2=document.getElementById('txtVideo'); if(t2) t2.textContent='Elegir video';
-      const t3=document.getElementById('txtAudio'); if(t3) t3.textContent='Elegir audio';
-      try{ if(window.setActive) setActive(1); if(window.renderCola) renderCola(true); if(window.renderOverlay) renderOverlay(); }catch{}
+  console.log('[V36] Flujo automatico completo blindado iniciado');
+
+  // Blindaje audio - bloquear play durante batch
+  window._batchGenerating = false;
+  window._allowParallelVoices = true; // V37 permite 6 simultaneas
+  const origPlay = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function(){
+    if(window._batchGenerating && this.id !== 'previewVideo'){
+      try{ this.pause(); this.muted=true; this.volume=0; }catch{}
+      return Promise.resolve();
+    }
+    return origPlay.call(this);
+  };
+
+  // Generacion 6 voces simultaneas blindada y estable
+  window.generateAllVoicesSimultaneous = async function(){
+    const queue = window.queue || [];
+    const pending = queue.filter(q=> (q.txtContent||q.script) && !q.audioUrl && q.videoUrl);
+    if(!pending.length) return true;
+    window._batchGenerating = true;
+    console.log('[V36] Generando '+pending.length+' voces simultaneas');
+
+    try{ document.querySelectorAll('audio,video').forEach(el=>{ try{ el.pause(); el.muted=true; el.volume=0; }catch{} }); }catch{}
+
+    const ov=document.getElementById('renderOverlay');
+    const pct=document.getElementById('renderPct');
+    const txt=document.getElementById('renderText');
+    const lst=document.getElementById('renderList');
+    if(ov) ov.style.display='flex';
+    if(txt) txt.textContent='GENERANDO '+pending.length+' VOCES SIMULTANEAS...';
+    if(lst) lst.innerHTML = pending.map(q=>`<div id="voiceSlot-${q.id}" style="background:#141418;border:1px solid #444;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#fff;font-size:10px">SLOT ${q.id} VOZ</span><span style="color:#8b5cf6;font-size:10px">⏳</span></div>`).join('');
+    if(pct) pct.textContent='0%';
+
+    // Pre-cargar TTS una vez
+    try{ if(window.getTTS) await window.getTTS(); }catch(e){ console.warn('pre-carga TTS fail',e); }
+
+    let completed=0;
+    const genOne = async (slot)=>{
+      const el=document.getElementById(`voiceSlot-${slot.id}`);
       try{
-        const vEl = document.getElementById('vPreview') || document.getElementById('previewVideo') || document.querySelector('video');
-        if(vEl){ try{vEl.pause();}catch{} }
-        const canvas=document.getElementById('previewCanvas'); if(canvas){ const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); }
-        const bar=document.getElementById('progressBar'); if(bar) bar.style.width='0%';
-      }catch{}
-      setTimeout(()=>{
-        const b=document.getElementById('btnLimpiarTodo');
-        if(b){ b.textContent='✅ LIMPIO'; b.style.background='#22c55e'; b.disabled=false; setTimeout(()=>{ b.textContent='🧹 LIMPIAR TODO EN CERO'; b.style.background='#ff3b3b'; }, 2000); }
-      }, 300);
-    }catch(e){ console.error(e); }
+        if(el) el.lastChild.textContent='GENERANDO...';
+        console.log('[V37] Generando voz SLOT '+slot.id+' simultanea');
+        let result=null;
+        // Usar el wrapper oficial que si funciona
+        if(window.generateVoiceForSlotId){
+          result = await window.generateVoiceForSlotId(slot.id);
+        } else if(window.handleGenerate){
+          const origActive=window.activeId;
+          try{
+            if(window.setActive) window.setActive(slot.id); else window.activeId=slot.id;
+            await new Promise(r=>setTimeout(r,30));
+            window.activeId=slot.id;
+            await window.handleGenerate();
+            result = (window.queue||[]).find(q=>q.id===slot.id);
+          } finally {
+            if(window.setActive && origActive) try{ window.setActive(origActive); }catch{}
+          }
+        }
+        if(el){ el.lastChild.textContent='✅ LISTO ('+(result?.audioDur?.toFixed(1)||'?')+'s)'; el.style.borderColor='#22c55e'; }
+        try{ document.querySelectorAll('audio').forEach(a=>{ try{ a.pause(); a.muted=true; a.volume=0; a.currentTime=0; }catch{} }); const pa=document.getElementById('previewAudio'); if(pa){ pa.pause(); pa.muted=true; pa.volume=0; } }catch{}
+        completed++;
+        if(pct) pct.textContent=Math.round((completed/pending.length)*50)+'%';
+        if(txt) txt.textContent=`VOCES ${completed}/${pending.length} - SLOT ${slot.id} OK`;
+        return true;
+      }catch(err){
+        console.error('voz fail', slot.id, err);
+        if(el){ el.lastChild.textContent='❌ '+err.message.slice(0,20); el.style.borderColor='#ef4444'; }
+        completed++;
+        if(pct) pct.textContent=Math.round((completed/pending.length)*50)+'%';
+        return false;
+      }
+    };
+
+    await Promise.all(pending.map(s=> genOne(s)));
+
+    try{ document.querySelectorAll('audio').forEach(a=>{ try{ a.pause(); a.muted=true; a.volume=0; a.currentTime=0; }catch{} }); }catch{}
+    window._batchGenerating = false;
+    console.log('[V36] Voces simultaneas completadas');
+    return true;
   };
-  window.limpiarTodo = function(e){
-    if(e){ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
-    console.log('[V23] click rojo');
-    window._doLimpiarReal();
+
+  // Render videos blindado
+  window.renderAllVideosBlindado = async function(){
+    const queue=window.queue||[];
+    const list=queue.filter(q=> q.videoUrl && q.audioUrl);
+    if(!list.length) return;
+    const ov=document.getElementById('renderOverlay');
+    const pct=document.getElementById('renderPct');
+    const txt=document.getElementById('renderText');
+    const lst=document.getElementById('renderList');
+    if(ov) ov.style.display='flex';
+    if(lst) lst.innerHTML = list.map(q=>`<div id="renderSlot-${q.id}" style="background:#141418;border:1px solid #222;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#fff;font-size:10px">SLOT ${q.id} VIDEO</span><span style="color:#FFEB00;font-size:10px">0%</span></div>`).join('');
+    
+    for(let i=0;i<list.length;i++){
+      const q=list[i];
+      q.status='renderizando'; q.progress=0;
+      if(window.renderCola) window.renderCola(true);
+      if(txt) txt.textContent=`RENDERIZANDO VIDEO ${i+1}/${list.length} - SLOT ${q.id}`;
+      try{
+        const r=await window.renderSingle(q, p=>{
+          q.progress=p;
+          const el=document.getElementById(`renderSlot-${q.id}`); if(el) el.lastChild.textContent=p.toFixed(0)+'%';
+          const baseProg = 50 + Math.round((i/list.length)*50 + (p/100)*(50/list.length));
+          if(pct) pct.textContent=baseProg+'%';
+          if(window.renderCola) window.renderCola(true);
+        });
+        if(r&&r.url){
+          q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100;
+          const el=document.getElementById(`renderSlot-${q.id}`); if(el){ el.lastChild.textContent='✅ EXPORTADO'; el.style.borderColor='#22c55e'; }
+          if(document.getElementById('autoDownloadCheck')?.checked){
+            const name=(window.sanitizar? window.sanitizar(q.fileNameBase): q.fileNameBase)||`Video ${q.id}`;
+            const a=document.createElement('a'); a.href=r.url; a.download=name+'.'+r.ext; document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),800);
+          }
+        }
+      }catch(e){
+        q.status='error';
+        console.error('render fail', q.id, e);
+        const el=document.getElementById(`renderSlot-${q.id}`); if(el){ el.lastChild.textContent='❌ ERROR'; el.style.borderColor='#ef4444'; }
+      }
+    }
+    if(pct) pct.textContent='100%';
+    if(txt) txt.textContent='✅ COMPLETADO - '+list.length+' VIDEOS EXPORTADOS';
+    setTimeout(()=>{ if(ov) ov.style.display='none'; }, 1500);
+    if(window.renderCola) window.renderCola(true);
   };
-  function bind(){
-    const b=document.getElementById('btnLimpiarTodo');
-    if(!b) return;
-    b.onclick = window.limpiarTodo;
-    b.style.pointerEvents='auto';
-    b.style.zIndex='999999';
+
+  // UNICO HANDLER RENDERIZAR TODO - FLUJO COMPLETO AUTOMATICO
+  function installRenderTodoFinal(){
+    const old=document.getElementById('btnRender');
+    if(!old) return;
+    // Eliminar todos los listeners clonando
+    const nb=old.cloneNode(true);
+    old.parentNode.replaceChild(nb, old);
+    const btn=document.getElementById('btnRender');
+    if(btn._v36) return;
+    btn._v36=true;
+    btn.addEventListener('click', async (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      if(btn.disabled) return;
+      btn.disabled=true;
+      const originalText=btn.textContent;
+      btn.textContent='⏳ PROCESO AUTOMATICO...';
+      try{
+        const queue=window.queue||[];
+        const withContent=queue.filter(q=> q.videoUrl && (q.txtContent||q.script));
+        if(!withContent.length){ alert('Carga primero 6 videos y 6 TXT/guiones'); return; }
+        
+        // PASO 1: 6 voces simultaneas si faltan
+        const needVoice = queue.filter(q=> (q.txtContent||q.script) && !q.audioUrl && q.videoUrl);
+        if(needVoice.length){
+          console.log('[V36] PASO 1: Generando '+needVoice.length+' voces simultaneas');
+          await window.generateAllVoicesSimultaneous();
+          await new Promise(r=>setTimeout(r,500));
+        }
+        
+        // PASO 2: Renderizar todos los videos fluido 0.40+loop 11Mbps
+        console.log('[V36] PASO 2: Renderizando videos');
+        await window.renderAllVideosBlindado();
+        
+        console.log('[V36] FLUJO COMPLETO AUTOMATICO TERMINADO');
+      }catch(err){
+        console.error('[V36] Flujo fail', err);
+        alert('Error flujo: '+err.message);
+        const ov=document.getElementById('renderOverlay'); if(ov) ov.style.display='none';
+      } finally {
+        btn.disabled=false;
+        btn.textContent='⚡ RENDERIZAR TODO';
+        // Mute final blindado
+        try{ document.querySelectorAll('audio,video').forEach(el=>{ try{ el.pause(); el.muted=true; el.volume=0; }catch{} }); }catch{}
+      }
+    });
+    console.log('[V36] RENDERIZAR TODO AUTOMATICO UNICO INSTALADO - blindado');
   }
-  bind();
-  document.addEventListener('DOMContentLoaded', bind);
-  setTimeout(bind, 500);
-  setInterval(bind, 1500);
-  console.log('[V23] listo preview=export + boton rojo sin logout');
+
+  // Instalar y blindar (reinstala cada 3s si otra entrega lo rompe)
+  setTimeout(installRenderTodoFinal, 500);
+  setTimeout(installRenderTodoFinal, 1500);
+  setInterval(installRenderTodoFinal, 3000);
+  window.addEventListener('load', installRenderTodoFinal);
+
+  // Guardian mute durante batch
+  setInterval(()=>{
+    if(window._batchGenerating){
+      try{ document.querySelectorAll('audio').forEach(a=>{ if(!a.paused){ a.pause(); a.muted=true; } }); }catch{}
+    }
+  }, 600);
+})();
+
+// BOTON ROJO BLINDADO SIN LOGOUT - UNICO
+window._doLimpiarReal=function(){
+  const b=document.getElementById('btnLimpiarTodo'); if(b){ b.textContent='🧹 LIMPIANDO...'; b.style.background='#aa0000'; b.disabled=true; }
+  try{ if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}}); if(window.queue) window.queue.forEach(q=>{ try{ if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{} }); }catch{}
+  try{
+    const toDel=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!k) continue; const low=k.toLowerCase(); if(low.includes('sb-')||low.includes('supabase')||low.includes('auth')) continue; if(k.startsWith('ice_')||k.startsWith('ICE_')||k.includes('ice_')) toDel.push(k); }
+    toDel.forEach(k=>{ try{ localStorage.removeItem(k);}catch{} });
+    if(window.queue) window.queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase=`Video ${q.id}`; q.txtName=''; q.txtContent=''; q.audioBlob=null; });
+    document.querySelectorAll('input[type=file]').forEach(inp=>{ try{inp.value='';}catch{} });
+  }catch{}
+  setTimeout(()=>{ location.reload(); }, 400);
+};
+(function(){
+  function inst(){
+    let b=document.getElementById('btnLimpiarTodo'); if(!b){ const ref=document.getElementById('btnRender'); if(ref){ b=document.createElement('button'); b.id='btnLimpiarTodo'; b.type='button'; b.textContent='🧹 LIMPIAR TODO EN CERO'; b.setAttribute('onclick','window._doLimpiarReal()'); b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-right:6px;z-index:999999;display:inline-block;'; ref.parentNode.insertBefore(b,ref); } }
+    if(!b) return; b.setAttribute('onclick','window._doLimpiarReal()'); b.style.pointerEvents='auto'; b.style.zIndex='999999'; b.disabled=false;
+  }
+  inst(); setTimeout(inst,400); setTimeout(inst,1200); setInterval(inst,3000);
+  document.addEventListener('click', e=>{ if(e.target.closest&&e.target.closest('#btnLimpiarTodo')){ e.preventDefault(); e.stopPropagation(); window._doLimpiarReal(); } }, true);
 })();
 </script>
 </body>
