@@ -6,7 +6,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital-Video V64</title>
+<title>Ice Cream Digital-Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script>
 const $=s=>document.getElementById(s);
 const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c="";for(let x of w){const test=c?c+" "+x:x;if(test.length<=m)c=test;else{if(c)l.push(c);c=x.length>m?x.slice(0,m):x;}}if(c)l.push(c);return l;};
-const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=16)a.push(w.slice(i,i+16).join(" "));return a;}; // 16 palabras = 4 líneas SIEMPRE para mejor sync
+const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;}; // 12 palabras = 3 líneas SIN SALTOS FIX SYNC para mejor sync
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
 // TODOS LOS SLOTS IGUALES E INDEPENDIENTES - vacíos al inicio
