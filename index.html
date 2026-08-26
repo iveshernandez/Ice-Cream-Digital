@@ -2739,7 +2739,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   // 6 videos simultaneos rapido motor original
   window.renderAllVideosBlindado=async function(){
-    const list=(window.queue||[]).filter(q=>q.videoUrl&&q.audioUrl);
+    const list=(window.queue||[]).filter(q=>q.videoUrl&&(q.audioUrl||q.audioBlob));
+    console.log('V75 list filter', list.length, window.queue.map(q=>({id:q.id, v:!!q.videoUrl, aUrl:!!q.audioUrl, aBlob:!!q.audioBlob})));
     if(!list.length){ alert('Faltan audios, genera voces primero'); return; }
     window._batchGenerating=true;
     const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
@@ -3299,7 +3300,8 @@ console.log('V75 ULTIMATE CARGANDO - 2x2 AISLADO');
   }
 
   window.renderAllVideosBlindado = async function(){
-    const list=(window.queue||[]).filter(q=>q.videoUrl&&q.audioUrl);
+    const list=(window.queue||[]).filter(q=>q.videoUrl&&(q.audioUrl||q.audioBlob));
+    console.log('V75 list filter', list.length, window.queue.map(q=>({id:q.id, v:!!q.videoUrl, aUrl:!!q.audioUrl, aBlob:!!q.audioBlob})));
     if(!list.length){ alert('Faltan audios - genera voces primero'); return; }
     const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
     if(ov) ov.style.display='flex';
@@ -3368,5 +3370,56 @@ console.log('V75 ULTIMATE CARGANDO - 2x2 AISLADO');
   window.renderSingle = renderV75;
   window.renderSingleCapCut = renderV75;
   console.log('V75 ULTIMATE LISTO - 2x2 + FAST SEEK');
+})();
+</script>
+
+<script>
+// FIX CADENA RENDER TODO - restaura flujo voces -> videos -> descarga
+(function(){
+  setTimeout(()=>{
+    const btn=document.getElementById('btnRender');
+    if(!btn) return;
+    const clone=btn.cloneNode(true);
+    btn.parentNode.replaceChild(clone, btn);
+    const newBtn=document.getElementById('btnRender');
+    if(!newBtn) return;
+    newBtn.disabled=false; newBtn.style.opacity='1'; newBtn.style.pointerEvents='auto';
+    
+    newBtn.addEventListener('click', async ()=>{
+      const queue=window.queue||[];
+      const list=queue.filter(q=>q.videoUrl);
+      if(!list.length){ alert('Carga videos primero'); return; }
+      
+      const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
+      if(ov) ov.style.display='flex';
+      if(txt) txt.textContent='GENERANDO 6 VOCES EN PARALELO...';
+      if(pct) pct.textContent='0%';
+      
+      try{
+        // 1. Voces 6x paralelo
+        if(window.generateAllVoicesSimultaneous){
+          await window.generateAllVoicesSimultaneous();
+        }else if(window.generateAllVoices){
+          await window.generateAllVoices();
+        }
+        
+        if(txt) txt.textContent='VOCES LISTAS - INICIANDO RENDER 2x2...';
+        if(pct) pct.textContent='40%';
+        await new Promise(r=>setTimeout(r,500));
+        
+        // 2. Render 2x2
+        if(window.renderAllVideosBlindado){
+          await window.renderAllVideosBlindado();
+        }else{
+          alert('renderAllVideosBlindado no encontrado');
+        }
+      }catch(e){
+        console.error('CADENA FAIL', e);
+        alert('Error: '+e.message);
+        if(ov) ov.style.display='none';
+      }
+    });
+    console.log('V76 CADENA RENDER TODO RESTAURADA');
+  }, 800);
 })();
 </script>
