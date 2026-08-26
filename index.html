@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
 <audio id="previewAudio" muted preload="auto" style="display:none"></audio>
 <div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
-<canvas id="previewCanvas" width="1080" height="1920" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none"></canvas>
+<canvas id="previewCanvas" width="720" height="1280" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none"></canvas>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
 <div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px"><div style="width:44px;height:44px;background:#FFEB00;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div><div id="renderText" style="display:none !important">RENDER 720p</div><div id="renderList" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin-top:4px"></div><div style="width:100%;max-width:320px;height:1px;background:#222;margin:4px 0"></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div id="renderPct" style="font-size:56px;font-weight:900;color:#FFEB00;line-height:1;letter-spacing:-2px;text-shadow:0 0 20px rgba(255,235,0,0.3)">0%</div><div id="renderTotalLabel" style="font-size:10px;color:#666;font-weight:800;letter-spacing:1.2px">TOTAL</div></div></div>
 </div>
@@ -834,7 +834,7 @@ async function renderSingle(item,onProg){
     fastStart:'in-memory'
   });
   const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error('VideoEncoder',e)});
-  vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:5000000, framerate:30, bitrateMode:'constant', hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'annexb'}});
+  vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:5000000, framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'avc'}});
   let aEnc=null;
   if(audioBuffer){
     aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error('AudioEncoder',e)});
@@ -871,9 +871,9 @@ async function renderSingle(item,onProg){
       }
     }catch(e){}
     const frame=new VideoFrame(canvas, {timestamp:cur*1e6, duration:(1/FPS)*1e6});
-    vEnc.encode(frame, {keyFrame:f%60===0}); // keyframe cada 2s calidad
+    vEnc.encode(frame, {keyFrame:f%60===0});
     frame.close();
-    if(f%15===0) await new Promise(r=>setTimeout(r,1)); // yield para no bajar FPS
+    if(f%15===0) await new Promise(r=>setTimeout(r,1));
   }
   await vEnc.flush(); vEnc.close();
   if(audioBuffer && aEnc){
@@ -2392,7 +2392,7 @@ async function renderSingleFastCapCutFallback(item,onProg){
         const scriptText=(item.script||'').trim();
         const subsLocal=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
         if(subsLocal.length){ subText=subsLocal[Math.min(Math.floor((cur/(aDur||realTotal))*subsLocal.length),subsLocal.length-1)]||''; } else { subText=scriptText.split(/\s+/).slice(0,18).join(' '); } // 18 palabras = 3 lineas de subtitulo
-        window.__drawOptimizedTitleSubtitle(ctx, (item.title||''), subText, 1080, 1920);
+        window.__drawOptimizedTitleSubtitle(ctx, (item.title||''), subText, W, H);
       }catch{}
       if(cur>=realTotal-0.05){ if(!_stopped){ _stopped=true; try{ rec.stop(); }catch{} setTimeout(res,300); } return; } requestAnimationFrame(draw);
     }; draw();
@@ -2474,76 +2474,51 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
   try{
     let t=(titleText||'').trim().toUpperCase();
     if(t){
-      // TITULO COMPLETO SIEMPRE EN 2 LINEAS - SIN LIMITE DE CARACTERES
       let words = t.split(/\s+/);
       let lines = [];
-      if(words.length <= 2){
-        lines = [words.join(' ')];
-      } else {
-        // Buscar division optima para 2 lineas de longitud similar
-        let bestIdx = Math.ceil(words.length/2);
-        let bestDiff = Infinity;
-        for(let i=1; i<words.length; i++){
-          let len1 = words.slice(0,i).join(' ').length;
-          let len2 = words.slice(i).join(' ').length;
-          let diff = Math.abs(len1 - len2);
-          if(diff < bestDiff){ bestDiff = diff; bestIdx = i; }
-        }
-        lines = [words.slice(0,bestIdx).join(' '), words.slice(bestIdx).join(' ')];
+      if(words.length <= 2){ lines = [words.join(' ')]; }
+      else {
+        let bestIdx = Math.ceil(words.length/2); let bestDiff = Infinity;
+        for(let i=1;i<words.length;i++){ let len1=words.slice(0,i).join(' ').length; let len2=words.slice(i).join(' ').length; let diff=Math.abs(len1-len2); if(diff<bestDiff){bestDiff=diff;bestIdx=i;}}
+        lines=[words.slice(0,bestIdx).join(' '), words.slice(bestIdx).join(' ')];
       }
-      // Siempre exactamente 2 lineas max, sin recorte
-      lines = lines.slice(0,2);
-      const baseY=H*0.07;
+      lines=lines.slice(0,2);
+      const baseY=H*0.085;
       lines.forEach((line,i)=>{
         if(!line) return;
-        const y=baseY+i*(88*scale);
-        // Font size que cubra max ancho posible sin salirse
-        let fs=96*scale;
-        ctx.font=`900 ${fs}px Anton`;
-        let w = ctx.measureText(line).width;
-        // Ajustar para que quepa en 96% del ancho
-        while(w > W*0.96 && fs > 36*scale){
-          fs -= 2*scale;
-          ctx.font=`900 ${fs}px Anton`;
-          w = ctx.measureText(line).width;
-        }
-        // Si aun se sale, calcular exacto
-        if(w > W*0.96){
-          fs = (W*0.96 / w) * fs;
-          ctx.font=`900 ${fs}px Anton`;
-          w = ctx.measureText(line).width;
-        }
-        const rw=Math.min(w+50*scale, W*0.97), rh=fs*1.2;
-        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.92)'; ctx.strokeStyle='rgba(255,235,0,0.40)'; ctx.lineWidth=1.5*scale; ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=22*scale; ctx.shadowOffsetY=8*scale;
-        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-rw/2, y-rh/2, rw, rh, 18*scale); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-rw/2, y-rh/2, rw, rh); }
+        const y=baseY+i*(78*scale);
+        let fs=68*scale; ctx.font=`900 ${fs}px Anton`; let w=ctx.measureText(line).width;
+        while(w>W*0.88 && fs>28*scale){ fs-=1.5*scale; ctx.font=`900 ${fs}px Anton`; w=ctx.measureText(line).width; }
+        if(w>W*0.88){ fs=(W*0.88/w)*fs; ctx.font=`900 ${fs}px Anton`; w=ctx.measureText(line).width; }
+        const rw=Math.min(w+44*scale,W*0.90), rh=fs*1.25;
+        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.92)'; ctx.strokeStyle='rgba(255,235,0,0.40)'; ctx.lineWidth=1.2*scale; ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=18*scale; ctx.shadowOffsetY=6*scale;
+        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-rw/2,y-rh/2,rw,rh,14*scale); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-rw/2,y-rh/2,rw,rh); }
         ctx.restore();
-        ctx.lineWidth=10*scale; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
+        ctx.lineWidth=8*scale; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
       });
     }
   }catch(e){ console.warn('title draw fail',e); }
   try{
     let s=(subText||'').trim().toUpperCase();
     if(s){
-      // SIEMPRE 3-4 LINEAS
-      let lines=splitWords(s, 32).slice(0,4);
-      // Si solo hay 1-2 lineas, forzar minimo 3 lineas con padding
+      let lines=splitWords(s,28).slice(0,4);
       while(lines.length<3) lines.push(lines[lines.length-1]||'');
-      const baseY=H*0.71;
+      const baseY=H*0.74;
       lines.forEach((line,j)=>{
-        const y=baseY+j*(58*scale);
-        let fs=42*scale; if(line.length>28) fs=36*scale; if(line.length>38) fs=32*scale;
-        ctx.font=`800 ${fs}px "Plus Jakarta Sans"`; const bw=Math.min(ctx.measureText(line).width+80*scale, W*0.96), bh=62*scale;
-        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.strokeStyle='rgba(255,235,0,0.22)'; ctx.lineWidth=1.5*scale; ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=18*scale; ctx.shadowOffsetY=6*scale;
-        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-bw/2, y-bh/2, bw, bh, 18*scale); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-bw/2, y-bh/2, bw, bh); }
+        const y=baseY+j*(52*scale);
+        let fs=32*scale; if(line.length>24) fs=28*scale; if(line.length>34) fs=24*scale;
+        ctx.font=`800 ${fs}px "Plus Jakarta Sans"`; const bw=Math.min(ctx.measureText(line).width+64*scale,W*0.88), bh=48*scale;
+        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.strokeStyle='rgba(255,235,0,0.18)'; ctx.lineWidth=1.2*scale; ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=14*scale; ctx.shadowOffsetY=4*scale;
+        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-bw/2,y-bh/2,bw,bh,12*scale); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-bw/2,y-bh/2,bw,bh); }
         ctx.restore();
-        ctx.lineWidth=8*scale; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFFFFF'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
+        ctx.lineWidth=6*scale; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFFFFF'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
       });
     }
   }catch(e){ console.warn('sub draw fail',e); }
   ctx.restore();
 };
 
-// Helper que asegura fuentes cargadas antes de dibujar en export
+
 window.__ensureFontsReady = async function(){
   try{
     if(document.fonts && document.fonts.ready){
@@ -2732,21 +2707,31 @@ document.addEventListener('DOMContentLoaded', ()=>{
   };
 
   // 6 videos simultaneos rapido motor original
-  window.renderAllVideosBlindado=async function(){
+    window.renderAllVideosBlindado=async function(){
     const list=(window.queue||[]).filter(q=>q.videoUrl&&q.audioUrl);
     if(!list.length){ alert('Faltan audios, genera voces primero'); return; }
     window._batchGenerating=true;
     const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
-    if(ov) ov.style.display='flex'; if(txt) txt.textContent='RENDERIZANDO 6 VIDEOS 6x RAPIDO 720p FB...';
+    if(ov) ov.style.display='flex'; if(txt) txt.textContent='RENDERIZANDO 6 VIDEOS 6x6 HQ 720p FB...';
     if(lst) lst.innerHTML=list.map(q=>'<div id="renderSlot-'+q.id+'" style="background:#141418;border:1px solid #333;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;margin:4px 0"><span style="color:#fff;font-size:11px">SLOT '+q.id+' VIDEO</span><span style="color:#FFEB00;font-size:11px">0%</span></div>').join('');
     let comp=0;
-    const renderOne=async(q)=>{
+    const isolatedCleanupSafe=()=>{
+      try{
+        if(window._lastCanvas){ window._lastCanvas.width=0; window._lastCanvas.height=0; window._lastCanvas=null; }
+        if(window._lastBlobs){ window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}}); window._lastBlobs=[]; }
+        document.querySelectorAll('canvas').forEach(c=>{ if(c.id!=='previewCanvas'){ try{c.width=0; c.height=0;}catch{}} });
+        document.querySelectorAll('video').forEach(v=>{ if(v.id==='previewVideo' || v.id==='vPreview') return; try{ v.pause(); v.src=''; v.load(); }catch{} });
+        if(window.gc) try{window.gc();}catch{}
+      }catch{}
+    };
+    const renderOne=async(q, startDelay=0)=>{
+      if(startDelay) await new Promise(r=>setTimeout(r,startDelay));
       try{
         q.status='renderizando'; q.progress=0; if(window.renderCola) window.renderCola(true);
         const r=await window.renderSingle(q, p=>{
           q.progress=p;
           const el=document.getElementById('renderSlot-'+q.id); if(el) el.lastChild.textContent=p.toFixed(0)+'%';
-          const global=40+Math.round((comp/list.length)*60+(p/100)*(60/list.length)); // 40-100% videos
+          const global=40+Math.round((comp/list.length)*60+(p/100)*(60/list.length));
           if(pct) pct.textContent=global+'%';
         });
         if(r&&r.url){
@@ -2757,33 +2742,33 @@ document.addEventListener('DOMContentLoaded', ()=>{
             const a=document.createElement('a'); a.href=r.url; a.download=name+'.'+r.ext; document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),800);
           }
         }
+        try{ if(window._lastCanvas){ window._lastCanvas.width=0; window._lastCanvas.height=0; } if(window.isolatedCleanup) try{window.isolatedCleanup();}catch{} }catch{}
         comp++; return true;
       }catch(e){ comp++; const el=document.getElementById('renderSlot-'+q.id); if(el) el.lastChild.textContent='ERR'; return false; }
     };
-    // FIX: Render secuencial 1x1 para mantener bitrate 6M y 30fps nítido (paralelo baja calidad)
-    for(let i=0;i<list.length;i++){
-      const q=list[i];
-      if(pct) pct.textContent=Math.round((i/list.length)*100)+'%';
-      if(txt) txt.textContent=`RENDERIZANDO ${i+1}/${list.length} - ${q.fileNameBase} - 720p 30FPS NÍTIDO`;
-      await renderOne(q);
-      // Cleanup agresivo GPU para evitar caída de fps
-      try{
-        if(window._lastCanvas) { window._lastCanvas.width=0; window._lastCanvas.height=0; }
-        const vids = document.querySelectorAll('video'); 
-        vids.forEach(v=>{ if(v.src && v.src.startsWith('blob:')){ try{ URL.revokeObjectURL(v.src); }catch{} } });
-      }catch{}
-      await new Promise(r=>setTimeout(r,1200)); // cooldown GPU 1.2s obligatorio
-      if(navigator.userAgent.includes('Chrome')){ await new Promise(r=>setTimeout(r,300)); }
+    const CHUNK = 6;
+    const STAGGER_MS = 180;
+    const COOLDOWN_MS = 1200;
+    const EXTRA_CHROME_MS = 400;
+    for(let start=0; start<list.length; start+=CHUNK){
+      const chunk = list.slice(start, start+CHUNK);
+      if(txt) txt.textContent=`RENDERIZANDO ${start+1}-${Math.min(start+CHUNK,list.length)}/${list.length} - 6x SIMULTANEO 720p HQ + ENFRIAMIENTO`;
+      if(pct) pct.textContent=Math.round((start/list.length)*60+40)+'%';
+      await Promise.all(chunk.map((q, idx)=>renderOne(q, idx*STAGGER_MS)));
+      isolatedCleanupSafe();
+      await new Promise(r=>setTimeout(r, COOLDOWN_MS));
+      if(navigator.userAgent.includes('Chrome')) await new Promise(r=>setTimeout(r, EXTRA_CHROME_MS));
+      isolatedCleanupSafe();
+      await new Promise(r=>requestAnimationFrame(()=>setTimeout(r,100)));
     }
     window._batchGenerating=false;
-    // Cleanup total para evitar memory leak
     try{ if(window.gc) window.gc(); }catch{}
-    if(pct) pct.textContent='100%'; if(txt) txt.textContent=`COMPLETADO ${list.length} VIDEOS 1080p FB - NÍTIDO 30FPS`;
-    // Esperar descargas
+    if(pct) pct.textContent='100%'; if(txt) txt.textContent=`COMPLETADO ${list.length} VIDEOS 720p FB HQ 6x6 - CALIDAD MAX`;
     await new Promise(r=>setTimeout(r,800));
     setTimeout(()=>{ if(ov) ov.style.display='none'; },1200);
     if(window.renderCola) window.renderCola(true);
   };
+
 
   // Unico boton Render Todo automatico
   function installRenderTodo(){
