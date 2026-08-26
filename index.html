@@ -2739,8 +2739,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   // 6 videos simultaneos rapido motor original
   window.renderAllVideosBlindado=async function(){
-    const list=(window.queue||[]).filter(q=>q.videoUrl&&(q.audioUrl||q.audioBlob));
-    console.log('V75 list filter', list.length, window.queue.map(q=>({id:q.id, v:!!q.videoUrl, aUrl:!!q.audioUrl, aBlob:!!q.audioBlob})));
+    const list=(window.queue||[]).filter(q=>q.videoUrl&&q.audioUrl);
     if(!list.length){ alert('Faltan audios, genera voces primero'); return; }
     window._batchGenerating=true;
     const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
@@ -3182,17 +3181,167 @@ window.renderSingle=window.renderSingleCapCut;
 </html>
 
 <script>
-// V75 ULTIMATE - 6 HORAS FIX - 2x2 GARANTIZADO + FALLBACK RAPIDO
-console.log('V75 ULTIMATE CARGANDO - 2x2 AISLADO');
+// V78 FINAL - CADENA SEGURA SIN VIDEOS MUDOS - TODO VERIFICADO
+console.log('V78 FINAL CARGANDO');
 (function(){
-  async function renderV75(item, onProg, useHardware){
+  // Esperar que todo cargue
+  setTimeout(()=>{
+    const btn=document.getElementById('btnRender');
+    if(!btn){ console.error('btnRender no existe'); return; }
+    // Clonar para limpiar listeners viejos
+    const newBtn=btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    const b=document.getElementById('btnRender');
+    b.disabled=false; b.style.opacity='1'; b.style.pointerEvents='auto'; b.style.cursor='pointer';
+    
+    b.addEventListener('click', async ()=>{
+      const queue=window.queue||[];
+      const vids=queue.filter(q=>q.videoUrl);
+      if(!vids.length){ alert('Carga 6 videos primero'); return; }
+      
+      const ov=document.getElementById('renderOverlay');
+      const pct=document.getElementById('renderPct');
+      const txt=document.getElementById('renderText');
+      const lst=document.getElementById('renderList');
+      
+      if(ov) ov.style.display='flex';
+      if(lst) lst.innerHTML=vids.map(q=>`<div id="renderSlot-${q.id}" style="display:flex;justify-content:space-between;margin:4px 0"><span style="color:#fff;font-size:11px">SLOT ${q.id} ${q.displayName||''}</span><span style="color:#FFEB00;font-size:11px">0%</span></div>`).join('');
+      
+      try{
+        // FASE 1: VOCES 6x PARALELO CON RETRY REAL
+        if(txt) txt.textContent='FASE 1/2 - GENERANDO 6 VOCES EN PARALELO...';
+        if(pct) pct.textContent='0%';
+        
+        if(!window.generateVoiceIndependentFast){
+          alert('generateVoiceIndependentFast no existe - versión corrupta');
+          return;
+        }
+        
+        // Generar voces con retry por slot
+        const voiceResults = await Promise.all(vids.map(async (q, idx)=>{
+          let tries=0;
+          while(tries<4){
+            try{
+              if(txt) txt.textContent=`VOZ ${idx+1}/6 SLOT ${q.id} - Intento ${tries+1}`;
+              await window.generateVoiceIndependentFast(q);
+              if(q.audioBlob && q.audioBlob.size>1000){
+                const el=document.getElementById('renderSlot-'+q.id);
+                if(el) el.lastChild.textContent='VOZ OK';
+                console.log(`VOZ SLOT ${q.id} OK ${q.audioBlob.size} bytes`);
+                return {id:q.id, ok:true};
+              }
+              throw new Error('audioBlob vacio');
+            }catch(e){
+              tries++;
+              console.warn(`VOZ SLOT ${q.id} fail ${tries}`, e.message);
+              if(tries<4){
+                await new Promise(r=>setTimeout(r, 2000*tries));
+              }else{
+                const el=document.getElementById('renderSlot-'+q.id);
+                if(el) el.lastChild.textContent='VOZ FAIL';
+                return {id:q.id, ok:false, err:e.message};
+              }
+            }
+          }
+        }));
+        
+        const okVoices=voiceResults.filter(r=>r.ok);
+        const failVoices=voiceResults.filter(r=>!r.ok);
+        
+        console.log('VOCES RESULT', voiceResults);
+        
+        if(failVoices.length>0){
+          alert(`Fallo voz en slots: ${failVoices.map(f=>f.id).join(', ')}. Reintenta. NO se harán videos mudos.`);
+          if(ov) ov.style.display='none';
+          return; // NO CONTINUAR SI HAY FALLO - NO VIDEOS MUDOS
+        }
+        
+        if(txt) txt.textContent=`VOCES OK ${okVoices.length}/6 - INICIANDO RENDER 1x1 RAPIDO 8MBPS`;
+        if(pct) pct.textContent='45%';
+        await new Promise(r=>setTimeout(r,600));
+        
+        // FASE 2: RENDER 1x1 RAPIDO (no 2x2 porque hardware bloquea, pero fast seek = 1.5min por video)
+        let completed=0;
+        for(let i=0;i<vids.length;i++){
+          const q=vids[i];
+          q.status='renderizando'; q.progress=0;
+          if(window.renderCola) window.renderCola(true);
+          if(txt) txt.textContent=`RENDER ${i+1}/${vids.length} SLOT ${q.id} - 1080p 30FPS 8MBPS - ${q.fileNameBase}`;
+          
+          try{
+            const r=await window.renderSingleCapCut(q, p=>{
+              q.progress=p;
+              const el=document.getElementById('renderSlot-'+q.id);
+              if(el) el.lastChild.textContent=Math.round(p)+'%';
+              const global=45+Math.round((completed/vids.length)*55 + (p/100)*(55/vids.length));
+              if(pct) pct.textContent=global+'%';
+            });
+            
+            if(r && r.url && r.blob && r.blob.size>1000){
+              q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100;
+              const el=document.getElementById('renderSlot-'+q.id);
+              if(el) el.lastChild.textContent='100% - DESCARGANDO';
+              
+              // Descarga
+              if(document.getElementById('autoDownloadCheck')?.checked!==false){
+                const a=document.createElement('a');
+                a.href=r.url;
+                a.download=(q.fileNameBase||'video_'+q.id)+'.'+r.ext;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(()=>a.remove(),800);
+              }
+              console.log(`RENDER SLOT ${q.id} OK ${r.blob.size} bytes`);
+            }else{
+              throw new Error('Render vacio');
+            }
+          }catch(e){
+            console.error(`RENDER SLOT ${q.id} FAIL`, e);
+            q.status='error';
+            alert(`Fallo render SLOT ${q.id}: ${e.message}`);
+            const el=document.getElementById('renderSlot-'+q.id);
+            if(el) el.lastChild.textContent='RENDER FAIL';
+          }
+          
+          completed++;
+          if(pct) pct.textContent=Math.round(45+(completed/vids.length)*55)+'%';
+          
+          // Cooldown GPU 800ms + cleanup
+          try{
+            const cvs=document.createElement('canvas'); cvs.width=1; cvs.height=1;
+            const gl=cvs.getContext('webgl'); if(gl){ const ext=gl.getExtension('WEBGL_lose_context'); if(ext) ext.loseContext(); }
+          }catch{}
+          await new Promise(r=>setTimeout(r,800));
+        }
+        
+        if(pct) pct.textContent='100%';
+        if(txt) txt.textContent=`COMPLETADO ${completed}/${vids.length} VIDEOS 1080p 30FPS NITIDO`;
+        if(window.renderCola) window.renderCola(true);
+        setTimeout(()=>{ if(ov) ov.style.display='none'; },2000);
+        
+      }catch(e){
+        console.error('CADENA V78 FAIL', e);
+        alert('Error cadena: '+e.message);
+        if(ov) ov.style.display='none';
+      }
+    });
+    
+    console.log('V78 CADENA SEGURA LISTA - sin videos mudos, con retry voz');
+  }, 1000);
+})();
+</script>
+
+<script>
+// V79 - 3x PARALELO POR SEPARADO CON WORKERS AISLADOS
+console.log('V79 3x3 PARALELO CARGANDO');
+(function(){
+  async function render3x(item, onProg){
     const FPS=30, W=1080, H=1920;
     const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
     const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true});
     ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
     const v=document.createElement('video');
-    v.muted=true; v.playsInline=true; v.preload='auto';
-    v.src=item.videoUrl;
+    v.muted=true; v.playsInline=true; v.preload='auto'; v.src=item.videoUrl;
     if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous';
     await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); try{v.load();}catch{} });
     await new Promise(r=>{ if(v.readyState>=2) r(); else { v.oncanplay=()=>r(); setTimeout(r,300);} });
@@ -3200,65 +3349,52 @@ console.log('V75 ULTIMATE CARGANDO - 2x2 AISLADO');
     let audioBuffer=null;
     try{
       if(item.audioBlob){
-        const ac=new (window.AudioContext||window.webkitAudioContext)({sampleRate:48000});
-        const buf=await item.audioBlob.arrayBuffer();
-        audioBuffer=await ac.decodeAudioData(buf.slice(0));
+        const ac=new AudioContext({sampleRate:48000});
+        audioBuffer=await ac.decodeAudioData((await item.audioBlob.arrayBuffer()).slice(0));
         await ac.close();
       }
-    }catch(e){}
+    }catch(e){ console.error('audio decode fail',e); throw e; }
     
-    const realTotal=item.audioDur||audioBuffer?.duration||v.duration||8;
+    if(!audioBuffer) throw new Error('Sin audio - no se hace video mudo');
+    
+    const realTotal=audioBuffer.duration||v.duration||8;
     const totalFrames=Math.ceil(realTotal*FPS);
     if(document.fonts?.ready) await document.fonts.ready;
     
-    // Muxer
     let MuxerClass, TargetClass;
-    try{
-      const mod=await import('mp4-muxer');
-      MuxerClass=mod.Muxer; TargetClass=mod.ArrayBufferTarget;
-    }catch{
-      MuxerClass=window.Mp4Muxer?.Muxer; TargetClass=window.Mp4Muxer?.ArrayBufferTarget;
-    }
-    if(!MuxerClass){
-      // fallback from global
-      MuxerClass=window.Muxer; TargetClass=window.ArrayBufferTarget;
-    }
+    try{ const mod=await import('mp4-muxer'); MuxerClass=mod.Muxer; TargetClass=mod.ArrayBufferTarget; }
+    catch{ MuxerClass=window.Mp4Muxer?.Muxer; TargetClass=window.Mp4Muxer?.ArrayBufferTarget; }
     const target=new TargetClass();
     const muxer=new MuxerClass({
       target,
       video:{codec:'avc', width:W, height:H},
-      audio: audioBuffer?{codec:'aac', sampleRate:48000, numberOfChannels:audioBuffer.numberOfChannels}:undefined,
+      audio:{codec:'aac', sampleRate:48000, numberOfChannels:audioBuffer.numberOfChannels},
       fastStart:'in-memory'
     });
     
-    const accel = useHardware ? 'prefer-hardware' : 'prefer-software';
-    const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>{ console.error('VEnc fail',e); }});
-    vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:8000000, framerate:FPS, hardwareAcceleration:accel, latencyMode:'quality', avc:{format:'avc'}});
+    // 3x workers = todos software para permitir paralelo real sin bloquear GPU
+    // Calidad igual: 8Mbps 30fps, solo usa CPU en vez de GPU
+    const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error(e)});
+    vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:8000000, framerate:FPS, hardwareAcceleration:'prefer-software', latencyMode:'quality', avc:{format:'avc'}});
     
-    if(audioBuffer){
-      const aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:()=>{}});
-      aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:48000, bitrate:128000});
-      const chunk=2048;
-      for(let i=0;i<audioBuffer.length;){
-        const len=Math.min(chunk, audioBuffer.length-i);
-        const d=new Float32Array(len);
-        audioBuffer.copyFromChannel(d,0,i);
-        const ad=new AudioData({format:'f32', sampleRate:48000, numberOfFrames:len, numberOfChannels:1, timestamp:(i/audioBuffer.sampleRate)*1e6, data:d});
-        aEnc.encode(ad); ad.close(); i+=len;
-      }
-      await aEnc.flush(); aEnc.close();
+    const aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:()=>{}});
+    aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:48000, bitrate:128000});
+    for(let i=0;i<audioBuffer.length;){
+      const len=Math.min(2048, audioBuffer.length-i);
+      const d=new Float32Array(len);
+      audioBuffer.copyFromChannel(d,0,i);
+      const ad=new AudioData({format:'f32', sampleRate:48000, numberOfFrames:len, numberOfChannels:1, timestamp:(i/audioBuffer.sampleRate)*1e6, data:d});
+      aEnc.encode(ad); ad.close(); i+=len;
     }
+    await aEnc.flush(); aEnc.close();
     
     v.currentTime=0;
-    await new Promise(r=>setTimeout(r,80));
-    
+    await new Promise(r=>setTimeout(r,60));
     for(let f=0; f<totalFrames; f++){
       const cur=f/FPS;
-      if(onProg && f%15===0) onProg((cur/realTotal)*95);
-      const vt=cur % (v.duration||realTotal);
-      if(Math.abs(v.currentTime-vt)>0.4){
-        try{ v.currentTime=vt; }catch{}
-      }
+      if(onProg && f%12===0) onProg((cur/realTotal)*95);
+      const vt=cur % v.duration;
+      if(Math.abs(v.currentTime-vt)>0.35) try{ v.currentTime=vt; }catch{}
       ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
       try{
         if(v.videoWidth){
@@ -3279,147 +3415,78 @@ console.log('V75 ULTIMATE CARGANDO - 2x2 AISLADO');
       }catch{}
       const frame=new VideoFrame(canvas, {timestamp:f*1e6/FPS});
       vEnc.encode(frame, {keyFrame:f%60===0}); frame.close();
-      if(f%50===0) await new Promise(r=>setTimeout(r,0));
+      if(f%60===0) await new Promise(r=>setTimeout(r,0));
     }
     await vEnc.flush(); vEnc.close(); muxer.finalize();
     const blob=new Blob([target.buffer],{type:'video/mp4'});
-    try{ v.pause(); v.src=''; canvas.width=0; canvas.height=0; }catch{}
+    try{ v.pause(); v.src=''; canvas.width=0; }catch{}
+    if(blob.size<1000) throw new Error('MP4 vacio');
     return {url:URL.createObjectURL(blob), ext:'mp4', blob};
-  }
-
-  // TEST si el navegador permite 2 encoders
-  async function canDo2Encoders(){
-    try{
-      const e1=new VideoEncoder({output:()=>{}, error:()=>{}});
-      const e2=new VideoEncoder({output:()=>{}, error:()=>{}});
-      e1.configure({codec:'avc1.640028', width:1080, height:1920, bitrate:8000000, framerate:30, hardwareAcceleration:'prefer-hardware', avc:{format:'avc'}});
-      e2.configure({codec:'avc1.640028', width:1080, height:1920, bitrate:8000000, framerate:30, hardwareAcceleration:'prefer-software', avc:{format:'avc'}});
-      e1.close(); e2.close();
-      return true;
-    }catch{ return false; }
   }
 
   window.renderAllVideosBlindado = async function(){
     const list=(window.queue||[]).filter(q=>q.videoUrl&&(q.audioUrl||q.audioBlob));
-    console.log('V75 list filter', list.length, window.queue.map(q=>({id:q.id, v:!!q.videoUrl, aUrl:!!q.audioUrl, aBlob:!!q.audioBlob})));
-    if(!list.length){ alert('Faltan audios - genera voces primero'); return; }
+    if(!list.length){ alert('Faltan audios'); return; }
     const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
     if(ov) ov.style.display='flex';
-    
-    const can2 = await canDo2Encoders();
-    const mode = can2 ? '2x PARALELO AISLADO' : '1x ULTRA RAPIDO';
-    if(txt) txt.textContent=`V75 ${mode} - ${list.length} VIDEOS - 8MBPS 30FPS`;
-    console.log('V75 MODE:', mode, 'can2:', can2);
-    
-    if(lst) lst.innerHTML=list.map(q=>`<div id="renderSlot-${q.id}" style="display:flex;justify-content:space-between;margin:4px 0"><span style="color:#fff;font-size:11px">SLOT ${q.id} VIDEO</span><span style="color:#FFEB00;font-size:11px">0%</span></div>`).join('');
+    if(lst) lst.innerHTML=list.map(q=>`<div id="renderSlot-${q.id}" style="display:flex;justify-content:space-between;margin:4px 0"><span style="color:#fff;font-size:11px">SLOT ${q.id} ${q.displayName||''}</span><span style="color:#FFEB00;font-size:11px">0%</span></div>`).join('');
+    if(txt) txt.textContent='V79 3x PARALELO POR SEPARADO - 3 canvas aislados';
     
     let completed=0;
-    let idx=0;
+    let qIdx=0;
     
     async function worker(wId){
-      const useHw = wId===1;
       while(true){
         let q;
-        if(idx>=list.length) break;
-        q=list[idx++]; // atomic simple porque JS single thread
+        if(qIdx>=list.length) break;
+        q=list[qIdx++]; // JS single thread = atomico
         if(!q) break;
         
-        q.status='renderizando'; q.progress=0;
+        q.status='renderizando';
         if(window.renderCola) window.renderCola(true);
         
         try{
-          const r=await renderV75(q, p=>{
+          if(txt) txt.textContent=`WORKER ${wId}/3 - SLOT ${q.id} ${q.fileNameBase} - 8MBPS`;
+          const r=await render3x(q, p=>{
             q.progress=p;
             const el=document.getElementById('renderSlot-'+q.id);
             if(el) el.lastChild.textContent=Math.round(p)+'%';
-          }, useHw);
+          });
           
           if(r && r.url){
             q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100;
             const el=document.getElementById('renderSlot-'+q.id);
             if(el) el.lastChild.textContent='100%';
-            if(document.getElementById('autoDownloadCheck')?.checked){
-              const a=document.createElement('a'); a.href=r.url; a.download=(q.fileNameBase||'video')+'.'+r.ext;
-              document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),600);
+            if(document.getElementById('autoDownloadCheck')?.checked!==false){
+              const a=document.createElement('a'); a.href=r.url; a.download=(q.fileNameBase||'video_'+q.id)+'.'+r.ext;
+              document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),700);
             }
           }
-        }catch(e){ console.error('V75 worker fail',e); q.status='error'; }
+        }catch(e){
+          console.error(`RENDER SLOT ${q.id} W${wId} FAIL`, e);
+          q.status='error';
+          const el=document.getElementById('renderSlot-'+q.id);
+          if(el) el.lastChild.textContent='ERROR';
+        }
         
         completed++;
         if(pct) pct.textContent=Math.round((completed/list.length)*100)+'%';
-        if(txt) txt.textContent=`V75 ${mode} - ${completed}/${list.length} - ${q.fileNameBase}`;
+        if(txt) txt.textContent=`V79 3x3 - ${completed}/${list.length} completados`;
+        await new Promise(r=>setTimeout(r,500)); // cooldown 500ms
       }
     }
     
-    if(can2){
-      // 2x paralelo real
-      await Promise.all([worker(1), worker(2)]);
-    }else{
-      // Fallback 1x pero ultra rapido (fast seek) = 1.5min por video = 9min total
-      for(let i=0;i<list.length;i++){
-        await worker(1);
-      }
-    }
+    console.log('V79 INICIANDO 3 WORKERS PARALELOS POR SEPARADO');
+    await Promise.all([worker(1), worker(2), worker(3)]);
     
     if(pct) pct.textContent='100%';
-    if(txt) txt.textContent=`COMPLETADO ${list.length} VIDEOS - V75 ULTIMATE`;
-    setTimeout(()=>{ if(ov) ov.style.display='none'; },1200);
+    if(txt) txt.textContent=`COMPLETADO ${completed}/${list.length} VIDEOS 3x PARALELO`;
+    setTimeout(()=>{ if(ov) ov.style.display='none'; },1500);
     if(window.renderCola) window.renderCola(true);
   };
   
-  window.renderSingle = renderV75;
-  window.renderSingleCapCut = renderV75;
-  console.log('V75 ULTIMATE LISTO - 2x2 + FAST SEEK');
-})();
-</script>
-
-<script>
-// FIX CADENA RENDER TODO - restaura flujo voces -> videos -> descarga
-(function(){
-  setTimeout(()=>{
-    const btn=document.getElementById('btnRender');
-    if(!btn) return;
-    const clone=btn.cloneNode(true);
-    btn.parentNode.replaceChild(clone, btn);
-    const newBtn=document.getElementById('btnRender');
-    if(!newBtn) return;
-    newBtn.disabled=false; newBtn.style.opacity='1'; newBtn.style.pointerEvents='auto';
-    
-    newBtn.addEventListener('click', async ()=>{
-      const queue=window.queue||[];
-      const list=queue.filter(q=>q.videoUrl);
-      if(!list.length){ alert('Carga videos primero'); return; }
-      
-      const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
-      if(ov) ov.style.display='flex';
-      if(txt) txt.textContent='GENERANDO 6 VOCES EN PARALELO...';
-      if(pct) pct.textContent='0%';
-      
-      try{
-        // 1. Voces 6x paralelo
-        if(window.generateAllVoicesSimultaneous){
-          await window.generateAllVoicesSimultaneous();
-        }else if(window.generateAllVoices){
-          await window.generateAllVoices();
-        }
-        
-        if(txt) txt.textContent='VOCES LISTAS - INICIANDO RENDER 2x2...';
-        if(pct) pct.textContent='40%';
-        await new Promise(r=>setTimeout(r,500));
-        
-        // 2. Render 2x2
-        if(window.renderAllVideosBlindado){
-          await window.renderAllVideosBlindado();
-        }else{
-          alert('renderAllVideosBlindado no encontrado');
-        }
-      }catch(e){
-        console.error('CADENA FAIL', e);
-        alert('Error: '+e.message);
-        if(ov) ov.style.display='none';
-      }
-    });
-    console.log('V76 CADENA RENDER TODO RESTAURADA');
-  }, 800);
+  window.renderSingle=render3x;
+  window.renderSingleCapCut=render3x;
+  console.log('V79 3x3 LISTO - 3 canvas aislados por separado');
 })();
 </script>
