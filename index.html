@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <div id="debug" style="margin-top:6px;font-size:9px;color:#666;background:#000;padding:6px;border-radius:6px;white-space:pre-wrap;max-height:70px;overflow:auto"></div>
 </div>
 <div class="glass" style="padding:8px;height:fit-content;position:sticky;top:60px">
-<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW 720p 720x900 • SUBS VISIBLES</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW 720p 720x1280 • SUBS VISIBLES</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
 <div style="position:relative;width:100%;aspect-ratio:9/16;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
 <video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
 <audio id="previewAudio" muted preload="auto" style="display:none"></audio>
@@ -834,7 +834,7 @@ async function renderSingle(item,onProg){
     fastStart:'in-memory'
   });
   const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error('VideoEncoder',e)});
-  vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:5000000, framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'avc'}});
+  vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:3500000, framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'avc'}});
   let aEnc=null;
   if(audioBuffer){
     aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error('AudioEncoder',e)});
@@ -871,9 +871,9 @@ async function renderSingle(item,onProg){
       }
     }catch(e){}
     const frame=new VideoFrame(canvas, {timestamp:cur*1e6, duration:(1/FPS)*1e6});
-    vEnc.encode(frame, {keyFrame:f%60===0});
+    vEnc.encode(frame, {keyFrame:f%(FPS*2)===0});
     frame.close();
-    if(f%15===0) await new Promise(r=>setTimeout(r,1));
+    if(f%10===0) await new Promise(r=>setTimeout(r,0));
   }
   await vEnc.flush(); vEnc.close();
   if(audioBuffer && aEnc){
@@ -2250,7 +2250,13 @@ async function renderSingleCapCut(item, onProg){
       output: (chunk, meta)=> muxer.addVideoChunk(chunk, meta),
       error: e=> console.error('VideoEncoder error', e)
     });
-    videoEncoder.configure({codec:'avc1.640028', width:W, height:H, bitrate:5000000, framerate:30, bitrateMode:'constant', hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'annexb'}});
+    videoEncoder.configure({
+      codec:'avc1.640028',
+      width:W, height:H,
+      bitrate:4000000, // FB HD 1080p 6 Mbps
+      framerate:FPS,
+      hardwareAcceleration:'prefer-hardware', latencyMode:'quality'
+    });
     
     let audioEncoder=null;
     if(audioBuffer){
@@ -2392,7 +2398,7 @@ async function renderSingleFastCapCutFallback(item,onProg){
         const scriptText=(item.script||'').trim();
         const subsLocal=typeof chunkSubs==='function'?chunkSubs(scriptText):[];
         if(subsLocal.length){ subText=subsLocal[Math.min(Math.floor((cur/(aDur||realTotal))*subsLocal.length),subsLocal.length-1)]||''; } else { subText=scriptText.split(/\s+/).slice(0,18).join(' '); } // 18 palabras = 3 lineas de subtitulo
-        window.__drawOptimizedTitleSubtitle(ctx, (item.title||''), subText, W, H);
+        window.__drawOptimizedTitleSubtitle(ctx, (item.title||''), subText, 1080, 1920);
       }catch{}
       if(cur>=realTotal-0.05){ if(!_stopped){ _stopped=true; try{ rec.stop(); }catch{} setTimeout(res,300); } return; } requestAnimationFrame(draw);
     }; draw();
@@ -2469,7 +2475,8 @@ window.__TITLE_STYLES = {
 window.__ACTIVE_TITLE_STYLE = 'viral'; // cambia a 'luxury' o 'tiktok' para probar
 
 window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
-  W=W||720; H=H||1280; const scale=H/1280, CX=W/2;
+  W=720; H=1280; // FIX 720p FIJO - preview=export 100% identico - NO TOCAR LOGICA
+  const CX=360;
   ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
   try{
     let t=(titleText||'').trim().toUpperCase();
@@ -2479,55 +2486,59 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
       if(words.length <= 2){ lines = [words.join(' ')]; }
       else {
         let bestIdx = Math.ceil(words.length/2); let bestDiff = Infinity;
-        for(let i=1;i<words.length;i++){ let len1=words.slice(0,i).join(' ').length; let len2=words.slice(i).join(' ').length; let diff=Math.abs(len1-len2); if(diff<bestDiff){bestDiff=diff;bestIdx=i;}}
-        lines=[words.slice(0,bestIdx).join(' '), words.slice(bestIdx).join(' ')];
+        for(let i=1; i<words.length; i++){
+          let len1 = words.slice(0,i).join(' ').length;
+          let len2 = words.slice(i).join(' ').length;
+          let diff = Math.abs(len1-len2);
+          if(diff < bestDiff){ bestDiff=diff; bestIdx=i; }
+        }
+        lines = [words.slice(0,bestIdx).join(' '), words.slice(bestIdx).join(' ')];
       }
-      lines=lines.slice(0,2);
-      const baseY=H*0.085;
+      lines = lines.slice(0,2);
+      const baseY=90; const lineGap=88;
       lines.forEach((line,i)=>{
         if(!line) return;
-        const y=baseY+i*(78*scale);
-        let fs=68*scale; ctx.font=`900 ${fs}px Anton`; let w=ctx.measureText(line).width;
-        while(w>W*0.88 && fs>28*scale){ fs-=1.5*scale; ctx.font=`900 ${fs}px Anton`; w=ctx.measureText(line).width; }
-        if(w>W*0.88){ fs=(W*0.88/w)*fs; ctx.font=`900 ${fs}px Anton`; w=ctx.measureText(line).width; }
-        const rw=Math.min(w+44*scale,W*0.90), rh=fs*1.25;
-        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.92)'; ctx.strokeStyle='rgba(255,235,0,0.40)'; ctx.lineWidth=1.2*scale; ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=18*scale; ctx.shadowOffsetY=6*scale;
-        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-rw/2,y-rh/2,rw,rh,14*scale); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-rw/2,y-rh/2,rw,rh); }
+        const y=baseY+i*lineGap;
+        let fs=96; ctx.font=`900 ${fs}px Anton`; let w=ctx.measureText(line).width;
+        while(w>691 && fs>36){ fs-=2; ctx.font=`900 ${fs}px Anton`; w=ctx.measureText(line).width; }
+        if(w>691){ fs=(691/w)*fs; ctx.font=`900 ${fs}px Anton`; w=ctx.measureText(line).width; }
+        const rw=Math.min(w+50,698), rh=fs*1.22;
+        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.92)'; ctx.strokeStyle='rgba(255,235,0,0.40)'; ctx.lineWidth=1.5; ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=22; ctx.shadowOffsetY=8;
+        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-rw/2, y-rh/2, rw, rh, 18); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-rw/2, y-rh/2, rw, rh); }
         ctx.restore();
-        ctx.lineWidth=8*scale; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
+        ctx.lineWidth=10; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
       });
     }
-  }catch(e){ console.warn('title draw fail',e); }
+  }catch(e){}
   try{
     let s=(subText||'').trim().toUpperCase();
     if(s){
-      let lines=splitWords(s,28).slice(0,4);
-      while(lines.length<3) lines.push(lines[lines.length-1]||'');
-      const baseY=H*0.74;
+      let lines=splitWords(s, 32).slice(0,3);
+      const baseY=910; const lineGap=58;
       lines.forEach((line,j)=>{
-        const y=baseY+j*(52*scale);
-        let fs=32*scale; if(line.length>24) fs=28*scale; if(line.length>34) fs=24*scale;
-        ctx.font=`800 ${fs}px "Plus Jakarta Sans"`; const bw=Math.min(ctx.measureText(line).width+64*scale,W*0.88), bh=48*scale;
-        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.strokeStyle='rgba(255,235,0,0.18)'; ctx.lineWidth=1.2*scale; ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=14*scale; ctx.shadowOffsetY=4*scale;
-        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-bw/2,y-bh/2,bw,bh,12*scale); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-bw/2,y-bh/2,bw,bh); }
+        if(!line) return;
+        const y=baseY+j*lineGap;
+        let fs=42; if(line.length>28) fs=36; if(line.length>38) fs=32;
+        ctx.font=`800 ${fs}px "Plus Jakarta Sans"`; const bw=Math.min(ctx.measureText(line).width+80,691), bh=62;
+        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.strokeStyle='rgba(255,235,0,0.22)'; ctx.lineWidth=1.5; ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=18; ctx.shadowOffsetY=6;
+        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-bw/2, y-bh/2, bw, bh, 18); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-bw/2, y-bh/2, bw, bh); }
         ctx.restore();
-        ctx.lineWidth=6*scale; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFFFFF'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
+        ctx.lineWidth=8; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFFFFF'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
       });
     }
-  }catch(e){ console.warn('sub draw fail',e); }
+  }catch(e){}
   ctx.restore();
 };
-
-
 window.__ensureFontsReady = async function(){
   try{
     if(document.fonts && document.fonts.ready){
       await document.fonts.ready;
-      // Forzar carga Anton
       if(document.fonts.check){
-        try{ await document.fonts.load('900 42px Anton'); }catch{}
-        try{ await document.fonts.load('800 28px "Plus Jakarta Sans"'); }catch{}
+        try{ await document.fonts.load('900 96px Anton'); }catch{}
+        try{ await document.fonts.load('800 42px "Plus Jakarta Sans"'); }catch{}
+        try{ await document.fonts.load('900 68px Anton'); }catch{}
       }
+      await new Promise(r=>setTimeout(r,80));
     }
   }catch{}
 };
@@ -2712,18 +2723,24 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(!list.length){ alert('Faltan audios, genera voces primero'); return; }
     window._batchGenerating=true;
     const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
-    if(ov) ov.style.display='flex'; if(txt) txt.textContent='RENDERIZANDO 6 VIDEOS 6x6 HQ 720p FB...';
+    if(ov) ov.style.display='flex'; if(txt) txt.textContent='RENDERIZANDO 6 VIDEOS 6x6 CALIDAD MAX 720p FB...';
     if(lst) lst.innerHTML=list.map(q=>'<div id="renderSlot-'+q.id+'" style="background:#141418;border:1px solid #333;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;margin:4px 0"><span style="color:#fff;font-size:11px">SLOT '+q.id+' VIDEO</span><span style="color:#FFEB00;font-size:11px">0%</span></div>').join('');
     let comp=0;
     const isolatedCleanupSafe=()=>{
       try{
         if(window._lastCanvas){ window._lastCanvas.width=0; window._lastCanvas.height=0; window._lastCanvas=null; }
         if(window._lastBlobs){ window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}}); window._lastBlobs=[]; }
-        document.querySelectorAll('canvas').forEach(c=>{ if(c.id!=='previewCanvas'){ try{c.width=0; c.height=0;}catch{}} });
-        document.querySelectorAll('video').forEach(v=>{ if(v.id==='previewVideo' || v.id==='vPreview') return; try{ v.pause(); v.src=''; v.load(); }catch{} });
+        document.querySelectorAll('canvas').forEach(c=>{
+          if(c.id!=='previewCanvas'){ try{c.width=0; c.height=0;}catch{} }
+        });
+        document.querySelectorAll('video').forEach(v=>{
+          if(v.id==='previewVideo' || v.id==='vPreview') return;
+          try{ v.pause(); v.src=''; v.load(); }catch{}
+        });
         if(window.gc) try{window.gc();}catch{}
       }catch{}
     };
+
     const renderOne=async(q, startDelay=0)=>{
       if(startDelay) await new Promise(r=>setTimeout(r,startDelay));
       try{
@@ -2742,25 +2759,39 @@ document.addEventListener('DOMContentLoaded', ()=>{
             const a=document.createElement('a'); a.href=r.url; a.download=name+'.'+r.ext; document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),800);
           }
         }
-        try{ if(window._lastCanvas){ window._lastCanvas.width=0; window._lastCanvas.height=0; } if(window.isolatedCleanup) try{window.isolatedCleanup();}catch{} }catch{}
+        // enfriamiento individual por slot - libera memoria inmediata
+        try{
+          if(window._lastCanvas){ window._lastCanvas.width=0; window._lastCanvas.height=0; }
+          if(window.isolatedCleanup) try{window.isolatedCleanup();}catch{}
+        }catch{}
         comp++; return true;
       }catch(e){ comp++; const el=document.getElementById('renderSlot-'+q.id); if(el) el.lastChild.textContent='ERR'; return false; }
     };
+
+    // 6x6 SIMULTANEO CON CALIDAD - staggered start para no saturar VideoEncoder
     const CHUNK = 6;
-    const STAGGER_MS = 180;
-    const COOLDOWN_MS = 1200;
+    const STAGGER_MS = 180; // 180ms entre cada inicio para estabilidad encoder
+    const COOLDOWN_MS = 1200; // enfriamiento entre lotes
     const EXTRA_CHROME_MS = 400;
+
     for(let start=0; start<list.length; start+=CHUNK){
       const chunk = list.slice(start, start+CHUNK);
       if(txt) txt.textContent=`RENDERIZANDO ${start+1}-${Math.min(start+CHUNK,list.length)}/${list.length} - 6x SIMULTANEO 720p HQ + ENFRIAMIENTO`;
       if(pct) pct.textContent=Math.round((start/list.length)*60+40)+'%';
+
+      // lanza 6 con stagger
       await Promise.all(chunk.map((q, idx)=>renderOne(q, idx*STAGGER_MS)));
+
+      // ENFRIAMIENTO AGRESIVO ENTRE LOTES - mantiene calidad 4Mbps 30fps
       isolatedCleanupSafe();
       await new Promise(r=>setTimeout(r, COOLDOWN_MS));
       if(navigator.userAgent.includes('Chrome')) await new Promise(r=>setTimeout(r, EXTRA_CHROME_MS));
+      // segundo barrido por si quedaron VideoFrames
       isolatedCleanupSafe();
+      // deja respirar al event loop
       await new Promise(r=>requestAnimationFrame(()=>setTimeout(r,100)));
     }
+
     window._batchGenerating=false;
     try{ if(window.gc) window.gc(); }catch{}
     if(pct) pct.textContent='100%'; if(txt) txt.textContent=`COMPLETADO ${list.length} VIDEOS 720p FB HQ 6x6 - CALIDAD MAX`;
@@ -2770,7 +2801,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   };
 
 
-  // Unico boton Render Todo automatico
+// Unico boton Render Todo automatico
   function installRenderTodo(){
     const old=document.getElementById('btnRender'); if(!old) return;
     const clone=old.cloneNode(true); old.parentNode.replaceChild(clone, old);
@@ -3023,7 +3054,7 @@ window.renderSingleCapCut = async function(item, onProg){
     const target=new ArrayBufferTarget();
     const muxer=new Muxer({ target: target, video:{codec:'avc', width:W, height:H}, audio: audioBuffer?{codec:'aac', sampleRate:48000, numberOfChannels: audioBuffer.numberOfChannels}:undefined, fastStart:'in-memory', firstTimestampBehavior:'offset' });
     const videoEncoder=new VideoEncoder({ output:(chunk,meta)=>muxer.addVideoChunk(chunk,meta), error:e=>{ throw e; } });
-    videoEncoder.configure({codec:'avc1.640028', width:W, height:H, bitrate:5000000, framerate:30, bitrateMode:'constant', hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'annexb'}});
+    videoEncoder.configure({ codec:'avc1.640028', width:W, height:H, bitrate:7000000, framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality' });
     let audioEncoder=null; if(audioBuffer){ audioEncoder=new AudioEncoder({ output:(chunk,meta)=>muxer.addAudioChunk(chunk,meta), error:e=>console.error(e) }); audioEncoder.configure({ codec:'mp4a.40.2', sampleRate:48000, numberOfChannels: audioBuffer.numberOfChannels, bitrate:128000 }); }
     await window.__ensureFontsReady();
     v.currentTime=0.25; v.playbackRate=Math.min(Math.max(info.rate||1,0.25),4); await new Promise(r=>{ v.onseeked=()=>r(); setTimeout(r,300); }); await v.play().catch(()=>{});
