@@ -2208,12 +2208,19 @@ async function renderSingleCapCut(item, onProg){
   
   function drawFrame(curTime){
     ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-    if(v.videoWidth){ 
-      const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; 
-      let sx=0,sy=0,sw=vw,sh=vh; 
-      if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
-      try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} 
-    }
+    try{
+      if(v.videoWidth && v.videoHeight){ 
+        const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; 
+        let sx=0,sy=0,sw=vw,sh=vh; 
+        if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
+        ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H);
+      } else if(v.readyState >= 2){
+        // Fallback si videoWidth aún 0 pero frame disponible
+        ctx.drawImage(v,0,0,W,H);
+      }
+    }catch(e){ console.warn('draw fail', e); try{ ctx.drawImage(v,0,0,W,H); }catch{} }
+    // DEBUG: si sigue sin video, dibuja magenta para saber que falla
+    
     // V23 PREVIEW=EXPORT IDENTICO
     try{
       if(window.__drawOptimizedTitleSubtitle){
