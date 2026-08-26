@@ -1,4 +1,4 @@
-<!-- ICECREAM DIGITAL V70 FINAL - PUNTO SEGURO 962f6b016cd7 - NO TOCAR LOGICA V50 -->
+<!-- ICECREAM DIGITAL V50 FINAL - PUNTO SEGURO 962f6b016cd7 - NO TOCAR LOGICA V50 -->
 <!-- V17 DEFINITIVO 2026-05-13 - 1080x1920 9:16 8/11Mbps H264 High AAC128k - Titulo 2 lineas / Sub 3 lineas ancho - Preview=Export identico - BorrarTodo fix - No autoplay -->
 <!DOCTYPE html>
 <html lang="es">
@@ -6,7 +6,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital-Video V70</title>
+<title>Ice Cream Digital-Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -2253,7 +2253,7 @@ async function renderSingleCapCut(item, onProg){
     videoEncoder.configure({
       codec:'avc1.640028',
       width:W, height:H,
-      bitrate:6000000, // FB HD 1080p 6 Mbps
+      bitrate:8000000, // FB HD 1080p 6 Mbps
       framerate:FPS,
       hardwareAcceleration:'prefer-hardware', latencyMode:'quality'
     });
@@ -2772,9 +2772,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
       if(pct) pct.textContent=Math.round((i/list.length)*100)+'%';
       if(txt) txt.textContent=`RENDERIZANDO ${i+1}/${list.length} - ${q.fileNameBase} - 1080p 30FPS NÍTIDO`;
       await renderOne(q);
-      await new Promise(r=>setTimeout(r,200)); // deja respirar GPU
+      // Cleanup agresivo GPU para evitar caída de fps
+      try{
+        if(window._lastCanvas) { window._lastCanvas.width=0; window._lastCanvas.height=0; }
+        const vids = document.querySelectorAll('video'); 
+        vids.forEach(v=>{ if(v.src && v.src.startsWith('blob:')){ try{ URL.revokeObjectURL(v.src); }catch{} } });
+      }catch{}
+      await new Promise(r=>setTimeout(r,1200)); // cooldown GPU 1.2s obligatorio
+      if(navigator.userAgent.includes('Chrome')){ await new Promise(r=>setTimeout(r,300)); }
     }
     window._batchGenerating=false;
+    // Cleanup total para evitar memory leak
+    try{ if(window.gc) window.gc(); }catch{}
     if(pct) pct.textContent='100%'; if(txt) txt.textContent=`COMPLETADO ${list.length} VIDEOS 1080p FB - NÍTIDO 30FPS`;
     // Esperar descargas
     await new Promise(r=>setTimeout(r,800));
