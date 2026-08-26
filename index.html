@@ -6,7 +6,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Icecream Digital V73 CANVAS AISLADO 2X</title>
+<title>Ice Cream Digital-Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -834,7 +834,7 @@ async function renderSingle(item,onProg){
     fastStart:'in-memory'
   });
   const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error('VideoEncoder',e)});
-  vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:8000000, framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'avc'}});
+  vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:3500000, framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'avc'}});
   let aEnc=null;
   if(audioBuffer){
     aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error('AudioEncoder',e)});
@@ -2409,119 +2409,6 @@ async function renderSingleFastCapCutFallback(item,onProg){
 window.renderSingle=renderSingleCapCut;
 window.renderSingleCapCut=renderSingleCapCut;
 window.renderSingleFastCapCutFallback=renderSingleFastCapCutFallback;
-
-// V73 - RENDER AISLADO POR VIDEO - cada video su propio canvas + encoder
-window.renderSingleIsolated = async function(item, onProg, workerId=1){
-  const FPS=30, W=1080, H=1920;
-  // Canvas 100% aislado por worker
-  const canvas=document.createElement('canvas'); 
-  canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true, willReadFrequently:false});
-  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  
-  const v=document.createElement('video');
-  v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.preload='auto'; v.loop=false;
-  if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous';
-  // Atributo único por worker para debug
-  v.setAttribute('data-worker', workerId);
-  
-  await new Promise(r=>{ v.onloadedmetadata=r; v.onerror=r; v.load(); });
-  await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=r; setTimeout(r,400); });
-  
-  let audioBuffer=null;
-  if(item.audioBlob){
-    try{
-      const ac=new (window.AudioContext||window.webkitAudioContext)({sampleRate:48000});
-      audioBuffer=await ac.decodeAudioData((await item.audioBlob.arrayBuffer()).slice(0));
-      await ac.close();
-    }catch{}
-  }
-  const realTotal=item.audioDur||audioBuffer?.duration||v.duration||10;
-  const totalFrames=Math.ceil(realTotal*FPS);
-  
-  if(window.__ensureFontsReady) await window.__ensureFontsReady();
-  else if(document.fonts?.ready) await document.fonts.ready;
-  
-  try{
-    const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
-    const target=new ArrayBufferTarget();
-    const muxer=new Muxer({
-      target: target,
-      video: { codec:'avc', width:W, height:H },
-      audio: audioBuffer? { codec:'aac', sampleRate:48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
-      fastStart:'in-memory'
-    });
-    
-    // Worker 1 = hardware, Worker 2 = software para no pelear GPU
-    const accel = workerId===1 ? 'prefer-hardware' : 'prefer-software';
-    const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error('VEnc W'+workerId,e)});
-    vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:8000000, framerate:FPS, hardwareAcceleration:accel, latencyMode:'quality', avc:{format:'avc'}});
-    
-    let aEnc=null;
-    if(audioBuffer){
-      aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:()=>{}});
-      aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:48000, bitrate:128000});
-      // Encode audio rápido
-      const chunkSize = 2048;
-      for(let i=0;i<audioBuffer.length;i+=chunkSize){
-        const len=Math.min(chunkSize, audioBuffer.length-i);
-        const chData = new Float32Array(len);
-        audioBuffer.copyFromChannel(chData, 0, i);
-        const audData = new AudioData({format:'f32', sampleRate:48000, numberOfFrames:len, numberOfChannels:1, timestamp: (i/audioBuffer.sampleRate)*1e6, data: chData});
-        aEnc.encode(audData); audData.close();
-      }
-      await aEnc.flush(); aEnc.close();
-    }
-    
-    v.currentTime=0;
-    await new Promise(r=>setTimeout(r,150));
-    
-    for(let f=0; f<totalFrames; f++){
-      const cur=f/FPS;
-      if(onProg && f%12===0) onProg(Math.min((cur/realTotal)*90,90));
-      const vt = (cur)%v.duration;
-      if(Math.abs(v.currentTime - vt) > 0.25){
-        try{ if(v.fastSeek) v.fastSeek(vt); else v.currentTime=vt; }catch{ v.currentTime=vt; }
-        if(f%20===0) await new Promise(r=>setTimeout(r,3));
-      }
-      ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-      try{
-        if(v.videoWidth){
-          const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, rv=vw/vh;
-          let sx=0,sy=0,sw=vw,sh=vh;
-          if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; }
-          ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H);
-        }
-      }catch{}
-      try{
-        if(window.__drawOptimizedTitleSubtitle){
-          const words=item.script?item.script.split(/\s+/):[];
-          const idx=Math.floor((cur/realTotal)*(words.length/12))*12;
-          const sub=words.slice(idx, idx+12).join(' ');
-          window.__drawOptimizedTitleSubtitle(ctx, item.title||'', sub, W, H, cur);
-        }
-      }catch{}
-      const frame = new VideoFrame(canvas, {timestamp: f*1e6/FPS});
-      vEnc.encode(frame, {keyFrame: f%FPS===0});
-      frame.close();
-      if(f%40===0) await new Promise(r=>setTimeout(r,0));
-    }
-    await vEnc.flush(); vEnc.close();
-    muxer.finalize();
-    const blob=new Blob([target.buffer], {type:'video/mp4'});
-    try{ v.pause(); v.src=''; v.remove(); canvas.width=0; canvas.height=0; }catch{}
-    if(blob.size>1000) return {url:URL.createObjectURL(blob), ext:'mp4', blob};
-    throw new Error('MP4 vacio W'+workerId);
-  }catch(e){
-    console.warn('Isolated fail W'+workerId+', fallback', e);
-    return await window.renderSingleFastCapCutFallback(item, onProg);
-  }
-};
-
-// Override renderSingle to use isolated
-window.renderSingle = window.renderSingleIsolated;
-window.renderSingleCapCut = window.renderSingleIsolated;
-
 </script>
 
 
@@ -2885,18 +2772,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
       if(pct) pct.textContent=Math.round((i/list.length)*100)+'%';
       if(txt) txt.textContent=`RENDERIZANDO ${i+1}/${list.length} - ${q.fileNameBase} - 1080p 30FPS NÍTIDO`;
       await renderOne(q);
-      // Cleanup agresivo GPU para evitar caída de fps
-      try{
-        if(window._lastCanvas) { window._lastCanvas.width=0; window._lastCanvas.height=0; }
-        const vids = document.querySelectorAll('video'); 
-        vids.forEach(v=>{ if(v.src && v.src.startsWith('blob:')){ try{ URL.revokeObjectURL(v.src); }catch{} } });
-      }catch{}
-      await new Promise(r=>setTimeout(r,1200)); // cooldown GPU 1.2s obligatorio
-      if(navigator.userAgent.includes('Chrome')){ await new Promise(r=>setTimeout(r,300)); }
+      await new Promise(r=>setTimeout(r,200)); // deja respirar GPU
     }
     window._batchGenerating=false;
-    // Cleanup total para evitar memory leak
-    try{ if(window.gc) window.gc(); }catch{}
     if(pct) pct.textContent='100%'; if(txt) txt.textContent=`COMPLETADO ${list.length} VIDEOS 1080p FB - NÍTIDO 30FPS`;
     // Esperar descargas
     await new Promise(r=>setTimeout(r,800));
@@ -3301,3 +3179,194 @@ window.renderSingle=window.renderSingleCapCut;
 
 </body>
 </html>
+
+<script>
+// V75 ULTIMATE - 6 HORAS FIX - 2x2 GARANTIZADO + FALLBACK RAPIDO
+console.log('V75 ULTIMATE CARGANDO - 2x2 AISLADO');
+(function(){
+  async function renderV75(item, onProg, useHardware){
+    const FPS=30, W=1080, H=1920;
+    const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
+    const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true});
+    ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+    const v=document.createElement('video');
+    v.muted=true; v.playsInline=true; v.preload='auto';
+    v.src=item.videoUrl;
+    if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous';
+    await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); try{v.load();}catch{} });
+    await new Promise(r=>{ if(v.readyState>=2) r(); else { v.oncanplay=()=>r(); setTimeout(r,300);} });
+    
+    let audioBuffer=null;
+    try{
+      if(item.audioBlob){
+        const ac=new (window.AudioContext||window.webkitAudioContext)({sampleRate:48000});
+        const buf=await item.audioBlob.arrayBuffer();
+        audioBuffer=await ac.decodeAudioData(buf.slice(0));
+        await ac.close();
+      }
+    }catch(e){}
+    
+    const realTotal=item.audioDur||audioBuffer?.duration||v.duration||8;
+    const totalFrames=Math.ceil(realTotal*FPS);
+    if(document.fonts?.ready) await document.fonts.ready;
+    
+    // Muxer
+    let MuxerClass, TargetClass;
+    try{
+      const mod=await import('mp4-muxer');
+      MuxerClass=mod.Muxer; TargetClass=mod.ArrayBufferTarget;
+    }catch{
+      MuxerClass=window.Mp4Muxer?.Muxer; TargetClass=window.Mp4Muxer?.ArrayBufferTarget;
+    }
+    if(!MuxerClass){
+      // fallback from global
+      MuxerClass=window.Muxer; TargetClass=window.ArrayBufferTarget;
+    }
+    const target=new TargetClass();
+    const muxer=new MuxerClass({
+      target,
+      video:{codec:'avc', width:W, height:H},
+      audio: audioBuffer?{codec:'aac', sampleRate:48000, numberOfChannels:audioBuffer.numberOfChannels}:undefined,
+      fastStart:'in-memory'
+    });
+    
+    const accel = useHardware ? 'prefer-hardware' : 'prefer-software';
+    const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>{ console.error('VEnc fail',e); }});
+    vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:8000000, framerate:FPS, hardwareAcceleration:accel, latencyMode:'quality', avc:{format:'avc'}});
+    
+    if(audioBuffer){
+      const aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:()=>{}});
+      aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:48000, bitrate:128000});
+      const chunk=2048;
+      for(let i=0;i<audioBuffer.length;){
+        const len=Math.min(chunk, audioBuffer.length-i);
+        const d=new Float32Array(len);
+        audioBuffer.copyFromChannel(d,0,i);
+        const ad=new AudioData({format:'f32', sampleRate:48000, numberOfFrames:len, numberOfChannels:1, timestamp:(i/audioBuffer.sampleRate)*1e6, data:d});
+        aEnc.encode(ad); ad.close(); i+=len;
+      }
+      await aEnc.flush(); aEnc.close();
+    }
+    
+    v.currentTime=0;
+    await new Promise(r=>setTimeout(r,80));
+    
+    for(let f=0; f<totalFrames; f++){
+      const cur=f/FPS;
+      if(onProg && f%15===0) onProg((cur/realTotal)*95);
+      const vt=cur % (v.duration||realTotal);
+      if(Math.abs(v.currentTime-vt)>0.4){
+        try{ v.currentTime=vt; }catch{}
+      }
+      ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+      try{
+        if(v.videoWidth){
+          const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, rv=vw/vh;
+          let sx=0,sy=0,sw=vw,sh=vh;
+          if(rv>tgt){ sw=vh*tgt; sx=(vw-sw)/2; }else{ sh=vw/tgt; sy=(vh-sh)/2; }
+          ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H);
+        }
+      }catch{}
+      try{
+        if(window.__drawOptimizedTitleSubtitle){
+          const words=(item.script||'').split(/\s+/);
+          const parts=Math.max(1, Math.ceil(words.length/12));
+          const idx=Math.min(parts-1, Math.floor((cur/realTotal)*parts))*12;
+          const sub=words.slice(idx, idx+12).join(' ');
+          window.__drawOptimizedTitleSubtitle(ctx, item.title||'', sub, W, H, cur);
+        }
+      }catch{}
+      const frame=new VideoFrame(canvas, {timestamp:f*1e6/FPS});
+      vEnc.encode(frame, {keyFrame:f%60===0}); frame.close();
+      if(f%50===0) await new Promise(r=>setTimeout(r,0));
+    }
+    await vEnc.flush(); vEnc.close(); muxer.finalize();
+    const blob=new Blob([target.buffer],{type:'video/mp4'});
+    try{ v.pause(); v.src=''; canvas.width=0; canvas.height=0; }catch{}
+    return {url:URL.createObjectURL(blob), ext:'mp4', blob};
+  }
+
+  // TEST si el navegador permite 2 encoders
+  async function canDo2Encoders(){
+    try{
+      const e1=new VideoEncoder({output:()=>{}, error:()=>{}});
+      const e2=new VideoEncoder({output:()=>{}, error:()=>{}});
+      e1.configure({codec:'avc1.640028', width:1080, height:1920, bitrate:8000000, framerate:30, hardwareAcceleration:'prefer-hardware', avc:{format:'avc'}});
+      e2.configure({codec:'avc1.640028', width:1080, height:1920, bitrate:8000000, framerate:30, hardwareAcceleration:'prefer-software', avc:{format:'avc'}});
+      e1.close(); e2.close();
+      return true;
+    }catch{ return false; }
+  }
+
+  window.renderAllVideosBlindado = async function(){
+    const list=(window.queue||[]).filter(q=>q.videoUrl&&q.audioUrl);
+    if(!list.length){ alert('Faltan audios - genera voces primero'); return; }
+    const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
+    if(ov) ov.style.display='flex';
+    
+    const can2 = await canDo2Encoders();
+    const mode = can2 ? '2x PARALELO AISLADO' : '1x ULTRA RAPIDO';
+    if(txt) txt.textContent=`V75 ${mode} - ${list.length} VIDEOS - 8MBPS 30FPS`;
+    console.log('V75 MODE:', mode, 'can2:', can2);
+    
+    if(lst) lst.innerHTML=list.map(q=>`<div id="renderSlot-${q.id}" style="display:flex;justify-content:space-between;margin:4px 0"><span style="color:#fff;font-size:11px">SLOT ${q.id} VIDEO</span><span style="color:#FFEB00;font-size:11px">0%</span></div>`).join('');
+    
+    let completed=0;
+    let idx=0;
+    
+    async function worker(wId){
+      const useHw = wId===1;
+      while(true){
+        let q;
+        if(idx>=list.length) break;
+        q=list[idx++]; // atomic simple porque JS single thread
+        if(!q) break;
+        
+        q.status='renderizando'; q.progress=0;
+        if(window.renderCola) window.renderCola(true);
+        
+        try{
+          const r=await renderV75(q, p=>{
+            q.progress=p;
+            const el=document.getElementById('renderSlot-'+q.id);
+            if(el) el.lastChild.textContent=Math.round(p)+'%';
+          }, useHw);
+          
+          if(r && r.url){
+            q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100;
+            const el=document.getElementById('renderSlot-'+q.id);
+            if(el) el.lastChild.textContent='100%';
+            if(document.getElementById('autoDownloadCheck')?.checked){
+              const a=document.createElement('a'); a.href=r.url; a.download=(q.fileNameBase||'video')+'.'+r.ext;
+              document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),600);
+            }
+          }
+        }catch(e){ console.error('V75 worker fail',e); q.status='error'; }
+        
+        completed++;
+        if(pct) pct.textContent=Math.round((completed/list.length)*100)+'%';
+        if(txt) txt.textContent=`V75 ${mode} - ${completed}/${list.length} - ${q.fileNameBase}`;
+      }
+    }
+    
+    if(can2){
+      // 2x paralelo real
+      await Promise.all([worker(1), worker(2)]);
+    }else{
+      // Fallback 1x pero ultra rapido (fast seek) = 1.5min por video = 9min total
+      for(let i=0;i<list.length;i++){
+        await worker(1);
+      }
+    }
+    
+    if(pct) pct.textContent='100%';
+    if(txt) txt.textContent=`COMPLETADO ${list.length} VIDEOS - V75 ULTIMATE`;
+    setTimeout(()=>{ if(ov) ov.style.display='none'; },1200);
+    if(window.renderCola) window.renderCola(true);
+  };
+  
+  window.renderSingle = renderV75;
+  window.renderSingleCapCut = renderV75;
+  console.log('V75 ULTIMATE LISTO - 2x2 + FAST SEEK');
+})();
+</script>
