@@ -1,4 +1,5 @@
-<!-- V48 SIN CONGELAMIENTO 24/08/2026 - 1080x1920 9:16 8/11Mbps H264 High AAC128k - Titulo 2 lineas / Sub 3 lineas ancho - Preview=Export identico - BorrarTodo fix - No autoplay -->
+<!-- ICECREAM DIGITAL V50 FINAL - PUNTO SEGURO 962f6b016cd7 - NO TOCAR LOGICA V50 -->
+<!-- V17 DEFINITIVO 2026-05-13 - 1080x1920 9:16 8/11Mbps H264 High AAC128k - Titulo 2 lineas / Sub 3 lineas ancho - Preview=Export identico - BorrarTodo fix - No autoplay -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -265,6 +266,27 @@ document.addEventListener('DOMContentLoaded', ()=>{
 #btnRenderSingle, #btnKokoroGen { display:none !important; }
 </style>
 
+
+<style>
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes pulseGreen { 0% { background:#22c55e; } 50% { background:#16a34a; } 100% { background:#22c55e; } }
+#btnLimpiarTodo, #btnRender { opacity:1 !important; pointer-events:auto !important; cursor:pointer !important; }
+#btnLimpiarTodo:disabled, #btnRender:disabled { opacity:1 !important; }
+</style>
+
+
+<style>
+#inputTitle { min-height:56px !important; height:56px !important; } #inputScript { min-height:380px !important; height:380px !important; }
+</style>
+
+<style>#inputScript{font-size:12.5px !important;}</style>
+
+<style>
+.layout { align-items: stretch !important; }
+.layout .glass:first-child { display:flex; flex-direction:column; }
+#inputScript { flex:1; }
+</style>
+
 </head>
 <body>
 
@@ -376,8 +398,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   </div>
 </div>
 </div>
-<div style="margin-bottom:6px"><div style="font-size:9px;color:#FFEB00;font-weight:800">TITULO AMARILLO GRANDE</div><textarea id="inputTitle" rows="2" style="width:100%;background:#0f0f12;border:1px solid #333;color:#fff;border-radius:8px;padding:8px;font-size:13px;font-weight:800">ESTE CORTE CAMBIÓ SU VIDA MIRA EL ANTES Y DESPUÉS</textarea></div>
-<div style="margin-bottom:6px"><div style="font-size:9px;color:#777">GUION - 12 palabras (3 líneas) sync voz - más lectura = mejor sync</div><textarea id="inputScript" rows="3" style="width:100%;background:#0f0f12;border:1px solid #222;color:#fff;border-radius:8px;padding:8px;font-size:12px">Mira este cambio increíble que hicimos hoy en la barbería. El cliente llegó sin esperanza y se fue como un modelo.</textarea></div>
+<div style="margin-bottom:6px"><div style="font-size:9px;color:#FFEB00;font-weight:800">TITULO AMARILLO GRANDE</div><textarea id="inputTitle" rows="2" style="width:100%;background:#0f0f12;border:1px solid #333;color:#fff;border-radius:8px;padding:8px;font-size:13px;font-weight:800;min-height:56px;max-height:56px;resize:vertical">ESTE CORTE CAMBIÓ SU VIDA MIRA EL ANTES Y DESPUÉS</textarea></div>
+<div style="margin-bottom:6px"><div style="font-size:9px;color:#777">GUION - 12 palabras (3 líneas) sync voz - más lectura = mejor sync</div><textarea id="inputScript" rows="12" style="width:100%;background:#0f0f12;border:1px solid #222;color:#fff;border-radius:8px;padding:12px;font-size:12.5px;min-height:380px;height:380px;max-height:500px;resize:vertical;line-height:1.5">Mira este cambio increíble que hicimos hoy en la barbería. El cliente llegó sin esperanza y se fue como un modelo.</textarea></div>
 <div><div style="font-size:9px;color:#777">NOMBRE ARCHIVO</div><input id="inputFileName" value="Video 1" style="width:100%;background:#0f0f12;border:1px solid #222;color:#fff;border-radius:8px;padding:8px;font-weight:700"></div>
 <div id="debug" style="margin-top:6px;font-size:9px;color:#666;background:#000;padding:6px;border-radius:6px;white-space:pre-wrap;max-height:70px;overflow:auto"></div>
 </div>
@@ -389,7 +411,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
 <canvas id="previewCanvas" width="1080" height="1920" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none"></canvas>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
-<div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px"><div style="width:44px;height:44px;background:#FFEB00;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div><div id="renderText" style="display:none !important">RENDER 720p</div><div id="renderList" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin-top:4px"></div><div style="width:100%;max-width:320px;height:1px;background:#222;margin:4px 0"></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div id="renderPct" style="font-size:42px;font-weight:900;color:#FFEB00;line-height:1;letter-spacing:-1px">0%</div><div id="renderTotalLabel" style="font-size:10px;color:#666;font-weight:800;letter-spacing:1.2px">TOTAL</div></div></div>
+<div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px"><div style="width:44px;height:44px;background:#FFEB00;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div><div id="renderText" style="display:none !important">RENDER 720p</div><div id="renderList" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin-top:4px"></div><div style="width:100%;max-width:320px;height:1px;background:#222;margin:4px 0"></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div id="renderPct" style="font-size:56px;font-weight:900;color:#FFEB00;line-height:1;letter-spacing:-2px;text-shadow:0 0 20px rgba(255,235,0,0.3)">0%</div><div id="renderTotalLabel" style="font-size:10px;color:#666;font-weight:800;letter-spacing:1.2px">TOTAL</div></div></div>
 </div>
 </div>
 </div>
@@ -399,7 +421,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script>
 const $=s=>document.getElementById(s);
 const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c="";for(let x of w){const test=c?c+" "+x:x;if(test.length<=m)c=test;else{if(c)l.push(c);c=x.length>m?x.slice(0,m):x;}}if(c)l.push(c);return l;};
-const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=18)a.push(w.slice(i,i+12).join(" "));return a;}; // 12 palabras = 3 líneas para mejor sync
+const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=16)a.push(w.slice(i,i+16).join(" "));return a;}; // 16 palabras = 4 líneas SIEMPRE para mejor sync
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
 // TODOS LOS SLOTS IGUALES E INDEPENDIENTES - vacíos al inicio
@@ -488,12 +510,13 @@ function renderCola(f=false){
     const el=document.createElement("div");
     el.className=`slot ${act?'active':''} ${q.status==='hecho'?'done':''} ${q.status==='renderizando'?'run':''}`;
     el.onclick=()=>setActive(q.id);
-    el.innerHTML=`<div style="display:flex;justify-content:space-between"><b style="font-size:11px;color:${act?'#FFEB00':'#fff'}">SLOT ${q.id}</b><span style="font-size:7px;font-weight:800;color:#666">${q.status.toUpperCase()}</span></div>
-    <div style="font-size:9px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:3px 0">${nm}</div>
-    <div style="font-size:7px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${q.videoName?`🎬 ${q.videoName.slice(0,18)}`:'Vacío - Click para cargar'}</div>
-    ${di?`<div style="font-size:7px;color:${di.useLoop?'#FFEB00':'#4ade80'};background:rgba(0,0,0,.5);padding:2px 4px;border-radius:4px;margin-top:3px;white-space:nowrap;overflow:hidden">⏱ ${di.txt}</div>`:`<div style="font-size:7px;color:#333;margin-top:3px">${q.videoDur?`v:${q.videoDur.toFixed(1)}s`:''} ${q.audioDur?`a:${q.audioDur.toFixed(1)}s`:''}</div>`}
-    <div style="height:3px;background:#000;border-radius:10px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${q.progress}%;background:${q.status==='hecho'?'#22c55e':q.status==='renderizando'?'#FFEB00':'#333'}"></div></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px"><button onclick="event.stopPropagation();renderOne(${q.id})" style="background:${q.videoUrl?'#FFEB00':'#222'};color:${q.videoUrl?'#000':'#555'};border:0;padding:5px;border-radius:6px;font-size:8px;font-weight:900;cursor:pointer">⚡ RENDER</button>${q.finalUrl?`<a href="${q.finalUrl}" download="${nm}.${q.finalExt}" onclick="event.stopPropagation()" style="background:#22c55e;color:#000;text-align:center;padding:5px;border-radius:6px;font-size:8px;font-weight:900;text-decoration:none">⬇</a>`:`<div style="background:#1a1a1e;color:#555;text-align:center;padding:4px;border-radius:6px;font-size:7px">${q.videoUrl?'✓ Listo':'Vacío'}</div>`}</div>`;
+    // V55 - SOLO SLOT + NOMBRE PROYECTO SIN SALIRSE - SIN BOTONES INDIVIDUALES
+    const displayName = (nm||'').slice(0,45);
+    el.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;padding:4px;box-sizing:border-box">
+    <b style="font-size:12px;color:${act?'#FFEB00':'#fff'};font-weight:900;letter-spacing:0.5px">SLOT ${q.id}</b>
+    <div title="${nm}" style="font-size:10px;color:${act?'#fff':'#aaa'};font-weight:600;line-height:1.2;text-align:center;width:100%;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;word-break:break-word;white-space:normal;min-height:32px">${displayName||'<span style="color:#555">Vacío</span>'}</div>
+    ${q.videoUrl?`<div style="width:24px;height:3px;background:${q.status==='hecho'?'#22c55e':'#FFEB00'};border-radius:10px;opacity:${act?1:0.6}"></div>`:''}
+    </div>`;
     fr.appendChild(el);
   });
   c.appendChild(fr);
@@ -2450,12 +2473,46 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
   try{
     let t=(titleText||'').trim().toUpperCase();
     if(t){
-      let lines=splitWords(t, 26).slice(0,2);
-      const baseY=H*0.11;
+      // TITULO COMPLETO SIEMPRE EN 2 LINEAS - SIN LIMITE DE CARACTERES
+      let words = t.split(/\s+/);
+      let lines = [];
+      if(words.length <= 2){
+        lines = [words.join(' ')];
+      } else {
+        // Buscar division optima para 2 lineas de longitud similar
+        let bestIdx = Math.ceil(words.length/2);
+        let bestDiff = Infinity;
+        for(let i=1; i<words.length; i++){
+          let len1 = words.slice(0,i).join(' ').length;
+          let len2 = words.slice(i).join(' ').length;
+          let diff = Math.abs(len1 - len2);
+          if(diff < bestDiff){ bestDiff = diff; bestIdx = i; }
+        }
+        lines = [words.slice(0,bestIdx).join(' '), words.slice(bestIdx).join(' ')];
+      }
+      // Siempre exactamente 2 lineas max, sin recorte
+      lines = lines.slice(0,2);
+      const baseY=H*0.07;
       lines.forEach((line,i)=>{
-        const y=baseY+i*(68*scale);
-        let fs=62*scale; if(line.length>24) fs=52*scale; if(line.length>32) fs=44*scale;
-        ctx.font=`900 ${fs}px Anton`; const rw=Math.min(ctx.measureText(line).width+72*scale, W*0.96), rh=70*scale;
+        if(!line) return;
+        const y=baseY+i*(88*scale);
+        // Font size que cubra max ancho posible sin salirse
+        let fs=96*scale;
+        ctx.font=`900 ${fs}px Anton`;
+        let w = ctx.measureText(line).width;
+        // Ajustar para que quepa en 96% del ancho
+        while(w > W*0.96 && fs > 36*scale){
+          fs -= 2*scale;
+          ctx.font=`900 ${fs}px Anton`;
+          w = ctx.measureText(line).width;
+        }
+        // Si aun se sale, calcular exacto
+        if(w > W*0.96){
+          fs = (W*0.96 / w) * fs;
+          ctx.font=`900 ${fs}px Anton`;
+          w = ctx.measureText(line).width;
+        }
+        const rw=Math.min(w+50*scale, W*0.97), rh=fs*1.2;
         ctx.save(); ctx.fillStyle='rgba(0,0,0,0.92)'; ctx.strokeStyle='rgba(255,235,0,0.40)'; ctx.lineWidth=1.5*scale; ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=22*scale; ctx.shadowOffsetY=8*scale;
         if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-rw/2, y-rh/2, rw, rh, 18*scale); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-rw/2, y-rh/2, rw, rh); }
         ctx.restore();
@@ -2466,11 +2523,14 @@ window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
   try{
     let s=(subText||'').trim().toUpperCase();
     if(s){
-      let lines=splitWords(s, 34).slice(0,3);
-      const baseY=H*0.74;
+      // SIEMPRE 3-4 LINEAS
+      let lines=splitWords(s, 32).slice(0,4);
+      // Si solo hay 1-2 lineas, forzar minimo 3 lineas con padding
+      while(lines.length<3) lines.push(lines[lines.length-1]||'');
+      const baseY=H*0.71;
       lines.forEach((line,j)=>{
-        const y=baseY+j*(60*scale);
-        let fs=40*scale; if(line.length>30) fs=34*scale; if(line.length>40) fs=30*scale;
+        const y=baseY+j*(58*scale);
+        let fs=42*scale; if(line.length>28) fs=36*scale; if(line.length>38) fs=32*scale;
         ctx.font=`800 ${fs}px "Plus Jakarta Sans"`; const bw=Math.min(ctx.measureText(line).width+80*scale, W*0.96), bh=62*scale;
         ctx.save(); ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.strokeStyle='rgba(255,235,0,0.22)'; ctx.lineWidth=1.5*scale; ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=18*scale; ctx.shadowOffsetY=6*scale;
         if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-bw/2, y-bh/2, bw, bh, 18*scale); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-bw/2, y-bh/2, bw, bh); }
@@ -2659,7 +2719,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         const tmp=new Audio(); tmp.src=url; await new Promise(r=>{ tmp.onloadedmetadata=()=>{slot.audioDur=tmp.duration; r();}; tmp.onerror=()=>{slot.audioDur=concat.length/concat.sampleRate; r();}; tmp.load(); });
         slot.status='con audio'; if(window.renderCola) window.renderCola(true);
         if(el){ el.lastChild.textContent='OK '+slot.audioDur.toFixed(1)+'s'; el.style.borderColor='#22c55e'; }
-        comp++; if(pct) pct.textContent=Math.round((comp/pending.length)*40)+'%';
+        comp++; if(pct) pct.textContent=Math.round((comp/pending.length)*40)+'%'; // 0-40% voces
         try{ document.querySelectorAll('audio').forEach(a=>{ try{a.pause();a.muted=true;a.volume=0;}catch{}});}catch{}
         return true;
       }catch(e){ const el=document.getElementById('voiceSlot-'+slot.id); if(el){el.lastChild.textContent='ERR'; el.style.borderColor='#ef4444';} comp++; return false; }
@@ -2685,7 +2745,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         const r=await window.renderSingle(q, p=>{
           q.progress=p;
           const el=document.getElementById('renderSlot-'+q.id); if(el) el.lastChild.textContent=p.toFixed(0)+'%';
-          const global=40+Math.round((comp/list.length)*60+(p/100)*(60/list.length));
+          const global=40+Math.round((comp/list.length)*60+(p/100)*(60/list.length)); // 40-100% videos
           if(pct) pct.textContent=global+'%';
         });
         if(r&&r.url){
@@ -2701,7 +2761,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
     };
     await Promise.all(list.map(q=>renderOne(q)));
     window._batchGenerating=false;
-    if(pct) pct.textContent='100%'; if(txt) txt.textContent='COMPLETADO 6 VIDEOS 720p FB';
+    if(pct) pct.textContent='100%'; if(txt) txt.textContent='COMPLETADO 6 VIDEOS 1080p FB - DESCARGANDO...';
+    // Esperar descargas
+    await new Promise(r=>setTimeout(r,800));
     setTimeout(()=>{ if(ov) ov.style.display='none'; },1200);
     if(window.renderCola) window.renderCola(true);
   };
@@ -2714,7 +2776,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(btn._v47) return; btn._v47=true;
     btn.addEventListener('click', async(e)=>{
       e.preventDefault(); e.stopPropagation();
-      if(btn.disabled) return;
+      // V53 - siempre activo
+      btn.disabled = false; btn.style.opacity='1';
       btn.disabled=true; const orig=btn.textContent; btn.textContent='AUTOMATICO 6x6 FB...';
       try{
         const need=(window.queue||[]).filter(x=>(x.txtContent||x.script)&&!x.audioUrl&&x.videoUrl);
@@ -2728,7 +2791,26 @@ document.addEventListener('DOMContentLoaded', ()=>{
   setTimeout(installRenderTodo,1500);
 
   // Boton rojo blindado sin logout
-  window._doLimpiarReal=function(){
+  window._doLimpiarReal=async function(){
+    const btn=document.getElementById('btnLimpiarTodo');
+    if(btn){
+      const origText=btn.textContent;
+      const origBg=btn.style.background;
+      btn.textContent='🟢 LIMPIANDO...';
+      btn.style.background='#22c55e';
+      btn.style.transform='scale(0.95)';
+      btn.style.transition='all 0.3s ease';
+      // Animacion verde
+      let dots=0;
+      const anim=setInterval(()=>{
+        dots=(dots+1)%4;
+        btn.textContent='🟢 LIMPIANDO'+'.'.repeat(dots);
+      },200);
+      await new Promise(r=>setTimeout(r,800));
+      clearInterval(anim);
+      btn.textContent='✅ LIMPIO!';
+      await new Promise(r=>setTimeout(r,400));
+    }
     try{
       if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});
       if(window.queue) window.queue.forEach(q=>{ try{if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{}} );
@@ -2752,7 +2834,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
         ref.parentNode.insertBefore(b, ref);
       }
     }
-    if(b){ b.setAttribute('onclick','window._doLimpiarReal()'); b.disabled=false; }
+    if(b){ 
+      b.setAttribute('onclick','window._doLimpiarReal()'); 
+      b.disabled=false; 
+      b.style.opacity='1';
+      b.style.pointerEvents='auto';
+      b.style.cursor='pointer';
+      // Forzar activo siempre
+      b.addEventListener('click', (e)=>{
+        e.preventDefault();
+        window._doLimpiarReal();
+      });
+    }
   }
   setTimeout(installRojo,500); setTimeout(installRojo,1500);
 })();
@@ -2896,240 +2989,177 @@ document.addEventListener('DOMContentLoaded', ()=>{
 })();
 </script>
 
-<script>
-// FIX CONGELAMIENTO MINIMO - 3 lineas - 100% fluido
+<script type="module">
+// V50 - SOLO JS - RESPETA OVERLAY ORIGINAL - NO DUPLICADOS
+console.log('[V50] Motor fluido - respeta overlay original V48');
+
+// Guardar renderOriginal para usar overlay original tal cual
+// El overlay original de V48 ya existe, no crear otro
+
+window.renderSingleCapCut = async function(item, onProg){
+  const FPS=30, W=1080, H=1920;
+  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true});
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; v.playsInline=true; v.preload='auto';
+  if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous';
+  await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); setTimeout(r,1200); v.load(); });
+  let audioBuffer=null, aDur=item.audioDur||0;
+  if(item.audioUrl){
+    try{ const ac=new (window.AudioContext||window.webkitAudioContext)(); const resp=await fetch(item.audioUrl); const ab=await resp.arrayBuffer(); audioBuffer=await ac.decodeAudioData(ab); aDur=audioBuffer.duration||aDur; await ac.close(); }catch{}
+  }
+  const vDur=v.duration||item.videoDur||10;
+  const info=typeof getRateInfo==='function'?getRateInfo(vDur, aDur||vDur):{rate:1,useLoop:false,finalDur:aDur||vDur};
+  const realTotal=aDur||vDur||10; const totalFrames=Math.ceil(realTotal*FPS);
+  function drawFrame(curTime){
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+    if(v.videoWidth){ const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} }
+    try{ if(window.__drawOptimizedTitleSubtitle){ const subsLocal=typeof chunkSubs==='function'?chunkSubs(item.script||''):[]; let subText=''; if(subsLocal.length){ const idx=Math.min(Math.floor((curTime/(aDur||realTotal))*subsLocal.length), subsLocal.length-1); subText=subsLocal[Math.max(0,idx)]||''; } window.__drawOptimizedTitleSubtitle(ctx, item.title||'', subText, W, H); } }catch{}
+  }
+  try{
+    const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
+    const target=new ArrayBufferTarget();
+    const muxer=new Muxer({ target: target, video:{codec:'avc', width:W, height:H}, audio: audioBuffer?{codec:'aac', sampleRate:48000, numberOfChannels: audioBuffer.numberOfChannels}:undefined, fastStart:'in-memory', firstTimestampBehavior:'offset' });
+    const videoEncoder=new VideoEncoder({ output:(chunk,meta)=>muxer.addVideoChunk(chunk,meta), error:e=>{ throw e; } });
+    videoEncoder.configure({ codec:'avc1.640028', width:W, height:H, bitrate:7000000, framerate:FPS, hardwareAcceleration:'prefer-hardware', latencyMode:'quality' });
+    let audioEncoder=null; if(audioBuffer){ audioEncoder=new AudioEncoder({ output:(chunk,meta)=>muxer.addAudioChunk(chunk,meta), error:e=>console.error(e) }); audioEncoder.configure({ codec:'mp4a.40.2', sampleRate:48000, numberOfChannels: audioBuffer.numberOfChannels, bitrate:128000 }); }
+    await window.__ensureFontsReady();
+    v.currentTime=0.25; v.playbackRate=Math.min(Math.max(info.rate||1,0.25),4); await new Promise(r=>{ v.onseeked=()=>r(); setTimeout(r,300); }); await v.play().catch(()=>{});
+    for(let i=0;i<totalFrames;i++){ const curTime=i/FPS; if(v.currentTime>=(v.duration-0.2)&&info.useLoop){ v.currentTime=0.25; await new Promise(r=>{ v.onseeked=()=>r(); setTimeout(r,80); }); await v.play().catch(()=>{}); } if(v.readyState<2) await new Promise(r=>setTimeout(r,10)); drawFrame(curTime); const frame=new VideoFrame(canvas,{timestamp:Math.round(curTime*1_000_000),duration:Math.round(1_000_000/FPS)}); const keyFrame=i%15===0; videoEncoder.encode(frame,{keyFrame}); frame.close(); onProg?.((i/totalFrames)*85); if(i%3===0) await new Promise(r=>requestAnimationFrame(r)); }
+    try{ v.pause(); }catch{} await videoEncoder.flush();
+    if(audioBuffer&&audioEncoder){ const numChannels=audioBuffer.numberOfChannels; const frameSize=1024; for(let offset=0; offset<audioBuffer.length; offset+=frameSize){ const remaining=Math.min(frameSize, audioBuffer.length-offset); const data=new Float32Array(remaining*numChannels); for(let ch=0;ch<numChannels;ch++){ const channelData=audioBuffer.getChannelData(ch); for(let j=0;j<remaining;j++) data[j*numChannels+ch]=channelData[offset+j]; } const audioData=new AudioData({ format:'f32', sampleRate:audioBuffer.sampleRate, numberOfFrames:remaining, numberOfChannels:numChannels, timestamp:Math.round((offset/audioBuffer.sampleRate)*1_000_000), data:data }); audioEncoder.encode(audioData); audioData.close(); } await audioEncoder.flush(); }
+    muxer.finalize(); const buffer=target.buffer; const blob=new Blob([buffer],{type:'video/mp4'}); const url=URL.createObjectURL(blob); try{ v.src=''; }catch{} return {url, ext:'mp4', blob};
+  }catch(e){
+    console.warn('fallback webm fluido', e);
+    // fallback fluido
+    return await window.renderSingleFastCapCutFallback(item, onProg);
+  }
+};
+window.renderSingle=window.renderSingleCapCut;
+
+// FIX VOCES - sin tocar overlay HTML, usa el overlay original de V48
 (function(){
-  const origRender = window.renderSingleCapCut;
-  if(!origRender){ console.warn('renderSingleCapCut no existe'); return; }
-  
-  window.renderSingleCapCut = async function(item, onProg){
-    // Llamar original pero con video precargado al 100% para evitar freeze
-    const v = document.createElement('video');
-    v.src = item.videoUrl;
-    v.muted = true;
-    if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous';
-    v.preload='auto';
-    
-    // FIX 1: Esperar que video este TOTALMENTE bufferizado (no solo metadata)
-    await new Promise(r=>{
-      v.onloadedmetadata=()=>r();
-      v.onerror=()=>r();
-      setTimeout(r,1500);
-      v.load();
-    });
-    
-    // FIX 2: Precargar todo el video en memoria
-    if(v.readyState < 4){
-      await new Promise(r=>{
-        const check=()=>{
-          if(v.readyState >= 4) r();
-          else if(v.buffered.length && v.buffered.end(0) >= v.duration - 0.5) r();
-          else setTimeout(check, 50);
-        };
-        check();
-      });
-    }
-    
-    console.log('[FLUIDO] Video precargado 100%, iniciando render sin freeze');
-    
-    // Ahora si llamar al render original que ya tiene todo
-    return await origRender(item, onProg);
+  if(!window._voicesDownloaded) window._voicesDownloaded=new Set();
+  const origGenAllVoices = window.generateAllVoicesSimultaneous;
+  // Si origGenAllVoices no existe o es el roto, recrear funcional que usa overlay original
+  window.generateAllVoicesSimultaneous = async function(){
+    const q=window.queue||[];
+    const pending=q.filter(x=>(x.txtContent||x.script)&&!x.audioUrl&&x.videoUrl);
+    if(!pending.length){ console.log('no pendientes'); return true; }
+    let tts=window._ttsCache;
+    if(!tts){ tts=await window.getTTS(); window._ttsCache=tts; }
+    window._batchGenerating=true;
+    // USAR OVERLAY ORIGINAL V48 - no crear nuevo
+    const ov=document.getElementById('renderOverlay');
+    const pct=document.getElementById('renderPct');
+    const txt=document.getElementById('renderText');
+    const lst=document.getElementById('renderList');
+    if(ov) ov.style.display='flex';
+    if(txt) txt.textContent='GENERANDO '+pending.length+' VOCES...';
+    if(lst) lst.innerHTML=pending.map(s=>'<div id="voiceSlot-'+s.id+'" style="background:#141418;border:1px solid #333;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;margin:4px 0"><span>SLOT '+s.id+'</span><span>...</span></div>').join('');
+    const unique=[...new Set(pending.map(s=>{ const vid=s.voiceId||document.getElementById('kokoroVoice')?.value||'es_ES-sharvard-medium'; return vid.split(':')[0]; }))];
+    for(let v of unique){ if(!window._voicesDownloaded.has(v)){ try{ await tts.download(v, ()=>{}); window._voicesDownloaded.add(v); }catch{} } }
+    let comp=0;
+    const genOne=async(slot)=>{
+      try{
+        const t=(slot.txtContent||slot.script||'').trim(); if(!t) return false;
+        const voiceId=slot.voiceId||document.getElementById('kokoroVoice')?.value||'es_ES-sharvard-medium';
+        const parts=voiceId.split(':'); const vId=parts[0]; const spk=parseInt(parts[1]||0);
+        const splitFn=(txt,max)=>{ max=max||380; const se=txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/); const ch=[]; let cur=""; for(let s of se){ s=s.trim(); if(!s) continue; if((cur+" "+s).length<=max) cur=cur?cur+" "+s:s; else{ if(cur) ch.push(cur); if(s.length>max){ const w=s.split(/\s+/); let tmp=""; for(let wd of w){ if((tmp+" "+wd).length<=max) tmp=tmp?tmp+" "+wd:wd; else{ if(tmp) ch.push(tmp); tmp=wd; } } if(tmp) cur=tmp; else cur=""; } else cur=s; } } if(cur) ch.push(cur); return ch; };
+        const chunks=splitFn(t,380);
+        const wavBlobs=[];
+        for(let i=0;i<chunks.length;i+=3){
+          const batch=chunks.slice(i,i+3);
+          const results=await Promise.all(batch.map(async(ch)=>{
+            for(let retry=1; retry<=3; retry++){
+              try{ const wb=await tts.predict({text:ch, voiceId:vId, speakerId:spk}, ()=>{}); if(wb&&wb.size>=200) return wb; }catch{ await new Promise(r=>setTimeout(r,150*retry)); }
+            } return null;
+          }));
+          for(let r of results) if(r) wavBlobs.push(r);
+          const el=document.getElementById('voiceSlot-'+slot.id); if(el) el.lastChild.textContent=(Math.min(i+3,chunks.length))+'/'+chunks.length;
+        }
+        if(!wavBlobs.length) throw new Error('vacio');
+        const ac=new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==='suspended') await ac.resume();
+        const bufs=[]; for(let wb of wavBlobs){ try{ const ab=await wb.arrayBuffer(); const bf=await ac.decodeAudioData(ab.slice(0)); bufs.push(bf); }catch{} }
+        let total=0; for(let b of bufs) total+=b.length;
+        const concat=ac.createBuffer(bufs[0].numberOfChannels, total, bufs[0].sampleRate);
+        let off=0; for(let b of bufs){ for(let c=0;c<b.numberOfChannels;c++) concat.getChannelData(c).set(b.getChannelData(c), off); off+=b.length; }
+        await ac.close();
+        const wavFinal=(function(buf){ const nc=buf.numberOfChannels, sr=buf.sampleRate, len=buf.length; const wlen=len*nc*2+44; const ab=new ArrayBuffer(wlen); const v=new DataView(ab); let p=0; function ws(s){ for(let i=0;i<s.length;i++) v.setUint8(p++, s.charCodeAt(i)); } function w16(d){ v.setUint16(p,d,true); p+=2; } function w32(d){ v.setUint32(p,d,true); p+=4; } ws('RIFF'); w32(wlen-8); ws('WAVE'); ws('fmt '); w32(16); w16(1); w16(nc); w32(sr); w32(sr*nc*2); w16(nc*2); w16(16); ws('data'); w32(wlen-p-4); const ch=[]; for(let c=0;c<nc;c++) ch.push(buf.getChannelData(c)); let o2=44; for(let i=0;i<len;i++){ for(let c=0;c<nc;c++){ let s=Math.max(-1,Math.min(1,ch[c][i])); s=s<0?s*0x8000:s*0x7FFF; v.setInt16(o2,s,true); o2+=2; } } return new Blob([ab],{type:'audio/wav'}); })(concat);
+        const url=URL.createObjectURL(wavFinal);
+        if(slot.audioUrl) try{URL.revokeObjectURL(slot.audioUrl);}catch{}
+        slot.audioUrl=url; slot.audioBlob=wavFinal; slot.audioName='SLOT'+slot.id+'.wav';
+        const tmp=new Audio(); tmp.src=url; await new Promise(r=>{ tmp.onloadedmetadata=()=>{slot.audioDur=tmp.duration; r();}; tmp.onerror=()=>{slot.audioDur=concat.length/concat.sampleRate; r();}; setTimeout(r,800); tmp.load(); });
+        slot.status='con audio'; if(window.renderCola) window.renderCola(true);
+        const el=document.getElementById('voiceSlot-'+slot.id); if(el){ el.lastChild.textContent='OK '+slot.audioDur.toFixed(1)+'s'; el.style.borderColor='#22c55e'; }
+        comp++; if(pct) pct.textContent=Math.round((comp/pending.length)*40)+'%'; // 0-40% voces
+        return true;
+      }catch(e){ const el=document.getElementById('voiceSlot-'+slot.id); if(el){ el.lastChild.textContent='ERR'; el.style.borderColor='#ef4444'; } return false; }
+    };
+    await Promise.all(pending.map(s=>genOne(s)));
+    window._batchGenerating=false;
+    if(window.renderCola) window.renderCola(true);
+    return true;
   };
-  
-  // Tambien parchear el loop interno para evitar freeze de 100ms
-  const origCode = origRender.toString();
-  // Si el original hace seek con 30ms, lo cambiamos a 80ms + espera frame
-  window.renderSingleCapCut._patched = true;
-  console.log('[FIX] Anti-freeze precarga instalada');
+  console.log('[V50] Voces 6x simultaneas con overlay ORIGINAL restaurado');
 })();
 
-// FIX ADICIONAL: keyframe cada 0.5s en lugar de 1s = mas fluido
+// Auto render - respeta btn original
 (function(){
-  const oldConfigure = window.VideoEncoder ? window.VideoEncoder.prototype.configure : null;
-  // Interceptar configure para forzar bitrate 6M si es menor
-  const _origRender = window.renderSingleCapCut;
+  function install(){
+    const btn=document.getElementById('btnRender');
+    if(!btn) return; // siempre activo - V53
+    btn.disabled = false; btn.style.opacity='1'; btn.style.pointerEvents='auto';
+    const clone=btn.cloneNode(true); btn.parentNode.replaceChild(clone, btn);
+    const nb=document.getElementById('btnRender'); nb._v50=true;
+    nb.addEventListener('click', async(e)=>{
+      e.preventDefault(); // siempre activo V53
+      nb.disabled = false;
+      nb.disabled=true; const orig=nb.textContent;
+      try{
+        const cur=window.getA?window.getA():window.queue[0];
+        if(cur){ const t=document.getElementById('inputTitle'); if(t) cur.title=t.value; const s=document.getElementById('inputScript'); if(s) cur.script=s.value; }
+        const q=window.queue||[]; const withVideo=q.filter(x=>x.videoUrl);
+        if(!withVideo.length){ alert('Carga video'); return; }
+        const need=q.filter(x=>(x.txtContent||x.script)&&!x.audioUrl&&x.videoUrl);
+        const pctEl=document.getElementById('renderPct'); const ovEl=document.getElementById('renderOverlay'); const txtEl=document.getElementById('renderText');
+        if(ovEl) ovEl.style.display='flex';
+        if(pctEl) pctEl.textContent='0%';
+        if(txtEl) txtEl.textContent='INICIANDO 0% - VOCES + VIDEOS...';
+        if(need.length){ nb.textContent='⏳ GENERANDO VOCES...';; await window.generateAllVoicesSimultaneous(); }
+        if(pctEl && parseInt(pctEl.textContent)<40) pctEl.textContent='40%';
+        nb.textContent='⏳ RENDERIZANDO VIDEOS...';
+        if(window.renderAllVideosBlindado) await window.renderAllVideosBlindado();
+      }catch(err){ console.error(err); alert(err.message); }
+      finally{ 
+        nb.disabled=false; 
+        nb.style.opacity='1';
+        nb.style.pointerEvents='auto';
+        nb.textContent=orig; 
+        nb.style.background=origBg||'';
+        nb.style.color='';
+        nb.style.transform='scale(1)';
+        setTimeout(()=>{ nb.textContent='⚡ RENDERIZAR TODO (6 VIDEOS 1080p FB HD)'; nb.disabled=false; }, 100);
+      }
+    });
+  }
+  setTimeout(install, 800);
+  setTimeout(install, 2500);
 })();
 </script>
 
-<script>
-// PARCHE DIRECTO EN EL LOOP DE SEEK - reemplaza solo la parte que congela
-(function(){
-  // Sobrescribir renderSingleCapCut con version sin freeze pero misma logica
-  window.renderSingleCapCut = async function(item, onProg){
-    const FPS=30;
-    const START_OFFSET=0.25;
-    const W=1080, H=1920;
-    const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
-    const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-    
-    const v=document.createElement('video'); 
-    v.src=item.videoUrl; 
-    v.muted=true; 
-    if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous';
-    v.preload='auto';
-    
-    await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); setTimeout(r,1200); v.load(); });
-    const vDur=v.duration||item.videoDur||10;
-    const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): {rate:1,useLoop:false, finalDur:item.audioDur||vDur};
-    let aDur=item.audioDur||0;
-    let audioBuffer=null;
-    let ac=null;
-    if(item.audioUrl){
-      try{
-        ac=new (window.AudioContext||window.webkitAudioContext)();
-        const resp=await fetch(item.audioUrl); const ab=await resp.arrayBuffer();
-        audioBuffer=await ac.decodeAudioData(ab);
-        aDur=audioBuffer.duration||aDur;
-        await ac.close();
-      }catch(e){}
-    }
-    const realTotal=aDur||vDur||10;
-    const totalFrames=Math.ceil(realTotal*FPS);
-    
-    function drawFrame(curTime){
-      ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-      if(v.videoWidth){ 
-        const vw=v.videoWidth, vh=v.videoHeight, tgt=W/H, r=vw/vh; 
-        let sx=0,sy=0,sw=vw,sh=vh; 
-        if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } 
-        try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }catch{} 
-      }
-      try{
-        if(window.__drawOptimizedTitleSubtitle){
-          const subsLocal=typeof chunkSubs==='function'?chunkSubs(item.script||''):[];
-          let subText=''; if(subsLocal.length){ const idx=Math.min(Math.floor((curTime/(aDur||realTotal))*subsLocal.length), subsLocal.length-1); subText=subsLocal[Math.max(0,idx)]||''; }
-          window.__drawOptimizedTitleSubtitle(ctx, item.title||'', subText, W, H);
-        }
-      }catch(e){}
-    }
-    
-    if(typeof VideoEncoder==='undefined' || typeof Mp4Muxer==='undefined'){
-      return await window.renderSingleFastCapCutFallback(item, onProg);
-    }
-    
-    try{
-      const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
-      const target=new ArrayBufferTarget();
-      const muxer=new Muxer({
-        target: target,
-        video: { codec:'avc', width:W, height:H },
-        audio: audioBuffer? { codec:'aac', sampleRate:48000, numberOfChannels: audioBuffer.numberOfChannels } : undefined,
-        fastStart:'in-memory',
-        firstTimestampBehavior:'offset'
-      });
-      
-      const videoEncoder=new VideoEncoder({
-        output: (chunk, meta)=> muxer.addVideoChunk(chunk, meta),
-        error: e=> console.error('VideoEncoder error', e)
-      });
-      videoEncoder.configure({
-        codec:'avc1.640028',
-        width:W, height:H,
-        bitrate:6000000,
-        framerate:FPS,
-        hardwareAcceleration:'prefer-hardware', latencyMode:'quality'
-      });
-      
-      let audioEncoder=null;
-      if(audioBuffer){
-        audioEncoder=new AudioEncoder({
-          output: (chunk, meta)=> muxer.addAudioChunk(chunk, meta),
-          error: e=> console.error('AudioEncoder error', e)
-        });
-        audioEncoder.configure({
-          codec:'mp4a.40.2',
-          sampleRate:48000,
-          numberOfChannels: audioBuffer.numberOfChannels,
-          bitrate:128000
-        });
-      }
-      
-      v.currentTime=START_OFFSET;
-      await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,400); });
-      await window.__ensureFontsReady();
-      
-      // FIX FREEZE: precargar 5 frames adelante
-      if(v.readyState < 3){
-        await new Promise(r=>{ const check=()=>{ if(v.readyState>=3) r(); else setTimeout(check, 30); }; check(); });
-      }
 
-      for(let i=0;i<totalFrames;i++){
-        const curTime=i/FPS;
-        let targetVideoTime=START_OFFSET + (curTime * (info.rate||1));
-        if(info.useLoop && v.duration){
-          const loopDur=v.duration - START_OFFSET - 0.10;
-          if(loopDur>0) targetVideoTime=START_OFFSET + (targetVideoTime % loopDur);
-        } else if(v.duration){
-          targetVideoTime=Math.min(targetVideoTime, v.duration-0.10);
-        }
-        
-        // FIX ANTI-FREEZE: solo seek si diferencia > 150ms y esperar frame real
-        if(Math.abs(v.currentTime - targetVideoTime) > 0.15){
-          await new Promise(r=>{
-            const onSeek=()=>{ v.removeEventListener('seeked',onSeek); r(); };
-            v.addEventListener('seeked',onSeek);
-            try{ v.currentTime=targetVideoTime; }catch{ v.currentTime=targetVideoTime; }
-            setTimeout(r, 100); // FIX: 100ms en lugar de 30ms = evita freeze
-          });
-          // Esperar que frame este disponible
-          await new Promise(r=>{
-            if(v.readyState >= 2) r();
-            else setTimeout(r, 15);
-          });
-        }
-        
-        drawFrame(curTime);
-        
-        const frame=new VideoFrame(canvas, { timestamp: Math.round(curTime*1_000_000), duration: Math.round(1_000_000/FPS) });
-        const keyFrame = i % 15 === 0; // 0.5s = mas fluido, menos freeze
-        videoEncoder.encode(frame, {keyFrame});
-        frame.close();
-        
-        onProg?.((i/totalFrames)*90);
-        
-        if(i%10===0) await new Promise(r=>setTimeout(r,0));
-      }
-      
-      await videoEncoder.flush();
-      
-      if(audioBuffer && audioEncoder){
-        const numChannels=audioBuffer.numberOfChannels;
-        const frameSize=1024;
-        for(let offset=0; offset<audioBuffer.length; offset+=frameSize){
-          const remaining=Math.min(frameSize, audioBuffer.length-offset);
-          const data=new Float32Array(remaining * numChannels);
-          for(let ch=0; ch<numChannels; ch++){
-            const channelData=audioBuffer.getChannelData(ch);
-            for(let j=0;j<remaining;j++) data[j*numChannels+ch]=channelData[offset+j];
-          }
-          const audioData=new AudioData({
-            format:'f32',
-            sampleRate: audioBuffer.sampleRate,
-            numberOfFrames: remaining,
-            numberOfChannels: numChannels,
-            timestamp: Math.round((offset/audioBuffer.sampleRate)*1_000_000),
-            data: data
-          });
-          audioEncoder.encode(audioData);
-          audioData.close();
-        }
-        await audioEncoder.flush();
-      }
-      
-      muxer.finalize();
-      const buffer=target.buffer;
-      const blob=new Blob([buffer], {type:'video/mp4'});
-      const url=URL.createObjectURL(blob);
-      try{ v.src=''; }catch{}
-      return {url, ext:'mp4', blob};
-      
-    }catch(e){
-      console.error('WebCodecs fail', e);
-      return await window.renderSingleFastCapCutFallback(item, onProg);
-    }
-  };
-  window.renderSingle=window.renderSingleCapCut;
-  console.log('[FIX] Render sin congelamiento instalado - seek 150ms + espera frame');
+<script>
+// BLINDAJE V50 - PUNTO SEGURO
+(function(){
+  console.log('[ICECREAM V50] Punto seguro guardado - logica blindada ' + '962f6b016cd7');
+  window.ICECREAM_V50_SAFE = true;
+  window.ICECREAM_V50_CHECKSUM = '962f6b016cd7';
+  window.ICECREAM_V50_DATE = new Date().toISOString();
+  try{
+    localStorage.setItem('icecream_v50_backup_date', window.ICECREAM_V50_DATE);
+    localStorage.setItem('icecream_v50_checksum', window.ICECREAM_V50_CHECKSUM);
+  }catch{}
 })();
 </script>
 
