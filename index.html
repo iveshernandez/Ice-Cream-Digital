@@ -1,4 +1,4 @@
-<!-- ICECREAM DIGITAL V66 FINAL - PUNTO SEGURO 962f6b016cd7 - NO TOCAR LOGICA V50 -->
+<!-- ICECREAM DIGITAL V50 FINAL - PUNTO SEGURO 962f6b016cd7 - NO TOCAR LOGICA V50 -->
 <!-- V17 DEFINITIVO 2026-05-13 - 1080x1920 9:16 8/11Mbps H264 High AAC128k - Titulo 2 lineas / Sub 3 lineas ancho - Preview=Export identico - BorrarTodo fix - No autoplay -->
 <!DOCTYPE html>
 <html lang="es">
@@ -6,7 +6,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital-Video V66</title>
+<title>Ice Cream Digital-Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -2152,8 +2152,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
           }
         }
         
-        const workers=Array.from({length: Math.min(6, list.length)}, ()=>worker());
-        await Promise.allSettled(workers);
+        // FIX: Secuencial para no bajar bitrate
+        for(let i=0;i<list.length;i++){ await worker(list[i]); }
         
         pctEl.textContent='100%';
         txtEl.textContent=`COMPLETADO - ${list.length} videos con voz Alexander`;
@@ -2766,9 +2766,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
         comp++; return true;
       }catch(e){ comp++; const el=document.getElementById('renderSlot-'+q.id); if(el) el.lastChild.textContent='ERR'; return false; }
     };
-    await Promise.all(list.map(q=>renderOne(q)));
+    // FIX: Render secuencial 1x1 para mantener bitrate 6M y 30fps nítido (paralelo baja calidad)
+    for(let i=0;i<list.length;i++){
+      const q=list[i];
+      if(pct) pct.textContent=Math.round((i/list.length)*100)+'%';
+      if(txt) txt.textContent=`RENDERIZANDO ${i+1}/${list.length} - ${q.fileNameBase} - 1080p 30FPS NÍTIDO`;
+      await renderOne(q);
+      await new Promise(r=>setTimeout(r,200)); // deja respirar GPU
+    }
     window._batchGenerating=false;
-    if(pct) pct.textContent='100%'; if(txt) txt.textContent='COMPLETADO 6 VIDEOS 1080p FB - DESCARGANDO...';
+    if(pct) pct.textContent='100%'; if(txt) txt.textContent=`COMPLETADO ${list.length} VIDEOS 1080p FB - NÍTIDO 30FPS`;
     // Esperar descargas
     await new Promise(r=>setTimeout(r,800));
     setTimeout(()=>{ if(ov) ov.style.display='none'; },1200);
