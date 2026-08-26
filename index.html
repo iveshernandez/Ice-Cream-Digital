@@ -6,7 +6,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital-Video</title>
+<title>Ice Cream Digital-Video v 80</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:#070709;color:#e9e9ec}
@@ -3332,10 +3332,17 @@ console.log('V78 FINAL CARGANDO');
 </script>
 
 <script>
-// V79 - 3x PARALELO POR SEPARADO CON WORKERS AISLADOS
-console.log('V79 3x3 PARALELO CARGANDO');
+// V80 FIX 3x3 - FIX ERROR 174s->169s + FIX ERROR 100%
+console.log('V80 FIX ERROR RATE CARGANDO');
 (function(){
-  async function render3x(item, onProg){
+  // Fix getRateInfo global
+  window.getRateInfo = function(vdur, adur){
+    if(!vdur||!adur) return {rate:1, useLoop:false};
+    if(adur <= vdur*1.15) return {rate: adur/vdur, useLoop:false};
+    return {rate:1, useLoop:true, loops: Math.ceil(adur/vdur)};
+  };
+
+  async function render3xFixed(item, onProg){
     const FPS=30, W=1080, H=1920;
     const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
     const ctx=canvas.getContext('2d',{alpha:false, desynchronized:true});
@@ -3344,26 +3351,36 @@ console.log('V79 3x3 PARALELO CARGANDO');
     v.muted=true; v.playsInline=true; v.preload='auto'; v.src=item.videoUrl;
     if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous';
     await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); try{v.load();}catch{} });
-    await new Promise(r=>{ if(v.readyState>=2) r(); else { v.oncanplay=()=>r(); setTimeout(r,300);} });
+    await new Promise(r=>{ if(v.readyState>=2) r(); else { v.oncanplay=()=>r(); setTimeout(r,400);} });
     
     let audioBuffer=null;
     try{
-      if(item.audioBlob){
-        const ac=new AudioContext({sampleRate:48000});
-        audioBuffer=await ac.decodeAudioData((await item.audioBlob.arrayBuffer()).slice(0));
-        await ac.close();
-      }
-    }catch(e){ console.error('audio decode fail',e); throw e; }
+      if(!item.audioBlob){ throw new Error('Sin audioBlob - genera voz primero'); }
+      const ac=new (window.AudioContext||window.webkitAudioContext)({sampleRate:48000});
+      const buf=await item.audioBlob.arrayBuffer();
+      audioBuffer=await ac.decodeAudioData(buf.slice(0));
+      await ac.close();
+      console.log(`AUDIO SLOT ${item.id} OK ${audioBuffer.duration.toFixed(1)}s`);
+    }catch(e){ 
+      console.error(`AUDIO SLOT ${item.id} FAIL`, e);
+      throw new Error(`Audio slot ${item.id} corrupto: ${e.message} - regenera voz`);
+    }
     
-    if(!audioBuffer) throw new Error('Sin audio - no se hace video mudo');
-    
-    const realTotal=audioBuffer.duration||v.duration||8;
+    const realTotal=audioBuffer.duration;
     const totalFrames=Math.ceil(realTotal*FPS);
     if(document.fonts?.ready) await document.fonts.ready;
     
-    let MuxerClass, TargetClass;
-    try{ const mod=await import('mp4-muxer'); MuxerClass=mod.Muxer; TargetClass=mod.ArrayBufferTarget; }
-    catch{ MuxerClass=window.Mp4Muxer?.Muxer; TargetClass=window.Mp4Muxer?.ArrayBufferTarget; }
+    // Muxer - usa global existente, no import CDN que falla
+    let MuxerClass=window.Muxer || window.Mp4Muxer?.Muxer;
+    let TargetClass=window.ArrayBufferTarget || window.Mp4Muxer?.ArrayBufferTarget;
+    if(!MuxerClass){
+      try{
+        const mod=await import('mp4-muxer');
+        MuxerClass=mod.Muxer; TargetClass=mod.ArrayBufferTarget;
+      }catch{
+        throw new Error('mp4-muxer no cargado - recarga pagina');
+      }
+    }
     const target=new TargetClass();
     const muxer=new MuxerClass({
       target,
@@ -3372,9 +3389,7 @@ console.log('V79 3x3 PARALELO CARGANDO');
       fastStart:'in-memory'
     });
     
-    // 3x workers = todos software para permitir paralelo real sin bloquear GPU
-    // Calidad igual: 8Mbps 30fps, solo usa CPU en vez de GPU
-    const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error(e)});
+    const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>{ throw e; }});
     vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:8000000, framerate:FPS, hardwareAcceleration:'prefer-software', latencyMode:'quality', avc:{format:'avc'}});
     
     const aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:()=>{}});
@@ -3388,13 +3403,28 @@ console.log('V79 3x3 PARALELO CARGANDO');
     }
     await aEnc.flush(); aEnc.close();
     
+    // VIDEO LOOP FIX para 169s audio con 174s video
     v.currentTime=0;
-    await new Promise(r=>setTimeout(r,60));
+    await new Promise(r=>setTimeout(r,100));
+    const info=window.getRateInfo(v.duration, realTotal);
+    
     for(let f=0; f<totalFrames; f++){
       const cur=f/FPS;
-      if(onProg && f%12===0) onProg((cur/realTotal)*95);
-      const vt=cur % v.duration;
-      if(Math.abs(v.currentTime-vt)>0.35) try{ v.currentTime=vt; }catch{}
+      if(onProg && f%15===0) onProg((cur/realTotal)*95);
+      
+      // Manejo loop si audio > video
+      let vt;
+      if(info.useLoop){
+        vt = (cur) % v.duration;
+      }else{
+        vt = Math.min(cur*info.rate, v.duration-0.05);
+      }
+      
+      if(Math.abs(v.currentTime-vt)>0.4){
+        try{ v.currentTime=vt; }catch{}
+        if(f%30===0) await new Promise(r=>setTimeout(r,2));
+      }
+      
       ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
       try{
         if(v.videoWidth){
@@ -3420,34 +3450,32 @@ console.log('V79 3x3 PARALELO CARGANDO');
     await vEnc.flush(); vEnc.close(); muxer.finalize();
     const blob=new Blob([target.buffer],{type:'video/mp4'});
     try{ v.pause(); v.src=''; canvas.width=0; }catch{}
-    if(blob.size<1000) throw new Error('MP4 vacio');
+    if(blob.size<2000) throw new Error('MP4 vacio - blob '+blob.size);
     return {url:URL.createObjectURL(blob), ext:'mp4', blob};
   }
 
   window.renderAllVideosBlindado = async function(){
     const list=(window.queue||[]).filter(q=>q.videoUrl&&(q.audioUrl||q.audioBlob));
-    if(!list.length){ alert('Faltan audios'); return; }
+    if(!list.length){ alert('Faltan videos o audios - verifica slots'); return; }
     const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
     if(ov) ov.style.display='flex';
-    if(lst) lst.innerHTML=list.map(q=>`<div id="renderSlot-${q.id}" style="display:flex;justify-content:space-between;margin:4px 0"><span style="color:#fff;font-size:11px">SLOT ${q.id} ${q.displayName||''}</span><span style="color:#FFEB00;font-size:11px">0%</span></div>`).join('');
-    if(txt) txt.textContent='V79 3x PARALELO POR SEPARADO - 3 canvas aislados';
+    if(lst) lst.innerHTML=list.map(q=>`<div id="renderSlot-${q.id}" style="display:flex;justify-content:space-between;margin:4px 0"><span style="color:#fff;font-size:11px">SLOT ${q.id} ${q.displayName||''} ${(q.audioDur||0).toFixed(0)}s</span><span style="color:#FFEB00;font-size:11px">0%</span></div>`).join('');
+    if(txt) txt.textContent=`V80 FIX - 3x PARALELO - ${list.length} videos - FIX 174s->169s`;
     
-    let completed=0;
-    let qIdx=0;
+    let completed=0, qIdx=0;
     
     async function worker(wId){
       while(true){
         let q;
         if(qIdx>=list.length) break;
-        q=list[qIdx++]; // JS single thread = atomico
+        q=list[qIdx++]; 
         if(!q) break;
-        
         q.status='renderizando';
         if(window.renderCola) window.renderCola(true);
         
         try{
-          if(txt) txt.textContent=`WORKER ${wId}/3 - SLOT ${q.id} ${q.fileNameBase} - 8MBPS`;
-          const r=await render3x(q, p=>{
+          if(txt) txt.textContent=`WORKER ${wId}/3 - SLOT ${q.id} - ${q.fileNameBase} - ${q.audioDur?.toFixed(0)}s audio`;
+          const r=await render3xFixed(q, p=>{
             q.progress=p;
             const el=document.getElementById('renderSlot-'+q.id);
             if(el) el.lastChild.textContent=Math.round(p)+'%';
@@ -3456,37 +3484,33 @@ console.log('V79 3x3 PARALELO CARGANDO');
           if(r && r.url){
             q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100;
             const el=document.getElementById('renderSlot-'+q.id);
-            if(el) el.lastChild.textContent='100%';
-            if(document.getElementById('autoDownloadCheck')?.checked!==false){
-              const a=document.createElement('a'); a.href=r.url; a.download=(q.fileNameBase||'video_'+q.id)+'.'+r.ext;
-              document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),700);
-            }
+            if(el) el.lastChild.textContent='100% OK';
+            const a=document.createElement('a'); a.href=r.url; a.download=(q.fileNameBase||'video_'+q.id)+'.'+r.ext;
+            document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),800);
           }
         }catch(e){
-          console.error(`RENDER SLOT ${q.id} W${wId} FAIL`, e);
-          q.status='error';
+          console.error(`RENDER SLOT ${q.id} FAIL`, e);
+          q.status='error'; q.progress=0;
           const el=document.getElementById('renderSlot-'+q.id);
-          if(el) el.lastChild.textContent='ERROR';
+          if(el) el.lastChild.textContent='ERROR: '+e.message.slice(0,20);
+          alert(`Error SLOT ${q.id}: ${e.message}`);
         }
-        
         completed++;
         if(pct) pct.textContent=Math.round((completed/list.length)*100)+'%';
-        if(txt) txt.textContent=`V79 3x3 - ${completed}/${list.length} completados`;
-        await new Promise(r=>setTimeout(r,500)); // cooldown 500ms
       }
     }
     
-    console.log('V79 INICIANDO 3 WORKERS PARALELOS POR SEPARADO');
+    console.log('V80 INICIANDO 3 WORKERS FIX ERROR RATE');
     await Promise.all([worker(1), worker(2), worker(3)]);
     
     if(pct) pct.textContent='100%';
-    if(txt) txt.textContent=`COMPLETADO ${completed}/${list.length} VIDEOS 3x PARALELO`;
-    setTimeout(()=>{ if(ov) ov.style.display='none'; },1500);
+    if(txt) txt.textContent=`COMPLETADO ${completed}/${list.length} - V80 FIX`;
+    setTimeout(()=>{ if(ov) ov.style.display='none'; },2000);
     if(window.renderCola) window.renderCola(true);
   };
   
-  window.renderSingle=render3x;
-  window.renderSingleCapCut=render3x;
-  console.log('V79 3x3 LISTO - 3 canvas aislados por separado');
+  window.renderSingle=render3xFixed;
+  window.renderSingleCapCut=render3xFixed;
+  console.log('V80 FIX LISTO');
 })();
 </script>
