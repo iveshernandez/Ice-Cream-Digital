@@ -5,7 +5,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title> v79 2x2 Ice Cream Digital-Video</title>
+<title>v81 Ice Cream Digital-Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070709">
@@ -92,6 +92,17 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
 #kokoroSpeed{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<style>
+#renderOverlay #renderList > div{box-sizing:border-box}
+@media (max-width:420px){
+  #renderOverlay{padding:8px!important}
+  #renderOverlay > div{width:calc(100% - 4px)!important;padding:12px!important}
+  #renderList{grid-template-columns:1fr 1fr!important;gap:5px!important}
+  #renderList > div{padding:7px 7px!important}
+}
+</style>
+
 </head>
 <body>
 
@@ -252,32 +263,34 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
   <div id="previewSubtitleLayer" style="position:absolute;left:4%;right:4%;top:70%;display:flex;flex-direction:column;align-items:center;gap:4px"></div>
 </div>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
-<div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:linear-gradient(180deg,rgba(4,4,7,.97),rgba(9,9,14,.96));flex-direction:column;align-items:center;justify-content:center;padding:22px">
-  <div style="width:100%;max-width:330px;background:rgba(20,20,27,.96);border:1px solid rgba(255,255,255,.10);border-radius:22px;padding:20px;box-shadow:0 22px 55px rgba(0,0,0,.55)">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px">
-      <div>
-        <div style="font-size:9px;font-weight:900;letter-spacing:1.7px;color:#8d8d98">ICECREAM EXPORT</div>
-        <div style="font-size:14px;font-weight:900;color:#fff;margin-top:3px">Renderizando video</div>
+<div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:30;background:linear-gradient(180deg,rgba(4,4,7,.985),rgba(10,10,15,.98));flex-direction:column;align-items:center;justify-content:center;padding:12px">
+  <div style="width:calc(100% - 10px);max-width:690px;background:rgba(18,18,24,.98);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:15px;box-sizing:border-box;box-shadow:0 18px 45px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+      <div style="min-width:0">
+        <div style="font-size:8px;font-weight:900;letter-spacing:1.6px;color:#8d8d98">ICE CREAM DIGITAL · EXPORT</div>
+        <div style="font-size:14px;font-weight:950;color:#fff;margin-top:2px">Renderizando 6 videos</div>
       </div>
-      <div style="width:38px;height:38px;border-radius:12px;background:#FFEB00;color:#050505;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;box-shadow:0 0 0 5px rgba(255,235,0,.08)">⚡</div>
+      <div style="width:34px;height:34px;border-radius:10px;background:#FFEB00;color:#050505;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;flex:0 0 auto">⚡</div>
     </div>
 
-    <div style="display:flex;align-items:end;justify-content:space-between;margin-bottom:8px">
-      <div id="renderPct" style="font-size:38px;line-height:1;font-weight:950;letter-spacing:-2px;color:#fff">0%</div>
-      <div id="renderSubLabel" style="color:#868691;font-size:9px;font-weight:800;text-align:right">PREPARANDO...</div>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:end;margin-bottom:7px">
+      <div id="renderPct" style="font-size:34px;line-height:1;font-weight:950;letter-spacing:-1.6px;color:#fff">0%</div>
+      <div id="renderSubLabel" style="color:#8a8a96;font-size:8px;font-weight:900;text-align:right;white-space:normal">PREPARANDO...</div>
     </div>
 
-    <div style="height:9px;background:#08080b;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.07);margin-bottom:12px">
+    <div style="height:7px;background:#08080b;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.06);margin-bottom:9px">
       <div id="renderMasterBar" style="height:100%;width:0%;background:linear-gradient(90deg,#FFEB00,#fff36a);border-radius:999px;transition:width .28s linear"></div>
     </div>
 
-    <div id="renderText" style="color:#d8d8df;font-size:10px;font-weight:800;line-height:1.35;min-height:28px;margin-bottom:12px">RENDER FFMPEG 30 FPS</div>
-    <div id="renderList" style="width:100%;display:flex;flex-direction:column;gap:7px;max-height:210px;overflow:auto"></div>
+    <div id="renderText" style="color:#d8d8df;font-size:9px;font-weight:850;line-height:1.25;min-height:22px;margin-bottom:9px">PREPARANDO RENDER...</div>
 
-    <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;color:#666671;font-size:8px;font-weight:800">
-      <span>720 × 1280</span><span>H.264 · 30 FPS</span><span>FFMPEG</span>
+    <div id="renderList" style="width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:none;overflow:visible"></div>
+
+    <div style="margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#666671;font-size:7px;font-weight:850">
+      <span>720 × 1280</span><span>H.264 · 30 FPS</span><span>2 MOTORES FFMPEG</span>
     </div>
   </div>
+</div>
 </div>
 </div>
 </div>
@@ -635,7 +648,7 @@ function queueDownload(url,name){
   next();
 }
 window.safeDownload=safeDownload; window.queueDownload=queueDownload; window.renderCola=renderCola; window.calcDurInfo=calcDurInfo; window.getA=getA; window.sanitizar=sanitizar;
-setActive(1);renderCola(true);log('V79 2 MOTORES PERSISTENTES OPTIMIZADO - lista');
+setActive(1);renderCola(true);log('V81 AUTO VOZ A RENDER + OVERLAY 6 SLOTS - lista');
 </script>
 
 <script>
@@ -966,59 +979,189 @@ window.getTTS = getTTS;
     const q=window.queue||[];
     const pending=q.filter(x=>(x.txtContent||x.script)&&!x.audioUrl&&x.videoUrl);
     if(!pending.length) return true;
-    window._batchGenerating=true;
-    const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList'), master=document.getElementById('renderMasterBar'), sub=document.getElementById('renderSubLabel');
-    if(ov) ov.style.display='flex';
-    if(txt) txt.textContent='GENERANDO '+pending.length+' VOCES 6x...';
-    if(lst) lst.innerHTML=pending.map(s=>'<div id="voiceSlot-'+s.id+'" style="background:#141418;border:1px solid #444;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;margin:4px 0"><span style="color:#fff;font-size:11px">SLOT '+s.id+' VOZ</span><span style="color:#FFEB00;font-size:11px">...</span></div>').join('');
+
+    window._voiceGenerating=true;
+    const ov=document.getElementById('renderOverlay');
+    const pct=document.getElementById('renderPct');
+    const txt=document.getElementById('renderText');
+    const lst=document.getElementById('renderList');
+    const master=document.getElementById('renderMasterBar');
+    const sub=document.getElementById('renderSubLabel');
+
+    if(ov){ ov.style.display='flex'; ov.style.pointerEvents='auto'; }
+    if(pct) pct.textContent='0%';
+    if(master) master.style.width='0%';
+    if(txt) txt.textContent=`GENERANDO ${pending.length} VOCES · 3 A LA VEZ`;
+    if(sub) sub.textContent='FASE 1/2 · VOCES';
+
+    if(lst){
+      lst.innerHTML=pending.map(slot=>`
+        <div id="voiceSlot-${slot.id}" style="background:#0d0d12;border:1px solid #292932;border-radius:9px;padding:8px 9px;display:flex;justify-content:space-between;align-items:center;min-width:0">
+          <span style="color:#d8d8df;font-size:8px;font-weight:900;white-space:nowrap">SLOT ${slot.id} · VOZ</span>
+          <span style="color:#777783;font-size:9px;font-weight:950;white-space:nowrap">EN COLA</span>
+        </div>`).join('');
+    }
+
     let tts=null;
-    try{ if(window.getTTS) tts=await window.getTTS(); }catch(e){ window._batchGenerating=false; alert('Error motor voces'); return false; }
-    let comp=0;
-    const genOne=async(slot)=>{
-      const el=document.getElementById('voiceSlot-'+slot.id);
-      try{
-        const t=(slot.txtContent||slot.script||'').trim(); if(!t){ comp++; return false; }
-        const voiceId=slot.voiceId||document.getElementById('kokoroVoice')?.value||'es_ES-sharvard-medium';
-        const parts=voiceId.split(':'); const vId=parts[0]; const spk=parseInt(parts[1]||0);
-        if(el) el.lastChild.textContent='VOZ...';
-        try{ await tts.download(vId, ()=>{}); }catch{}
-        if(el) el.lastChild.textContent='GEN...';
-        const splitFn=(txt,max)=>{ max=max||380; const se=txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/); const ch=[]; let cur=""; for(let s of se){ s=s.trim(); if(!s) continue; if((cur+" "+s).length<=max) cur=cur?cur+" "+s:s; else{ if(cur) ch.push(cur); if(s.length>max){ const w=s.split(/\s+/); let tmp=""; for(let wd of w){ if((tmp+" "+wd).length<=max) tmp=tmp?tmp+" "+wd:wd; else{ if(tmp) ch.push(tmp); tmp=wd; } } if(tmp) cur=tmp; else cur=""; } else cur=s; } } if(cur) ch.push(cur); return ch; };
-        const chunks=splitFn(t,380);
-        const ac=new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==='suspended') await ac.resume();
-        const bufs=[];
-        for(let i=0;i<chunks.length;i++){
-          if(el) el.lastChild.textContent=(i+1)+'/'+chunks.length;
-          let wb=null; for(let r=1;r<=2;r++){ try{ wb=await tts.predict({text:chunks[i], voiceId:vId, speakerId:spk}, ()=>{}); if(wb&&wb.size>=500) break; }catch{ await new Promise(r=>setTimeout(r,300)); } }
-          if(!wb||wb.size<800) continue;
-          try{ const ab=await wb.arrayBuffer(); const bf=await ac.decodeAudioData(ab); bufs.push(bf); }catch{}
+    try{
+      if(window.getTTS) tts=await window.getTTS();
+      if(!tts) throw new Error('Motor TTS no disponible');
+    }catch(e){
+      window._voiceGenerating=false;
+      throw new Error('Error cargando motor de voces');
+    }
+
+    let cursor=0, finished=0, failed=0;
+    const update=()=>{
+      const p=Math.round((finished/pending.length)*100);
+      if(pct) pct.textContent=p+'%';
+      if(master) master.style.width=p+'%';
+      if(sub) sub.textContent=`FASE 1/2 · ${finished}/${pending.length} VOCES`;
+    };
+
+    const splitFn=(text,max=380)=>{
+      const se=String(text||'').replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+      const ch=[]; let cur='';
+      for(let x of se){
+        x=x.trim(); if(!x) continue;
+        if((cur+' '+x).trim().length<=max) cur=cur?cur+' '+x:x;
+        else{
+          if(cur) ch.push(cur);
+          if(x.length>max){
+            const words=x.split(/\s+/); let tmp='';
+            for(const wd of words){
+              if((tmp+' '+wd).trim().length<=max) tmp=tmp?tmp+' '+wd:wd;
+              else{ if(tmp) ch.push(tmp); tmp=wd; }
+            }
+            cur=tmp;
+          }else cur=x;
         }
-        if(!bufs.length) throw new Error('vacio');
-        let total=0; for(let b of bufs) total+=b.length;
-        const concat=ac.createBuffer(bufs[0].numberOfChannels, total, bufs[0].sampleRate);
-        let off=0; for(let b of bufs){ for(let c=0;c<b.numberOfChannels;c++) concat.getChannelData(c).set(b.getChannelData(c), off); off+=b.length; }
+      }
+      if(cur) ch.push(cur);
+      return ch;
+    };
+
+    const makeWavBlob=(buf)=>{
+      const nc=buf.numberOfChannels, sr=buf.sampleRate, len=buf.length;
+      const wlen=len*nc*2+44, ab=new ArrayBuffer(wlen), v=new DataView(ab);
+      let p=0;
+      const ws=x=>{for(let i=0;i<x.length;i++)v.setUint8(p++,x.charCodeAt(i));};
+      const w16=x=>{v.setUint16(p,x,true);p+=2;};
+      const w32=x=>{v.setUint32(p,x,true);p+=4;};
+      ws('RIFF');w32(wlen-8);ws('WAVE');ws('fmt ');w32(16);w16(1);w16(nc);
+      w32(sr);w32(sr*nc*2);w16(nc*2);w16(16);ws('data');w32(wlen-p-4);
+      const channels=[]; for(let c=0;c<nc;c++)channels.push(buf.getChannelData(c));
+      let o=44;
+      for(let i=0;i<len;i++)for(let c=0;c<nc;c++){
+        let sm=Math.max(-1,Math.min(1,channels[c][i]));
+        sm=sm<0?sm*0x8000:sm*0x7FFF;
+        v.setInt16(o,sm,true);o+=2;
+      }
+      return new Blob([ab],{type:'audio/wav'});
+    };
+
+    const genSlot=async(slot,workerId)=>{
+      const el=document.getElementById('voiceSlot-'+slot.id);
+      const setState=(text,color)=>{
+        if(el){
+          if(color) el.style.borderColor=color;
+          if(el.lastElementChild) el.lastElementChild.textContent=text;
+        }
+      };
+      try{
+        const text=(slot.txtContent||slot.script||'').trim();
+        if(!text) throw new Error('Sin texto');
+
+        const voiceId=slot.voiceId||document.getElementById('kokoroVoice')?.value||'es_ES-sharvard-medium:0';
+        const parts=voiceId.split(':');
+        const vId=parts[0], spk=parseInt(parts[1]||0,10);
+
+        setState(`TTS ${workerId}`);
+        try{ await tts.download(vId,()=>{}); }catch{}
+
+        const chunks=splitFn(text,380);
+        const AC=window.AudioContext||window.webkitAudioContext;
+        const ac=new AC();
+        if(ac.state==='suspended') await ac.resume();
+        const bufs=[];
+
+        for(let i=0;i<chunks.length;i++){
+          setState(`${i+1}/${chunks.length}`);
+          let wb=null;
+          for(let attempt=1;attempt<=2;attempt++){
+            try{
+              wb=await Promise.race([
+                tts.predict({text:chunks[i],voiceId:vId,speakerId:spk},()=>{}),
+                new Promise((_,rej)=>setTimeout(()=>rej(new Error('TTS timeout')),45000))
+              ]);
+              if(wb&&wb.size>=500) break;
+            }catch(e){
+              if(attempt<2) await new Promise(r=>setTimeout(r,350));
+            }
+          }
+          if(!wb||wb.size<800) throw new Error('Chunk de voz vacío');
+          const bf=await ac.decodeAudioData(await wb.arrayBuffer());
+          bufs.push(bf);
+        }
+
+        if(!bufs.length) throw new Error('Audio vacío');
+        let total=0; for(const b of bufs) total+=b.length;
+        const concat=ac.createBuffer(bufs[0].numberOfChannels,total,bufs[0].sampleRate);
+        let off=0;
+        for(const b of bufs){
+          for(let c=0;c<b.numberOfChannels;c++) concat.getChannelData(c).set(b.getChannelData(c),off);
+          off+=b.length;
+        }
         await ac.close();
-        const wavBlob=(function(buf){
-          const nc=buf.numberOfChannels, sr=buf.sampleRate, len=buf.length; const wlen=len*nc*2+44; const ab=new ArrayBuffer(wlen); const v=new DataView(ab); let p=0;
-          function ws(s){ for(let i=0;i<s.length;i++) v.setUint8(p++, s.charCodeAt(i)); } function w16(d){ v.setUint16(p,d,true); p+=2; } function w32(d){ v.setUint32(p,d,true); p+=4; }
-          ws('RIFF'); w32(wlen-8); ws('WAVE'); ws('fmt '); w32(16); w16(1); w16(nc); w32(sr); w32(sr*nc*2); w16(nc*2); w16(16); ws('data'); w32(wlen-p-4);
-          const ch=[]; for(let c=0;c<nc;c++) ch.push(buf.getChannelData(c)); let o2=44; for(let i=0;i<len;i++){ for(let c=0;c<nc;c++){ let s=Math.max(-1,Math.min(1,ch[c][i])); s=s<0?s*0x8000:s*0x7FFF; v.setInt16(o2,s,true); o2+=2; } } return new Blob([ab],{type:'audio/wav'});
-        })(concat);
+
+        const wavBlob=makeWavBlob(concat);
         const url=URL.createObjectURL(wavBlob);
         if(slot.audioUrl) try{URL.revokeObjectURL(slot.audioUrl);}catch{}
-        slot.audioUrl=url; slot.audioBlob=wavBlob; slot.audioName='SLOT'+slot.id+'.wav';
-        const tmp=new Audio(); tmp.src=url; await new Promise(r=>{ tmp.onloadedmetadata=()=>{slot.audioDur=tmp.duration; r();}; tmp.onerror=()=>{slot.audioDur=concat.length/concat.sampleRate; r();}; tmp.load(); });
-        slot.status='con audio'; if(window.renderCola) window.renderCola(true);
-        if(el){ el.lastChild.textContent='OK '+slot.audioDur.toFixed(1)+'s'; el.style.borderColor='#22c55e'; }
-        comp++; if(pct) pct.textContent=Math.round((comp/pending.length)*40)+'%'; // 0-40% voces
-        try{ document.querySelectorAll('audio').forEach(a=>{ try{a.pause();a.muted=true;a.volume=0;}catch{}});}catch{}
+        slot.audioUrl=url;
+        slot.audioBlob=wavBlob;
+        slot.audioName=`SLOT${slot.id}.wav`;
+        slot.audioDur=concat.length/concat.sampleRate;
+        slot.status='con audio';
+
+        setState(`OK ${slot.audioDur.toFixed(1)}s`,'#22c55e');
         return true;
-      }catch(e){ const el=document.getElementById('voiceSlot-'+slot.id); if(el){el.lastChild.textContent='ERR'; el.style.borderColor='#ef4444';} comp++; return false; }
+      }catch(e){
+        console.error('[V81 VOZ SLOT '+slot.id+']',e);
+        setState('ERROR','#ef4444');
+        failed++;
+        return false;
+      }finally{
+        finished++;
+        update();
+        window.renderCola?.(true);
+      }
     };
-    await Promise.all(pending.map(s=>genOne(s)));
-    window._batchGenerating=false;
-    if(window.renderCola) window.renderCola(true);
-    return true;
+
+    const worker=async(workerId)=>{
+      while(true){
+        const idx=cursor++;
+        if(idx>=pending.length) return;
+        await genSlot(pending[idx],workerId);
+      }
+    };
+
+    try{
+      await Promise.all([worker(1),worker(2),worker(3)]);
+
+      const stillMissing=pending.filter(x=>!x.audioUrl);
+      if(stillMissing.length){
+        throw new Error(`No se pudieron generar ${stillMissing.length} voz/ voces`);
+      }
+
+      if(pct) pct.textContent='100%';
+      if(master) master.style.width='100%';
+      if(txt) txt.textContent='VOCES COMPLETAS · INICIANDO RENDER...';
+      if(sub) sub.textContent='FASE 1/2 COMPLETA';
+      await new Promise(r=>setTimeout(r,500));
+      return true;
+    }finally{
+      window._voiceGenerating=false;
+    }
   };
 
   // V77: renderer simultáneo antiguo eliminado físicamente.
@@ -1044,8 +1187,9 @@ window.getTTS = getTTS;
       }catch(err){ alert(err.message); } finally{ btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO (6 VIDEOS 720p FB HD)'; window._batchGenerating=false; }
     });
   }
-  setTimeout(installRenderTodo,600);
-  setTimeout(installRenderTodo,1500);
+  // V81: instalador legacy desactivado; el botón final FFmpeg es el único dueño.
+  // setTimeout(installRenderTodo,600);
+  // setTimeout(installRenderTodo,1500);
 
   // Boton rojo blindado sin logout
   window._doLimpiarReal=async function(){
@@ -1449,11 +1593,15 @@ window.getTTS = getTTS;
     if(sub) sub.textContent=`0/${list.length} COMPLETADOS`;
     if(txt) txt.textContent='PRECARGANDO 2 MOTORES FFMPEG...';
 
-    if(lst) lst.innerHTML=list.map(q=>`
-      <div id="renderSlot-${q.id}" style="background:#0d0d12;border:1px solid #292932;border-radius:11px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center">
-        <span style="color:#d8d8df;font-size:9px;font-weight:850">SLOT ${q.id} · VIDEO</span>
-        <span style="color:#777783;font-size:10px;font-weight:900">EN COLA</span>
-      </div>`).join('');
+    // V80: limpia completamente cualquier estado visual anterior de TTS/voz.
+    if(lst){
+      lst.innerHTML='';
+      lst.innerHTML=list.map(q=>`
+        <div id="renderSlot-${q.id}" style="background:#0d0d12;border:1px solid #292932;border-radius:9px;padding:8px 9px;display:flex;justify-content:space-between;align-items:center;min-width:0">
+          <span style="color:#d8d8df;font-size:8px;font-weight:900;white-space:nowrap">SLOT ${q.id} · VIDEO</span>
+          <span style="color:#777783;font-size:9px;font-weight:950;white-space:nowrap">EN COLA</span>
+        </div>`).join('');
+    }
 
     const completedFiles=[];
     const progressMap=new Map(list.map(q=>[q.id,0]));
@@ -1596,19 +1744,63 @@ window.getTTS = getTTS;
     const nb=old.cloneNode(true); old.parentNode.replaceChild(nb,old); nb._ffmpegWasm=true;
     nb.textContent='⚡ RENDERIZAR TODO · FFMPEG 720p';
     nb.addEventListener('click',async e=>{
-      e.preventDefault(); if(window._batchGenerating) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if(window._ffmpegBatchActive || window._voiceGenerating) return;
+
       nb.disabled=true;
       try{
         const cur=window.getA?.();
-        if(cur){ const t=document.getElementById('inputTitle'),s=document.getElementById('inputScript'); if(t)cur.title=t.value;if(s)cur.script=s.value; }
+        if(cur){
+          const t=document.getElementById('inputTitle');
+          const sc=document.getElementById('inputScript');
+          if(t) cur.title=t.value;
+          if(sc) cur.script=sc.value;
+        }
+
         const withVideo=(window.queue||[]).filter(x=>x.videoUrl);
-        if(!withVideo.length){ alert('Carga al menos un video.'); return; }
+        if(!withVideo.length){
+          alert('Carga al menos un video.');
+          return;
+        }
+
         const need=withVideo.filter(x=>(x.txtContent||x.script)&&!x.audioUrl);
-        if(need.length){ nb.textContent='⏳ GENERANDO VOCES...'; await window.generateAllVoicesSimultaneous(); }
-        nb.textContent='⏳ RENDER FFMPEG EN NAVEGADOR...';
+        if(need.length){
+          nb.textContent='⏳ FASE 1/2 · GENERANDO VOCES...';
+          const ok=await window.generateAllVoicesSimultaneous();
+          if(!ok) throw new Error('No se completó la generación de voces');
+        }
+
+        const ready=withVideo.filter(x=>x.audioUrl);
+        if(!ready.length) throw new Error('No hay videos con voz listos para renderizar');
+
+        // Cambio visual explícito entre fases.
+        const ov=document.getElementById('renderOverlay');
+        const pct=document.getElementById('renderPct');
+        const master=document.getElementById('renderMasterBar');
+        const txt=document.getElementById('renderText');
+        const sub=document.getElementById('renderSubLabel');
+        const lst=document.getElementById('renderList');
+
+        if(ov) ov.style.display='flex';
+        if(pct) pct.textContent='0%';
+        if(master) master.style.width='0%';
+        if(txt) txt.textContent='FASE 2/2 · INICIANDO FFMPEG...';
+        if(sub) sub.textContent='RENDER AUTOMÁTICO';
+        if(lst) lst.innerHTML='';
+
+        await new Promise(r=>setTimeout(r,180));
+
+        nb.textContent='⏳ FASE 2/2 · RENDER FFMPEG...';
         await window.renderAllVideosBlindado();
-      }catch(err){ console.error(err); alert(err.message||String(err)); }
-      finally{ nb.disabled=false; nb.textContent='⚡ RENDERIZAR TODO · FFMPEG 720p'; window._batchGenerating=false; }
+      }catch(err){
+        console.error(err);
+        alert(err.message||String(err));
+      }finally{
+        nb.disabled=false;
+        nb.textContent='⚡ RENDERIZAR TODO · FFMPEG 720p';
+        window._batchGenerating=false;
+      }
     });
   }
   // Los instaladores viejos usan timers; instalamos este al final para que sea el dueño definitivo del botón.
@@ -1616,7 +1808,7 @@ window.getTTS = getTTS;
   setTimeout(installWasmButton,3200);
   setTimeout(()=>{
     const t=document.getElementById('renderText'); if(t && /60fps/i.test(t.textContent||'')) t.textContent='RENDER FFMPEG 30 FPS';
-    console.log('[ICECREAM V79] 2 motores FFmpeg persistentes instalados');
+    console.log('[ICECREAM V81] 2 motores FFmpeg persistentes instalados');
   },3400);
 })();
 
