@@ -5,7 +5,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>v 83 Ice Cream Digital-Video</title>
+<title>V84 Ice Cream Digital-Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070709">
@@ -648,7 +648,7 @@ function queueDownload(url,name){
   next();
 }
 window.safeDownload=safeDownload; window.queueDownload=queueDownload; window.renderCola=renderCola; window.calcDurInfo=calcDurInfo; window.getA=getA; window.sanitizar=sanitizar;
-setActive(1);renderCola(true);log('V83 ESTABLE VOZ + RENDER SECUENCIAL 6X6 - lista');
+setActive(1);renderCola(true);log('V84 RENDER FINAL REAL + VOZ + TITULOS - lista');
 </script>
 
 <script>
@@ -1397,28 +1397,35 @@ window.getTTS = getTTS;
       ffmpeg=createFFmpeg({log:false,mainName:'main',corePath:ICW.corePath});
       await ffmpeg.load();
 
-      const id=`s${item.id}_${Date.now()}`;
-      const inV=`${id}.${extFromName(item.videoName,'mp4')}`;
-      const inA=`${id}.${extFromName(item.audioName,'wav')}`;
-      const ass=`${id}.ass`,out=`${id}.mp4`;
+      const id=`slot${item.id}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+      // V84 CRÍTICO: entrada y salida JAMÁS comparten el mismo nombre.
+      const inV=`${id}_INPUT_VIDEO.${extFromName(item.videoName,'mp4')}`;
+      const inA=`${id}_INPUT_VOICE.${extFromName(item.audioName,'wav')}`;
+      const ass=`${id}_OVERLAY.ass`;
+      const out=`${id}_FINAL_RENDER.mp4`;
       files.push(inV,inA,ass,out);
 
       onPhase?.('PREPARANDO');
       const [vb,ab,fontb]=await Promise.all([
         urlToU8(item.videoUrl),
         urlToU8(item.audioUrl),
-        urlToU8(ICW.fontUrl).catch(()=>null)
+        urlToU8(ICW.fontUrl)
       ]);
+      if(!vb?.byteLength) throw new Error('Video de entrada vacío');
+      if(!ab?.byteLength) throw new Error('Audio de voz vacío');
+      if(!fontb?.byteLength) throw new Error('No se pudo cargar la fuente de títulos');
+
       ffmpeg.FS('writeFile',inV,vb);
       ffmpeg.FS('writeFile',inA,ab);
-      if(fontb)ffmpeg.FS('writeFile','arial.ttf',fontb);
+      ffmpeg.FS('writeFile','arial.ttf',fontb);
 
       const vDur=item.videoDur||10,aDur=item.audioDur||vDur||10,total=aDur||vDur||10;
       const info=typeof getRateInfo==='function'?getRateInfo(vDur,total):{rate:1,useLoop:false};
-      let useSubs=false;
-      if(fontb){
-        try{ffmpeg.FS('writeFile',ass,new TextEncoder().encode(makeASS(item,total)));useSubs=true;}catch{}
-      }
+
+      const assText=makeASS(item,total);
+      if(!assText || !assText.includes('[Events]')) throw new Error('No se pudo generar título/subtítulos');
+      ffmpeg.FS('writeFile',ass,new TextEncoder().encode(assText));
+      const useSubs=true;
 
       const args=[];
       if(info.useLoop)args.push('-stream_loop','-1');
@@ -1439,10 +1446,22 @@ window.getTTS = getTTS;
 
       onPhase?.('GUARDANDO');
       const data=ffmpeg.FS('readFile',out);
-      if(!data||data.byteLength<1000)throw new Error('MP4 vacío');
-      const copy=new Uint8Array(data.byteLength);copy.set(data);
+      if(!data||data.byteLength<10000) throw new Error('FFmpeg no generó un MP4 final válido');
+
+      // La salida debe ser un archivo nuevo producido por FFmpeg, nunca el input.
+      if(out===inV) throw new Error('Colisión interna entrada/salida');
+
+      const copy=new Uint8Array(data.byteLength);
+      copy.set(data);
       const blob=new Blob([copy],{type:'video/mp4'});
-      return{blob,url:URL.createObjectURL(blob),ext:'mp4'};
+      return{
+        blob,
+        url:URL.createObjectURL(blob),
+        ext:'mp4',
+        rendered:true,
+        inputBytes:vb.byteLength,
+        outputBytes:copy.byteLength
+      };
     }finally{
       if(ffmpeg){
         files.forEach(n=>safeFSUnlink(ffmpeg,n));
@@ -1501,6 +1520,9 @@ window.getTTS = getTTS;
             if(row)row.lastChild.textContent=phase;
             if(txt)txt.textContent=`SLOT ${q.id} · ${phase}`;
           });
+          if(!r?.rendered || !r?.blob || r.blob.size<10000){
+            throw new Error('El resultado no es un render FFmpeg válido');
+          }
           if(q.finalUrl?.startsWith('blob:'))try{URL.revokeObjectURL(q.finalUrl);}catch{}
           q.finalUrl=r.url;q.finalExt='mp4';q.status='hecho';q.progress=100;
           const base=(window.sanitizar?window.sanitizar(q.fileNameBase):q.fileNameBase)||`Video ${q.id}`;
@@ -1508,7 +1530,7 @@ window.getTTS = getTTS;
           if(row){row.style.borderColor='#22c55e';row.lastChild.textContent='LISTO';}
         }catch(e){
           failed++;q.status='error';
-          console.error('[V82 SLOT '+q.id+']',e);
+          console.error('[V84 SLOT '+q.id+']',e);
           if(row){row.style.borderColor='#ef4444';row.lastChild.textContent='ERROR';}
         }
 
@@ -1542,7 +1564,7 @@ window.getTTS = getTTS;
       if(sub)sub.textContent=`${completedFiles.length} LISTOS${failed?` · ${failed} ERROR${failed===1?'':'ES'}`:''}`;
       if(txt)txt.textContent=`COMPLETADO · ${completedFiles.length} MP4 EN ZIP`;
     }catch(e){
-      console.error('[V82 LOTE]',e);
+      console.error('[V84 LOTE]',e);
       if(txt)txt.textContent='ERROR: '+(e?.message||e);
       alert('Error de render: '+(e?.message||e));
     }finally{
@@ -1623,7 +1645,7 @@ window.getTTS = getTTS;
   setTimeout(installWasmButton,3200);
   setTimeout(()=>{
     const t=document.getElementById('renderText'); if(t && /60fps/i.test(t.textContent||'')) t.textContent='RENDER FFMPEG 30 FPS';
-    console.log('[ICECREAM V83] 2 motores FFmpeg persistentes instalados');
+    console.log('[ICECREAM V84] 2 motores FFmpeg persistentes instalados');
   },3400);
 })();
 
