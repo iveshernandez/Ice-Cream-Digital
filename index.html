@@ -5,7 +5,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>v82 Ice Cream Digital-Video</title>
+<title>v 83 Ice Cream Digital-Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070709">
@@ -648,7 +648,7 @@ function queueDownload(url,name){
   next();
 }
 window.safeDownload=safeDownload; window.queueDownload=queueDownload; window.renderCola=renderCola; window.calcDurInfo=calcDurInfo; window.getA=getA; window.sanitizar=sanitizar;
-setActive(1);renderCola(true);log('V82 ESTABLE 6 VIDEOS + FFMPEG SECUENCIAL - lista');
+setActive(1);renderCola(true);log('V83 ESTABLE VOZ + RENDER SECUENCIAL 6X6 - lista');
 </script>
 
 <script>
@@ -991,8 +991,8 @@ window.getTTS = getTTS;
     if(ov){ ov.style.display='flex'; ov.style.pointerEvents='auto'; }
     if(pct) pct.textContent='0%';
     if(master) master.style.width='0%';
-    if(txt) txt.textContent=`GENERANDO ${pending.length} VOCES · 3 A LA VEZ`;
-    if(sub) sub.textContent='FASE 1/2 · VOCES';
+    if(txt) txt.textContent=`GENERANDO ${pending.length} VOCES · UNA POR UNA`;
+    if(sub) sub.textContent='FASE 1/2 · VOCES SECUENCIALES';
 
     if(lst){
       lst.innerHTML=pending.map(slot=>`
@@ -1137,22 +1137,41 @@ window.getTTS = getTTS;
       }
     };
 
-    const worker=async(workerId)=>{
-      while(true){
-        const idx=cursor++;
-        if(idx>=pending.length) return;
-        await genSlot(pending[idx],workerId);
-      }
-    };
-
     try{
-      await Promise.all([worker(1),worker(2),worker(3)]);
+      // V83: Piper estrictamente secuencial. Una sola voz activa a la vez.
+      // Esto evita competir por el mismo modelo/memoria WASM.
+      for(let i=0;i<pending.length;i++){
+        const slot=pending[i];
+        let ok=false;
+
+        // Dos intentos completos por SLOT además de los reintentos internos de cada chunk.
+        for(let attempt=1;attempt<=2 && !ok;attempt++){
+          const el=document.getElementById('voiceSlot-'+slot.id);
+          if(el?.lastElementChild) el.lastElementChild.textContent=
+            attempt===1?'GENERANDO':`REINTENTO ${attempt}/2`;
+
+          ok=await genSlot(slot,1);
+
+          if(!ok && attempt<2){
+            // genSlot incrementa finished en cada llamada; compensamos porque
+            // un reintento sigue perteneciendo al mismo slot lógico.
+            finished=Math.max(0,finished-1);
+            failed=Math.max(0,failed-1);
+            await new Promise(r=>setTimeout(r,800));
+          }
+        }
+
+        // Da tiempo al navegador/Piper para liberar memoria entre voces.
+        await new Promise(r=>setTimeout(r,350));
+      }
 
       const stillMissing=pending.filter(x=>!x.audioUrl);
       if(stillMissing.length){
-        throw new Error(`No se pudieron generar ${stillMissing.length} voz/ voces`);
+        throw new Error(`No se pudieron generar ${stillMissing.length} voz/ voces después de 2 intentos`);
       }
 
+      finished=pending.length;
+      failed=0;
       if(pct) pct.textContent='100%';
       if(master) master.style.width='100%';
       if(txt) txt.textContent='VOCES COMPLETAS · INICIANDO RENDER...';
@@ -1604,7 +1623,7 @@ window.getTTS = getTTS;
   setTimeout(installWasmButton,3200);
   setTimeout(()=>{
     const t=document.getElementById('renderText'); if(t && /60fps/i.test(t.textContent||'')) t.textContent='RENDER FFMPEG 30 FPS';
-    console.log('[ICECREAM V82] 2 motores FFmpeg persistentes instalados');
+    console.log('[ICECREAM V83] 2 motores FFmpeg persistentes instalados');
   },3400);
 })();
 
