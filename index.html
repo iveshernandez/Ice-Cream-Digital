@@ -5,7 +5,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ice Cream Digital-Video</title>
+<title>V75 Ice Cream Digital-Video </title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070709">
@@ -193,14 +193,14 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
 
 <div style="max-width:1280px;margin:0 auto;padding:10px;">
 <div class="glass" style="padding:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid #FFEB00;background:rgba(255,235,0,0.06);justify-content:center;border-radius:12px">
-<div style="font-size:10px;font-weight:900;letter-spacing:0.5px">🎵 MÚSICA DE FONDO POR DEFECTO</div>
+<div style="font-size:10px;font-weight:900;letter-spacing:0.5px">🎵 MÚSICA DE FONDO (DESACTIVADA EN V74) POR DEFECTO</div>
 <label id="lblBg" class="file-btn" style="width:auto;padding:8px 14px;font-size:10px;margin:0" for="inputBgMusic"><span id="txtBg">Cargar audio fondo</span></label>
 <input type="file" id="inputBgMusic" accept="audio/*">
 <div style="display:flex;align-items:center;gap:6px">
 <span style="font-size:9px;color:#888">Vol:</span>
-<input type="range" id="bgVol" min="0" max="0.5" step="0.01" value="0.12" style="width:80px">
+<input type="range" id="bgVol" disabled min="0" max="0.5" step="0.01" value="0.12" style="width:80px">
 <span id="bgVolTxt" style="font-size:10px;color:#FFEB00;font-weight:800">12%</span>
-<label style="display:flex;align-items:center;gap:4px;font-size:9px;color:#aaa;cursor:pointer"><input type="checkbox" id="bgEnabled" checked> Activo</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:9px;color:#aaa;cursor:pointer"><input type="checkbox" id="bgEnabled" disabled checked> Activo</label>
 </div>
 <span id="bgName" style="font-size:9px;color:#4ade80;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
 <audio id="previewBg" preload="auto" loop style="display:none"></audio>
@@ -241,14 +241,43 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
 <div id="debug" style="margin-top:6px;font-size:9px;color:#666;background:#000;padding:6px;border-radius:6px;white-space:pre-wrap;max-height:70px;overflow:auto"></div>
 </div>
 <div class="glass" style="padding:8px;height:fit-content;position:sticky;top:88px">
-<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW 720p 720x1280 • SUBS VISIBLES • 60FPS</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW VIRAL · HTML/CSS · 720×1280 · WYSIWYG</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
 <div style="position:relative;width:100%;aspect-ratio:9/16;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
 <video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
 <audio id="previewAudio" muted preload="auto" style="display:none"></audio>
 <div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
-<canvas id="previewCanvas" width="720" height="1280" style="position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none"></canvas>
+<div id="previewHtmlOverlay" style="position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;font-synthesis:none">
+  <div id="previewTitleLayer" style="position:absolute;left:4%;right:4%;top:5.5%;display:flex;flex-direction:column;align-items:center;gap:5px"></div>
+  <div id="previewSubtitleLayer" style="position:absolute;left:4%;right:4%;top:70%;display:flex;flex-direction:column;align-items:center;gap:4px"></div>
+</div>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
-<div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px"><div style="width:44px;height:44px;background:#FFEB00;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div><div id="renderPct" style="font-size:32px;font-weight:900;color:#FFEB00">0%</div><div id="renderText" style="color:#fff;font-size:12px;font-weight:800;text-align:center">RENDER 60fps</div><div id="renderSubLabel" style="color:#888;font-size:9px"></div><div id="renderList" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto"></div></div>
+<div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:20;background:linear-gradient(180deg,rgba(4,4,7,.97),rgba(9,9,14,.96));flex-direction:column;align-items:center;justify-content:center;padding:22px">
+  <div style="width:100%;max-width:330px;background:rgba(20,20,27,.96);border:1px solid rgba(255,255,255,.10);border-radius:22px;padding:20px;box-shadow:0 22px 55px rgba(0,0,0,.55)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px">
+      <div>
+        <div style="font-size:9px;font-weight:900;letter-spacing:1.7px;color:#8d8d98">ICECREAM EXPORT</div>
+        <div style="font-size:14px;font-weight:900;color:#fff;margin-top:3px">Renderizando video</div>
+      </div>
+      <div style="width:38px;height:38px;border-radius:12px;background:#FFEB00;color:#050505;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;box-shadow:0 0 0 5px rgba(255,235,0,.08)">⚡</div>
+    </div>
+
+    <div style="display:flex;align-items:end;justify-content:space-between;margin-bottom:8px">
+      <div id="renderPct" style="font-size:38px;line-height:1;font-weight:950;letter-spacing:-2px;color:#fff">0%</div>
+      <div id="renderSubLabel" style="color:#868691;font-size:9px;font-weight:800;text-align:right">PREPARANDO...</div>
+    </div>
+
+    <div style="height:9px;background:#08080b;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.07);margin-bottom:12px">
+      <div id="renderMasterBar" style="height:100%;width:0%;background:linear-gradient(90deg,#FFEB00,#fff36a);border-radius:999px;transition:width .18s linear"></div>
+    </div>
+
+    <div id="renderText" style="color:#d8d8df;font-size:10px;font-weight:800;line-height:1.35;min-height:28px;margin-bottom:12px">RENDER FFMPEG 30 FPS</div>
+    <div id="renderList" style="width:100%;display:flex;flex-direction:column;gap:7px;max-height:210px;overflow:auto"></div>
+
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;color:#666671;font-size:8px;font-weight:800">
+      <span>720 × 1280</span><span>H.264 · 30 FPS</span><span>FFMPEG</span>
+    </div>
+  </div>
+</div>
 </div>
 </div>
 </div>
@@ -274,6 +303,7 @@ window.queue=queue; window.activeId=1; window.getActiveId=()=>activeId;
 const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
 const bgEl=$("previewBg");
 let defaultBgUrl="", defaultBgName="audio fondo", defaultBgBuffer=null;
+
 window.voiceProgressBySlot = {};
 
 window.updateVoiceProgressCorrecto = function(slotId, current, total){
@@ -419,27 +449,113 @@ window.setActive=id=>{
 };
 
 function renderOverlay(){ const it=getA(); const tl=splitWords((it.title||'').toUpperCase(),26).slice(0,2); const subs=chunkSubs(it.script||""); window._previewTL = tl; window._previewSubs = subs; startLoop(); }
+function fitPreviewText(el, maxPx, minPx, maxWidthPx){
+  if(!el) return;
+  let fs=maxPx;
+  el.style.fontSize=fs+'px';
+  while(fs>minPx && el.scrollWidth>maxWidthPx){
+    fs-=2; el.style.fontSize=fs+'px';
+  }
+}
+function drawHtmlPreview(titleText, subText){
+  const titleLayer=$("previewTitleLayer"), subLayer=$("previewSubtitleLayer");
+  if(!titleLayer || !subLayer) return;
+  titleLayer.innerHTML=''; subLayer.innerHTML='';
+
+  // V75: look viral limpio inspirado en editores short-form:
+  // título blanco/amarillo, borde negro fuerte y tarjetas compactas.
+  const titleLines=(()=>{
+    let t=(titleText||'').trim().toUpperCase();
+    if(!t) return [];
+    let words=t.split(/\s+/);
+    if(words.length<=2) return [words.join(' ')];
+    let bestIdx=Math.ceil(words.length/2), bestDiff=Infinity;
+    for(let i=1;i<words.length;i++){
+      const d=Math.abs(words.slice(0,i).join(' ').length-words.slice(i).join(' ').length);
+      if(d<bestDiff){bestDiff=d;bestIdx=i;}
+    }
+    return [words.slice(0,bestIdx).join(' '),words.slice(bestIdx).join(' ')].slice(0,2);
+  })();
+
+  titleLines.forEach((line,idx)=>{
+    const el=document.createElement('div');
+    el.textContent=line;
+    const isAccent=idx===0;
+    el.style.cssText=[
+      'box-sizing:border-box',
+      'max-width:94%',
+      'width:max-content',
+      'padding:5px 11px 7px',
+      'border-radius:10px',
+      'background:rgba(8,8,10,.90)',
+      'border:1px solid rgba(255,255,255,.10)',
+      'color:'+(isAccent?'#FFEB00':'#FFFFFF'),
+      'text-align:center',
+      'white-space:nowrap',
+      'font-family:"Arial Black",Arial,sans-serif',
+      'font-weight:900',
+      'line-height:.98',
+      'letter-spacing:-.4px',
+      'text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 4px 9px rgba(0,0,0,.75)'
+    ].join(';');
+    titleLayer.appendChild(el);
+    requestAnimationFrame(()=>fitPreviewText(el,44,18,(titleLayer.clientWidth||320)*.94));
+  });
+
+  let sub=(subText||'').trim().toUpperCase();
+  if(sub){
+    const lines=splitWords(sub,30).slice(0,3);
+    lines.forEach((line,idx)=>{
+      const el=document.createElement('div');
+      el.textContent=line;
+      // Línea central en amarillo para dar golpe visual sin karaoke complejo.
+      const accent=(lines.length===1 || idx===Math.floor(lines.length/2));
+      el.style.cssText=[
+        'box-sizing:border-box',
+        'max-width:94%',
+        'width:max-content',
+        'padding:4px 9px 5px',
+        'border-radius:8px',
+        'background:rgba(5,5,7,.86)',
+        'border:1px solid rgba(255,255,255,.09)',
+        'color:'+(accent?'#FFEB00':'#FFFFFF'),
+        'text-align:center',
+        'white-space:nowrap',
+        'font-family:Arial,sans-serif',
+        'font-weight:900',
+        'line-height:1.03',
+        'letter-spacing:-.15px',
+        'text-shadow:-1.5px -1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px 1.5px 0 #000,0 3px 7px rgba(0,0,0,.8)'
+      ].join(';');
+      subLayer.appendChild(el);
+      requestAnimationFrame(()=>fitPreviewText(el,20,12,(subLayer.clientWidth||320)*.94));
+    });
+  }
+}
 function updSubs(){
   const it=getA(); if(!it) return;
-  const hasAudio = !!(it.audioUrl && it.audioDur && it.audioDur>0);
-  const total= hasAudio ? it.audioDur : (it.videoDur||vEl.duration||0);
-  let cur = 0;
+  const hasAudio=!!(it.audioUrl && it.audioDur && it.audioDur>0);
+  const total=hasAudio ? it.audioDur : (it.videoDur||vEl.duration||0);
+  let cur=0;
   if(hasAudio){
-    if(!aEl.paused && aEl.src && it.audioUrl && aEl.src.includes('blob')){ cur = aEl.currentTime; }
-    else if(vEl.duration && !vEl.paused){ cur = (vEl.currentTime/(it.videoDur||vEl.duration||1))*it.audioDur; }
-    else { cur = hasAudio && !aEl.paused ? aEl.currentTime : 0; }
-  } else { cur = vEl.currentTime||0; }
-  const canvas=$("previewCanvas"); if(!canvas) return; const ctx=canvas.getContext('2d');
-  const W=canvas.width||720, H=canvas.height||1280;
-  ctx.clearRect(0,0,W,H);
+    if(!aEl.paused && aEl.src){ cur=aEl.currentTime||0; }
+    else if(vEl.duration && !vEl.paused){ cur=(vEl.currentTime/(it.videoDur||vEl.duration||1))*it.audioDur; }
+  }else cur=vEl.currentTime||0;
   const subs=chunkSubs(it.script||"");
-  let sub=''; if(subs.length){ let idx=total>0.2?Math.floor((cur/total)*subs.length):0; idx=Math.max(0,Math.min(idx,subs.length-1)); sub=subs[idx]||''; }
-  if(window.__drawOptimizedTitleSubtitle){
-    window.__drawOptimizedTitleSubtitle(ctx, it.title||'', sub, W, H);
+  let sub='';
+  if(subs.length){
+    let idx=total>0.2?Math.floor((cur/total)*subs.length):0;
+    idx=Math.max(0,Math.min(idx,subs.length-1));
+    sub=subs[idx]||'';
   }
+  drawHtmlPreview(it.title||'',sub);
   if(total>0) $("progressBar").style.width=Math.min((cur/total)*100,100)+'%';
 }
-function startLoop(){ if(raf) cancelAnimationFrame(raf); const loop=()=>{ updSubs(); raf=requestAnimationFrame(loop); }; raf=requestAnimationFrame(loop); }
+function startLoop(){
+  if(raf) cancelAnimationFrame(raf);
+  const loop=()=>{ updSubs(); raf=requestAnimationFrame(loop); };
+  raf=requestAnimationFrame(loop);
+}
 
 $("inputTxt").addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f) return;
@@ -518,76 +634,11 @@ function queueDownload(url,name){
   next();
 }
 window.safeDownload=safeDownload; window.queueDownload=queueDownload; window.renderCola=renderCola; window.calcDurInfo=calcDurInfo; window.getA=getA; window.sanitizar=sanitizar;
-setActive(1);renderCola(true);log('V60 CLEAN 60fps - lista');
+setActive(1);renderCola(true);log('V75 CAPCUT VIRAL + PROGRESO REAL FFMPEG - lista');
 </script>
 
 <script>
-// === TITULO + SUBTITULO OPTIMIZADO - PREVIEW=EXPORT IDENTICO ===
-window.__drawOptimizedTitleSubtitle = function(ctx, titleText, subText, W, H){
-  W=720; H=1280; const CX=360;
-  ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=10;
-  try{
-    let t=(titleText||'').trim().toUpperCase();
-    if(t){
-      let words = t.split(/\s+/); let lines = [];
-      if(words.length <= 2){ lines = [words.join(' ')]; }
-      else {
-        let bestIdx = Math.ceil(words.length/2); let bestDiff = Infinity;
-        for(let i=1; i<words.length; i++){
-          let len1 = words.slice(0,i).join(' ').length;
-          let len2 = words.slice(i).join(' ').length;
-          let diff = Math.abs(len1-len2);
-          if(diff < bestDiff){ bestDiff=diff; bestIdx=i; }
-        }
-        lines = [words.slice(0,bestIdx).join(' '), words.slice(bestIdx).join(' ')];
-      }
-      lines = lines.slice(0,2);
-      const baseY=90; const lineGap=88;
-      lines.forEach((line,i)=>{
-        if(!line) return;
-        const y=baseY+i*lineGap;
-        let fs=96; ctx.font=`900 ${fs}px Anton`; let w=ctx.measureText(line).width;
-        while(w>691 && fs>36){ fs-=2; ctx.font=`900 ${fs}px Anton`; w=ctx.measureText(line).width; }
-        if(w>691){ fs=(691/w)*fs; ctx.font=`900 ${fs}px Anton`; w=ctx.measureText(line).width; }
-        const rw=Math.min(w+50,698), rh=fs*1.22;
-        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.92)'; ctx.strokeStyle='rgba(255,235,0,0.40)'; ctx.lineWidth=1.5; ctx.shadowColor='rgba(0,0,0,0.7)'; ctx.shadowBlur=22; ctx.shadowOffsetY=8;
-        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-rw/2, y-rh/2, rw, rh, 18); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-rw/2, y-rh/2, rw, rh); }
-        ctx.restore();
-        ctx.lineWidth=10; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFEB00'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
-      });
-    }
-  }catch(e){}
-  try{
-    let s=(subText||'').trim().toUpperCase();
-    if(s){
-      let lines=splitWords(s, 32).slice(0,3);
-      const baseY=910; const lineGap=58;
-      lines.forEach((line,j)=>{
-        if(!line) return;
-        const y=baseY+j*lineGap;
-        let fs=42; if(line.length>28) fs=36; if(line.length>38) fs=32;
-        ctx.font=`800 ${fs}px "Plus Jakarta Sans"`; const bw=Math.min(ctx.measureText(line).width+80,691), bh=62;
-        ctx.save(); ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.strokeStyle='rgba(255,235,0,0.22)'; ctx.lineWidth=1.5; ctx.shadowColor='rgba(0,0,0,0.6)'; ctx.shadowBlur=18; ctx.shadowOffsetY=6;
-        if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(CX-bw/2, y-bh/2, bw, bh, 18); ctx.fill(); ctx.stroke(); } else { ctx.fillRect(CX-bw/2, y-bh/2, bw, bh); }
-        ctx.restore();
-        ctx.lineWidth=8; ctx.strokeStyle='#000000'; ctx.fillStyle='#FFFFFF'; ctx.strokeText(line,CX,y); ctx.fillText(line,CX,y);
-      });
-    }
-  }catch(e){}
-  ctx.restore();
-};
-window.__ensureFontsReady = async function(){
-  try{
-    if(document.fonts && document.fonts.ready){
-      await document.fonts.ready;
-      if(document.fonts.check){
-        try{ await document.fonts.load('900 96px Anton'); }catch{}
-        try{ await document.fonts.load('800 42px "Plus Jakarta Sans"'); }catch{}
-      }
-      await new Promise(r=>setTimeout(r,80));
-    }
-  }catch{}
-};
+// === V72: PREVIEW HTML/CSS POR CAPAS; RENDER FFMPEG V70 CONSERVADO ===
 </script>
 
 <!-- TTS PIPER MODULE - ULTIMA VERSION V50 CLEAN -->
@@ -915,7 +966,7 @@ window.getTTS = getTTS;
     const pending=q.filter(x=>(x.txtContent||x.script)&&!x.audioUrl&&x.videoUrl);
     if(!pending.length) return true;
     window._batchGenerating=true;
-    const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
+    const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList'), master=document.getElementById('renderMasterBar'), sub=document.getElementById('renderSubLabel');
     if(ov) ov.style.display='flex';
     if(txt) txt.textContent='GENERANDO '+pending.length+' VOCES 6x...';
     if(lst) lst.innerHTML=pending.map(s=>'<div id="voiceSlot-'+s.id+'" style="background:#141418;border:1px solid #444;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;margin:4px 0"><span style="color:#fff;font-size:11px">SLOT '+s.id+' VOZ</span><span style="color:#FFEB00;font-size:11px">...</span></div>').join('');
@@ -1158,201 +1209,295 @@ window.getTTS = getTTS;
 
 <script>
 
-// Fallback CapCut si 60FPS falla - no borra nada, solo asegura export
-async function renderSingleFastCapCutFallback(item,onProg){
-  try{
-    const FPS=30; const START_OFFSET=0.25;
-    const canvas=document.createElement('canvas'); canvas.width=720; canvas.height=1280;
-    const ctx=canvas.getContext('2d',{alpha:false}); ctx.imageSmoothingEnabled=true;
-    const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous'; v.preload='auto';
-    await new Promise(r=>{ v.onloadedmetadata=()=>r(); v.onerror=()=>r(); v.load(); });
-    const vDur=v.duration||item.videoDur||10;
-    const info=typeof getRateInfo==='function'?getRateInfo(vDur, item.audioDur||vDur): {rate:1,useLoop:false};
-    let aDur=item.audioDur||0; let ac,dest,cap=null;
-    if(item.audioUrl){
-      try{ ac=new (window.AudioContext||window.webkitAudioContext)(); dest=ac.createMediaStreamDestination(); cap=document.createElement('audio'); cap.src=item.audioUrl; cap.crossOrigin='anonymous'; await new Promise(r=>{ cap.onloadedmetadata=()=>{aDur=cap.duration||aDur; r();}; cap.onerror=()=>r(); cap.load(); }); const src=ac.createMediaElementSource(cap); src.connect(dest); }catch{}
-    }
-    const realTotal=aDur||vDur||10;
-    const mimeMP4=['video/mp4;codecs=avc1.640028,mp4a.40.2','video/mp4'].find(m=>{try{return MediaRecorder.isTypeSupported(m);}catch{return false;}}) || 'video/webm;codecs=vp9';
-    const ext=mimeMP4.includes('mp4')?'mp4':'webm';
-    await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=()=>r(); setTimeout(r,500); });
-    v.currentTime=START_OFFSET; await new Promise(r=>{ const onSeek=()=>{v.removeEventListener('seeked',onSeek);r();}; v.addEventListener('seeked',onSeek); setTimeout(r,300); });
-    const cStream=canvas.captureStream(FPS); const combined=new MediaStream([...cStream.getVideoTracks(), ...(dest?dest.stream.getAudioTracks():[])]); const rec=new MediaRecorder(combined,{videoBitsPerSecond:6000000, mimeType:mimeMP4, audioBitsPerSecond:128000}); const chunks=[]; rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); }; const blobP=new Promise(r=> rec.onstop=()=> r(new Blob(chunks,{type:mimeMP4})) );
-    await v.play().catch(()=>{}); if(cap){ cap.currentTime=0; await cap.play().catch(()=>{}); } rec.start(100);
-    await new Promise(res=>{
-      let start=performance.now(); let _stopped=false;
-      const draw=()=>{
-        const elapsed=(performance.now()-start)/1000; const cur=Math.min(elapsed, realTotal); onProg?.(Math.min((cur/realTotal)*100,100));
-        try{ if(v.paused && cur<realTotal-0.1) v.play().catch(()=>{}); }catch{}
-        if(v.readyState>=2){ const vw=v.videoWidth, vh=v.videoHeight, tgt=720/1280, r=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(r>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } try{ ctx.drawImage(v,sx,sy,sw,sh,0,0,canvas.width,canvas.height); }catch{} }
-        try{
-          const subsLocal=typeof chunkSubs==='function'?chunkSubs(item.script||''):[]; let subText=''; if(subsLocal.length){ const idx=Math.min(Math.floor((cur/(aDur||realTotal))*subsLocal.length), subsLocal.length-1); subText=subsLocal[Math.max(0,idx)]||''; }
-          window.__drawOptimizedTitleSubtitle(ctx, item.title||'', subText, 720, 1280);
-        }catch{}
-        if(cur>=realTotal-0.05){ if(!_stopped){ _stopped=true; try{ rec.stop(); }catch{} setTimeout(res,300); } return; } requestAnimationFrame(draw);
-      }; draw();
-    });
-    const blob=await blobP; try{ v.pause(); v.src=''; }catch{} try{ if(cap){ cap.pause(); } }catch{} try{ if(ac) await ac.close(); }catch{} try{ combined.getTracks().forEach(t=>t.stop()); }catch{} try{ cStream.getTracks().forEach(t=>t.stop()); }catch{}
-    return {url:URL.createObjectURL(blob), ext};
-  }catch(e){ console.error('Fallback fallo',e); throw e; }
-}
-
-// === RENDER 60FPS REAL - ULTIMA VERSION V60 ===
-async function renderSingle_60FPS_REAL_CORE(item,onProg){
-
-
-  const FPS=60,W=720,H=1280;
-  const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d',{alpha:false,colorSpace:'srgb'});
-  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  const v=document.createElement('video'); v.src=item.videoUrl; v.muted=true; if(!item.videoUrl.startsWith('blob:')) v.crossOrigin='anonymous'; v.preload='auto'; v.playsInline=true;
-  await new Promise(r=>{ v.onloadedmetadata=r; v.onerror=r; v.load(); });
-  await new Promise(r=>{ if(v.readyState>=2) r(); else v.oncanplay=r; setTimeout(r,1000); });
-  const info=typeof getRateInfo==='function'?getRateInfo(v.duration, item.audioDur||v.duration):{rate:1,useLoop:false};
-  let audioBuffer=null;
-  if(item.audioBlob){
-    try{ const ac=new (window.AudioContext||window.webkitAudioContext)(); audioBuffer=await ac.decodeAudioData((await item.audioBlob.arrayBuffer()).slice(0)); await ac.close(); }catch(e){}
-  } else if(item.audioUrl){
-    try{ const blob=await (await fetch(item.audioUrl)).blob(); const ac=new (window.AudioContext||window.webkitAudioContext)(); audioBuffer=await ac.decodeAudioData((await blob.arrayBuffer()).slice(0)); await ac.close(); item.audioBlob=blob; }catch(e){}
-  }
-  const realTotal=item.audioDur||audioBuffer?.duration||v.duration||10;
-  const totalFrames=Math.ceil(realTotal*FPS);
-  if(window.__ensureFontsReady) await window.__ensureFontsReady();
-  const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
-  const target=new ArrayBufferTarget();
-  const muxer=new Muxer({ target, video:{codec:'avc', width:W, height:H}, audio: audioBuffer?{codec:'aac', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:48000}:undefined, fastStart:'in-memory' });
-  const vEnc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>console.error(e)});
-  vEnc.configure({codec:'avc1.640028', width:W, height:H, bitrate:7000000, framerate:60, hardwareAcceleration:'prefer-hardware', latencyMode:'quality', avc:{format:'avc'}});
-  let aEnc=null;
-  if(audioBuffer){ aEnc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>console.error(e)}); aEnc.configure({codec:'mp4a.40.2', numberOfChannels:audioBuffer.numberOfChannels, sampleRate:48000, bitrate:128000}); }
-  for(let f=0; f<totalFrames; f++){
-    const cur=f/FPS;
-    if(onProg) onProg(Math.min((cur/realTotal)*90,90));
-    let vt=info.useLoop?(cur*(info.rate||1))%v.duration:Math.min(cur*(info.rate||1), v.duration-0.05);
-    if(v.duration && vt>=v.duration-0.04) vt=v.duration-0.04;
-    if(Math.abs(v.currentTime-vt)>0.005){
-      await new Promise(res=>{ let done=false; const onSeek=()=>{ if(done) return; done=true; v.removeEventListener('seeked',onSeek); res(); }; v.addEventListener('seeked',onSeek); try{v.currentTime=vt;}catch{res();} setTimeout(()=>{ if(!done){done=true; v.removeEventListener('seeked',onSeek); res();} },400); });
-      while(v.readyState<2){ await new Promise(r=>setTimeout(r,10)); }
-      await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-    }
-    ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-    try{
-      const vw=v.videoWidth, vh=v.videoHeight;
-      if(vw&&vh){ const tgt=W/H, rv=vw/vh; let sx=0,sy=0,sw=vw,sh=vh; if(rv>tgt){ sh=vh; sw=vh*tgt; sx=(vw-sw)/2; }else{ sw=vw; sh=vw/tgt; sy=(vh-sh)/2; } ctx.drawImage(v,sx,sy,sw,sh,0,0,W,H); }
-    }catch{}
-    try{
-      if(window.__drawOptimizedTitleSubtitle){
-        const subs=typeof chunkSubs==='function'?chunkSubs(item.script||''):[]; let sub=''; if(subs.length){ const idx=Math.min(Math.floor((cur/realTotal)*subs.length), subs.length-1); sub=subs[Math.max(0,idx)]||''; }
-        window.__drawOptimizedTitleSubtitle(ctx, item.title||'', sub, W, H);
-      }
-    }catch(e){}
-    const frame=new VideoFrame(canvas, {timestamp:cur*1e6, duration:(1/FPS)*1e6});
-    vEnc.encode(frame, {keyFrame:f%60===0});
-    frame.close();
-    if(f%20===0) await new Promise(r=>setTimeout(r,0));
-  }
-  await vEnc.flush(); vEnc.close();
-  if(audioBuffer && aEnc){
-    const ch=audioBuffer.numberOfChannels, sr=audioBuffer.sampleRate, total=audioBuffer.length;
-    for(let i=0;i<total;i+=1024){ const len=Math.min(1024,total-i); const data=new Float32Array(len*ch); for(let c=0;c<ch;c++){ const cd=audioBuffer.getChannelData(c); for(let s=0;s<len;s++) data[s*ch+c]=cd[i+s]; } const ad=new AudioData({format:'f32', sampleRate:sr, numberOfChannels:ch, numberOfFrames:len, timestamp:(i/sr)*1e6, data}); aEnc.encode(ad); ad.close(); if(onProg) onProg(90+Math.min((i/total)*10,10)); }
-    await aEnc.flush(); aEnc.close();
-  }
-  muxer.finalize();
-  const blob=new Blob([target.buffer], {type:'video/mp4'});
-  try{ v.pause(); v.src=''; }catch{}
-  if(blob.size>1000) return {url:URL.createObjectURL(blob), ext:'mp4', blob};
-  throw new Error('MP4 vacio');
-}
-window.renderSingle_60FPS_CORE = renderSingle_60FPS_REAL_CORE;
-async function renderSingle_60FPS_REAL(item,onProg){
-  try{
-    return await renderSingle_60FPS_REAL_CORE(item,onProg);
-  }catch(e){
-    console.warn('60FPS fail, usando fallback webm', e);
-    if(typeof renderSingleFastCapCutFallback==='function'){
-      return await renderSingleFastCapCutFallback(item,onProg);
-    }
-    throw e;
-  }
-}
-window.renderSingle = renderSingle_60FPS_REAL;
-
-
-// === RENDER ALL VIDEOS BLINDADO 6x6 ===
-window.renderAllVideosBlindado=async function(){
-  const list=(window.queue||[]).filter(q=>q.videoUrl&&q.audioUrl);
-  if(!list.length){ alert('Faltan audios, genera voces primero'); return; }
-  window._batchGenerating=true;
-  const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList');
-  if(ov) ov.style.display='flex'; if(txt) txt.textContent='RENDERIZANDO 6 VIDEOS 60FPS HQ...';
-  if(lst) lst.innerHTML=list.map(q=>'<div id="renderSlot-'+q.id+'" style="background:#141418;border:1px solid #333;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;margin:4px 0"><span style="color:#fff;font-size:11px">SLOT '+q.id+' VIDEO</span><span style="color:#FFEB00;font-size:11px">0%</span></div>').join('');
-  let comp=0;
-  const renderOne=async(q, startDelay=0)=>{
-    if(startDelay) await new Promise(r=>setTimeout(r,startDelay));
-    try{
-      q.status='renderizando'; q.progress=0; if(window.renderCola) window.renderCola(true);
-      const r=await window.renderSingle(q, p=>{
-        q.progress=p;
-        const el=document.getElementById('renderSlot-'+q.id); if(el) el.lastChild.textContent=p.toFixed(0)+'%';
-        const global=40+Math.round((comp/list.length)*60+(p/100)*(60/list.length));
-        if(pct) pct.textContent=global+'%';
-      });
-      if(r&&r.url){
-        q.finalUrl=r.url; q.finalExt=r.ext; q.status='hecho'; q.progress=100;
-        const el=document.getElementById('renderSlot-'+q.id); if(el){ el.lastChild.textContent='EXPORTADO'; el.style.borderColor='#22c55e'; }
-        if(true){ // FORZADO auto-download para debug - respeta check pero siempre intenta
-        const checkEl=document.getElementById('autoDownloadCheck');
-        const shouldDownload = !checkEl || checkEl.checked;
-        if(shouldDownload){
-
-          const name=(window.sanitizar?window.sanitizar(q.fileNameBase):q.fileNameBase)||'Video '+q.id;
-          const a=document.createElement('a'); a.href=r.url; a.download=name+'.'+r.ext; document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),800);
-          console.log('DESCARGADO', name);
-        } // shouldDownload
-        } // if true
-      }
-      comp++; return true;
-    }catch(e){ comp++; return false; }
-  };
-  const CHUNK = 6; const STAGGER_MS = 180;
-  for(let start=0; start<list.length; start+=CHUNK){
-    const chunk = list.slice(start, start+CHUNK);
-    if(txt) txt.textContent=`RENDERIZANDO ${start+1}-${Math.min(start+CHUNK,list.length)}/${list.length} - 60FPS HQ`;
-    await Promise.all(chunk.map((q, idx)=>renderOne(q, idx*STAGGER_MS)));
-    await new Promise(r=>setTimeout(r, 800));
-  }
-  window._batchGenerating=false;
-  if(pct) pct.textContent='100%'; if(txt) txt.textContent=`COMPLETADO ${list.length} VIDEOS 720p 60FPS HQ`;
-  setTimeout(()=>{ if(ov) ov.style.display='none'; },1200);
-  if(window.renderCola) window.renderCola(true);
-};
-
-// === BOTON RENDER TODO AUTOMATICO ===
+// === V75 FFMPEG.WASM + WYSIWYG CAPCUT VIRAL + PROGRESO REAL ===
+// Render final 100% en el navegador con FFmpeg WebAssembly (single-thread).
+// La interfaz, Piper, Supabase, preview y cola se conservan. El render final NO usa
+// VideoEncoder, MediaRecorder, MP4Box ni mp4-muxer.
 (function(){
-  function installRenderTodo(){
-    const btn=document.getElementById('btnRender'); if(!btn||btn._v60) return;
-    const clone=btn.cloneNode(true); btn.parentNode.replaceChild(clone, btn);
-    const nb=document.getElementById('btnRender'); nb._v60=true;
-    nb.addEventListener('click', async(e)=>{
-      e.preventDefault();
-      nb.disabled=true; const orig=nb.textContent; nb.textContent='AUTOMATICO 6x6 60FPS...';
-      try{
-        const cur=window.getA?window.getA():window.queue[0];
-        if(cur){ const t=document.getElementById('inputTitle'); if(t) cur.title=t.value; const s=document.getElementById('inputScript'); if(s) cur.script=s.value; }
-        const q=window.queue||[]; const withVideo=q.filter(x=>x.videoUrl);
-        if(!withVideo.length){ alert('Carga video'); return; }
-        const need=q.filter(x=>(x.txtContent||x.script)&&!x.audioUrl&&x.videoUrl);
-        const pctEl=document.getElementById('renderPct'); const ovEl=document.getElementById('renderOverlay'); const txtEl=document.getElementById('renderText');
-        if(ovEl) ovEl.style.display='flex'; if(pctEl) pctEl.textContent='0%'; if(txtEl) txtEl.textContent='INICIANDO 0% - VOCES + VIDEOS 60FPS...';
-        if(need.length){ nb.textContent='⏳ GENERANDO VOCES...'; await window.generateAllVoicesSimultaneous(); }
-        if(pctEl && parseInt(pctEl.textContent)<40) pctEl.textContent='40%';
-        nb.textContent='⏳ RENDERIZANDO VIDEOS 60FPS...';
-        if(window.renderAllVideosBlindado) await window.renderAllVideosBlindado();
-      }catch(err){ console.error(err); alert(err.message); }
-      finally{ nb.disabled=false; nb.textContent='⚡ RENDERIZAR TODO (6 VIDEOS 720p FB HD)'; window._batchGenerating=false; }
+  const ICW = window.ICECREAM_WASM = {
+    ffmpeg:null,
+    loading:null,
+    ready:false,
+    currentProgress:null,
+    currentDuration:0,
+    lastLogProgress:0,
+    corePath:'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
+    wrapperPath:'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js',
+    fontUrl:'https://raw.githubusercontent.com/ffmpegwasm/testdata/master/arial.ttf'
+  };
+
+  function loadClassicScript(src){
+    return new Promise((resolve,reject)=>{
+      if(window.FFmpeg && window.FFmpeg.createFFmpeg) return resolve();
+      const s=document.createElement('script'); s.src=src; s.async=true;
+      s.onload=()=>resolve(); s.onerror=()=>reject(new Error('No se pudo cargar FFmpeg.wasm'));
+      document.head.appendChild(s);
     });
   }
-  setTimeout(installRenderTodo,600); setTimeout(installRenderTodo,2000);
+
+  async function ensureFFmpeg(onStatus){
+    if(ICW.ready && ICW.ffmpeg) return ICW.ffmpeg;
+    if(ICW.loading) return ICW.loading;
+    ICW.loading=(async()=>{
+      onStatus?.('CARGANDO MOTOR FFMPEG (~25-30 MB)...');
+      await loadClassicScript(ICW.wrapperPath);
+      if(!window.FFmpeg?.createFFmpeg) throw new Error('FFmpeg.wasm no quedó disponible');
+      const { createFFmpeg } = window.FFmpeg;
+      const ffmpeg=createFFmpeg({
+        log:false,
+        mainName:'main',
+        corePath:ICW.corePath,
+        progress:({ratio})=>{
+          // Fallback del API. El progreso principal V75 se calcula con time= de FFmpeg.
+          if(typeof ICW.currentProgress==='function' && Number.isFinite(ratio) && ratio>0 && ratio<=1){
+            const p=8+(ratio*90);
+            if(p>ICW.lastLogProgress){
+              ICW.lastLogProgress=p;
+              ICW.currentProgress(Math.max(0,Math.min(98,p)));
+            }
+          }
+        },
+        logger:({message})=>{
+          const msg=String(message||'');
+          const m=msg.match(/time=\s*(\d+):(\d+):(\d+(?:\.\d+)?)/i);
+          if(m && ICW.currentDuration>0 && typeof ICW.currentProgress==='function'){
+            const sec=(Number(m[1])*3600)+(Number(m[2])*60)+Number(m[3]);
+            const ratio=Math.max(0,Math.min(1,sec/ICW.currentDuration));
+            const p=8+(ratio*90);
+            if(p>=ICW.lastLogProgress-0.2){
+              ICW.lastLogProgress=p;
+              ICW.currentProgress(Math.max(8,Math.min(98,p)));
+            }
+          }
+        }
+      });
+      await ffmpeg.load();
+      ICW.ffmpeg=ffmpeg; ICW.ready=true;
+      onStatus?.('FFMPEG LISTO');
+      return ffmpeg;
+    })();
+    try{return await ICW.loading;}finally{ICW.loading=null;}
+  }
+
+  function safeFSUnlink(ffmpeg,name){ try{ ffmpeg.FS('unlink',name); }catch(e){} }
+  function extFromName(name, fallback){
+    const m=String(name||'').toLowerCase().match(/\.([a-z0-9]{2,5})$/); return m?m[1]:fallback;
+  }
+  function assTime(sec){
+    sec=Math.max(0,Number(sec)||0); const h=Math.floor(sec/3600); sec-=h*3600;
+    const m=Math.floor(sec/60); sec-=m*60; const s=Math.floor(sec); const cs=Math.floor((sec-s)*100);
+    return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(cs).padStart(2,'0')}`;
+  }
+  function assEscape(s){
+    return String(s||'').replace(/\\/g,'\\\\').replace(/\{/g,'\\{').replace(/\}/g,'\\}').replace(/\r?\n/g,'\\N');
+  }
+  function titlePreviewLines(text){
+    const t=String(text||'').trim().toUpperCase();
+    if(!t) return [];
+    const words=t.split(/\s+/);
+    if(words.length<=2) return [words.join(' ')];
+    let bestIdx=Math.ceil(words.length/2), bestDiff=Infinity;
+    for(let i=1;i<words.length;i++){
+      const d=Math.abs(words.slice(0,i).join(' ').length-words.slice(i).join(' ').length);
+      if(d<bestDiff){ bestDiff=d; bestIdx=i; }
+    }
+    return [words.slice(0,bestIdx).join(' '),words.slice(bestIdx).join(' ')].slice(0,2);
+  }
+  function fitAssFont(line,maxSize,minSize,maxWidth){
+    const chars=Math.max(1,String(line||'').length);
+    // Aproximación del fitPreviewText HTML para Arial/ASS.
+    const estimated=Math.floor(maxWidth/(chars*0.58));
+    return Math.max(minSize,Math.min(maxSize,estimated));
+  }
+  function makeASS(item,total){
+    const titleLines=titlePreviewLines(item.title||'');
+    const parts=(typeof chunkSubs==='function'?chunkSubs(item.script||''):[]).filter(Boolean);
+    const head=`[Script Info]\nScriptType: v4.00+\nPlayResX: 720\nPlayResY: 1280\nWrapStyle: 2\nScaledBorderAndShadow: yes\nYCbCr Matrix: TV.709\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: TitleYellow,Arial,56,&H0000EBFF,&H0000EBFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: TitleWhite,Arial,56,&H00FFFFFF,&H00FFFFFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: SubWhite,Arial,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\nStyle: SubYellow,Arial,40,&H0000EBFF,&H0000EBFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n`;
+    let ev='';
+    const titleY=70;
+    titleLines.forEach((line,i)=>{
+      const fs=fitAssFont(line,60,35,650);
+      const y=titleY+i*(fs+12);
+      const style=i===0?'TitleYellow':'TitleWhite';
+      ev+=`Dialogue: 2,0:00:00.00,${assTime(total)},${style},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
+    });
+
+    if(parts.length){
+      const d=total/parts.length;
+      parts.forEach((p,i)=>{
+        const lines=(typeof splitWords==='function'?splitWords(String(p).toUpperCase(),30):[String(p).toUpperCase()]).slice(0,3);
+        const start=assTime(i*d), end=assTime(Math.min(total,(i+1)*d));
+        const mid=Math.floor(lines.length/2);
+        lines.forEach((line,j)=>{
+          const fs=fitAssFont(line,40,28,650);
+          const y=896+j*(fs+10);
+          const style=(lines.length===1 || j===mid)?'SubYellow':'SubWhite';
+          ev+=`Dialogue: 3,${start},${end},${style},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
+        });
+      });
+    }
+    return head+ev;
+  }
+
+  async function urlToU8(url){
+    const r=await fetch(url); if(!r.ok) throw new Error('No se pudo leer archivo local/remoto');
+    return new Uint8Array(await r.arrayBuffer());
+  }
+
+
+
+  async function renderSingleFFmpegWasm(item,onProg){
+    if(!item?.videoUrl) throw new Error('Falta video');
+    if(!item?.audioUrl) throw new Error('Falta voz/audio');
+    const overlayTxt=document.getElementById('renderText');
+    const ffmpeg=await ensureFFmpeg(t=>{if(overlayTxt) overlayTxt.textContent=t;});
+    ICW.currentProgress=p=>onProg?.(Math.min(98,p));
+    ICW.lastLogProgress=0;
+    onProg?.(1);
+
+    const id=`s${item.id}_${Date.now()}`;
+    const vExt=extFromName(item.videoName,'mp4');
+    const aExt=extFromName(item.audioName,'wav');
+    const inV=`${id}_video.${vExt}`;
+    const inA=`${id}_voice.${aExt}`;
+    const inM=`${id}_music.mp3`;
+    const ass=`${id}_subs.ass`;
+    const font=`${id}_arial.ttf`;
+    const out=`${id}_final.mp4`;
+    const cleanup=[inV,inA,inM,ass,font,out];
+    try{
+      if(overlayTxt) overlayTxt.textContent=`SLOT ${item.id}: PREPARANDO ARCHIVOS...`;
+      onProg?.(3);
+      ffmpeg.FS('writeFile',inV,await urlToU8(item.videoUrl));
+      ffmpeg.FS('writeFile',inA,await urlToU8(item.audioUrl));
+      const vDur=item.videoDur||10, aDur=item.audioDur||vDur||10;
+      const total=aDur||vDur||10;
+      ICW.currentDuration=Number(total)||10;
+      onProg?.(6);
+      const info=(typeof getRateInfo==='function')?getRateInfo(vDur,total):{rate:1,useLoop:false};
+
+      // Fuente para subtítulos. Si la descarga falla, el video se renderiza sin texto antes que abortar todo.
+      let useSubs=false;
+      try{
+        ffmpeg.FS('writeFile',font,await urlToU8(ICW.fontUrl));
+        ffmpeg.FS('writeFile',ass,new TextEncoder().encode(makeASS(item,total)));
+        useSubs=true;
+      }catch(e){ console.warn('Fuente/subtitulos omitidos:',e); }
+
+      // V74: audio final = únicamente la voz generada por Piper.
+      const args=[];
+      if(info.useLoop) args.push('-stream_loop','-1');
+      args.push('-i',inV,'-i',inA);
+
+      const rate=Math.max(0.05,Number(info.rate)||1);
+      let vf=`setpts=PTS/${rate.toFixed(6)},scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,fps=30`;
+      if(useSubs) vf+=`,subtitles=${ass}:fontsdir=.`;
+
+      // V74: voz Piper limpia, sin música de fondo.
+      args.push('-filter_complex',`[0:v]${vf}[v];[1:a]aresample=48000[a]`,'-map','[v]','-map','[a]');
+
+      args.push('-t',Number(total).toFixed(3),'-c:v','libx264','-preset','ultrafast','-b:v','3200k','-maxrate','3800k','-bufsize','6400k','-pix_fmt','yuv420p','-r','30','-g','60','-c:a','aac','-b:a','128k','-ar','48000','-movflags','+faststart',out);
+      if(overlayTxt) overlayTxt.textContent=`SLOT ${item.id}: CODIFICANDO H.264 · 720×1280 · 30 FPS...`;
+      onProg?.(8);
+      const code=await ffmpeg.run(...args);
+      const data=ffmpeg.FS('readFile',out);
+      if(!data || data.byteLength<1000) throw new Error('FFmpeg produjo un MP4 vacío');
+      onProg?.(100);
+      const blob=new Blob([data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength)],{type:'video/mp4'});
+      return {url:URL.createObjectURL(blob),ext:'mp4',blob};
+    }catch(e){
+      console.error('[V75 FFmpeg.wasm]',e);
+      throw new Error('FFmpeg.wasm: '+(e?.message||e));
+    }finally{
+      ICW.currentProgress=null;
+      ICW.currentDuration=0;
+      ICW.lastLogProgress=0;
+      cleanup.forEach(n=>safeFSUnlink(ffmpeg,n));
+    }
+  }
+  window.renderSingle=renderSingleFFmpegWasm;
+  window.renderSingleFFmpegWasm=renderSingleFFmpegWasm;
+
+  window.renderAllVideosBlindado=async function(){
+    const list=(window.queue||[]).filter(q=>q.videoUrl&&q.audioUrl);
+    if(!list.length){ alert('Faltan audios. Genera las voces primero.'); return; }
+    const ov=document.getElementById('renderOverlay'), pct=document.getElementById('renderPct'), txt=document.getElementById('renderText'), lst=document.getElementById('renderList'), master=document.getElementById('renderMasterBar'), sub=document.getElementById('renderSubLabel');
+    if(ov) ov.style.display='flex';
+    if(pct) pct.textContent='0%';
+    if(master) master.style.width='0%';
+    if(sub) sub.textContent=`0/${list.length} COMPLETADOS`;
+    if(txt) txt.textContent='INICIANDO FFMPEG.WASM EN EL NAVEGADOR...';
+    if(lst) lst.innerHTML=list.map(q=>`<div id="renderSlot-${q.id}" style="background:#0d0d12;border:1px solid #292932;border-radius:11px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center"><span style="color:#d8d8df;font-size:9px;font-weight:850;letter-spacing:.3px">SLOT ${q.id} · VIDEO</span><span style="color:#777783;font-size:10px;font-weight:900">EN COLA</span></div>`).join('');
+    window._batchGenerating=true;
+    let completed=0;
+    // IMPORTANTE: secuencial a propósito. ffmpeg.wasm usa mucha RAM; 6 simultáneos bloquearían el navegador.
+    for(const q of list){
+      const row=document.getElementById('renderSlot-'+q.id);
+      try{
+        q.status='renderizando'; q.progress=0; window.renderCola?.(true);
+        if(row){row.style.borderColor='#FFEB00';row.lastChild.textContent='0%';}
+        const r=await renderSingleFFmpegWasm(q,p=>{
+          q.progress=p; if(row) row.lastChild.textContent=Math.round(p)+'%';
+          const global=Math.max(0,Math.min(99,Math.round(((completed+p/100)/list.length)*100)));
+          if(pct) pct.textContent=global+'%';
+          if(master) master.style.width=global+'%';
+          if(sub) sub.textContent=`SLOT ${q.id} · ${Math.round(p)}% · ${completed}/${list.length} LISTOS`;
+        });
+        if(q.finalUrl?.startsWith('blob:')) try{URL.revokeObjectURL(q.finalUrl);}catch(e){}
+        q.finalUrl=r.url; q.finalExt='mp4'; q.status='hecho'; q.progress=100;
+        if(row){row.style.borderColor='#22c55e';row.lastChild.textContent='EXPORTADO';}
+        const check=document.getElementById('autoDownloadCheck');
+        if(!check||check.checked){
+          const name=(window.sanitizar?window.sanitizar(q.fileNameBase):q.fileNameBase)||`Video ${q.id}`;
+          window.safeDownload?.(r.url,name+'.mp4');
+        }
+      }catch(e){
+        q.status='error'; if(row){row.style.borderColor='#ef4444';row.lastChild.textContent='ERROR';}
+        alert(`Error SLOT ${q.id}: ${e.message}`);
+      }
+      completed++; window.renderCola?.(true);
+      const batchPct=Math.round((completed/list.length)*100);
+      if(pct) pct.textContent=batchPct+'%';
+      if(master) master.style.width=batchPct+'%';
+      if(sub) sub.textContent=`${completed}/${list.length} COMPLETADOS`;
+      await new Promise(r=>setTimeout(r,150));
+    }
+    window._batchGenerating=false;
+    if(txt) txt.textContent=`COMPLETADO ${completed}/${list.length} · FFMPEG.WASM 720p 30FPS`;
+    if(pct) pct.textContent='100%';
+    if(master) master.style.width='100%';
+    if(sub) sub.textContent=`${completed}/${list.length} COMPLETADOS`;
+    setTimeout(()=>{if(ov) ov.style.display='none';},1500);
+  };
+
+  function installWasmButton(){
+    const old=document.getElementById('btnRender'); if(!old) return;
+    if(old._ffmpegWasm) return;
+    const nb=old.cloneNode(true); old.parentNode.replaceChild(nb,old); nb._ffmpegWasm=true;
+    nb.textContent='⚡ RENDERIZAR TODO · FFMPEG 720p';
+    nb.addEventListener('click',async e=>{
+      e.preventDefault(); if(window._batchGenerating) return;
+      nb.disabled=true;
+      try{
+        const cur=window.getA?.();
+        if(cur){ const t=document.getElementById('inputTitle'),s=document.getElementById('inputScript'); if(t)cur.title=t.value;if(s)cur.script=s.value; }
+        const withVideo=(window.queue||[]).filter(x=>x.videoUrl);
+        if(!withVideo.length){ alert('Carga al menos un video.'); return; }
+        const need=withVideo.filter(x=>(x.txtContent||x.script)&&!x.audioUrl);
+        if(need.length){ nb.textContent='⏳ GENERANDO VOCES...'; await window.generateAllVoicesSimultaneous(); }
+        nb.textContent='⏳ RENDER FFMPEG EN NAVEGADOR...';
+        await window.renderAllVideosBlindado();
+      }catch(err){ console.error(err); alert(err.message||String(err)); }
+      finally{ nb.disabled=false; nb.textContent='⚡ RENDERIZAR TODO · FFMPEG 720p'; window._batchGenerating=false; }
+    });
+  }
+  // Los instaladores viejos usan timers; instalamos este al final para que sea el dueño definitivo del botón.
+  setTimeout(installWasmButton,2200);
+  setTimeout(installWasmButton,3200);
+  setTimeout(()=>{
+    const t=document.getElementById('renderText'); if(t && /60fps/i.test(t.textContent||'')) t.textContent='RENDER FFMPEG 30 FPS';
+    console.log('[ICECREAM V70] FFmpeg.wasm sin servidor instalado');
+  },3400);
 })();
 
 // === LIMPIAR TODO BLINDADO ===
