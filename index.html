@@ -5,7 +5,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>v78 3x3 Ice Cream Digital-Video</title>
+<title> v79 2x2 Ice Cream Digital-Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070709">
@@ -635,7 +635,7 @@ function queueDownload(url,name){
   next();
 }
 window.safeDownload=safeDownload; window.queueDownload=queueDownload; window.renderCola=renderCola; window.calcDurInfo=calcDurInfo; window.getA=getA; window.sanitizar=sanitizar;
-setActive(1);renderCola(true);log('V78 3X3 FFMPEG INDEPENDIENTE + REINICIO - lista');
+setActive(1);renderCola(true);log('V79 2 MOTORES PERSISTENTES OPTIMIZADO - lista');
 </script>
 
 <script>
@@ -1140,11 +1140,12 @@ window.getTTS = getTTS;
     corePath:'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
     wrapperPath:'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js',
     fontUrl:'https://raw.githubusercontent.com/ffmpegwasm/testdata/master/arial.ttf',
-    concurrency:3
+    concurrency:2,
+    engines:[]
   };
 
   function loadClassicScript(src){
-    if(window.FFmpeg && window.FFmpeg.createFFmpeg) return Promise.resolve();
+    if(window.FFmpeg?.createFFmpeg) return Promise.resolve();
     if(ICW.wrapperLoading) return ICW.wrapperLoading;
     ICW.wrapperLoading=new Promise((resolve,reject)=>{
       const old=[...document.scripts].find(x=>x.src===src);
@@ -1165,78 +1166,51 @@ window.getTTS = getTTS;
     return ICW.wrapperLoading;
   }
 
-  async function createFreshFFmpeg(workerId,onStatus,onProgress,getDuration){
-    onStatus?.(`MOTOR ${workerId}: CARGANDO FFMPEG...`);
-    await loadClassicScript(ICW.wrapperPath);
-    if(!window.FFmpeg?.createFFmpeg) throw new Error('FFmpeg.wasm no quedó disponible');
-
-    let lastEmit=0, lastInt=-1;
-    const {createFFmpeg}=window.FFmpeg;
-    const ffmpeg=createFFmpeg({
-      log:false,
-      mainName:'main',
-      corePath:ICW.corePath,
-      progress:()=>{},
-      logger:({message})=>{
-        const duration=Number(getDuration?.()||0);
-        if(!duration || typeof onProgress!=='function') return;
-        const msg=String(message||'');
-        if(msg.indexOf('time=')===-1) return;
-        const m=msg.match(/time=\s*(\d+):(\d+):(\d+(?:\.\d+)?)/i);
-        if(!m) return;
-        const sec=(Number(m[1])*3600)+(Number(m[2])*60)+Number(m[3]);
-        const p=Math.max(8,Math.min(98,Math.floor(8+(Math.min(1,sec/duration)*90))));
-        const now=Date.now();
-        if(p===lastInt) return;
-        if(now-lastEmit<500 && p<98) return;
-        lastEmit=now; lastInt=p;
-        onProgress(p);
-      }
-    });
-    await ffmpeg.load();
-    onStatus?.(`MOTOR ${workerId}: LISTO`);
-    return ffmpeg;
+  function safeFSUnlink(ffmpeg,name){
+    try{ ffmpeg.FS('unlink',name); }catch(e){}
   }
 
-  function destroyFFmpeg(ffmpeg){
-    if(!ffmpeg) return;
-    try{
-      if(typeof ffmpeg.exit==='function') ffmpeg.exit();
-    }catch(e){
-      console.warn('FFmpeg exit:',e);
-    }
+  function extFromName(name,fallback){
+    const m=String(name||'').toLowerCase().match(/\.([a-z0-9]{2,5})$/);
+    return m?m[1]:fallback;
   }
 
-  function safeFSUnlink(ffmpeg,name){ try{ ffmpeg.FS('unlink',name); }catch(e){} }
-  function extFromName(name, fallback){
-    const m=String(name||'').toLowerCase().match(/\.([a-z0-9]{2,5})$/); return m?m[1]:fallback;
-  }
   function assTime(sec){
-    sec=Math.max(0,Number(sec)||0); const h=Math.floor(sec/3600); sec-=h*3600;
-    const m=Math.floor(sec/60); sec-=m*60; const s=Math.floor(sec); const cs=Math.floor((sec-s)*100);
-    return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(cs).padStart(2,'0')}`;
+    sec=Math.max(0,Number(sec)||0);
+    const h=Math.floor(sec/3600); sec-=h*3600;
+    const m=Math.floor(sec/60); sec-=m*60;
+    const ss=Math.floor(sec);
+    const cs=Math.floor((sec-ss)*100);
+    return `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}.${String(cs).padStart(2,'0')}`;
   }
-  function assEscape(s){
-    return String(s||'').replace(/\\/g,'\\\\').replace(/\{/g,'\\{').replace(/\}/g,'\\}').replace(/\r?\n/g,'\\N');
+
+  function assEscape(v){
+    return String(v||'')
+      .replace(/\\/g,'\\\\')
+      .replace(/\{/g,'\\{')
+      .replace(/\}/g,'\\}')
+      .replace(/\r?\n/g,'\\N');
   }
+
   function titlePreviewLines(text){
     const t=String(text||'').trim().toUpperCase();
     if(!t) return [];
     const words=t.split(/\s+/);
     if(words.length<=2) return [words.join(' ')];
-    let bestIdx=Math.ceil(words.length/2), bestDiff=Infinity;
+    let bestIdx=Math.ceil(words.length/2),bestDiff=Infinity;
     for(let i=1;i<words.length;i++){
       const d=Math.abs(words.slice(0,i).join(' ').length-words.slice(i).join(' ').length);
-      if(d<bestDiff){ bestDiff=d; bestIdx=i; }
+      if(d<bestDiff){bestDiff=d;bestIdx=i;}
     }
     return [words.slice(0,bestIdx).join(' '),words.slice(bestIdx).join(' ')].slice(0,2);
   }
+
   function fitAssFont(line,maxSize,minSize,maxWidth){
     const chars=Math.max(1,String(line||'').length);
-    // Aproximación del fitPreviewText HTML para Arial/ASS.
-    const estimated=Math.floor(maxWidth/(chars*0.58));
+    const estimated=Math.floor(maxWidth/(chars*.58));
     return Math.max(minSize,Math.min(maxSize,estimated));
   }
+
   function makeASS(item,total){
     const titleLines=titlePreviewLines(item.title||'');
     const parts=(typeof chunkSubs==='function'?chunkSubs(item.script||''):[]).filter(Boolean);
@@ -1246,21 +1220,17 @@ window.getTTS = getTTS;
     titleLines.forEach((line,i)=>{
       const fs=fitAssFont(line,60,35,650);
       const y=titleY+i*(fs+12);
-      const style=i===0?'TitleYellow':'TitleWhite';
-      ev+=`Dialogue: 2,0:00:00.00,${assTime(total)},${style},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
+      ev+=`Dialogue: 2,0:00:00.00,${assTime(total)},${i===0?'TitleYellow':'TitleWhite'},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
     });
-
     if(parts.length){
       const d=total/parts.length;
       parts.forEach((p,i)=>{
         const lines=(typeof splitWords==='function'?splitWords(String(p).toUpperCase(),30):[String(p).toUpperCase()]).slice(0,3);
-        const start=assTime(i*d), end=assTime(Math.min(total,(i+1)*d));
         const mid=Math.floor(lines.length/2);
         lines.forEach((line,j)=>{
           const fs=fitAssFont(line,40,28,650);
           const y=896+j*(fs+10);
-          const style=(lines.length===1 || j===mid)?'SubYellow':'SubWhite';
-          ev+=`Dialogue: 3,${start},${end},${style},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
+          ev+=`Dialogue: 3,${assTime(i*d)},${assTime(Math.min(total,(i+1)*d))},${(lines.length===1||j===mid)?'SubYellow':'SubWhite'},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
         });
       });
     }
@@ -1268,54 +1238,106 @@ window.getTTS = getTTS;
   }
 
   async function urlToU8(url){
-    const r=await fetch(url); if(!r.ok) throw new Error('No se pudo leer archivo local/remoto');
+    const r=await fetch(url);
+    if(!r.ok) throw new Error('No se pudo leer archivo local/remoto');
     return new Uint8Array(await r.arrayBuffer());
   }
 
+  async function createPersistentEngine(workerId,onStatus){
+    await loadClassicScript(ICW.wrapperPath);
+    if(!window.FFmpeg?.createFFmpeg) throw new Error('FFmpeg.wasm no quedó disponible');
 
+    const state={
+      workerId,
+      duration:0,
+      progress:null,
+      lastEmit:0,
+      lastInt:-1,
+      ffmpeg:null,
+      fontReady:false
+    };
 
-  async function renderSingleFFmpegFresh(item,onProg,workerId=1){
-    if(!item?.videoUrl) throw new Error('Falta video');
-    if(!item?.audioUrl) throw new Error('Falta voz/audio');
+    const {createFFmpeg}=window.FFmpeg;
+    const ffmpeg=createFFmpeg({
+      log:false,
+      mainName:'main',
+      corePath:ICW.corePath,
+      progress:()=>{},
+      logger:({message})=>{
+        if(!state.duration || typeof state.progress!=='function') return;
+        const msg=String(message||'');
+        if(msg.indexOf('time=')===-1) return;
+        const m=msg.match(/time=\s*(\d+):(\d+):(\d+(?:\.\d+)?)/i);
+        if(!m) return;
+        const sec=(Number(m[1])*3600)+(Number(m[2])*60)+Number(m[3]);
+        const p=Math.max(8,Math.min(98,Math.floor(8+(Math.min(1,sec/state.duration)*90))));
+        const now=Date.now();
+        if(p===state.lastInt) return;
+        if(now-state.lastEmit<600 && p<98) return;
+        state.lastEmit=now;
+        state.lastInt=p;
+        state.progress(p);
+      }
+    });
 
-    const overlayTxt=document.getElementById('renderText');
-    let ffmpeg=null;
-    let total=0;
-
-    onProg?.(1);
-
-    const id=`w${workerId}_s${item.id}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
-    const vExt=extFromName(item.videoName,'mp4');
-    const aExt=extFromName(item.audioName,'wav');
-    const inV=`${id}_video.${vExt}`;
-    const inA=`${id}_voice.${aExt}`;
-    const ass=`${id}_subs.ass`;
-    const font=`${id}_arial.ttf`;
-    const out=`${id}_final.mp4`;
-    const cleanup=[inV,inA,ass,font,out];
+    onStatus?.(`MOTOR ${workerId}: CARGANDO CORE...`);
+    await ffmpeg.load();
+    state.ffmpeg=ffmpeg;
 
     try{
-      ffmpeg=await createFreshFFmpeg(
-        workerId,
-        t=>{ if(overlayTxt) overlayTxt.textContent=t; },
-        p=>onProg?.(p),
-        ()=>total
-      );
+      onStatus?.(`MOTOR ${workerId}: PRECARGANDO FUENTE...`);
+      const fontBytes=await urlToU8(ICW.fontUrl);
+      ffmpeg.FS('writeFile','arial.ttf',fontBytes);
+      state.fontReady=true;
+    }catch(e){
+      console.warn(`Motor ${workerId}: fuente no precargada`,e);
+    }
 
-      if(overlayTxt) overlayTxt.textContent=`MOTOR ${workerId} · SLOT ${item.id}: PREPARANDO...`;
-      onProg?.(3);
+    onStatus?.(`MOTOR ${workerId}: LISTO`);
+    return state;
+  }
 
+  function destroyEngine(engine){
+    if(!engine?.ffmpeg) return;
+    try{ safeFSUnlink(engine.ffmpeg,'arial.ttf'); }catch{}
+    try{
+      if(typeof engine.ffmpeg.exit==='function') engine.ffmpeg.exit();
+    }catch(e){}
+    engine.ffmpeg=null;
+  }
+
+  async function renderWithEngine(engine,item,onProg){
+    if(!item?.videoUrl) throw new Error('Falta video');
+    if(!item?.audioUrl) throw new Error('Falta voz/audio');
+    const ffmpeg=engine.ffmpeg;
+    if(!ffmpeg) throw new Error('Motor FFmpeg no disponible');
+
+    const id=`m${engine.workerId}_s${item.id}_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+    const inV=`${id}_video.${extFromName(item.videoName,'mp4')}`;
+    const inA=`${id}_voice.${extFromName(item.audioName,'wav')}`;
+    const ass=`${id}_subs.ass`;
+    const out=`${id}_final.mp4`;
+    const cleanup=[inV,inA,ass,out];
+
+    engine.duration=0;
+    engine.progress=onProg;
+    engine.lastEmit=0;
+    engine.lastInt=-1;
+    onProg?.(1);
+
+    try{
       const [vBytes,aBytes]=await Promise.all([
         urlToU8(item.videoUrl),
         urlToU8(item.audioUrl)
       ]);
       ffmpeg.FS('writeFile',inV,vBytes);
       ffmpeg.FS('writeFile',inA,aBytes);
+      onProg?.(4);
 
       const vDur=item.videoDur||10;
       const aDur=item.audioDur||vDur||10;
-      total=aDur||vDur||10;
-      onProg?.(6);
+      const total=aDur||vDur||10;
+      engine.duration=total;
 
       const info=(typeof getRateInfo==='function')
         ? getRateInfo(vDur,total)
@@ -1323,29 +1345,26 @@ window.getTTS = getTTS;
 
       let useSubs=false;
       try{
-        const [fontBytes]=await Promise.all([urlToU8(ICW.fontUrl)]);
-        ffmpeg.FS('writeFile',font,fontBytes);
-        ffmpeg.FS('writeFile',ass,new TextEncoder().encode(makeASS(item,total)));
-        useSubs=true;
+        if(engine.fontReady){
+          ffmpeg.FS('writeFile',ass,new TextEncoder().encode(makeASS(item,total)));
+          useSubs=true;
+        }
       }catch(e){
-        console.warn(`Motor ${workerId} slot ${item.id}: subtítulos omitidos`,e);
+        console.warn(`Motor ${engine.workerId} slot ${item.id}: subtítulos omitidos`,e);
       }
 
       const args=[];
       if(info.useLoop) args.push('-stream_loop','-1');
       args.push('-i',inV,'-i',inA);
 
-      const rate=Math.max(0.05,Number(info.rate)||1);
+      const rate=Math.max(.05,Number(info.rate)||1);
       let vf=`setpts=PTS/${rate.toFixed(6)},scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,fps=30`;
       if(useSubs) vf+=`,subtitles=${ass}:fontsdir=.`;
 
       args.push(
         '-filter_complex',
         `[0:v]${vf}[v];[1:a]aresample=48000[a]`,
-        '-map','[v]','-map','[a]'
-      );
-
-      args.push(
+        '-map','[v]','-map','[a]',
         '-t',Number(total).toFixed(3),
         '-c:v','libx264',
         '-preset','ultrafast',
@@ -1362,10 +1381,8 @@ window.getTTS = getTTS;
         out
       );
 
-      if(overlayTxt) overlayTxt.textContent=`3X3 · MOTOR ${workerId} · SLOT ${item.id} · H.264`;
       onProg?.(8);
-      await new Promise(r=>setTimeout(r,80));
-
+      await new Promise(r=>setTimeout(r,60));
       await ffmpeg.run(...args);
 
       const data=ffmpeg.FS('readFile',out);
@@ -1376,28 +1393,36 @@ window.getTTS = getTTS;
       const blob=new Blob([copy],{type:'video/mp4'});
       onProg?.(100);
       return {url:URL.createObjectURL(blob),ext:'mp4',blob};
-    }catch(e){
-      console.error(`[V78 MOTOR ${workerId} SLOT ${item.id}]`,e);
-      throw new Error('FFmpeg.wasm: '+(e?.message||e));
     }finally{
-      if(ffmpeg){
-        cleanup.forEach(n=>safeFSUnlink(ffmpeg,n));
-        // REINICIO REAL: se destruye la instancia tras CADA slot.
-        destroyFFmpeg(ffmpeg);
-        ffmpeg=null;
-      }
-      // pequeña ventana para que el navegador libere memoria antes de reutilizar el worker lógico
-      await new Promise(r=>setTimeout(r,350));
+      cleanup.forEach(n=>safeFSUnlink(ffmpeg,n));
+      engine.duration=0;
+      engine.progress=null;
+      engine.lastEmit=0;
+      engine.lastInt=-1;
+      await new Promise(r=>setTimeout(r,120));
     }
   }
 
-  // Render individual: crea motor limpio y lo destruye al terminar.
-  window.renderSingle=async (item,onProg)=>renderSingleFFmpegFresh(item,onProg,1);
-  window.renderSingleFFmpegWasm=window.renderSingle;
+  function freezePreviewForRender(){
+    try{
+      if(typeof raf!=='undefined' && raf){
+        cancelAnimationFrame(raf);
+        raf=null;
+      }
+    }catch{}
+    try{ if(vEl && !vEl.paused) vEl.pause(); }catch{}
+    try{ if(aEl && !aEl.paused) aEl.pause(); }catch{}
+    window._previewFrozenForBatch=true;
+  }
+
+  function resumePreviewAfterRender(){
+    window._previewFrozenForBatch=false;
+    try{ startLoop(); }catch{}
+  }
 
   window.renderAllVideosBlindado=async function(){
     if(window._ffmpegBatchActive){
-      alert('Ya hay un lote de videos renderizándose. Espera a que termine.');
+      alert('Ya hay un lote renderizándose.');
       return;
     }
 
@@ -1409,6 +1434,7 @@ window.getTTS = getTTS;
 
     window._ffmpegBatchActive=true;
     window._batchGenerating=true;
+    freezePreviewForRender();
 
     const ov=document.getElementById('renderOverlay');
     const pct=document.getElementById('renderPct');
@@ -1421,7 +1447,7 @@ window.getTTS = getTTS;
     if(pct) pct.textContent='0%';
     if(master) master.style.width='0%';
     if(sub) sub.textContent=`0/${list.length} COMPLETADOS`;
-    if(txt) txt.textContent='INICIANDO 3 MOTORES FFMPEG...';
+    if(txt) txt.textContent='PRECARGANDO 2 MOTORES FFMPEG...';
 
     if(lst) lst.innerHTML=list.map(q=>`
       <div id="renderSlot-${q.id}" style="background:#0d0d12;border:1px solid #292932;border-radius:11px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center">
@@ -1431,17 +1457,18 @@ window.getTTS = getTTS;
 
     const completedFiles=[];
     const progressMap=new Map(list.map(q=>[q.id,0]));
-    let done=0, failed=0, cursor=0;
+    let done=0,failed=0,cursor=0;
+    let engines=[];
 
     const updateGlobal=()=>{
-      const sum=list.reduce((acc,q)=>acc+(progressMap.get(q.id)||0),0);
-      const renderPct=Math.min(96,Math.round((sum/(list.length*100))*96));
-      if(pct) pct.textContent=renderPct+'%';
-      if(master) master.style.width=renderPct+'%';
-      if(sub) sub.textContent=`${done}/${list.length} LISTOS · 3 MOTORES`;
+      const sum=list.reduce((a,q)=>a+(progressMap.get(q.id)||0),0);
+      const p=Math.min(96,Math.round((sum/(list.length*100))*96));
+      if(pct) pct.textContent=p+'%';
+      if(master) master.style.width=p+'%';
+      if(sub) sub.textContent=`${done}/${list.length} LISTOS · 2 MOTORES`;
     };
 
-    const processWorker=async(workerId)=>{
+    const worker=async(engine)=>{
       while(true){
         const index=cursor++;
         if(index>=list.length) return;
@@ -1455,16 +1482,17 @@ window.getTTS = getTTS;
 
         if(row){
           row.style.borderColor='#FFEB00';
-          row.lastChild.textContent=`MOTOR ${workerId} · 0%`;
+          row.lastChild.textContent=`M${engine.workerId} · 0%`;
         }
 
         try{
-          const r=await renderSingleFFmpegFresh(q,p=>{
+          if(txt) txt.textContent=`MOTOR ${engine.workerId} · SLOT ${q.id} · RENDERIZANDO`;
+          const r=await renderWithEngine(engine,q,p=>{
             q.progress=p;
             progressMap.set(q.id,p);
-            if(row) row.lastChild.textContent=`M${workerId} · ${Math.round(p)}%`;
+            if(row) row.lastChild.textContent=`M${engine.workerId} · ${Math.round(p)}%`;
             updateGlobal();
-          },workerId);
+          });
 
           if(q.finalUrl?.startsWith('blob:')){
             try{URL.revokeObjectURL(q.finalUrl);}catch{}
@@ -1477,11 +1505,7 @@ window.getTTS = getTTS;
           progressMap.set(q.id,100);
 
           const base=(window.sanitizar?window.sanitizar(q.fileNameBase):q.fileNameBase)||`Video ${q.id}`;
-          completedFiles.push({
-            slot:q.id,
-            name:base+'.mp4',
-            blob:r.blob
-          });
+          completedFiles.push({slot:q.id,name:base+'.mp4',blob:r.blob});
 
           if(row){
             row.style.borderColor='#22c55e';
@@ -1490,9 +1514,9 @@ window.getTTS = getTTS;
         }catch(e){
           failed++;
           q.status='error';
-          q.progress=100; // permite que el global cierre aunque falle un slot
+          q.progress=100;
           progressMap.set(q.id,100);
-          console.error(`[V78 SLOT ${q.id}]`,e);
+          console.error(`[V79 MOTOR ${engine.workerId} SLOT ${q.id}]`,e);
           if(row){
             row.style.borderColor='#ef4444';
             row.lastChild.textContent='ERROR';
@@ -1506,11 +1530,17 @@ window.getTTS = getTTS;
     };
 
     try{
-      // 3 FFmpeg independientes en paralelo.
+      engines=await Promise.all([
+        createPersistentEngine(1,t=>{if(txt)txt.textContent=t;}),
+        createPersistentEngine(2,t=>{if(txt)txt.textContent=t;})
+      ]);
+      ICW.engines=engines;
+
+      if(txt) txt.textContent='2 MOTORES LISTOS · RENDERIZANDO 2 VIDEOS A LA VEZ';
+
       await Promise.all([
-        processWorker(1),
-        processWorker(2),
-        processWorker(3)
+        worker(engines[0]),
+        worker(engines[1])
       ]);
 
       if(!completedFiles.length){
@@ -1545,16 +1575,18 @@ window.getTTS = getTTS;
       if(pct) pct.textContent='100%';
       if(master) master.style.width='100%';
       if(sub) sub.textContent=`${completedFiles.length} LISTOS${failed?` · ${failed} ERROR${failed===1?'':'ES'}`:''}`;
-      if(txt) txt.textContent=`COMPLETADO · 3X3 · ${completedFiles.length} MP4 EN ZIP`;
-
+      if(txt) txt.textContent=`COMPLETADO · 2 MOTORES · ${completedFiles.length} MP4 EN ZIP`;
     }catch(e){
-      console.error('[V78 LOTE]',e);
+      console.error('[V79 LOTE]',e);
       if(txt) txt.textContent='ERROR DE LOTE: '+(e?.message||e);
       alert('Error de render: '+(e?.message||e));
     }finally{
+      engines.forEach(destroyEngine);
+      ICW.engines=[];
       window._ffmpegBatchActive=false;
       window._batchGenerating=false;
       window.renderCola?.(true);
+      resumePreviewAfterRender();
     }
   };
 
@@ -1584,7 +1616,7 @@ window.getTTS = getTTS;
   setTimeout(installWasmButton,3200);
   setTimeout(()=>{
     const t=document.getElementById('renderText'); if(t && /60fps/i.test(t.textContent||'')) t.textContent='RENDER FFMPEG 30 FPS';
-    console.log('[ICECREAM V70] FFmpeg.wasm sin servidor instalado');
+    console.log('[ICECREAM V79] 2 motores FFmpeg persistentes instalados');
   },3400);
 })();
 
