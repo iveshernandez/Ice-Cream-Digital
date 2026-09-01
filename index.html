@@ -5,7 +5,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>v81 Ice Cream Digital-Video</title>
+<title>v82 Ice Cream Digital-Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070709">
@@ -648,7 +648,7 @@ function queueDownload(url,name){
   next();
 }
 window.safeDownload=safeDownload; window.queueDownload=queueDownload; window.renderCola=renderCola; window.calcDurInfo=calcDurInfo; window.getA=getA; window.sanitizar=sanitizar;
-setActive(1);renderCola(true);log('V81 AUTO VOZ A RENDER + OVERLAY 6 SLOTS - lista');
+setActive(1);renderCola(true);log('V82 ESTABLE 6 VIDEOS + FFMPEG SECUENCIAL - lista');
 </script>
 
 <script>
@@ -1283,27 +1283,16 @@ window.getTTS = getTTS;
     wrapperLoading:null,
     corePath:'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
     wrapperPath:'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js',
-    fontUrl:'https://raw.githubusercontent.com/ffmpegwasm/testdata/master/arial.ttf',
-    concurrency:2,
-    engines:[]
+    fontUrl:'https://raw.githubusercontent.com/ffmpegwasm/testdata/master/arial.ttf'
   };
 
   function loadClassicScript(src){
     if(window.FFmpeg?.createFFmpeg) return Promise.resolve();
     if(ICW.wrapperLoading) return ICW.wrapperLoading;
     ICW.wrapperLoading=new Promise((resolve,reject)=>{
-      const old=[...document.scripts].find(x=>x.src===src);
-      if(old){
-        const wait=()=>{
-          if(window.FFmpeg?.createFFmpeg) resolve();
-          else setTimeout(wait,80);
-        };
-        wait();
-        return;
-      }
       const sc=document.createElement('script');
       sc.src=src; sc.async=true;
-      sc.onload=()=>resolve();
+      sc.onload=resolve;
       sc.onerror=()=>reject(new Error('No se pudo cargar FFmpeg.wasm'));
       document.head.appendChild(sc);
     });
@@ -1311,7 +1300,7 @@ window.getTTS = getTTS;
   }
 
   function safeFSUnlink(ffmpeg,name){
-    try{ ffmpeg.FS('unlink',name); }catch(e){}
+    try{ffmpeg.FS('unlink',name);}catch{}
   }
 
   function extFromName(name,fallback){
@@ -1321,38 +1310,32 @@ window.getTTS = getTTS;
 
   function assTime(sec){
     sec=Math.max(0,Number(sec)||0);
-    const h=Math.floor(sec/3600); sec-=h*3600;
-    const m=Math.floor(sec/60); sec-=m*60;
-    const ss=Math.floor(sec);
-    const cs=Math.floor((sec-ss)*100);
+    const h=Math.floor(sec/3600);sec-=h*3600;
+    const m=Math.floor(sec/60);sec-=m*60;
+    const ss=Math.floor(sec),cs=Math.floor((sec-ss)*100);
     return `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}.${String(cs).padStart(2,'0')}`;
   }
 
   function assEscape(v){
-    return String(v||'')
-      .replace(/\\/g,'\\\\')
-      .replace(/\{/g,'\\{')
-      .replace(/\}/g,'\\}')
-      .replace(/\r?\n/g,'\\N');
+    return String(v||'').replace(/\\/g,'\\\\').replace(/\{/g,'\\{').replace(/\}/g,'\\}').replace(/\r?\n/g,'\\N');
   }
 
   function titlePreviewLines(text){
     const t=String(text||'').trim().toUpperCase();
-    if(!t) return [];
-    const words=t.split(/\s+/);
-    if(words.length<=2) return [words.join(' ')];
-    let bestIdx=Math.ceil(words.length/2),bestDiff=Infinity;
-    for(let i=1;i<words.length;i++){
-      const d=Math.abs(words.slice(0,i).join(' ').length-words.slice(i).join(' ').length);
-      if(d<bestDiff){bestDiff=d;bestIdx=i;}
+    if(!t)return[];
+    const w=t.split(/\s+/);
+    if(w.length<=2)return[w.join(' ')];
+    let bi=Math.ceil(w.length/2),bd=Infinity;
+    for(let i=1;i<w.length;i++){
+      const d=Math.abs(w.slice(0,i).join(' ').length-w.slice(i).join(' ').length);
+      if(d<bd){bd=d;bi=i;}
     }
-    return [words.slice(0,bestIdx).join(' '),words.slice(bestIdx).join(' ')].slice(0,2);
+    return[w.slice(0,bi).join(' '),w.slice(bi).join(' ')].slice(0,2);
   }
 
   function fitAssFont(line,maxSize,minSize,maxWidth){
     const chars=Math.max(1,String(line||'').length);
-    const estimated=Math.floor(maxWidth/(chars*.58));
-    return Math.max(minSize,Math.min(maxSize,estimated));
+    return Math.max(minSize,Math.min(maxSize,Math.floor(maxWidth/(chars*.58))));
   }
 
   function makeASS(item,total){
@@ -1360,10 +1343,8 @@ window.getTTS = getTTS;
     const parts=(typeof chunkSubs==='function'?chunkSubs(item.script||''):[]).filter(Boolean);
     const head=`[Script Info]\nScriptType: v4.00+\nPlayResX: 720\nPlayResY: 1280\nWrapStyle: 2\nScaledBorderAndShadow: yes\nYCbCr Matrix: TV.709\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: TitleYellow,Arial,56,&H0000EBFF,&H0000EBFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: TitleWhite,Arial,56,&H00FFFFFF,&H00FFFFFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: SubWhite,Arial,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\nStyle: SubYellow,Arial,40,&H0000EBFF,&H0000EBFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n`;
     let ev='';
-    const titleY=70;
     titleLines.forEach((line,i)=>{
-      const fs=fitAssFont(line,60,35,650);
-      const y=titleY+i*(fs+12);
+      const fs=fitAssFont(line,60,35,650),y=70+i*(fs+12);
       ev+=`Dialogue: 2,0:00:00.00,${assTime(total)},${i===0?'TitleYellow':'TitleWhite'},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
     });
     if(parts.length){
@@ -1372,8 +1353,7 @@ window.getTTS = getTTS;
         const lines=(typeof splitWords==='function'?splitWords(String(p).toUpperCase(),30):[String(p).toUpperCase()]).slice(0,3);
         const mid=Math.floor(lines.length/2);
         lines.forEach((line,j)=>{
-          const fs=fitAssFont(line,40,28,650);
-          const y=896+j*(fs+10);
+          const fs=fitAssFont(line,40,28,650),y=896+j*(fs+10);
           ev+=`Dialogue: 3,${assTime(i*d)},${assTime(Math.min(total,(i+1)*d))},${(lines.length===1||j===mid)?'SubYellow':'SubWhite'},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
         });
       });
@@ -1383,354 +1363,170 @@ window.getTTS = getTTS;
 
   async function urlToU8(url){
     const r=await fetch(url);
-    if(!r.ok) throw new Error('No se pudo leer archivo local/remoto');
+    if(!r.ok)throw new Error('No se pudo leer archivo');
     return new Uint8Array(await r.arrayBuffer());
   }
 
-  async function createPersistentEngine(workerId,onStatus){
-    await loadClassicScript(ICW.wrapperPath);
-    if(!window.FFmpeg?.createFFmpeg) throw new Error('FFmpeg.wasm no quedó disponible');
-
-    const state={
-      workerId,
-      duration:0,
-      progress:null,
-      lastEmit:0,
-      lastInt:-1,
-      ffmpeg:null,
-      fontReady:false
-    };
-
-    const {createFFmpeg}=window.FFmpeg;
-    const ffmpeg=createFFmpeg({
-      log:false,
-      mainName:'main',
-      corePath:ICW.corePath,
-      progress:()=>{},
-      logger:({message})=>{
-        if(!state.duration || typeof state.progress!=='function') return;
-        const msg=String(message||'');
-        if(msg.indexOf('time=')===-1) return;
-        const m=msg.match(/time=\s*(\d+):(\d+):(\d+(?:\.\d+)?)/i);
-        if(!m) return;
-        const sec=(Number(m[1])*3600)+(Number(m[2])*60)+Number(m[3]);
-        const p=Math.max(8,Math.min(98,Math.floor(8+(Math.min(1,sec/state.duration)*90))));
-        const now=Date.now();
-        if(p===state.lastInt) return;
-        if(now-state.lastEmit<600 && p<98) return;
-        state.lastEmit=now;
-        state.lastInt=p;
-        state.progress(p);
-      }
-    });
-
-    onStatus?.(`MOTOR ${workerId}: CARGANDO CORE...`);
-    await ffmpeg.load();
-    state.ffmpeg=ffmpeg;
-
+  async function renderFresh(item,onPhase){
+    let ffmpeg=null;
+    const files=[];
     try{
-      onStatus?.(`MOTOR ${workerId}: PRECARGANDO FUENTE...`);
-      const fontBytes=await urlToU8(ICW.fontUrl);
-      ffmpeg.FS('writeFile','arial.ttf',fontBytes);
-      state.fontReady=true;
-    }catch(e){
-      console.warn(`Motor ${workerId}: fuente no precargada`,e);
-    }
+      onPhase?.('CARGANDO MOTOR');
+      await loadClassicScript(ICW.wrapperPath);
+      const {createFFmpeg}=window.FFmpeg;
+      // Sin logger/progress: evita inundar el hilo principal con mensajes.
+      ffmpeg=createFFmpeg({log:false,mainName:'main',corePath:ICW.corePath});
+      await ffmpeg.load();
 
-    onStatus?.(`MOTOR ${workerId}: LISTO`);
-    return state;
-  }
+      const id=`s${item.id}_${Date.now()}`;
+      const inV=`${id}.${extFromName(item.videoName,'mp4')}`;
+      const inA=`${id}.${extFromName(item.audioName,'wav')}`;
+      const ass=`${id}.ass`,out=`${id}.mp4`;
+      files.push(inV,inA,ass,out);
 
-  function destroyEngine(engine){
-    if(!engine?.ffmpeg) return;
-    try{ safeFSUnlink(engine.ffmpeg,'arial.ttf'); }catch{}
-    try{
-      if(typeof engine.ffmpeg.exit==='function') engine.ffmpeg.exit();
-    }catch(e){}
-    engine.ffmpeg=null;
-  }
-
-  async function renderWithEngine(engine,item,onProg){
-    if(!item?.videoUrl) throw new Error('Falta video');
-    if(!item?.audioUrl) throw new Error('Falta voz/audio');
-    const ffmpeg=engine.ffmpeg;
-    if(!ffmpeg) throw new Error('Motor FFmpeg no disponible');
-
-    const id=`m${engine.workerId}_s${item.id}_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
-    const inV=`${id}_video.${extFromName(item.videoName,'mp4')}`;
-    const inA=`${id}_voice.${extFromName(item.audioName,'wav')}`;
-    const ass=`${id}_subs.ass`;
-    const out=`${id}_final.mp4`;
-    const cleanup=[inV,inA,ass,out];
-
-    engine.duration=0;
-    engine.progress=onProg;
-    engine.lastEmit=0;
-    engine.lastInt=-1;
-    onProg?.(1);
-
-    try{
-      const [vBytes,aBytes]=await Promise.all([
+      onPhase?.('PREPARANDO');
+      const [vb,ab,fontb]=await Promise.all([
         urlToU8(item.videoUrl),
-        urlToU8(item.audioUrl)
+        urlToU8(item.audioUrl),
+        urlToU8(ICW.fontUrl).catch(()=>null)
       ]);
-      ffmpeg.FS('writeFile',inV,vBytes);
-      ffmpeg.FS('writeFile',inA,aBytes);
-      onProg?.(4);
+      ffmpeg.FS('writeFile',inV,vb);
+      ffmpeg.FS('writeFile',inA,ab);
+      if(fontb)ffmpeg.FS('writeFile','arial.ttf',fontb);
 
-      const vDur=item.videoDur||10;
-      const aDur=item.audioDur||vDur||10;
-      const total=aDur||vDur||10;
-      engine.duration=total;
-
-      const info=(typeof getRateInfo==='function')
-        ? getRateInfo(vDur,total)
-        : {rate:1,useLoop:false};
-
+      const vDur=item.videoDur||10,aDur=item.audioDur||vDur||10,total=aDur||vDur||10;
+      const info=typeof getRateInfo==='function'?getRateInfo(vDur,total):{rate:1,useLoop:false};
       let useSubs=false;
-      try{
-        if(engine.fontReady){
-          ffmpeg.FS('writeFile',ass,new TextEncoder().encode(makeASS(item,total)));
-          useSubs=true;
-        }
-      }catch(e){
-        console.warn(`Motor ${engine.workerId} slot ${item.id}: subtítulos omitidos`,e);
+      if(fontb){
+        try{ffmpeg.FS('writeFile',ass,new TextEncoder().encode(makeASS(item,total)));useSubs=true;}catch{}
       }
 
       const args=[];
-      if(info.useLoop) args.push('-stream_loop','-1');
+      if(info.useLoop)args.push('-stream_loop','-1');
       args.push('-i',inV,'-i',inA);
-
       const rate=Math.max(.05,Number(info.rate)||1);
       let vf=`setpts=PTS/${rate.toFixed(6)},scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,fps=30`;
-      if(useSubs) vf+=`,subtitles=${ass}:fontsdir=.`;
+      if(useSubs)vf+=`,subtitles=${ass}:fontsdir=.`;
+      args.push('-filter_complex',`[0:v]${vf}[v];[1:a]aresample=48000[a]`,
+        '-map','[v]','-map','[a]','-t',Number(total).toFixed(3),
+        '-c:v','libx264','-preset','ultrafast','-b:v','3200k','-maxrate','3800k','-bufsize','6400k',
+        '-pix_fmt','yuv420p','-r','30','-g','60',
+        '-c:a','aac','-b:a','128k','-ar','48000','-movflags','+faststart',out);
 
-      args.push(
-        '-filter_complex',
-        `[0:v]${vf}[v];[1:a]aresample=48000[a]`,
-        '-map','[v]','-map','[a]',
-        '-t',Number(total).toFixed(3),
-        '-c:v','libx264',
-        '-preset','ultrafast',
-        '-b:v','3200k',
-        '-maxrate','3800k',
-        '-bufsize','6400k',
-        '-pix_fmt','yuv420p',
-        '-r','30',
-        '-g','60',
-        '-c:a','aac',
-        '-b:a','128k',
-        '-ar','48000',
-        '-movflags','+faststart',
-        out
-      );
-
-      onProg?.(8);
-      await new Promise(r=>setTimeout(r,60));
+      onPhase?.('CODIFICANDO');
+      // Deja pintar UI antes del trabajo pesado.
+      await new Promise(r=>setTimeout(r,120));
       await ffmpeg.run(...args);
 
+      onPhase?.('GUARDANDO');
       const data=ffmpeg.FS('readFile',out);
-      if(!data || data.byteLength<1000) throw new Error('FFmpeg produjo un MP4 vacío');
-
-      const copy=new Uint8Array(data.byteLength);
-      copy.set(data);
+      if(!data||data.byteLength<1000)throw new Error('MP4 vacío');
+      const copy=new Uint8Array(data.byteLength);copy.set(data);
       const blob=new Blob([copy],{type:'video/mp4'});
-      onProg?.(100);
-      return {url:URL.createObjectURL(blob),ext:'mp4',blob};
+      return{blob,url:URL.createObjectURL(blob),ext:'mp4'};
     }finally{
-      cleanup.forEach(n=>safeFSUnlink(ffmpeg,n));
-      engine.duration=0;
-      engine.progress=null;
-      engine.lastEmit=0;
-      engine.lastInt=-1;
-      await new Promise(r=>setTimeout(r,120));
+      if(ffmpeg){
+        files.forEach(n=>safeFSUnlink(ffmpeg,n));
+        safeFSUnlink(ffmpeg,'arial.ttf');
+        try{ffmpeg.exit?.();}catch{}
+      }
+      ffmpeg=null;
+      // Ventana real para GC/memoria antes del siguiente slot.
+      await new Promise(r=>setTimeout(r,700));
     }
   }
 
   function freezePreviewForRender(){
-    try{
-      if(typeof raf!=='undefined' && raf){
-        cancelAnimationFrame(raf);
-        raf=null;
-      }
-    }catch{}
-    try{ if(vEl && !vEl.paused) vEl.pause(); }catch{}
-    try{ if(aEl && !aEl.paused) aEl.pause(); }catch{}
+    try{if(typeof raf!=='undefined'&&raf){cancelAnimationFrame(raf);raf=null;}}catch{}
+    try{if(vEl&&!vEl.paused)vEl.pause();}catch{}
+    try{if(aEl&&!aEl.paused)aEl.pause();}catch{}
     window._previewFrozenForBatch=true;
   }
 
   function resumePreviewAfterRender(){
     window._previewFrozenForBatch=false;
-    try{ startLoop(); }catch{}
+    try{startLoop();}catch{}
   }
 
   window.renderAllVideosBlindado=async function(){
-    if(window._ffmpegBatchActive){
-      alert('Ya hay un lote renderizándose.');
-      return;
-    }
-
+    if(window._ffmpegBatchActive)return;
     const list=(window.queue||[]).filter(q=>q.videoUrl&&q.audioUrl);
-    if(!list.length){
-      alert('Faltan audios. Genera las voces primero.');
-      return;
-    }
+    if(!list.length){alert('No hay videos con voz listos.');return;}
 
     window._ffmpegBatchActive=true;
     window._batchGenerating=true;
     freezePreviewForRender();
 
-    const ov=document.getElementById('renderOverlay');
-    const pct=document.getElementById('renderPct');
-    const txt=document.getElementById('renderText');
-    const lst=document.getElementById('renderList');
-    const master=document.getElementById('renderMasterBar');
-    const sub=document.getElementById('renderSubLabel');
+    const ov=document.getElementById('renderOverlay'),pct=document.getElementById('renderPct'),
+      txt=document.getElementById('renderText'),lst=document.getElementById('renderList'),
+      master=document.getElementById('renderMasterBar'),sub=document.getElementById('renderSubLabel');
 
-    if(ov) ov.style.display='flex';
-    if(pct) pct.textContent='0%';
-    if(master) master.style.width='0%';
-    if(sub) sub.textContent=`0/${list.length} COMPLETADOS`;
-    if(txt) txt.textContent='PRECARGANDO 2 MOTORES FFMPEG...';
-
-    // V80: limpia completamente cualquier estado visual anterior de TTS/voz.
-    if(lst){
-      lst.innerHTML='';
-      lst.innerHTML=list.map(q=>`
-        <div id="renderSlot-${q.id}" style="background:#0d0d12;border:1px solid #292932;border-radius:9px;padding:8px 9px;display:flex;justify-content:space-between;align-items:center;min-width:0">
-          <span style="color:#d8d8df;font-size:8px;font-weight:900;white-space:nowrap">SLOT ${q.id} · VIDEO</span>
-          <span style="color:#777783;font-size:9px;font-weight:950;white-space:nowrap">EN COLA</span>
-        </div>`).join('');
-    }
+    if(ov)ov.style.display='flex';
+    if(lst)lst.innerHTML=list.map(q=>`<div id="renderSlot-${q.id}" style="background:#0d0d12;border:1px solid #292932;border-radius:9px;padding:8px 9px;display:flex;justify-content:space-between;align-items:center"><span style="color:#d8d8df;font-size:8px;font-weight:900">SLOT ${q.id} · VIDEO</span><span style="color:#777783;font-size:9px;font-weight:950">EN COLA</span></div>`).join('');
 
     const completedFiles=[];
-    const progressMap=new Map(list.map(q=>[q.id,0]));
-    let done=0,failed=0,cursor=0;
-    let engines=[];
-
-    const updateGlobal=()=>{
-      const sum=list.reduce((a,q)=>a+(progressMap.get(q.id)||0),0);
-      const p=Math.min(96,Math.round((sum/(list.length*100))*96));
-      if(pct) pct.textContent=p+'%';
-      if(master) master.style.width=p+'%';
-      if(sub) sub.textContent=`${done}/${list.length} LISTOS · 2 MOTORES`;
-    };
-
-    const worker=async(engine)=>{
-      while(true){
-        const index=cursor++;
-        if(index>=list.length) return;
-        const q=list[index];
-        const row=document.getElementById('renderSlot-'+q.id);
-
-        q.status='renderizando';
-        q.progress=0;
-        progressMap.set(q.id,0);
-        window.renderCola?.(true);
-
-        if(row){
-          row.style.borderColor='#FFEB00';
-          row.lastChild.textContent=`M${engine.workerId} · 0%`;
-        }
-
-        try{
-          if(txt) txt.textContent=`MOTOR ${engine.workerId} · SLOT ${q.id} · RENDERIZANDO`;
-          const r=await renderWithEngine(engine,q,p=>{
-            q.progress=p;
-            progressMap.set(q.id,p);
-            if(row) row.lastChild.textContent=`M${engine.workerId} · ${Math.round(p)}%`;
-            updateGlobal();
-          });
-
-          if(q.finalUrl?.startsWith('blob:')){
-            try{URL.revokeObjectURL(q.finalUrl);}catch{}
-          }
-
-          q.finalUrl=r.url;
-          q.finalExt='mp4';
-          q.status='hecho';
-          q.progress=100;
-          progressMap.set(q.id,100);
-
-          const base=(window.sanitizar?window.sanitizar(q.fileNameBase):q.fileNameBase)||`Video ${q.id}`;
-          completedFiles.push({slot:q.id,name:base+'.mp4',blob:r.blob});
-
-          if(row){
-            row.style.borderColor='#22c55e';
-            row.lastChild.textContent='LISTO';
-          }
-        }catch(e){
-          failed++;
-          q.status='error';
-          q.progress=100;
-          progressMap.set(q.id,100);
-          console.error(`[V79 MOTOR ${engine.workerId} SLOT ${q.id}]`,e);
-          if(row){
-            row.style.borderColor='#ef4444';
-            row.lastChild.textContent='ERROR';
-          }
-        }finally{
-          done++;
-          updateGlobal();
-          window.renderCola?.(true);
-        }
-      }
-    };
+    let failed=0;
 
     try{
-      engines=await Promise.all([
-        createPersistentEngine(1,t=>{if(txt)txt.textContent=t;}),
-        createPersistentEngine(2,t=>{if(txt)txt.textContent=t;})
-      ]);
-      ICW.engines=engines;
+      for(let i=0;i<list.length;i++){
+        const q=list[i],row=document.getElementById('renderSlot-'+q.id);
+        const basePct=Math.round((i/list.length)*96);
+        if(pct)pct.textContent=basePct+'%';
+        if(master)master.style.width=basePct+'%';
+        if(sub)sub.textContent=`VIDEO ${i+1} DE ${list.length}`;
+        if(row){row.style.borderColor='#FFEB00';row.lastChild.textContent='INICIANDO';}
+        if(txt)txt.textContent=`SLOT ${q.id} · MOTOR NUEVO`;
 
-      if(txt) txt.textContent='2 MOTORES LISTOS · RENDERIZANDO 2 VIDEOS A LA VEZ';
+        try{
+          const r=await renderFresh(q,phase=>{
+            if(row)row.lastChild.textContent=phase;
+            if(txt)txt.textContent=`SLOT ${q.id} · ${phase}`;
+          });
+          if(q.finalUrl?.startsWith('blob:'))try{URL.revokeObjectURL(q.finalUrl);}catch{}
+          q.finalUrl=r.url;q.finalExt='mp4';q.status='hecho';q.progress=100;
+          const base=(window.sanitizar?window.sanitizar(q.fileNameBase):q.fileNameBase)||`Video ${q.id}`;
+          completedFiles.push({slot:q.id,name:base+'.mp4',blob:r.blob});
+          if(row){row.style.borderColor='#22c55e';row.lastChild.textContent='LISTO';}
+        }catch(e){
+          failed++;q.status='error';
+          console.error('[V82 SLOT '+q.id+']',e);
+          if(row){row.style.borderColor='#ef4444';row.lastChild.textContent='ERROR';}
+        }
 
-      await Promise.all([
-        worker(engines[0]),
-        worker(engines[1])
-      ]);
-
-      if(!completedFiles.length){
-        throw new Error('Ningún video pudo renderizarse.');
+        const donePct=Math.round(((i+1)/list.length)*96);
+        if(pct)pct.textContent=donePct+'%';
+        if(master)master.style.width=donePct+'%';
+        window.renderCola?.(true);
       }
 
+      if(!completedFiles.length)throw new Error('Ningún video pudo renderizarse.');
       completedFiles.sort((a,b)=>a.slot-b.slot);
 
       if(window.JSZip){
-        if(txt) txt.textContent=`CREANDO ZIP CON ${completedFiles.length} VIDEOS...`;
-        if(pct) pct.textContent='97%';
-        if(master) master.style.width='97%';
-        if(sub) sub.textContent='EMPAQUETANDO MP4...';
-
+        if(txt)txt.textContent=`CREANDO ZIP CON ${completedFiles.length} VIDEOS...`;
+        if(pct)pct.textContent='97%';
+        if(master)master.style.width='97%';
         const zip=new JSZip();
         completedFiles.forEach(f=>zip.file(f.name,f.blob,{compression:'STORE'}));
-
-        const zipBlob=await zip.generateAsync(
-          {type:'blob',compression:'STORE'},
-          meta=>{
-            const zp=97+Math.floor((meta.percent/100)*3);
-            if(pct) pct.textContent=Math.min(99,zp)+'%';
-            if(master) master.style.width=Math.min(99,zp)+'%';
-          }
-        );
-
-        const zipUrl=URL.createObjectURL(zipBlob);
-        window.safeDownload?.(zipUrl,`ICECREAM_DIGITAL_${completedFiles.length}_VIDEOS.zip`);
-        setTimeout(()=>{try{URL.revokeObjectURL(zipUrl);}catch{}},60000);
+        const zipBlob=await zip.generateAsync({type:'blob',compression:'STORE'},meta=>{
+          const p=97+Math.floor(meta.percent*.03);
+          if(pct)pct.textContent=Math.min(99,p)+'%';
+          if(master)master.style.width=Math.min(99,p)+'%';
+        });
+        const u=URL.createObjectURL(zipBlob);
+        window.safeDownload?.(u,`ICECREAM_DIGITAL_${completedFiles.length}_VIDEOS.zip`);
+        setTimeout(()=>{try{URL.revokeObjectURL(u);}catch{}},60000);
       }
 
-      if(pct) pct.textContent='100%';
-      if(master) master.style.width='100%';
-      if(sub) sub.textContent=`${completedFiles.length} LISTOS${failed?` · ${failed} ERROR${failed===1?'':'ES'}`:''}`;
-      if(txt) txt.textContent=`COMPLETADO · 2 MOTORES · ${completedFiles.length} MP4 EN ZIP`;
+      if(pct)pct.textContent='100%';
+      if(master)master.style.width='100%';
+      if(sub)sub.textContent=`${completedFiles.length} LISTOS${failed?` · ${failed} ERROR${failed===1?'':'ES'}`:''}`;
+      if(txt)txt.textContent=`COMPLETADO · ${completedFiles.length} MP4 EN ZIP`;
     }catch(e){
-      console.error('[V79 LOTE]',e);
-      if(txt) txt.textContent='ERROR DE LOTE: '+(e?.message||e);
+      console.error('[V82 LOTE]',e);
+      if(txt)txt.textContent='ERROR: '+(e?.message||e);
       alert('Error de render: '+(e?.message||e));
     }finally{
-      engines.forEach(destroyEngine);
-      ICW.engines=[];
       window._ffmpegBatchActive=false;
       window._batchGenerating=false;
       window.renderCola?.(true);
@@ -1808,7 +1604,7 @@ window.getTTS = getTTS;
   setTimeout(installWasmButton,3200);
   setTimeout(()=>{
     const t=document.getElementById('renderText'); if(t && /60fps/i.test(t.textContent||'')) t.textContent='RENDER FFMPEG 30 FPS';
-    console.log('[ICECREAM V81] 2 motores FFmpeg persistentes instalados');
+    console.log('[ICECREAM V82] 2 motores FFmpeg persistentes instalados');
   },3400);
 })();
 
