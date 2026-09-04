@@ -5,7 +5,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>V84 Ice Cream Digital-Video</title>
+<title>V85 Ice Cream Digital-Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070709">
@@ -648,7 +648,7 @@ function queueDownload(url,name){
   next();
 }
 window.safeDownload=safeDownload; window.queueDownload=queueDownload; window.renderCola=renderCola; window.calcDurInfo=calcDurInfo; window.getA=getA; window.sanitizar=sanitizar;
-setActive(1);renderCola(true);log('V84 RENDER FINAL REAL + VOZ + TITULOS - lista');
+setActive(1);renderCola(true);log('V85 ZOOM 10% + RENDER FINAL REAL - lista');
 </script>
 
 <script>
@@ -1431,7 +1431,8 @@ window.getTTS = getTTS;
       if(info.useLoop)args.push('-stream_loop','-1');
       args.push('-i',inV,'-i',inA);
       const rate=Math.max(.05,Number(info.rate)||1);
-      let vf=`setpts=PTS/${rate.toFixed(6)},scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,fps=30`;
+      // V85: zoom 10% centrado para sacar marcas pegadas a bordes superior/inferior.
+      let vf=`setpts=PTS/${rate.toFixed(6)},scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,scale=792:1408,crop=720:1280:36:64,fps=30`;
       if(useSubs)vf+=`,subtitles=${ass}:fontsdir=.`;
       args.push('-filter_complex',`[0:v]${vf}[v];[1:a]aresample=48000[a]`,
         '-map','[v]','-map','[a]','-t',Number(total).toFixed(3),
@@ -1530,7 +1531,7 @@ window.getTTS = getTTS;
           if(row){row.style.borderColor='#22c55e';row.lastChild.textContent='LISTO';}
         }catch(e){
           failed++;q.status='error';
-          console.error('[V84 SLOT '+q.id+']',e);
+          console.error('[V85 SLOT '+q.id+']',e);
           if(row){row.style.borderColor='#ef4444';row.lastChild.textContent='ERROR';}
         }
 
@@ -1564,7 +1565,7 @@ window.getTTS = getTTS;
       if(sub)sub.textContent=`${completedFiles.length} LISTOS${failed?` · ${failed} ERROR${failed===1?'':'ES'}`:''}`;
       if(txt)txt.textContent=`COMPLETADO · ${completedFiles.length} MP4 EN ZIP`;
     }catch(e){
-      console.error('[V84 LOTE]',e);
+      console.error('[V85 LOTE]',e);
       if(txt)txt.textContent='ERROR: '+(e?.message||e);
       alert('Error de render: '+(e?.message||e));
     }finally{
@@ -1645,7 +1646,7 @@ window.getTTS = getTTS;
   setTimeout(installWasmButton,3200);
   setTimeout(()=>{
     const t=document.getElementById('renderText'); if(t && /60fps/i.test(t.textContent||'')) t.textContent='RENDER FFMPEG 30 FPS';
-    console.log('[ICECREAM V84] 2 motores FFmpeg persistentes instalados');
+    console.log('[ICECREAM V85] 2 motores FFmpeg persistentes instalados');
   },3400);
 })();
 
