@@ -90,6 +90,25 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
 #musicaFondoBar{display:none!important} /* ocultado por peticion original - se mantiene logica interna */
 #btnRenderSingle, #btnKokoroGen{display:none!important}
 #kokoroSpeed{display:none!important}
+
+/* ===== ADMIN V2 ===== */
+.adminStats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 16px}
+.adminStat{background:#111114;border:1px solid #24242a;border-radius:12px;padding:12px 14px}
+.adminStat .n{font-size:22px;font-weight:900;color:#fff;line-height:1}
+.adminStat .l{font-size:10px;color:#777;margin-top:6px;text-transform:uppercase;letter-spacing:.7px}
+.adminToolbar{display:grid;grid-template-columns:1fr 180px auto;gap:10px;margin-bottom:12px}
+.adminSearch,.adminSelect,.adminMiniInput{background:#0a0a0c;border:1px solid #2a2a30;color:#fff;border-radius:9px;padding:9px 10px;font-size:11px;outline:none}
+.adminSearch:focus,.adminSelect:focus,.adminMiniInput:focus{border-color:#FFEB00}
+.adminUserRow{display:grid;grid-template-columns:1.2fr .75fr .8fr 1.7fr;gap:12px;padding:14px;border:1px solid #222;border-radius:12px;background:#141415;margin-bottom:10px;align-items:center}
+.adminActions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:flex-start}
+.adminRenewBox{display:flex;gap:6px;align-items:center;background:#0d0d10;border:1px solid #24242a;padding:5px;border-radius:9px}
+.adminRenewBox input{width:62px;background:transparent;border:0;color:#fff;padding:5px;font-size:11px;outline:none}
+.adminRenewBox select{background:#17171b;border:0;color:#fff;padding:5px;border-radius:6px;font-size:10px;outline:none}
+.adminActionBtn{border:0;padding:7px 9px;border-radius:8px;font-size:10px;font-weight:900;cursor:pointer;white-space:nowrap}
+.adminActionBtn.yellow{background:#FFEB00;color:#000}.adminActionBtn.gray{background:#232329;color:#fff}.adminActionBtn.green{background:#15331d;color:#63e684}.adminActionBtn.red{background:#321717;color:#ff7373}
+.adminMuted{color:#666;font-size:10px}.adminStrong{color:#fff;font-size:13px;font-weight:800}
+@media(max-width:900px){.adminStats{grid-template-columns:repeat(2,1fr)}.adminToolbar{grid-template-columns:1fr}.adminUserRow{grid-template-columns:1fr}.adminActions{justify-content:flex-start}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
@@ -152,17 +171,34 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
     </div>
   </div>
   <div class="adminCard">
-    <div style="display:grid;grid-template-columns:1fr 1fr 140px auto;gap:10px;margin-bottom:18px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 150px 110px auto;gap:10px;margin-bottom:14px">
       <input id="newUser" class="authInput" placeholder="Nuevo usuario" />
       <input id="newPass" class="authInput" type="password" placeholder="Nueva contraseña" />
-      <input id="newDays" class="authInput" type="number" value="30" min="1" max="3650" placeholder="Días" title="Días de acceso para el nuevo usuario" />
+      <select id="newPlan" class="authInput" style="appearance:auto"><option value="starter">STARTER</option><option value="pro" selected>PRO</option><option value="agency">AGENCY</option></select>
+      <input id="newDays" class="authInput" type="number" value="30" min="1" max="3650" placeholder="Días" title="Días de acceso" />
       <button id="addUserBtn" class="authBtn" style="margin:0;padding:13px 18px">+ AGREGAR</button>
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="color:#888;font-size:11px">Usuarios conectados a la misma base de datos - Uso simultáneo ilimitado</div>
+
+    <div class="adminStats">
+      <div class="adminStat"><div class="n" id="statTotal">0</div><div class="l">Total</div></div>
+      <div class="adminStat"><div class="n" id="statActive">0</div><div class="l">Activos</div></div>
+      <div class="adminStat"><div class="n" id="statSoon">0</div><div class="l">Por vencer ≤ 3 días</div></div>
+      <div class="adminStat"><div class="n" id="statExpired">0</div><div class="l">Expirados</div></div>
+    </div>
+
+    <div class="adminToolbar">
+      <input id="adminSearch" class="adminSearch" placeholder="🔎 Buscar usuario..." />
+      <select id="adminFilter" class="adminSelect">
+        <option value="all">Todos</option>
+        <option value="active">Activos</option>
+        <option value="soon">Por vencer</option>
+        <option value="expired">Expirados</option>
+        <option value="disabled">Desactivados</option>
+      </select>
       <button id="refreshBtn" class="smallBtn">↻ Actualizar lista</button>
     </div>
-    <div style="display:grid;grid-template-columns:1.2fr 100px 110px 200px;gap:10px;padding:8px 10px;color:#555;font-size:10px;font-weight:800;letter-spacing:.8px">
+
+    <div style="display:grid;grid-template-columns:1.2fr .75fr .8fr 1.7fr;gap:10px;padding:8px 10px;color:#555;font-size:10px;font-weight:800;letter-spacing:.8px">
       <div>USUARIO</div><div>ESTADO</div><div>CREADO</div><div>ACCIONES</div>
     </div>
     <div id="usersList"></div>
@@ -1759,26 +1795,68 @@ window.IC_deleteUser=async function(username){
     checkApiStatus();
   }
 
+  let adminUsersCache=[];
+
+  function getUserMeta(u){
+    const now=Date.now();
+    const exp=u.expires_at?new Date(u.expires_at).getTime():null;
+    const diff=exp?Math.ceil((exp-now)/86400000):null;
+    let state='active', priority=3;
+    if(!u.is_active){state='disabled';priority=0;}
+    else if(diff!==null && diff<=0){state='expired';priority=1;}
+    else if(diff!==null && diff<=3){state='soon';priority=2;}
+    return {exp,diff,state,priority};
+  }
+
+  function updateAdminStats(users){
+    let active=0,soon=0,expired=0;
+    users.forEach(u=>{const m=getUserMeta(u);if(m.state==='active'||m.state==='soon')active++;if(m.state==='soon')soon++;if(m.state==='expired')expired++;});
+    const map={statTotal:users.length,statActive:active,statSoon:soon,statExpired:expired};
+    Object.entries(map).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=v;});
+  }
+
+  function renderAdminUsersFromCache(){
+    const list=document.getElementById('usersList'); if(!list) return;
+    const q=(document.getElementById('adminSearch')?.value||'').trim().toLowerCase();
+    const filter=document.getElementById('adminFilter')?.value||'all';
+    let users=adminUsersCache.slice();
+    users.sort((a,b)=>{const A=getUserMeta(a),B=getUserMeta(b);if(A.priority!==B.priority)return A.priority-B.priority;return (A.diff??99999)-(B.diff??99999);});
+    users=users.filter(u=>{const m=getUserMeta(u);return (!q||String(u.username).toLowerCase().includes(q))&&(filter==='all'||m.state===filter);});
+    if(!users.length){list.innerHTML='<div style="padding:24px;color:#666;text-align:center">No hay usuarios que coincidan con el filtro.</div>';return;}
+    list.innerHTML='';
+    users.forEach(u=>{
+      const m=getUserMeta(u), exp=u.expires_at?new Date(u.expires_at):null;
+      let badge='',txt='';
+      if(m.state==='disabled'){badge='<span style="background:#222;color:#aaa;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">DESACTIVADO</span>';txt=exp?'Expira '+exp.toLocaleDateString():'Sin fecha';}
+      else if(m.state==='expired'){badge='<span style="background:#2a1111;color:#ff6b6b;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">EXPIRADO</span>';txt='Expiró '+exp.toLocaleDateString();}
+      else if(m.state==='soon'){badge='<span style="background:#2a2211;color:#ffb020;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+m.diff+' días ⚠️</span>';txt='Expira '+exp.toLocaleDateString();}
+      else {badge='<span style="background:#0f2a15;color:#4ade80;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+(m.diff===null?'ACTIVO':m.diff+' días')+'</span>';txt=exp?'Expira '+exp.toLocaleDateString():'Sin fecha';}
+
+      const row=document.createElement('div'); row.className='adminUserRow';
+      const left=document.createElement('div'); left.innerHTML='<div class="adminStrong"></div><div class="adminMuted" style="margin-top:4px"></div><div class="adminMuted" style="margin-top:3px"></div>'; left.children[0].textContent=u.username; left.children[1].textContent=(u.plan||'pro').toUpperCase()+' • '+(u.plan_days||30)+' días asignados'; left.children[2].textContent=txt;
+      const mid=document.createElement('div'); mid.innerHTML=badge;
+      const created=document.createElement('div'); created.className='adminMuted'; created.textContent=u.created_at?new Date(u.created_at).toLocaleDateString():'—';
+      const actions=document.createElement('div'); actions.className='adminActions';
+
+      const renew=document.createElement('div'); renew.className='adminRenewBox';
+      const plan=document.createElement('select'); ['starter','pro','agency'].forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x.toUpperCase();if((u.plan||'pro')===x)o.selected=true;plan.appendChild(o);});
+      const days=document.createElement('input'); days.type='number'; days.min='1'; days.max='3650'; days.value='30'; days.title='Días a asignar desde hoy';
+      const rbtn=document.createElement('button'); rbtn.className='adminActionBtn yellow'; rbtn.textContent='Renovar';
+      rbtn.onclick=async()=>{const d=parseInt(days.value)||30;if(d<1||d>3650){alert('Los días deben estar entre 1 y 3650');return;}rbtn.disabled=true;rbtn.textContent='...';try{await apiCall('/api/users/'+encodeURIComponent(u.username),{method:'PATCH',body:JSON.stringify({plan:plan.value,renew_days:d,plan_days:d,is_active:true})});await window.renderUsers();}catch(e){alert(e.message);}finally{rbtn.disabled=false;rbtn.textContent='Renovar';}};
+      renew.append(plan,days,rbtn);
+
+      const toggle=document.createElement('button'); toggle.className='adminActionBtn '+(u.is_active?'gray':'green'); toggle.textContent=u.is_active?'Desactivar':'Activar'; toggle.onclick=async()=>{try{await apiCall('/api/users/'+encodeURIComponent(u.username),{method:'PATCH',body:JSON.stringify({is_active:!u.is_active})});await window.renderUsers();}catch(e){alert(e.message);}};
+      const key=document.createElement('button'); key.className='adminActionBtn gray'; key.textContent='Clave'; key.onclick=()=>window.IC_changePassword(u.username);
+      const del=document.createElement('button'); del.className='adminActionBtn red'; del.textContent='Eliminar'; del.onclick=()=>window.IC_deleteUser(u.username);
+      actions.append(renew,toggle,key,del); row.append(left,mid,created,actions); list.appendChild(row);
+    });
+  }
+
   window.renderUsers=async function(){
     const list=document.getElementById('usersList'); if(!list) return;
     list.innerHTML='<div style="padding:20px;color:#888;text-align:center">Cargando usuarios...</div>';
-    try{
-      const data=await apiCall('/api/users',{method:'GET'}); const users=data.users||[];
-      if(!users.length){list.innerHTML='<div style="padding:20px;color:#666">No hay usuarios</div>';return;}
-      list.innerHTML='';
-      users.forEach(u=>{
-        const exp=u.expires_at?new Date(u.expires_at):null, now=new Date(); let badge='<span style="color:#666;font-size:10px">Sin fecha</span>',txt='';
-        if(exp){ const diff=Math.ceil((exp-now)/86400000); if(diff<=0){badge='<span style="background:#2a1111;color:#ff6b6b;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">EXPIRADO</span>';txt='Expiró '+exp.toLocaleDateString();} else if(diff<=3){badge='<span style="background:#2a2211;color:#ffb020;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días ⚠️</span>';txt='Expira '+exp.toLocaleDateString();} else {badge='<span style="background:#0f2a15;color:#4ade80;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+diff+' días</span>';txt='Expira '+exp.toLocaleDateString();} }
-        const row=document.createElement('div'); row.style.cssText='display:grid;grid-template-columns:1.2fr 0.8fr 1.2fr;gap:12px;padding:16px;border:1px solid #222;border-radius:12px;background:#141415;margin-bottom:10px;align-items:center';
-        const left=document.createElement('div'); left.innerHTML='<b style="color:#fff;font-size:13px"></b><br><span style="color:#888;font-size:10px"></span><br><span style="color:#666;font-size:10px"></span>'; left.querySelector('b').textContent=u.username; left.querySelectorAll('span')[0].textContent=(u.plan||'pro')+' • '+(u.plan_days||30)+'d'; left.querySelectorAll('span')[1].textContent=txt;
-        const mid=document.createElement('div'); mid.innerHTML=badge;
-        const actions=document.createElement('div'); actions.style.cssText='display:flex;gap:6px;flex-wrap:wrap';
-        const b1=document.createElement('button'); b1.className='smallBtn'; b1.textContent='Clave'; b1.onclick=()=>window.IC_changePassword(u.username);
-        const b2=document.createElement('button'); b2.style.cssText='background:#FFEB00;border:0;color:#000;padding:6px 10px;border-radius:8px;font-size:11px;font-weight:900;cursor:pointer'; b2.textContent='Renovar'; b2.onclick=()=>window.IC_renew(u.username);
-        const b3=document.createElement('button'); b3.className='dangerBtn'; b3.textContent='X'; b3.onclick=()=>window.IC_deleteUser(u.username);
-        actions.append(b1,b2,b3); row.append(left,mid,actions); list.appendChild(row);
-      });
-    }catch(e){list.innerHTML='<div style="color:#ff6b6b">Error: '+e.message+'</div>';}
+    try{const data=await apiCall('/api/users',{method:'GET'});adminUsersCache=data.users||[];updateAdminStats(adminUsersCache);renderAdminUsersFromCache();}
+    catch(e){list.innerHTML='<div style="color:#ff6b6b">Error: '+e.message+'</div>';}
   };
 
   function fixAdmin(){
@@ -1786,7 +1864,7 @@ window.IC_deleteUser=async function(username){
     if(close&&!close.dataset.f){close.dataset.f='1';close.onclick=()=>panel.style.display='none';}
     if(logoutA&&!logoutA.dataset.f){logoutA.dataset.f='1';logoutA.onclick=()=>{clearSession();location.reload();};}
     if(refresh&&!refresh.dataset.f){refresh.dataset.f='1';refresh.onclick=()=>window.renderUsers();}
-    if(add&&!add.dataset.f){add.dataset.f='1';add.onclick=async()=>{const u=document.getElementById('newUser').value.trim(),p=document.getElementById('newPass').value.trim(),days=parseInt(document.getElementById('newDays').value)||30;if(!u||!p){alert('Usuario y clave');return;}if(days<1||days>3650){alert('Los días deben estar entre 1 y 3650');return;}try{await apiCall('/api/users',{method:'POST',body:JSON.stringify({username:u,password:p,plan:'pro',plan_days:days})});document.getElementById('newUser').value='';document.getElementById('newPass').value='';document.getElementById('newDays').value='30';window.renderUsers();}catch(e){alert(e.message);}};}
+    if(add&&!add.dataset.f){add.dataset.f='1';add.onclick=async()=>{const u=document.getElementById('newUser').value.trim(),p=document.getElementById('newPass').value.trim(),days=parseInt(document.getElementById('newDays').value)||30,plan=document.getElementById('newPlan')?.value||'pro';if(!u||!p){alert('Usuario y clave');return;}if(days<1||days>3650){alert('Los días deben estar entre 1 y 3650');return;}try{await apiCall('/api/users',{method:'POST',body:JSON.stringify({username:u,password:p,plan,plan_days:days})});document.getElementById('newUser').value='';document.getElementById('newPass').value='';document.getElementById('newDays').value='30';window.renderUsers();}catch(e){alert(e.message);}};} const search=document.getElementById('adminSearch'),filter=document.getElementById('adminFilter');if(search&&!search.dataset.f){search.dataset.f='1';search.addEventListener('input',renderAdminUsersFromCache);}if(filter&&!filter.dataset.f){filter.dataset.f='1';filter.addEventListener('change',renderAdminUsersFromCache);}
     const sess=getSession();
     if(sess&&sess.username){
       const bar=document.getElementById('user-session-bar'); if(bar){bar.style.display='flex';document.getElementById('sess-user').textContent=sess.username+(sess.isAdmin?' (Admin)':'');const daysEl=document.getElementById('sess-days');if(sess.isAdmin){daysEl.textContent='ILIMITADO ♾️';daysEl.style.color='#FFD60A';}else if(sess.expires_at){const diff=Math.ceil((new Date(sess.expires_at)-new Date())/86400000);daysEl.textContent=diff>0?diff+' días':'EXPIRADO';}document.getElementById('sess-logout').onclick=()=>{clearSession();location.reload();};}
