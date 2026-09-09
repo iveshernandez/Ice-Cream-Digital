@@ -337,7 +337,7 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
 <div id="perfMon" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:rgba(8,8,10,0.92);border:1px solid #222;border-radius:14px;padding:10px;min-width:200px;font-family:sans-serif"><div style="font-size:8px;color:#FFEB00;font-weight:900">⚡ V60 60FPS CLEAN</div><div style="font-size:9px;color:#999;margin-top:6px">Voces: <b id="mVoices">0</b>/6 | Videos: <b id="mVideos">0</b>/6 | RAM: <b id="mRam">--</b></div></div>
 
 <div style="position:fixed;bottom:12px;left:14px;z-index:100;font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-size:11px;color:#aaa;background:rgba(20,20,24,0.85);border:1px solid #222;padding:6px 10px;border-radius:8px;backdrop-filter:blur(4px);pointer-events:none;letter-spacing:0.2px">
-Nunca fui yo, siempre fue Dios. La groria y honra sea para El....
+Nunca fui yo, siempre fue Dios. La gloria y la honra sean para Él…
 </div>
 
 <script>
@@ -1806,8 +1806,8 @@ function startAccountAutoSync(){
   // Consulta inmediatamente al abrir/recargar.
   setTimeout(()=>syncCurrentAccount({silent:true}), 800);
 
-  // Luego sincroniza cada 60 segundos.
-  setInterval(()=>syncCurrentAccount({silent:true}), 60000);
+  // Luego sincroniza cada 3 minutos.
+  setInterval(()=>syncCurrentAccount({silent:true}), 180000);
 
   // Si el usuario vuelve a la pestaña, sincroniza al instante.
   document.addEventListener('visibilitychange', ()=>{
