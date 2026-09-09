@@ -1745,6 +1745,82 @@ async function apiCall(path, options={}){
   if(!res.ok){ const e=new Error(data.error||('Error HTTP '+res.status)); e.data=data; e.status=res.status; throw e; }
   return data;
 }
+
+// V2.1 - Sincronización automática de cuenta con Cloudflare D1
+let IC_accountSyncBusy = false;
+
+async function syncCurrentAccount({silent=true} = {}){
+  const sess = getSession();
+  if(!sess || !sess.username || !sess.token || IC_accountSyncBusy) return;
+
+  IC_accountSyncBusy = true;
+  try{
+    const data = await apiCall('/api/me', {method:'GET'});
+    if(!data || !data.user) return;
+
+    const u = data.user;
+    const updated = {
+      ...sess,
+      username: u.username || sess.username,
+      isAdmin: !!u.isAdmin,
+      expires_at: u.expires_at || null,
+      plan: u.plan || sess.plan || null,
+      plan_days: u.plan_days ?? sess.plan_days ?? null,
+      is_active: typeof u.is_active === 'boolean' ? u.is_active : true,
+      last_sync: Date.now()
+    };
+
+    saveSession(updated);
+
+    // Actualiza la barra de sesión inmediatamente, sin recargar la página.
+    const userEl = document.getElementById('sess-user');
+    const daysEl = document.getElementById('sess-days');
+    if(userEl) userEl.textContent = updated.username + (updated.isAdmin ? ' (Admin)' : '');
+
+    if(daysEl){
+      if(updated.isAdmin){
+        daysEl.textContent = 'ILIMITADO ♾️';
+        daysEl.style.color = '#FFD60A';
+      }else if(updated.expires_at){
+        const diff = Math.ceil((new Date(updated.expires_at) - new Date()) / 86400000);
+        daysEl.textContent = diff > 0 ? diff + ' días' : 'EXPIRADO';
+        daysEl.style.color = diff > 3 ? '#4ade80' : (diff > 0 ? '#ffb020' : '#ff6b6b');
+      }else{
+        daysEl.textContent = '';
+      }
+    }
+  }catch(e){
+    // Solo forzamos salida cuando el servidor confirma que la sesión/acceso ya no es válido.
+    if(e && (e.status === 401 || e.status === 403)){
+      clearSession();
+      if(!silent) alert('Tu acceso ya no está activo. Inicia sesión nuevamente.');
+      location.reload();
+    }
+    // Si solo hay un problema temporal de internet/Worker, mantenemos la sesión y reintentamos luego.
+  }finally{
+    IC_accountSyncBusy = false;
+  }
+}
+
+function startAccountAutoSync(){
+  // Consulta inmediatamente al abrir/recargar.
+  setTimeout(()=>syncCurrentAccount({silent:true}), 800);
+
+  // Luego sincroniza cada 60 segundos.
+  setInterval(()=>syncCurrentAccount({silent:true}), 60000);
+
+  // Si el usuario vuelve a la pestaña, sincroniza al instante.
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'visible'){
+      syncCurrentAccount({silent:true});
+    }
+  });
+
+  // También sincroniza cuando la ventana recupera el foco.
+  window.addEventListener('focus', ()=>syncCurrentAccount({silent:true}));
+}
+startAccountAutoSync();
+
 async function checkApiStatus(){
   const el=document.getElementById('apiStatus'); if(!el) return;
   const base=getApiBase();
@@ -1760,7 +1836,7 @@ async function doLogin(u,p){
   try{
     show('Conectando...');
     const data=await apiCall('/api/login',{method:'POST',body:JSON.stringify({username:u,password:p})});
-    saveSession({username:data.user.username,isAdmin:!!data.user.isAdmin,expires_at:data.user.expires_at||null,token:data.token,ts:Date.now()});
+    saveSession({username:data.user.username,isAdmin:!!data.user.isAdmin,expires_at:data.user.expires_at||null,plan:data.user.plan||null,plan_days:data.user.plan_days??null,is_active:typeof data.user.is_active==='boolean'?data.user.is_active:true,token:data.token,ts:Date.now(),last_sync:Date.now()});
     location.reload();
   }catch(e){
     if(e.data&&e.data.expired){
