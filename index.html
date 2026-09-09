@@ -1727,7 +1727,7 @@ function setApiBase(v){
 function ensureApiBase(){
   let v=getApiBase();
   if(!v){
-    v=prompt('Pega la URL de tu Cloudflare Worker. Ejemplo:\nhttps://icecream-digital-api.TUUSUARIO.workers.dev')||'';
+    v="https://icecream-digital-api.iveshernandez1997.workers.dev"||'';
     v=setApiBase(v);
   }
   return v;
