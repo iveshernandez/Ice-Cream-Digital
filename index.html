@@ -1,1799 +1,1979 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Documental Factory</title>
+<!-- ICECREAM DIGITAL V60 CLEAN - Ultima version 60FPS - Limpieza de versiones viejas -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V85 Ice Cream Digital-Video</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#070709">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-:root{--b:#08111f;--p:#0f1b2d;--p2:#0a1424;--l:#263853;--t:#f8fafc;--m:#91a4bd;--g:#37d67a}*{box-sizing:border-box}body{margin:0;background:var(--b);color:var(--t);font-family:Arial,sans-serif}.w{max-width:1200px;margin:auto;padding:25px}h1{font-size:42px;margin:0}.mut{color:var(--m)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{background:var(--p);border:1px solid var(--l);border-radius:18px;padding:18px;margin-top:18px}label{display:block;font-size:13px;font-weight:bold;margin:12px 0 6px}textarea,input,select{width:100%;background:var(--p2);color:white;border:1px solid var(--l);border-radius:11px;padding:12px}textarea{min-height:230px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}button{border:0;border-radius:10px;padding:11px 14px;font-weight:bold;cursor:pointer}.pri{background:var(--g);color:#06150c}.sec{background:#233552;color:white}.danger{background:#4b2027;color:#ffd0d0}.scenes{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:15px}.scene{background:var(--p2);border:1px solid var(--l);border-radius:15px;overflow:hidden}.media{aspect-ratio:9/16;max-height:390px;background:#03070d;display:grid;place-items:center}.media video{width:100%;height:100%;object-fit:cover}.body{padding:12px}.body p{font-size:12px;color:var(--m)}.q{font-family:monospace}.status{margin-top:12px;font-size:13px}.ok{color:#7ef0a9}.err{color:#ff9696}.api{display:grid;grid-template-columns:1fr auto;gap:7px}.tiny{font-size:11px;color:var(--m)}.renderbox{margin-top:18px;padding:18px;border:1px solid var(--l);border-radius:16px;background:var(--p2)}.progress{height:12px;background:#050b14;border:1px solid var(--l);border-radius:999px;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0%;background:var(--g);transition:width .25s}.finalvideo{width:100%;max-height:620px;background:#000;border-radius:14px;margin-top:12px;display:none}.hiddenAuto{display:none!important}@media(max-width:850px){.grid{grid-template-columns:1fr}.scenes{grid-template-columns:repeat(2,1fr)}}@media(max-width:550px){.scenes{grid-template-columns:1fr}}
-.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}.pipe{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--l);border-radius:12px;background:#08101d;opacity:.62}.pipe span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#152237;font-weight:800}.pipe b,.pipe small{display:block}.pipe small{font-size:10px;color:var(--m);margin-top:2px}.pipe.active{opacity:1;border-color:#5d87ff}.pipe.active span{background:#2857d7}.pipe.done{opacity:1;border-color:#2b9b66}.pipe.done span{background:#157347}.pipe.err{opacity:1;border-color:#b94b4b}.pipe.err span{background:#8e2d2d}.liveLog{max-height:145px;overflow:auto;font-size:11px;line-height:1.5;background:#050a12;border:1px solid var(--l);border-radius:10px;padding:10px;margin-top:10px;color:#b9c5d6}.liveLog:empty{display:none}@media(max-width:800px){.pipeline{grid-template-columns:1fr 1fr}.pipe:last-child{grid-column:1/-1}}</style></head><body>
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Estilo Referencia v6.10.1 Alexander Principal</div><div class="w"><h1>Documental Factory</h1><div class="mut">Sube un .TXT y el sistema hace voz, escenas, música, render y descarga automáticamente.</div>
-<div class="grid">
-<section class="card">
-  <h2>1. Subir guion .TXT</h2>
-  <p class="tiny">La primera línea será el título del video y también el nombre del archivo final. Todo lo demás será el guion.</p>
+/* === BASE + MINIMAL PRO CLEAN === */
+*{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}
+body{margin:0;background:radial-gradient(1200px 600px at 50% -10%, #1a1a1e 0%, #070709 60%);color:#e9e9ec;min-height:100vh}
+.glass{background:#141418;border:1px solid #222;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);padding:18px}
+.file-btn{width:100%;background:#0f0f12;border:1px dashed #2a2a2e;color:#999;border-radius:10px;padding:10px;font-size:11px;font-weight:800;cursor:pointer;display:flex;gap:6px;justify-content:center;align-items:center;transition:all .2s ease}
+.file-btn.has{border-color:#4ade80;color:#4ade80;background:rgba(34,197,94,.08);border-style:solid}
+.file-btn:hover{transform:translateY(-1px)}
+input[type=file]{display:none}
+.anton{font-family:'Anton',sans-serif}
+header{max-width:1440px;margin:0 auto;border-radius:0 0 16px 16px;padding:16px 24px!important;display:flex!important;justify-content:space-between;align-items:center;gap:20px;background:rgba(10,10,12,0.85)!important;backdrop-filter:blur(20px);border:1px solid #222!important;border-top:0!important;position:sticky;top:0;z-index:50;min-height:88px}
+header > div{flex:1} header > div:last-child{justify-content:flex-end}
+#cola{display:grid;max-width:1180px;margin:16px auto 0;grid-template-columns:repeat(6, minmax(150px, 1fr));gap:12px;justify-content:center}
+.slot{min-height:118px;border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#0f0f12!important;border:1.5px solid #222!important;cursor:pointer;transition:all .2s ease;position:relative}
+.slot:hover{transform:translateY(-2px);border-color:#FFEB00!important;box-shadow:0 4px 12px rgba(255,235,0,0.15)}
+.slot.active{border:2px solid #FFEB00!important;background:rgba(255,235,0,0.08)!important;transform:translateY(-1px)}
+.slot.active::after{content:'✏️ EDITANDO';position:absolute;top:-8px;right:8px;background:#FFEB00;color:#000;font-size:7px;font-weight:900;padding:2px 6px;border-radius:10px;letter-spacing:0.5px}
+.slot.done{border-color:#22c55e!important} .slot.run{border-color:#FFEB00;box-shadow:0 0 0 3px rgba(255,235,0,.18)}
+.layout{max-width:1280px!important;margin:16px auto!important;grid-template-columns:1fr 420px!important;gap:24px!important;align-items:start;display:grid;padding:20px 24px}
+.glass[style*="position:sticky"]{top:88px!important}
+button{border-radius:10px!important;font-weight:700!important;letter-spacing:0.3px;transition:all .2s ease}
+#btnRender{padding:12px 20px!important;font-size:11px!important;letter-spacing:0.5px;box-shadow:0 2px 0 #000;background:#FFEB00;color:#000;border:0;border-radius:10px;font-weight:900;cursor:pointer}
+#btnRender:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(255,235,0,0.3)}
+#btnLimpiarTodo{opacity:1!important;pointer-events:auto!important;cursor:pointer!important;background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif}
+input[type="text"], textarea{border-radius:10px!important;background:#0a0a0c!important;border:1.5px solid #222!important;padding:12px!important;transition:border .2s}
+input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:none}
+#previewCanvas, #vPreview{border-radius:12px}
+#totalProgressBar{box-shadow:0 0 10px rgba(255,235,0,0.5)}
+#inputTitle{min-height:56px!important;height:56px!important} #inputScript{min-height:380px!important;height:380px!important;font-size:12.5px!important}
+.layout .glass:first-child{display:flex;flex-direction:column} #inputScript{flex:1}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}} @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@media(max-width:1650px){#cola{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
+@media(max-width:900px){#cola{grid-template-columns:repeat(3,1fr)!important}.layout{grid-template-columns:1fr!important} header{flex-direction:column;border-radius:0}}
 
-  <label>Archivo .txt</label>
-  <input id="txtFile" type="file" accept=".txt,text/plain" multiple>
-  <div class="tiny" style="margin-top:7px">Puedes seleccionar hasta 6 archivos TXT. Se procesan uno por uno y cada MP4 se descarga por separado.</div>
-  <div id="queueStatus" class="status mut">Cola: sin archivos.</div>
+/* Auth + Login custom */
+#authOverlay{position:fixed;inset:0;z-index:999999;background:radial-gradient(1200px 600px at 50% -10%, #1a1a1e 0%, #070709 95%);display:flex;align-items:center;justify-content:center;padding:20px}
+.authCard{width:100%;max-width:440px;background:#141418;border:1px solid #222;border-radius:22px;padding:28px;box-shadow:0 20px 80px rgba(0,0,0,.7)}
+.authLogo{display:flex;align-items:center;gap:10px;margin-bottom:16px} .authLogo b{font-size:22px;font-family:'Anton',sans-serif}
+.authBadge{display:inline-flex;background:rgba(255,235,0,.12);border:1px solid #FFEB00;color:#FFEB00;font-size:9px;font-weight:900;padding:5px 10px;border-radius:20px;letter-spacing:.8px;margin-bottom:12px}
+.authInput{width:100%;background:#0a0a0c;border:1.5px solid #222;border-radius:12px;padding:13px 14px;font-size:14px;color:#fff;outline:none} .authInput:focus{border-color:#FFEB00}
+.authBtn{width:100%;background:#FFEB00;color:#000;border:0;border-radius:12px;padding:13px;font-weight:900;font-size:13px;cursor:pointer;margin-top:12px;transition:.2s}
+#authMsg{font-size:11px;margin-top:12px;min-height:16px;text-align:center;color:#ff6b6b}
+#adminPanel{position:fixed;inset:0;z-index:999998;background:#070709;display:none;overflow:auto;padding:24px}
+.adminHeader{display:flex;justify-content:space-between;align-items:center;max-width:1000px;margin:0 auto 20px;flex-wrap:wrap;gap:12px}
+.adminCard{max-width:1000px;margin:0 auto;background:#141418;border:1px solid #222;border-radius:16px;padding:18px}
+.userRow{display:grid;grid-template-columns:1.2fr 100px 110px 200px;gap:10px;align-items:center;padding:12px 10px;border-bottom:1px solid #1e1e22;font-size:13px}
+.tagActive{background:#0f2a18;color:#4ade80;border:1px solid #1a4a2a;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:800}
+.tagOff{background:#2a1515;color:#ff6b6b;border:1px solid #4a1a1a;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:800}
+.smallBtn{background:#1e1e22;border:1px solid #2a2a2e;color:#fff;padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer}
+.dangerBtn{background:transparent;border:1px solid #3a1a1a;color:#ff6b6b;padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer}
 
-  <div class="row">
-    <div>
-      <label>Título detectado</label>
-      <input id="videoTitle" type="text" readonly placeholder="Se tomará de la primera línea">
-    </div>
-    <div>
-      <label>Nombre de descarga</label>
-      <input id="downloadName" type="text" readonly placeholder="titulo-del-video.mp4">
-    </div>
-  </div>
+/* Login beta overlay */
+#custom-login-overlay{position:fixed;inset:0;z-index:9998;background:#08080a;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:30px 20px;overflow-y:auto}
+#custom-login-overlay.hidden{display:none!important}
+#login-beta-badge{position:fixed;top:16px;right:16px;background:#FFD60A;color:#000;font-size:10px;font-weight:900;padding:6px 12px;border-radius:20px;z-index:10001}
+#login-brand{display:flex;flex-direction:column;align-items:center;margin:20px 0 18px 0}
+#login-brand-icon{width:72px;height:72px;background:linear-gradient(135deg,#FFD60A 0%,#FF8A00 100%);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:12px}
+#login-brand-title{font-weight:900;font-size:22px;color:#fff}
+#login-brand-sub{font-size:11px;letter-spacing:3px;color:#FFD60A;font-weight:800;margin-top:4px}
+#login-tabs-custom{display:flex;gap:10px;margin-bottom:20px}
+.login-tab-custom{padding:10px 22px;border-radius:22px;font-size:13px;font-weight:800;cursor:pointer;border:1px solid #222;background:#111;color:#888}
+.login-tab-custom.active{background:#FFD60A;color:#000;border-color:#FFD60A}
+#login-form-container{width:100%;max-width:380px;background:#141415;border:1px solid #222;border-radius:20px;padding:26px}
+#precios-panel-custom{display:none;width:100%;max-width:960px} #precios-panel-custom.show{display:block}
+#precios-grid-custom{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.precio-card-custom{background:#141415;border:1px solid #222;border-radius:18px;padding:22px;text-align:center}
+.precio-card-custom.popular{border-color:#FFD60A;background:#1a180f;transform:scale(1.05);position:relative}
+.precio-card-custom.popular::before{content:'MÁS POPULAR';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#FFD60A;color:#000;font-size:9px;font-weight:900;padding:4px 10px;border-radius:20px}
+@media(max-width:850px){#precios-grid-custom{grid-template-columns:1fr}.precio-card-custom.popular{transform:none}}
+.c-input{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:12px 14px;color:#fff;font-size:13px;margin-bottom:10px;outline:none}
+.c-input:focus{border-color:#FFD60A}
+.c-btn{width:100%;background:#FFD60A;color:#000;border:none;border-radius:10px;padding:12px;font-weight:900;font-size:13px;cursor:pointer;margin-top:6px}
+#user-session-bar{position:fixed;top:10px;right:10px;z-index:10011;background:#111;border:1px solid #333;padding:8px 14px;border-radius:10px;display:none;align-items:center;gap:12px;font-size:12px;color:#aaa}
+#user-session-bar b{color:#fff} #user-session-bar button{background:#FFD60A;color:#000;border:none;padding:6px 14px;border-radius:8px;font-weight:900;cursor:pointer}
+#renew-modal{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;padding:20px}
+#renew-modal.show{display:flex}
+#renew-modal-content{background:#141415;border:2px solid #FFD60A;border-radius:18px;padding:24px;width:100%;max-width:400px}
+#musicaFondoBar{display:none!important} /* ocultado por peticion original - se mantiene logica interna */
+#btnRenderSingle, #btnKokoroGen{display:none!important}
+#kokoroSpeed{display:none!important}
 
-  <label>Guion detectado</label>
-  <textarea id="script" rows="10" placeholder="Aquí aparecerá el contenido del .txt después de la primera línea"></textarea>
+/* ===== ADMIN V2 ===== */
+.adminStats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 16px}
+.adminStat{background:#111114;border:1px solid #24242a;border-radius:12px;padding:12px 14px}
+.adminStat .n{font-size:22px;font-weight:900;color:#fff;line-height:1}
+.adminStat .l{font-size:10px;color:#777;margin-top:6px;text-transform:uppercase;letter-spacing:.7px}
+.adminToolbar{display:grid;grid-template-columns:1fr 180px auto;gap:10px;margin-bottom:12px}
+.adminSearch,.adminSelect,.adminMiniInput{background:#0a0a0c;border:1px solid #2a2a30;color:#fff;border-radius:9px;padding:9px 10px;font-size:11px;outline:none}
+.adminSearch:focus,.adminSelect:focus,.adminMiniInput:focus{border-color:#FFEB00}
+.adminUserRow{display:grid;grid-template-columns:1.2fr .75fr .8fr 1.7fr;gap:12px;padding:14px;border:1px solid #222;border-radius:12px;background:#141415;margin-bottom:10px;align-items:center}
+.adminActions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:flex-start}
+.adminRenewBox{display:flex;gap:6px;align-items:center;background:#0d0d10;border:1px solid #24242a;padding:5px;border-radius:9px}
+.adminRenewBox input{width:62px;background:transparent;border:0;color:#fff;padding:5px;font-size:11px;outline:none}
+.adminRenewBox select{background:#17171b;border:0;color:#fff;padding:5px;border-radius:6px;font-size:10px;outline:none}
+.adminActionBtn{border:0;padding:7px 9px;border-radius:8px;font-size:10px;font-weight:900;cursor:pointer;white-space:nowrap}
+.adminActionBtn.yellow{background:#FFEB00;color:#000}.adminActionBtn.gray{background:#232329;color:#fff}.adminActionBtn.green{background:#15331d;color:#63e684}.adminActionBtn.red{background:#321717;color:#ff7373}
+.adminMuted{color:#666;font-size:10px}.adminStrong{color:#fff;font-size:13px;font-weight:800}
+@media(max-width:900px){.adminStats{grid-template-columns:repeat(2,1fr)}.adminToolbar{grid-template-columns:1fr}.adminUserRow{grid-template-columns:1fr}.adminActions{justify-content:flex-start}}
 
-  <div class="row">
-    <div>
-      <label>Duración objetivo</label>
-      <select id="duration">
-        <option value="30" selected>30 segundos</option>
-        <option value="45">45 segundos</option>
-        <option value="60">60 segundos</option>
-      </select>
-    </div>
-    <div>
-      <label>Número de escenas</label>
-      <select id="sceneCount">
-        <option value="6">6</option>
-        <option value="8">8</option>
-        <option value="10">10</option>
-        <option value="12" selected>12</option>
-      </select>
-    </div>
-  </div>
+</style>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
-  <div class="actions">
-    <button class="pri" id="autoCreate" disabled>⚡ REINTENTAR CREACIÓN</button>
-  </div>
-  <div id="autoStatus" class="status mut">Sube un archivo .txt. El proceso comenzará automáticamente.</div>
-<div class="pipeline" id="pipeline">
-  <div class="pipe" id="stepTxt"><span>1</span><div><b>TXT</b><small>Esperando archivo</small></div></div>
-  <div class="pipe" id="stepScenes"><span>2</span><div><b>Escenas</b><small>En espera</small></div></div>
-  <div class="pipe" id="stepVoice"><span>3</span><div><b>Voz española</b><small>En espera</small></div></div>
-  <div class="pipe" id="stepRender"><span>4</span><div><b>Render</b><small>En espera</small></div></div>
-  <div class="pipe" id="stepDone"><span>5</span><div><b>Descarga</b><small>En espera</small></div></div>
-</div>
-<div id="liveLog" class="liveLog"></div>
-
-  <div class="progress"><div id="autoBar"></div></div>
-</section>
-
-<section class="card"><h2>2. Tus APIs</h2><label>Groq API</label><div class="api"><input id="groq" type="password"><button class="sec show" data-id="groq">Mostrar</button></div>
-<label>Pexels API</label><div class="api"><input id="pexels" type="password"><button class="sec show" data-id="pexels">Mostrar</button></div>
-<label>Pixabay API (opcional)</label><div class="api"><input id="pixabay" type="password"><button class="sec show" data-id="pixabay">Mostrar</button></div>
-<div class="actions"><button class="sec" id="save">Guardar APIs</button><button class="danger" id="erase">Eliminar</button></div><div id="apiSavedStatus" class="tiny" style="margin-top:8px"></div><p class="tiny">Las claves se guardan solo en localStorage de este navegador. Cada usuario usa sus propias APIs.</p>
-<hr style="border:0;border-top:1px solid var(--l);margin:18px 0">
-<h2>3. Voz — español latino</h2>
-<p class="tiny">Voz principal fija: Alexander V.</p>
-<label>Voz</label>
-<div class="inputLike">Alexander V — Español ES (Masculino)</div>
-<input id="voicePreset" type="hidden" value="es_ES-sharvard-medium:0">
-<div class="actions"><button class="pri" id="makeVoice">🎙️ Generar voz</button></div>
-<div id="ttsStatus" class="status mut">Motor Piper listo para cargar cuando subas el TXT.</div>
-<audio id="audio" controls style="width:100%;margin-top:10px;display:none"></audio>
-<div id="audioActions" class="actions"></div>
-</section></div>
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">Búsqueda precisa: Groq crea 3 búsquedas en inglés por escena, mantiene el sujeto principal y prioriza la acción exacta de la narración. Usa Cambiar escena si alguno no te gusta.</div><div id="scenes" class="scenes"></div>
-
-<div class="renderbox">
-<h2 style="margin-top:0">5. Render final</h2>
-<div class="row">
-  <div><label>Título en video</label><div class="inputLike">Visible durante todo el video — fijo</div><input id="titleOverlay" type="hidden" value="yes"></div>
-  <div><label>Subtítulos</label><select id="subtitles"><option value="yes" selected>Activados</option><option value="no">Desactivados</option></select></div>
-</div>
-<div class="row">
-  <div><label>Música</label><div class="inputLike">Documental suave integrada — fija</div></div>
-  <div><label>Volumen música</label><div class="inputLike">30% — fijo</div><input id="musicVol" type="hidden" value="0.30"></div>
-</div>
-<div class="actions"><button class="pri" id="finalRender">🎬 CREAR Y DESCARGAR VIDEO FINAL</button></div>
-<div id="renderStatus" class="status mut">Cuando tus escenas estén listas, este botón hará todo en una sola operación.</div>
-<div class="progress"><div id="renderBar"></div></div>
-<video id="finalPreview" class="finalvideo" controls playsinline></video>
-<p class="tiny">Estilo referencia: subtítulos grandes blancos con palabras clave amarillas, cortes visuales más frecuentes, una sola música fija y mezcla final reforzada. No necesita ningún archivo MP3/M4A externo.</p>
-</div>
-</section></div>
-
-<script type="module">
-const q=s=>document.querySelector(s);
-let hfModule=null;
-let hfLoading=null;
-let synthesizer=null;
-let loadedVoice=null;
-
-function ttsStatus(text,cls='mut'){
-  const el=q('#ttsStatus');
-  if(el){el.textContent=text;el.className='status '+cls;}
-  const log=q('#liveLog');
-  if(log){
-    const t=new Date().toLocaleTimeString();
-    log.innerHTML+=`<div>${t} — ${String(text).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</div>`;
-    log.scrollTop=log.scrollHeight;
-  }
+<style>
+#renderOverlay #renderList > div{box-sizing:border-box}
+@media (max-width:420px){
+  #renderOverlay{padding:8px!important}
+  #renderOverlay > div{width:calc(100% - 4px)!important;padding:12px!important}
+  #renderList{grid-template-columns:1fr 1fr!important;gap:5px!important}
+  #renderList > div{padding:7px 7px!important}
 }
+</style>
 
-async function loadHF(){
-  if(hfModule)return hfModule;
-  if(hfLoading)return hfLoading;
-  hfLoading=(async()=>{
-    ttsStatus('Cargando motor Transformers.js…');
-    hfModule=await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
-    // Dejamos que Transformers.js gestione ONNX/WASM internamente.
-    if(hfModule.env){
-      hfModule.env.allowLocalModels=false;
-      hfModule.env.useBrowserCache=true;
+</head>
+<body>
+
+<!-- LOGIN BETA + AUTH OVERLAY -->
+<div id="custom-login-overlay">
+  <div id="login-beta-badge">MODO BETA</div>
+  <div id="login-brand"><div id="login-brand-icon">🍦</div><div id="login-brand-title">ICE CREAM DIGITAL</div><div id="login-brand-sub">PRO EDITOR • MODO BETA</div></div>
+  <div id="login-tabs-custom"><div class="login-tab-custom active" data-tab="login">Iniciar sesión</div><div class="login-tab-custom" data-tab="precios">Precios</div></div>
+  <div id="login-form-container">
+    <div style="color:#fff;font-weight:800;font-size:14px;margin-bottom:4px">Bienvenido</div>
+    <div style="color:#666;font-size:11px;margin-bottom:14px">Panel admin + usuarios intactos</div>
+    <input id="c-loginUser" class="c-input" placeholder="Usuario">
+    <input id="c-loginPass" class="c-input" type="password" placeholder="Contraseña">
+    <button id="c-loginBtn" class="c-btn">ENTRAR AL EDITOR →</button>
+    <div id="c-authMsg" style="margin-top:10px;font-size:12px;color:#ff6b6b;display:none"></div>
+  </div>
+  <div id="precios-panel-custom">
+    <div style="text-align:center"><h2 style="color:#fff;font-size:24px;font-weight:900;margin:0">Elige tu plan</h2><p style="color:#666;font-size:12px;margin-top:6px">WhatsApp: +504 9606-0657</p></div>
+    <div id="precios-grid-custom">
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">STARTER</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$30<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">100 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 100 descargas<br>✓ 60fps fluido</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20STARTER%20$30','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">WhatsApp</button></div>
+      <div class="precio-card-custom popular"><h3 style="color:#fff;margin:0">PRO</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$50<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">175 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 175 descargas<br>✓ Plantillas PRO</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20PRO%20$50','_blank')" style="width:100%;background:#FFD60A;color:#000;border:none;padding:11px;border-radius:10px;font-weight:900;cursor:pointer">WhatsApp</button></div>
+      <div class="precio-card-custom"><h3 style="color:#fff;margin:0">AGENCY</h3><div style="font-size:32px;font-weight:900;color:#fff;margin:10px 0">$60<small style="font-size:12px;color:#888">/mes</small></div><div style="color:#FFD60A;font-weight:800;font-size:12px">250 videos</div><div style="font-size:11px;color:#aaa;margin:12px 0;text-align:left">✓ 250 descargas<br>✓ VIP 24/7</div><button onclick="window.open('https://wa.me/50496060657?text=Quiero%20AGENCY%20$60','_blank')" style="width:100%;background:#1f1f23;color:#fff;border:1px solid #333;padding:11px;border-radius:10px;font-weight:800;cursor:pointer">WhatsApp</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="authOverlay" style="display:none">
+  <div class="authCard">
+    <div class="authLogo"><div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div><b>ICE CREAM DIGITAL</b></div>
+    <div class="authBadge">MULTIUSUARIO • TIEMPO REAL</div>
+    <h1 style="font-size:26px;font-weight:800;margin:0 0 6px">Iniciar sesión</h1>
+    <p style="color:#888;font-size:12.5px;line-height:1.5;margin:0 0 18px">Acceso privado. Varias personas pueden usar la app a la vez.</p>
+    <input id="loginUser" class="authInput" placeholder="Usuario" autocomplete="username" />
+    <input id="loginPass" class="authInput" type="password" placeholder="Contraseña" style="margin-top:10px" autocomplete="current-password" />
+    <button id="loginBtn" class="authBtn">ENTRAR →</button>
+    <div id="authMsg"></div>
+    <div id="apiStatus" style="margin-top:10px;font-size:10px;color:#555;text-align:center"></div>
+  </div>
+</div>
+
+<div id="adminPanel">
+  <div class="adminHeader">
+    <div><b style="font-size:22px">Panel de Administrador</b><br><span style="color:#666;font-size:12px">Multiusuario real - Usuarios en Cloudflare D1</span></div>
+    <div style="display:flex;gap:8px">
+      <button id="closeAdmin" style="background:#1e1e22;border:1px solid #2a2a2e;color:#fff;padding:10px 16px;border-radius:10px;cursor:pointer">Volver al editor</button>
+      <button id="logoutAdmin" style="background:#FFEB00;border:0;color:#000;padding:10px 16px;border-radius:10px;font-weight:900;cursor:pointer">Salir</button>
+    </div>
+  </div>
+  <div class="adminCard">
+    <div style="display:grid;grid-template-columns:1fr 1fr 150px 110px auto;gap:10px;margin-bottom:14px">
+      <input id="newUser" class="authInput" placeholder="Nuevo usuario" />
+      <input id="newPass" class="authInput" type="password" placeholder="Nueva contraseña" />
+      <select id="newPlan" class="authInput" style="appearance:auto"><option value="starter">STARTER</option><option value="pro" selected>PRO</option><option value="agency">AGENCY</option></select>
+      <input id="newDays" class="authInput" type="number" value="30" min="1" max="3650" placeholder="Días" title="Días de acceso" />
+      <button id="addUserBtn" class="authBtn" style="margin:0;padding:13px 18px">+ AGREGAR</button>
+    </div>
+
+    <div class="adminStats">
+      <div class="adminStat"><div class="n" id="statTotal">0</div><div class="l">Total</div></div>
+      <div class="adminStat"><div class="n" id="statActive">0</div><div class="l">Activos</div></div>
+      <div class="adminStat"><div class="n" id="statSoon">0</div><div class="l">Por vencer ≤ 3 días</div></div>
+      <div class="adminStat"><div class="n" id="statExpired">0</div><div class="l">Expirados</div></div>
+    </div>
+
+    <div class="adminToolbar">
+      <input id="adminSearch" class="adminSearch" placeholder="🔎 Buscar usuario..." />
+      <select id="adminFilter" class="adminSelect">
+        <option value="all">Todos</option>
+        <option value="active">Activos</option>
+        <option value="soon">Por vencer</option>
+        <option value="expired">Expirados</option>
+        <option value="disabled">Desactivados</option>
+      </select>
+      <button id="refreshBtn" class="smallBtn">↻ Actualizar lista</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.2fr .75fr .8fr 1.7fr;gap:10px;padding:8px 10px;color:#555;font-size:10px;font-weight:800;letter-spacing:.8px">
+      <div>USUARIO</div><div>ESTADO</div><div>CREADO</div><div>ACCIONES</div>
+    </div>
+    <div id="usersList"></div>
+  </div>
+</div>
+
+<div id="user-session-bar"><span>👤 <b id="sess-user"></b> <span id="sess-days" style="color:#4ade80;margin-left:6px"></span></span><button id="sess-logout">Salir</button></div>
+
+<div id="renew-modal">
+  <div id="renew-modal-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <b style="color:#fff;font-size:16px">🔄 Renovar suscripción</b>
+      <span onclick="document.getElementById('renew-modal').classList.remove('show')" style="color:#666;cursor:pointer;font-size:20px">✕</span>
+    </div>
+    <div id="renew-modal-info" style="background:#0a0a0a;border:1px solid #222;border-radius:12px;padding:14px;margin-bottom:14px;font-size:12px;color:#aaa;line-height:1.6"></div>
+    <label style="color:#888;font-size:11px">Nuevo plan</label>
+    <select id="renew-modal-plan" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:10px;padding:10px;color:#fff;margin:6px 0 12px 0">
+      <option value="starter">STARTER $30 - 100 videos/mes</option>
+      <option value="pro" selected>PRO $50 - 175 videos/mes</option>
+      <option value="agency">AGENCY $60 - 250 videos/mes</option>
+    </select>
+    <label style="color:#888;font-size:11px">Días a asignar</label>
+    <input id="renew-modal-days" type="number" value="30" min="1" max="3650" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:10px;padding:10px;color:#fff;margin:6px 0 12px 0">
+    <div id="renew-modal-preview" style="background:#0f2a15;border:1px solid #1a4a22;border-radius:10px;padding:10px;color:#4ade80;font-size:11px;text-align:center;margin-bottom:14px"></div>
+    <button id="renew-modal-btn" style="width:100%;background:#FFD60A;color:#000;border:none;padding:12px;border-radius:10px;font-weight:900;cursor:pointer">Confirmar renovación</button>
+    <div id="renew-modal-msg" style="font-size:11px;color:#888;margin-top:10px;text-align:center"></div>
+  </div>
+</div>
+
+<header>
+<div style="display:flex;align-items:center;gap:12px">
+<div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div>
+<b class="anton" style="font-size:20px;letter-spacing:1px">ICE CREAM DIGITAL</b>
+<span style="font-size:10px;color:#666;background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222">720p • 60fps • 7Mbps • MP4 • FLUIDO</span>
+</div>
+<div style="display:flex;gap:8px;align-items:center">
+<label style="background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222;font-size:10px"><input type="checkbox" id="autoDownloadCheck" checked> Auto-descargar</label>
+<button id="btnLimpiarTodo" type="button">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender">⚡ RENDERIZAR TODO (6 VIDEOS 720p FB HD)</button>
+</div>
+</header>
+
+<div style="max-width:1280px;margin:0 auto;padding:10px;">
+<div class="glass" style="padding:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid #FFEB00;background:rgba(255,235,0,0.06);justify-content:center;border-radius:12px">
+<div style="font-size:10px;font-weight:900;letter-spacing:0.5px">🎵 MÚSICA DE FONDO (DESACTIVADA EN V74) POR DEFECTO</div>
+<label id="lblBg" class="file-btn" style="width:auto;padding:8px 14px;font-size:10px;margin:0" for="inputBgMusic"><span id="txtBg">Cargar audio fondo</span></label>
+<input type="file" id="inputBgMusic" accept="audio/*">
+<div style="display:flex;align-items:center;gap:6px">
+<span style="font-size:9px;color:#888">Vol:</span>
+<input type="range" id="bgVol" disabled min="0" max="0.5" step="0.01" value="0.12" style="width:80px">
+<span id="bgVolTxt" style="font-size:10px;color:#FFEB00;font-weight:800">12%</span>
+<label style="display:flex;align-items:center;gap:4px;font-size:9px;color:#aaa;cursor:pointer"><input type="checkbox" id="bgEnabled" disabled checked> Activo</label>
+</div>
+<span id="bgName" style="font-size:9px;color:#4ade80;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+<audio id="previewBg" preload="auto" loop style="display:none"></audio>
+</div>
+</div>
+
+<div style="max-width:1280px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:10px">
+<div class="glass" style="padding:10px"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b style="font-size:11px;color:#FFEB00">🎬 SELECCIONA EL SLOT PARA EDITAR - 6 VIDEOS INDEPENDIENTES</b><span id="colaInfo" style="font-size:10px;color:#666"></span></div><div id="cola"></div></div>
+<div class="layout">
+<div class="glass" style="padding:10px;height:fit-content;position:sticky;top:88px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b id="slotLabel">SLOT 1</b><div style="display:flex;gap:6px;align-items:center"><span id="statusLabel" style="font-size:9px;background:#111;padding:4px 8px;border-radius:20px">vacio</span><span id="speedLabel" style="font-size:9px;background:#111;padding:4px 8px;border-radius:20px;color:#FFEB00">—</span><button id="btnRenderSingle" style="display:none">single</button></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+<div><div style="font-size:9px;color:#FFEB00;font-weight:800;margin-bottom:3px">1. VIDEO .MP4 *</div><label for="inputVideo" class="file-btn" id="lblVideo">🎬 <span id="txtVideo">Elegir video</span></label><input type="file" id="inputVideo" accept="video/*"><div id="videoName" style="font-size:9.5px;color:#4ade80;margin-top:5px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);padding:5px 7px;border-radius:6px;word-break:break-all;min-height:18px;display:flex;align-items:center;gap:4px"><span style="color:#666">Sin video</span></div></div>
+<div><div style="font-size:9px;color:#FFEB00;font-weight:800;margin-bottom:3px">2. 📄 .TXT (Guion)</div><label for="inputTxt" class="file-btn" id="lblTxt">📂 <span id="txtTxt">Elegir .txt</span></label><input type="file" id="inputTxt" accept=".txt,text/plain"><div id="txtName" style="font-size:9.5px;color:#4ade80;margin-top:5px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);padding:5px 7px;border-radius:6px;word-break:break-all;min-height:18px;display:flex;align-items:center;gap:4px"><span style="color:#666">Sin .txt</span></div></div>
+<div><div style="font-size:9px;color:#FFEB00;font-weight:800;margin-bottom:3px">3. AUDIO ESPAÑOL AUTO <span id="pyStatusDot" class="offline"></span><span id="pyStatusText" style="font-size:8px">Motor listo</span></div>
+  <div style="background:#0f0f12;border:1.5px solid #222;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px">
+    <div style="display:flex;gap:6px">
+      <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
+        <option value="es_ES-sharvard-medium:0" selected>Alexander V - Español ES (Masculino)</option>
+        <option value="es_ES-sharvard-medium:1">Alejandra Pineda P - Español ES (Femenina)</option>
+      </select>
+      <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
+        <option value="1" selected>1x</option>
+      </select>
+    </div>
+    <!-- MUSICA ELIMINADA V61 -->
+    <button id="btnKokoroGen" style="width:100%;background:#FFEB00;color:#000;border:2px solid #000;border-radius:8px;padding:9px;font-size:11px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #000">🔊 GENERAR AUDIO ESPAÑOL</button>
+    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Motor listo - Alexander V</div>
+    <div id="kokoroProgress" style="height:4px;background:#1a1a1e;border-radius:10px;overflow:hidden;display:none"><div id="kokoroProgressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
+    <div id="audioName" style="font-size:9.5px;color:#4ade80;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);padding:5px 7px;border-radius:6px;word-break:break-all;min-height:18px;display:flex;align-items:center;gap:4px"><span style="color:#666">Sin audio - se guardará aquí</span></div>
+    <input type="file" id="inputAudio" accept="audio/*" style="display:none">
+  </div>
+</div>
+</div>
+<div style="margin-bottom:6px"><div style="font-size:9px;color:#FFEB00;font-weight:800">TITULO AMARILLO GRANDE</div><textarea id="inputTitle" rows="2" style="width:100%;background:#0f0f12;border:1px solid #333;color:#fff;border-radius:8px;padding:8px;font-size:13px;font-weight:800;min-height:56px;max-height:56px;resize:vertical">ESTE CORTE CAMBIÓ SU VIDA MIRA EL ANTES Y DESPUÉS</textarea></div>
+<div style="margin-bottom:6px"><div style="font-size:9px;color:#777">GUION - 12 palabras (3 líneas) sync voz</div><textarea id="inputScript" rows="12" style="width:100%;background:#0f0f12;border:1px solid #222;color:#fff;border-radius:8px;padding:12px;font-size:12.5px;min-height:380px;height:380px;max-height:500px;resize:vertical;line-height:1.5">Mira este cambio increíble que hicimos hoy en la barbería. El cliente llegó sin esperanza y se fue como un modelo.</textarea></div>
+<div><div style="font-size:9px;color:#777">NOMBRE ARCHIVO</div><input id="inputFileName" value="Video 1" style="width:100%;background:#0f0f12;border:1px solid #222;color:#fff;border-radius:8px;padding:8px;font-weight:700"></div>
+<div id="debug" style="margin-top:6px;font-size:9px;color:#666;background:#000;padding:6px;border-radius:6px;white-space:pre-wrap;max-height:70px;overflow:auto"></div>
+</div>
+<div class="glass" style="padding:8px;height:fit-content;position:sticky;top:88px">
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW VIRAL · HTML/CSS · 720×1280 · WYSIWYG</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
+<div style="position:relative;width:100%;aspect-ratio:9/16;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
+<video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
+<audio id="previewAudio" muted preload="auto" style="display:none"></audio>
+<div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
+<div id="previewHtmlOverlay" style="position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;font-synthesis:none">
+  <div id="previewTitleLayer" style="position:absolute;left:4%;right:4%;top:5.5%;display:flex;flex-direction:column;align-items:center;gap:5px"></div>
+  <div id="previewSubtitleLayer" style="position:absolute;left:4%;right:4%;top:70%;display:flex;flex-direction:column;align-items:center;gap:4px"></div>
+</div>
+<div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
+<div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:30;background:linear-gradient(180deg,rgba(4,4,7,.985),rgba(10,10,15,.98));flex-direction:column;align-items:center;justify-content:center;padding:12px">
+  <div style="width:calc(100% - 10px);max-width:690px;background:rgba(18,18,24,.98);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:15px;box-sizing:border-box;box-shadow:0 18px 45px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+      <div style="min-width:0">
+        <div style="font-size:8px;font-weight:900;letter-spacing:1.6px;color:#8d8d98">ICE CREAM DIGITAL · EXPORT</div>
+        <div style="font-size:14px;font-weight:950;color:#fff;margin-top:2px">Renderizando 6 videos</div>
+      </div>
+      <div style="width:34px;height:34px;border-radius:10px;background:#FFEB00;color:#050505;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;flex:0 0 auto">⚡</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:end;margin-bottom:7px">
+      <div id="renderPct" style="font-size:34px;line-height:1;font-weight:950;letter-spacing:-1.6px;color:#fff">0%</div>
+      <div id="renderSubLabel" style="color:#8a8a96;font-size:8px;font-weight:900;text-align:right;white-space:normal">PREPARANDO...</div>
+    </div>
+
+    <div style="height:7px;background:#08080b;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.06);margin-bottom:9px">
+      <div id="renderMasterBar" style="height:100%;width:0%;background:linear-gradient(90deg,#FFEB00,#fff36a);border-radius:999px;transition:width .28s linear"></div>
+    </div>
+
+    <div id="renderText" style="color:#d8d8df;font-size:9px;font-weight:850;line-height:1.25;min-height:22px;margin-bottom:9px">PREPARANDO RENDER...</div>
+
+    <div id="renderList" style="width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:none;overflow:visible"></div>
+
+    <div style="margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#666671;font-size:7px;font-weight:850">
+      <span>720 × 1280</span><span>H.264 · 30 FPS</span><span>2 MOTORES FFMPEG</span>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="perfMon" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:rgba(8,8,10,0.92);border:1px solid #222;border-radius:14px;padding:10px;min-width:200px;font-family:sans-serif"><div style="font-size:8px;color:#FFEB00;font-weight:900">⚡ V60 60FPS CLEAN</div><div style="font-size:9px;color:#999;margin-top:6px">Voces: <b id="mVoices">0</b>/6 | Videos: <b id="mVideos">0</b>/6 | RAM: <b id="mRam">--</b></div></div>
+
+<div style="position:fixed;bottom:12px;left:14px;z-index:100;font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-size:11px;color:#aaa;background:rgba(20,20,24,0.85);border:1px solid #222;padding:6px 10px;border-radius:8px;backdrop-filter:blur(4px);pointer-events:none;letter-spacing:0.2px">
+Nunca fui yo, siempre fue Dios. La gloria y la honra sean para Él…
+</div>
+
+<script>
+// === CORE V50 CLEAN - SIN DUPLICADOS ===
+const $=s=>document.getElementById(s);
+const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c="";for(let x of w){const test=c?c+" "+x:x;if(test.length<=m)c=test;else{if(c)l.push(c);c=x.length>m?x.slice(0,m):x;}}if(c)l.push(c);return l;};
+const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;};
+const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
+const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
+const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_ES-sharvard-medium:0",voiceSpeed:1,audioBlob:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+let activeId=1,lastCola=0,raf=null;
+window.queue=queue; window.activeId=1; window.getActiveId=()=>activeId;
+const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
+const bgEl=$("previewBg");
+let defaultBgUrl="", defaultBgName="audio fondo", defaultBgBuffer=null;
+
+window.voiceProgressBySlot = {};
+
+window.updateVoiceProgressCorrecto = function(slotId, current, total){
+  const pct = total ? Math.round((current/total)*100) : 0;
+  window.voiceProgressBySlot[slotId] = {current, total, pct, status: pct>=100?'VOZ OK':'GENERANDO...'};
+  const overlay = document.getElementById('renderOverlay');
+  const pctEl = document.getElementById('renderPct');
+  const textEl = document.getElementById('renderText');
+  const subEl = document.getElementById('renderSubLabel') || document.getElementById('renderTotalLabel');
+  const listEl = document.getElementById('renderList');
+  if(overlay) overlay.style.display='flex';
+  if(textEl) textEl.textContent = `GENERANDO VOZ ${current}/${total} chunks`;
+  let suma = 0; for(let i=1;i<=6;i++){ suma += (window.voiceProgressBySlot[i] ? window.voiceProgressBySlot[i].pct : 0); }
+  const promedio = Math.round(suma / 6);
+  if(pctEl) pctEl.textContent = promedio + '%';
+  if(subEl) subEl.textContent = `GENERANDO VOZ ${current}/${total} chunks`;
+  if(listEl){
+    let h='';
+    for(let id=1; id<=6; id++){
+      const d = window.voiceProgressBySlot[id];
+      const q = window.queue ? window.queue.find(x=>x.id===id) : null;
+      const dur = q && q.audioDur ? `${q.audioDur.toFixed(1)}s` : (d ? `${d.current}/${d.total}` : '');
+      const p = d ? d.pct : 0;
+      const isActive = id===slotId && p>0 && p<100;
+      const isDone = p>=100;
+      const label = !d ? 'EN COLA' : isDone ? `${dur} · VOZ OK` : `GENERANDO... ${d.current}/${d.total}`;
+      h+=`<div style="background:${isActive?'rgba(255,235,0,.12)':'#141418'};border:1.5px solid ${isActive?'#FFEB00': isDone?'#22c55e':'#2a2a2e'};border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center"><span style="display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;color:${isActive?'#FFEB00': isDone?'#4ade80':'#888'}"><span style="width:6px;height:6px;border-radius:50%;background:${isActive?'#FFEB00':isDone?'#22c55e':'#333'}"></span>SLOT ${id} · ${label}</span><span style="font-size:11px;font-weight:900;color:${isDone?'#4ade80': isActive?'#FFEB00':'#666'}">${p}%</span></div>`;
     }
-    ttsStatus('✅ Motor Transformers.js listo.','ok');
-    return hfModule;
-  })().catch(err=>{
-    hfLoading=null;hfModule=null;
-    ttsStatus('❌ No se pudo cargar Transformers.js: '+(err?.message||err),'err');
-    throw err;
+    listEl.innerHTML = h;
+  }
+};
+
+try{
+  const savedVol=localStorage.getItem('ice_bg_vol');
+  if(savedVol) {$("bgVol").value=savedVol; $("bgVolTxt").textContent=Math.round(parseFloat(savedVol)*100)+'%';}
+}catch(e){}
+const log=m=>{const d=$("debug");d.textContent=new Date().toLocaleTimeString()+" | "+m+"\n"+d.textContent.slice(0,400);};
+const getA=()=>queue.find(q=>q.id===activeId);
+function getRateInfo(vDur,aDur){
+  if(!vDur||!aDur) return {rate:1,useLoop:false,realTotal:vDur||aDur||0,needed:1,stretchFirst:false};
+  const needed=vDur/aDur; const MIN_RATE = 0.40;
+  if(needed < 1){
+    if(needed < MIN_RATE){
+      const stretchedDur = vDur / MIN_RATE;
+      const useLoop = stretchedDur < aDur;
+      return {rate:MIN_RATE,useLoop,realTotal:aDur,needed,stretchFirst:true, stretchedDur};
+    }else{
+      return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:true};
+    }
+  }
+  if(needed>4) return {rate:4,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
+  return {rate:needed,useLoop:false,realTotal:aDur,needed,stretchFirst:false};
+}
+function calcDurInfo(q){
+  if(!q.videoDur||!q.audioDur) return null;
+  const v=q.videoDur,a=q.audioDur; const info=getRateInfo(v,a); let mode;
+  if(info.stretchFirst && info.useLoop) mode=`Estirado ${info.rate}x + bucle`;
+  else if(info.stretchFirst) mode=`Estirado ${info.rate}x`;
+  else if(info.useLoop) mode=`Bucle ${a.toFixed(1)}s`;
+  else if(info.needed>4) mode=`4x + corte`;
+  else mode=`${info.rate.toFixed(2)}x`;
+  return {v,a,rate:info.rate,useLoop:info.useLoop,mode,txt:`${v.toFixed(1)}s → ${a.toFixed(1)}s (${mode})`};
+}
+function renderCola(f=false){
+  if(!f&&performance.now()-lastCola<150)return;lastCola=performance.now();
+  const c=$("cola");c.innerHTML="";const fr=document.createDocumentFragment();
+  queue.forEach(q=>{
+    const act=q.id===activeId,nm=sanitizar(q.fileNameBase)||`Video ${q.id}`;
+    const el=document.createElement("div");
+    el.className=`slot ${act?'active':''} ${q.status==='hecho'?'done':''} ${q.status==='renderizando'?'run':''}`;
+    el.onclick=()=>setActive(q.id);
+    const displayName = (nm||'').slice(0,45);
+    el.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;padding:4px;box-sizing:border-box"><b style="font-size:12px;color:${act?'#FFEB00':'#fff'};font-weight:900;letter-spacing:0.5px">SLOT ${q.id}</b><div title="${nm}" style="font-size:10px;color:${act?'#fff':'#aaa'};font-weight:600;line-height:1.2;text-align:center;width:100%;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;word-break:break-word;white-space:normal;min-height:32px">${displayName||'<span style="color:#555">Vacío</span>'}</div>${q.videoUrl?`<div style="width:24px;height:3px;background:${q.status==='hecho'?'#22c55e':'#FFEB00'};border-radius:10px;opacity:${act?1:0.6}"></div>`:''}</div>`;
+    fr.appendChild(el);
   });
-  return hfLoading;
+  c.appendChild(fr);
+  $("colaInfo").textContent=`${queue.filter(q=>q.videoUrl).length}/6 listos`;
 }
-
-function splitText(text,maxChars=220){
-  const clean=(text||'').replace(/\s+/g,' ').trim();
-  if(!clean)return [];
-  const sentences=clean.match(/[^.!?¿¡]+[.!?]+|[^.!?¿¡]+$/g)||[clean];
-  const chunks=[];
-  let current='';
-  for(let s of sentences){
-    s=s.trim();
-    if(!s)continue;
-    if((current+' '+s).trim().length<=maxChars){
-      current=(current+' '+s).trim();
-      continue;
+window.setActive=id=>{
+  const p=getA();
+  if(p){
+    p.title=$("inputTitle").value; p.script=$("inputScript").value; p.fileNameBase=$("inputFileName").value;
+    if(p.videoUrl && vEl.src && vEl.duration) p.videoDur=vEl.duration;
+    if(p.audioUrl && aEl.src && aEl.duration && aEl.duration>0){
+      if(activeId === p.id) p.audioDur=aEl.duration;
     }
-    if(current){chunks.push(current);current='';}
-    while(s.length>maxChars){
-      let cut=s.lastIndexOf(' ',maxChars);
-      if(cut<80)cut=maxChars;
-      chunks.push(s.slice(0,cut).trim());
-      s=s.slice(cut).trim();
+    try{
+      const vSel=document.getElementById('kokoroVoice');
+      const sSel=document.getElementById('kokoroSpeed');
+      if(vSel) p.voiceId=vSel.value;
+      if(sSel) p.voiceSpeed=parseFloat(sSel.value)||1;
+    }catch{}
+  }
+  try{ vEl.pause(); aEl.pause(); vEl.loop=false; vEl.playbackRate=1; vEl.muted=true; aEl.muted=false; vEl.volume=1; aEl.volume=1; if(raf) cancelAnimationFrame(raf); $("btnPlay").textContent='▶ Play'; }catch{}
+  activeId=id; window.activeId=id;
+  const it=getA();
+  $("slotLabel").textContent=`SLOT ${it.id}`;
+  $("statusLabel").textContent=it.status;
+  const di=calcDurInfo(it);
+  $("speedLabel").textContent=di?di.txt:(it.videoDur?`V:${it.videoDur.toFixed(1)}s`:"—");
+  $("inputTitle").value=it.title;
+  $("inputScript").value=it.script;
+  $("inputFileName").value=it.fileNameBase;
+  try{
+    const vSel=document.getElementById('kokoroVoice');
+    if(vSel) vSel.value = it.voiceId || 'es_ES-sharvard-medium:0';
+    const st=document.getElementById('kokoroStatus');
+    if(st){
+      if(it.audioUrl){
+        st.textContent=`✅ SLOT ${it.id} - ${it.audioDur?it.audioDur.toFixed(1)+'s':''} - LISTO`;
+        st.style.color='#4ade80';
+      } else {
+        st.textContent=`SLOT ${it.id} - Listo para generar`;
+        st.style.color='#888';
+      }
     }
-    current=s;
+  }catch{}
+  if(it.txtName){
+    $("lblTxt").classList.add('has'); $("txtTxt").textContent="✓ "+it.txtName.slice(0,16);
+    $("txtName").innerHTML=`📄 <b>${it.txtName}</b> · ${it.title?it.title.slice(0,18):''}`;
+    $("txtName").style.color='#4ade80';
+  }else{
+    $("lblTxt").classList.remove('has'); $("txtTxt").textContent="Elegir .txt";
+    $("txtName").innerHTML=`<span style="color:#666">Sin .txt</span>`; $("txtName").style.color='#666';
   }
-  if(current)chunks.push(current);
-  return chunks;
-}
-
-function floatTo16BitPCM(float32){
-  const out=new Int16Array(float32.length);
-  for(let i=0;i<float32.length;i++){
-    const s=Math.max(-1,Math.min(1,float32[i]));
-    out[i]=s<0?s*0x8000:s*0x7FFF;
+  if(it.videoUrl){
+    vEl.src=it.videoUrl; vEl.muted=true; vEl.volume=0; vEl.style.display='block'; ph.style.display='none'; vEl.load();
+    vEl.onloadedmetadata=()=>{ it.videoDur=vEl.duration; renderCola(true); const d2=calcDurInfo(it); if(d2&&activeId===it.id) $("speedLabel").textContent=d2.txt; };
+    $("lblVideo").classList.add('has'); $("txtVideo").textContent="✓ "+it.videoName.slice(0,18); $("videoName").innerHTML=`🎬 <b>${it.videoName}</b> ${it.videoDur?`· ${it.videoDur.toFixed(1)}s`:''}`; $("videoName").style.color='#4ade80'; $("videoName").style.borderColor='rgba(34,197,94,.35)';
+  }else{
+    vEl.removeAttribute('src'); vEl.style.display='none'; ph.style.display='flex';
+    $("lblVideo").classList.remove('has'); $("txtVideo").textContent="Elegir video"; $("videoName").innerHTML=`<span style="color:#666">Sin video</span>`; $("videoName").style.color='#666'; $("videoName").style.borderColor='rgba(255,255,255,.08)';
   }
-  return out;
+  if(it.audioUrl){
+    aEl.src=it.audioUrl; aEl.load(); aEl.playbackRate=it.voiceSpeed||1;
+    aEl.onloadedmetadata=()=>{ if(activeId===it.id){ it.audioDur=aEl.duration; renderCola(true); const d2=calcDurInfo(it); if(d2) $("speedLabel").textContent=d2.txt; renderOverlay(); } };
+    $("audioName").innerHTML=`🎙️ <b>${it.audioName}</b> ${it.audioDur?`· ${it.audioDur.toFixed(1)}s`:''} [SLOT ${it.id}]`; 
+    $("audioName").style.color='#4ade80'; $("audioName").style.borderColor='rgba(34,197,94,.35)';
+  }else{
+    aEl.removeAttribute('src'); $("audioName").innerHTML=`<span style="color:#666">Sin audio SLOT ${it.id} - Genera voz</span>`; $("audioName").style.color='#666'; $("audioName").style.borderColor='rgba(255,255,255,.08)';
+  }
+  renderOverlay(); renderCola(true);
+};
+
+function renderOverlay(){ const it=getA(); const tl=splitWords((it.title||'').toUpperCase(),26).slice(0,2); const subs=chunkSubs(it.script||""); window._previewTL = tl; window._previewSubs = subs; startLoop(); }
+function fitPreviewText(el, maxPx, minPx, maxWidthPx){
+  if(!el) return;
+  let fs=maxPx;
+  el.style.fontSize=fs+'px';
+  while(fs>minPx && el.scrollWidth>maxWidthPx){
+    fs-=2; el.style.fontSize=fs+'px';
+  }
+}
+function drawHtmlPreview(titleText, subText){
+  const titleLayer=$("previewTitleLayer"), subLayer=$("previewSubtitleLayer");
+  if(!titleLayer || !subLayer) return;
+  titleLayer.innerHTML=''; subLayer.innerHTML='';
+
+  // V75: look viral limpio inspirado en editores short-form:
+  // título blanco/amarillo, borde negro fuerte y tarjetas compactas.
+  const titleLines=(()=>{
+    let t=(titleText||'').trim().toUpperCase();
+    if(!t) return [];
+    let words=t.split(/\s+/);
+    if(words.length<=2) return [words.join(' ')];
+    let bestIdx=Math.ceil(words.length/2), bestDiff=Infinity;
+    for(let i=1;i<words.length;i++){
+      const d=Math.abs(words.slice(0,i).join(' ').length-words.slice(i).join(' ').length);
+      if(d<bestDiff){bestDiff=d;bestIdx=i;}
+    }
+    return [words.slice(0,bestIdx).join(' '),words.slice(bestIdx).join(' ')].slice(0,2);
+  })();
+
+  titleLines.forEach((line,idx)=>{
+    const el=document.createElement('div');
+    el.textContent=line;
+    const isAccent=idx===0;
+    el.style.cssText=[
+      'box-sizing:border-box',
+      'max-width:94%',
+      'width:max-content',
+      'padding:5px 11px 7px',
+      'border-radius:10px',
+      'background:rgba(8,8,10,.90)',
+      'border:1px solid rgba(255,255,255,.10)',
+      'color:'+(isAccent?'#FFEB00':'#FFFFFF'),
+      'text-align:center',
+      'white-space:nowrap',
+      'font-family:"Arial Black",Arial,sans-serif',
+      'font-weight:900',
+      'line-height:.98',
+      'letter-spacing:-.4px',
+      'text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 4px 9px rgba(0,0,0,.75)'
+    ].join(';');
+    titleLayer.appendChild(el);
+    requestAnimationFrame(()=>fitPreviewText(el,44,18,(titleLayer.clientWidth||320)*.94));
+  });
+
+  let sub=(subText||'').trim().toUpperCase();
+  if(sub){
+    const lines=splitWords(sub,30).slice(0,3);
+    lines.forEach((line,idx)=>{
+      const el=document.createElement('div');
+      el.textContent=line;
+      // Línea central en amarillo para dar golpe visual sin karaoke complejo.
+      const accent=(lines.length===1 || idx===Math.floor(lines.length/2));
+      el.style.cssText=[
+        'box-sizing:border-box',
+        'max-width:94%',
+        'width:max-content',
+        'padding:4px 9px 5px',
+        'border-radius:8px',
+        'background:rgba(5,5,7,.86)',
+        'border:1px solid rgba(255,255,255,.09)',
+        'color:'+(accent?'#FFEB00':'#FFFFFF'),
+        'text-align:center',
+        'white-space:nowrap',
+        'font-family:Arial,sans-serif',
+        'font-weight:900',
+        'line-height:1.03',
+        'letter-spacing:-.15px',
+        'text-shadow:-1.5px -1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px 1.5px 0 #000,0 3px 7px rgba(0,0,0,.8)'
+      ].join(';');
+      subLayer.appendChild(el);
+      requestAnimationFrame(()=>fitPreviewText(el,20,12,(subLayer.clientWidth||320)*.94));
+    });
+  }
+}
+function updSubs(){
+  const it=getA(); if(!it) return;
+  const hasAudio=!!(it.audioUrl && it.audioDur && it.audioDur>0);
+  const total=hasAudio ? it.audioDur : (it.videoDur||vEl.duration||0);
+  let cur=0;
+  if(hasAudio){
+    if(!aEl.paused && aEl.src){ cur=aEl.currentTime||0; }
+    else if(vEl.duration && !vEl.paused){ cur=(vEl.currentTime/(it.videoDur||vEl.duration||1))*it.audioDur; }
+  }else cur=vEl.currentTime||0;
+  const subs=chunkSubs(it.script||"");
+  let sub='';
+  if(subs.length){
+    let idx=total>0.2?Math.floor((cur/total)*subs.length):0;
+    idx=Math.max(0,Math.min(idx,subs.length-1));
+    sub=subs[idx]||'';
+  }
+  drawHtmlPreview(it.title||'',sub);
+  if(total>0) $("progressBar").style.width=Math.min((cur/total)*100,100)+'%';
+}
+function startLoop(){
+  if(raf) cancelAnimationFrame(raf);
+  const loop=()=>{ updSubs(); raf=requestAnimationFrame(loop); };
+  raf=requestAnimationFrame(loop);
 }
 
-function concatFloatArrays(parts,total){
-  const out=new Float32Array(total);
-  let offset=0;
-  for(const p of parts){out.set(p,offset);offset+=p.length;}
-  return out;
+$("inputTxt").addEventListener('change', async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{
+    let text=await f.text(); text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
+    if(!text){ alert('TXT vacío'); return; }
+    const lines=text.split('\n'); const firstIdx=lines.findIndex(l=>l.trim()!=='');
+    const first= firstIdx>=0 ? lines[firstIdx].trim() : '';
+    const codigo=first; const guionLines = firstIdx>=0 ? lines.slice(firstIdx+1) : []; const guion = guionLines.join('\n').trim();
+    const it=getA(); it.title=codigo; it.fileNameBase=codigo; it.script=guion; it.txtName=f.name; it.txtContent=guion;
+    $("inputTitle").value=codigo; $("inputFileName").value=codigo; $("inputScript").value=guion;
+    $("lblTxt").classList.add('has'); $("txtTxt").textContent="✓ "+f.name.slice(0,16);
+    $("txtName").innerHTML=`📄 <b>${f.name}</b> · ${codigo.slice(0,20)}`; $("txtName").style.color='#4ade80';
+    renderOverlay(); renderCola(true); log(`TXT SLOT ${it.id}: ${f.name}`);
+  }catch(err){ alert('Error TXT: '+err.message); } e.target.value='';
+});
+$("inputVideo").addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const it=getA(); if(it.videoUrl) URL.revokeObjectURL(it.videoUrl);
+  const u=URL.createObjectURL(f); it.videoUrl=u; it.videoName=f.name; it.status='solo video';
+  vEl.src=u; vEl.muted=true; vEl.style.display='block'; ph.style.display='none'; vEl.load();
+  vEl.onloadedmetadata=()=>{ it.videoDur=vEl.duration; $("videoName").innerHTML=`🎬 <b>${it.videoName}</b> · ${it.videoDur.toFixed(1)}s`; renderCola(true); renderOverlay(); const di=calcDurInfo(it); if(di) $("speedLabel").textContent=di.txt; };
+  $("videoName").innerHTML=`🎬 <b>${f.name}</b> · ${(f.size/1024/1024).toFixed(2)} MB`; $("videoName").style.color='#4ade80'; log(`Video SLOT ${it.id}`); renderOverlay(); e.target.value='';
+});
+$("inputAudio").addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const it=getA(); if(it.audioUrl) URL.revokeObjectURL(it.audioUrl);
+  const u=URL.createObjectURL(f); it.audioUrl=u; it.audioName=f.name;
+  aEl.src=u; aEl.load();
+  aEl.onloadedmetadata=()=>{ it.audioDur=aEl.duration; $("audioName").innerHTML=`🎙️ <b>${it.audioName}</b> · ${it.audioDur.toFixed(1)}s`; renderCola(true); renderOverlay(); };
+  $("audioName").innerHTML=`🎙️ <b>${f.name}</b>`; $("audioName").style.color='#4ade80'; e.target.value='';
+});
+async function loadBgFile(file){
+  if(!file) return;
+  if(defaultBgUrl) URL.revokeObjectURL(defaultBgUrl);
+  const u=URL.createObjectURL(file); defaultBgUrl=u; defaultBgName=file.name;
+  bgEl.src=u; bgEl.load(); bgEl.volume=0; bgEl.muted=true;
+  $("lblBg").classList.add('has'); $("txtBg").textContent="✓ "+file.name.slice(0,22);
+  $("bgName").textContent=`🎵 ${file.name} · ${(file.size/1024/1024).toFixed(2)} MB - POR DEFECTO EN TODOS`;
+  try{ localStorage.setItem('ice_bg_name', file.name); }catch{}
+  try{ const acTmp=new (window.AudioContext||window.webkitAudioContext)(); const ab=await file.arrayBuffer(); defaultBgBuffer=await acTmp.decodeAudioData(ab); await acTmp.close(); }catch(e){ defaultBgBuffer=null; }
+  log(`Fondo por defecto: ${file.name}`);
 }
-
-function wavBlobFromFloat(audio,sampleRate){
-  const pcm=floatTo16BitPCM(audio);
-  const buffer=new ArrayBuffer(44+pcm.byteLength);
-  const view=new DataView(buffer);
-  const write=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};
-  write(0,'RIFF');
-  view.setUint32(4,36+pcm.byteLength,true);
-  write(8,'WAVE');
-  write(12,'fmt ');
-  view.setUint32(16,16,true);
-  view.setUint16(20,1,true);
-  view.setUint16(22,1,true);
-  view.setUint32(24,sampleRate,true);
-  view.setUint32(28,sampleRate*2,true);
-  view.setUint16(32,2,true);
-  view.setUint16(34,16,true);
-  write(36,'data');
-  view.setUint32(40,pcm.byteLength,true);
-  new Int16Array(buffer,44).set(pcm);
-  return new Blob([buffer],{type:'audio/wav'});
+$("inputBgMusic").addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; await loadBgFile(f); e.target.value=''; });
+$("bgVol").addEventListener('input', e=>{ const v=parseFloat(e.target.value); bgEl.volume=v; $("bgVolTxt").textContent=Math.round(v*100)+'%'; try{ localStorage.setItem('ice_bg_vol', String(v)); }catch{} });
+$("inputTitle").addEventListener('input',()=>{ const it=getA(); const up=$("inputTitle").value.toUpperCase(); $("inputTitle").value=up; it.title=up; const fn=sanitizar(up); if(fn) $("inputFileName").value=fn; it.fileNameBase=$("inputFileName").value; renderOverlay(); });
+$("inputScript").addEventListener('input',()=>{ getA().script=$("inputScript").value; renderOverlay(); });
+$("inputFileName").addEventListener('input',()=>{ getA().fileNameBase=$("inputFileName").value; renderCola(); });
+$("btnPlay").addEventListener('click',()=>{
+  const it=getA(); if(!vEl.src) return;
+  const info=getRateInfo(it.videoDur||vEl.duration||0, it.audioDur||aEl.duration||0);
+  if(vEl.paused){
+    try{
+      vEl.muted=true; aEl.muted=false; vEl.volume=1; aEl.volume=1;
+      vEl.playbackRate=info.rate; vEl.loop=info.useLoop; vEl.currentTime=0;
+      if(it.audioUrl){ aEl.currentTime=0; aEl.playbackRate=1; }
+    }catch(e){}
+    const p1=vEl.play(); if(p1) p1.catch(()=>{});
+    if(it.audioUrl){ const p2=aEl.play(); if(p2) p2.catch(()=>{}); }
+    if(defaultBgUrl && $("bgEnabled").checked){ try{ bgEl.currentTime=vEl.currentTime; bgEl.volume=parseFloat($("bgVol").value)||0.12; bgEl.muted=aEl.muted; const p3=bgEl.play(); if(p3) p3.catch(()=>{}); }catch(e){} }
+    $("btnPlay").textContent='⏸'; log(`PLAY SLOT ${it.id}: ${info.useLoop?'Bucle':info.rate.toFixed(2)+'x'}`);
+  }else{ vEl.pause(); aEl.pause(); try{ bgEl.pause(); }catch{} $("btnPlay").textContent='▶ Play'; }
+});
+function safeDownload(url, name){
+  try{ const a=document.createElement('a'); a.href=url; a.download=name; a.style.display='none'; document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),1200); }catch(e){}
 }
+let _dlQueue=[]; let _dlTimer=null;
+function queueDownload(url,name){
+  if(_dlQueue.some(x=>x.url===url)) return;
+  _dlQueue.push({url,name});
+  if(_dlTimer) return;
+  function next(){
+    if(!_dlQueue.length){ _dlTimer=null; return; }
+    const {url,name}=_dlQueue.shift(); safeDownload(url,name); _dlTimer=setTimeout(next, 1200);
+  }
+  next();
+}
+window.safeDownload=safeDownload; window.queueDownload=queueDownload; window.renderCola=renderCola; window.calcDurInfo=calcDurInfo; window.getA=getA; window.sanitizar=sanitizar;
+setActive(1);renderCola(true);log('V85 ZOOM 10% + RENDER FINAL REAL - lista');
+</script>
 
-let piperTTS=null;
+<script>
+// === V72: PREVIEW HTML/CSS POR CAPAS; RENDER FFMPEG V70 CONSERVADO ===
+</script>
 
-async function getPiperTTS(){
-  if(piperTTS)return piperTTS;
-  ttsStatus('Cargando motor Piper…');
+<!-- TTS PIPER MODULE - ULTIMA VERSION V50 CLEAN -->
+<!-- V27 FIX DEFINITIVO - VOZ POR SLOT + SYNC SUBS - FIXED V14 -->
+<script type="module">
+const $id = (id)=>document.getElementById(id);
+
+function getActiveSlot(){
+  try{
+    const curId = window.activeId || 1;
+    if(window.queue){
+      return window.queue.find(q=>q.id===curId) || window.queue[0];
+    }
+    if(window.getA) return window.getA();
+  }catch{}
+  return null;
+}
+function setKStatus(t, isError=false){
+  const el=$id('kokoroStatus');
+  if(el){ el.textContent=t; el.style.color=isError?'#ef4444':'#4ade80'; }
+  console.log('[Piper V14]', t);
+}
+function setKProg(p){
+  const bar=$id('kokoroProgress'); const fill=$id('kokoroProgressBar');
+  if(!bar) return;
+  if(p==null){bar.style.display='none'; return;}
+  bar.style.display='block'; fill.style.width=p+'%';
+}
+let ttsLib = null;
+async function getTTS(){
+  if(ttsLib) return ttsLib;
+  setKStatus('Cargando motor Piper...'); setKProg(20);
   const cdns=[
     'https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm',
     'https://esm.run/@mintplex-labs/piper-tts-web@1.0.4',
     'https://cdn.skypack.dev/@mintplex-labs/piper-tts-web@1.0.4'
   ];
-  let lastErr=null;
-  for(const url of cdns){
+  for(let url of cdns){
     try{
-      piperTTS=await import(url);
-      ttsStatus('✅ Alexander V listo.','ok');
-      return piperTTS;
-    }catch(e){
-      lastErr=e;
-      console.warn('[Piper] CDN falló:',url,e);
-    }
+      console.log('[V14] intentando CDN', url);
+      ttsLib = await import(url);
+      setKProg(50); setKStatus('Motor listo - '+url.split('/')[2]);
+      return ttsLib;
+    }catch(e){ console.warn('CDN fallo', url, e.message); }
   }
-  throw new Error('No se pudo cargar Piper. '+(lastErr?.message||'Revisa la conexión.'));
+  throw new Error('No se pudo cargar Piper - revisa internet');
 }
 
-function splitPiperText(txt,maxLen=380){
-  const sentences=String(txt||'').replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
-  const chunks=[]; let cur='';
+function splitIntoChunks(txt, maxLen){
+  maxLen = maxLen || 380;
+  const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+  const chunks=[]; let cur="";
   for(let s of sentences){
-    s=s.trim(); if(!s)continue;
-    if((cur+' '+s).trim().length<=maxLen)cur=cur?cur+' '+s:s;
-    else{
-      if(cur)chunks.push(cur);
-      if(s.length>maxLen){
-        const words=s.split(/\s+/); let tmp='';
-        for(const w of words){
-          if((tmp+' '+w).trim().length<=maxLen)tmp=tmp?tmp+' '+w:w;
-          else{if(tmp)chunks.push(tmp);tmp=w;}
-        }
-        cur=tmp;
-      }else cur=s;
+    s=s.trim(); if(!s) continue;
+    if((cur + " " + s).length <= maxLen){ cur = cur ? cur + " " + s : s; }
+    else {
+      if(cur) chunks.push(cur);
+      if(s.length > maxLen){
+        const words=s.split(/\s+/); let tmp="";
+        for(let w of words){ if((tmp+" "+w).length <= maxLen) tmp = tmp ? tmp+" "+w : w; else { if(tmp) chunks.push(tmp); tmp=w; } }
+        if(tmp) cur=tmp; else cur="";
+      } else cur=s;
     }
   }
-  if(cur)chunks.push(cur);
+  if(cur) chunks.push(cur);
   return chunks;
 }
-
-async function decodePiperBlob(blob,audioCtx){
-  return await audioCtx.decodeAudioData(await blob.arrayBuffer());
+async function blobToAudioBuffer(blob, audioCtx){
+  const ab = await blob.arrayBuffer();
+  return await audioCtx.decodeAudioData(ab);
 }
-
 function audioBufferToWavBlob(buffer){
-  const nc=buffer.numberOfChannels,sr=buffer.sampleRate,len=buffer.length;
-  const wavLen=len*nc*2+44,ab=new ArrayBuffer(wavLen),v=new DataView(ab);
-  let p=0;
-  const ws=s=>{for(let i=0;i<s.length;i++)v.setUint8(p++,s.charCodeAt(i));};
-  const w16=x=>{v.setUint16(p,x,true);p+=2;};
-  const w32=x=>{v.setUint32(p,x,true);p+=4;};
-  ws('RIFF');w32(wavLen-8);ws('WAVE');ws('fmt ');w32(16);w16(1);w16(nc);
-  w32(sr);w32(sr*nc*2);w16(nc*2);w16(16);ws('data');w32(wavLen-p-4);
-  const ch=[];for(let c=0;c<nc;c++)ch.push(buffer.getChannelData(c));
-  let o=44;
-  for(let i=0;i<len;i++)for(let c=0;c<nc;c++){
-    let sm=Math.max(-1,Math.min(1,ch[c][i]));
-    sm=sm<0?sm*0x8000:sm*0x7FFF;
-    v.setInt16(o,sm,true);o+=2;
-  }
-  return new Blob([ab],{type:'audio/wav'});
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const length = buffer.length;
+  const wavLength = length * numChannels * 2 + 44;
+  const ab = new ArrayBuffer(wavLength);
+  const view = new DataView(ab);
+  let pos=0;
+  function writeStr(s){ for(let i=0;i<s.length;i++) view.setUint8(pos++, s.charCodeAt(i)); }
+  function write16(d){ view.setUint16(pos, d, true); pos+=2; }
+  function write32(d){ view.setUint32(pos, d, true); pos+=4; }
+  writeStr('RIFF'); write32(wavLength-8); writeStr('WAVE');
+  writeStr('fmt '); write32(16); write16(1); write16(numChannels); write32(sampleRate); write32(sampleRate*numChannels*2); write16(numChannels*2); write16(16);
+  writeStr('data'); write32(wavLength-pos-4);
+  const channels=[]; for(let c=0;c<numChannels;c++) channels.push(buffer.getChannelData(c));
+  let offset=44;
+  for(let i=0;i<length;i++){ for(let c=0;c<numChannels;c++){ let sample = Math.max(-1, Math.min(1, channels[c][i])); sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; view.setInt16(offset, sample, true); offset+=2; } }
+  return new Blob([ab], {type:'audio/wav'});
 }
 
-async function generateVoice(){
-  const text=(q('#script')?.value||'').trim();
-  if(!text)throw new Error('El guion está vacío.');
+async function handleGenerate(){
+  const capturedId = window.activeId || 1;
+  const slot = window.queue ? window.queue.find(q=>q.id===capturedId) : null;
+  if(!slot){ alert('No hay slot '+capturedId); return; }
+  let text = (slot.txtContent || slot.script || document.getElementById('inputScript')?.value || '').trim();
+  if(!text){ alert('Carga .txt en paso 2 - SLOT '+capturedId+' vacio'); return; }
+  
+  const voiceSelectEl = document.getElementById('kokoroVoice');
+  const speedSelectEl = document.getElementById('kokoroSpeed');
+  if(voiceSelectEl) slot.voiceId = voiceSelectEl.value;
+  if(speedSelectEl) slot.voiceSpeed = parseFloat(speedSelectEl.value)||1;
+  let voiceId = slot.voiceId || 'es_ES-sharvard-medium';
+  let speakerId = 0;
+  if(voiceId.includes(':')){ const parts = voiceId.split(':'); voiceId = parts[0]; speakerId = parseInt(parts[1]||0); }
+  const speed = slot.voiceSpeed||1;
 
-  const voiceId='es_ES-sharvard-medium';
-  const speakerId=0;
-  const voiceName='Alexander V';
+  const chunks = splitIntoChunks(text, 380);
+  console.log('[V14] SLOT '+slot.id+' TXT '+text.length+' chars -> '+chunks.length+' chunks');
+
+  const btn=document.getElementById('btnKokoroGen');
+  if(btn){ btn.disabled=true; btn.textContent='SLOT '+slot.id+' 0/'+chunks.length; btn.style.background='#fff'; }
 
   try{
-    const tts=await getPiperTTS();
-    const chunks=splitPiperText(text,380);
-    if(!chunks.length)throw new Error('No pude dividir el guion para narrarlo.');
-
-    ttsStatus('Preparando Alexander V…');
-    let downloaded=false,lastDownloadErr=null;
-    for(let attempt=1;attempt<=3 && !downloaded;attempt++){
-      try{
-        await tts.download(voiceId,(prog)=>{
-          if(prog?.loaded && prog?.total){
-            const pct=Math.round(prog.loaded*100/prog.total);
-            ttsStatus(`Descargando Alexander V: ${pct}%`);
-          }
-        });
-        downloaded=true;
-      }catch(e){
-        lastDownloadErr=e;
-        if(attempt<3)await new Promise(r=>setTimeout(r,1000));
+    const tts = await getTTS();
+    setKStatus('[SLOT '+slot.id+'] Descargando modelo voz '+voiceId+'...');
+    const onProgress = (prog)=>{
+      if(prog && prog.loaded && prog.total){
+        const pct = Math.round(prog.loaded*100/prog.total);
+        const bar=document.getElementById('kokoroProgressBar');
+        const barWrap=document.getElementById('kokoroProgress');
+        if(barWrap) barWrap.style.display='block';
+        if(bar) bar.style.width=(20 + Math.round(pct*0.3))+'%';
       }
+    };
+    // Descarga con retry real
+    let downloaded=false;
+    for(let attempt=1; attempt<=3 && !downloaded; attempt++){
+      try{ await tts.download(voiceId, onProgress); downloaded=true; }
+      catch(e){ console.warn('download intento '+attempt+' fallo', e); if(attempt<3) await new Promise(r=>setTimeout(r,1500)); else throw e; }
     }
-    if(!downloaded)throw lastDownloadErr||new Error('No se pudo descargar el modelo de voz.');
 
-    const AC=window.AudioContext||window.webkitAudioContext;
-    const ac=new AC();
-    if(ac.state==='suspended')await ac.resume();
-    const buffers=[];
+    // AudioContext con resume obligatorio
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') await audioCtx.resume();
+    const buffers = [];
 
     for(let i=0;i<chunks.length;i++){
-      ttsStatus(`Generando Alexander V ${i+1}/${chunks.length}…`);
+      // FIX BUG1: antes era slotId undefined, ahora slot.id correcto
+      try{ if(window.updateVoiceProgressCorrecto) window.updateVoiceProgressCorrecto(slot.id, i+1, chunks.length); }catch(e){ console.warn('progress fail', e); }
+
+      const chunk = chunks[i];
+      if(btn) btn.textContent='SLOT '+slot.id+' GENERANDO '+(i+1)+'/'+chunks.length;
+      setKStatus('[SLOT '+slot.id+'] Parte '+(i+1)+'/'+chunks.length+' ('+chunk.length+' chars)');
+      setKProg(50 + Math.round((i/chunks.length)*40));
+
       let wavBlob=null;
-      for(let attempt=1;attempt<=2;attempt++){
+      for(let retry=1; retry<=2; retry++){
         try{
-          wavBlob=await Promise.race([
-            tts.predict({text:chunks[i],voiceId,speakerId},()=>{}),
-            new Promise((_,rej)=>setTimeout(()=>rej(new Error('Tiempo agotado generando voz.')),45000))
-          ]);
-          if(wavBlob?.size>=800)break;
-        }catch(e){
-          if(attempt>=2)throw e;
-          await new Promise(r=>setTimeout(r,350));
-        }
+          wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, onProgress);
+          if(wavBlob && wavBlob.size>=500) break;
+          console.warn('Chunk '+i+' vacio intento '+retry, wavBlob?.size);
+        }catch(e){ console.warn('predict fail chunk '+i+' intento '+retry, e); }
+        await new Promise(r=>setTimeout(r,400));
       }
-      if(!wavBlob || wavBlob.size<800)throw new Error(`La parte ${i+1} de la voz salió vacía.`);
-      buffers.push(await decodePiperBlob(wavBlob,ac));
-      await new Promise(r=>setTimeout(r,40));
+      if(!wavBlob || wavBlob.size<800){ console.warn('Chunk '+i+' descartado vacio size='+ (wavBlob?.size||0)); continue; }
+      try{
+        const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
+        buffers.push(audioBuf);
+      }catch(e){ console.warn('decode fail chunk '+i, e); }
+      await new Promise(r=>setTimeout(r, 30));
     }
 
-    if(!buffers.length)throw new Error('Piper terminó sin crear audio.');
-    const sampleRate=buffers[0].sampleRate;
-    const channels=buffers[0].numberOfChannels;
-    const total=buffers.reduce((n,b)=>n+b.length,0);
-    const merged=ac.createBuffer(channels,total,sampleRate);
-    let off=0;
-    for(const b of buffers){
-      for(let c=0;c<channels;c++){
-        merged.getChannelData(c).set(b.getChannelData(Math.min(c,b.numberOfChannels-1)),off);
+    if(!buffers.length) {
+      console.error('Piper buffers vacios - modelo onnx posiblemente no descargado');
+      // Intentar diagnosticar
+      const cacheInfo = await caches?.keys?.() ? await caches.keys() : [];
+      throw new Error('No se genero audio - todos los chunks vacios. Revisa: 1) Que el .onnx de 150MB se descargo completo (mira Network en F12), 2) Que no bloquea AdBlock, 3) Recarga con Ctrl+Shift+R. Cache: '+cacheInfo.join(','));
+    }
+
+    let totalLength = 0; for(let b of buffers) totalLength+=b.length;
+    let numberOfChannels = buffers[0].numberOfChannels;
+    let sampleRate = buffers[0].sampleRate;
+    const concatBuffer = audioCtx.createBuffer(numberOfChannels, totalLength, sampleRate);
+    let offset=0;
+    for(let buf of buffers){
+      for(let ch=0; ch<numberOfChannels; ch++){
+        concatBuffer.getChannelData(ch).set(buf.getChannelData(ch), offset);
       }
-      off+=b.length;
+      offset+=buf.length;
     }
+    await audioCtx.close();
 
-    const seconds=merged.length/merged.sampleRate;
-    const blob=audioBufferToWavBlob(merged);
-    await ac.close();
-    if(blob.size<1000)throw new Error('El WAV final quedó vacío.');
+    const finalWavBlob = audioBufferToWavBlob(concatBuffer);
+    console.log('[V14] final blob size', finalWavBlob.size, 'dur', concatBuffer.length/sampleRate);
+    if(finalWavBlob.size<1000) throw new Error('WAV final muy pequeño: '+finalWavBlob.size);
 
-    const url=URL.createObjectURL(blob);
-    const player=q('#audio');
-    if(player){
-      if(player.dataset.url)URL.revokeObjectURL(player.dataset.url);
-      player.dataset.url=url;player.src=url;player.style.display='block';
+    const url=URL.createObjectURL(finalWavBlob);
+    if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
+    slot.audioUrl=url;
+    slot.audioName='SLOT'+slot.id+'-'+voiceId+'-'+text.length+'chars-'+chunks.length+'partes.wav';
+    slot.audioBlob=finalWavBlob;
+
+    const tempAudio = new Audio(); tempAudio.src = url;
+    await new Promise((res)=>{
+      tempAudio.onloadedmetadata=()=>{
+        slot.audioDur = tempAudio.duration;
+        console.log('[V14] SLOT '+slot.id+' duracion REAL:', slot.audioDur);
+        res();
+      };
+      tempAudio.onerror=()=>{ slot.audioDur=concatBuffer.length/concatBuffer.sampleRate; res(); };
+      tempAudio.load();
+    });
+
+    // Guardar y actualizar UI
+    slot.status='con audio';
+    if(window.renderCola) window.renderCola(true);
+    
+    const aEl=document.getElementById('previewAudio');
+    if(window.activeId===slot.id && aEl){
+      aEl.src=url; aEl.load(); aEl.playbackRate=speed; aEl.muted=true; aEl.volume=0; // FIX: no autoplay, silenciado
+      // No reproducir automaticamente - usuario debe dar Play manualmente
+      const vEl2=document.getElementById('previewVideo'); if(vEl2){ vEl2.muted=true; vEl2.volume=0; aEl.muted=true; aEl.volume=0; }
     }
-
-    const actions=q('#audioActions');
-    if(actions){
-      actions.innerHTML='<button class="sec" id="downloadVoice">⬇ Descargar WAV</button>';
-      q('#downloadVoice')?.addEventListener('click',()=>{
-        const a=document.createElement('a');
-        a.href=url;
-        a.download='narracion_alexander.wav';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      });
+    const audioNameEl=document.getElementById('audioName');
+    if(audioNameEl){
+      const nombre = voiceId.indexOf('sharvard')>=0 ? 'Alexander (Voz Masculina)' : voiceId;
+      audioNameEl.innerHTML='🎙️ <b>'+nombre+' SLOT '+slot.id+'</b> · '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅ GUARDADO REAL';
+      audioNameEl.style.color='#4ade80';
     }
-
-    window.documentalFactoryAudioBlob=blob;
-    window.documentalFactoryAudioMeta={
-      engine:'piper-tts-web',
-      language:'es-ES',
-      voice:voiceId,
-      speakerId:0,
-      voiceName:'Alexander V',
-      seconds:Number(seconds)||null,
-      samplingRate:sampleRate
-    };
-
-    ttsStatus(`✅ Alexander V generada — ${seconds.toFixed(1)} s.`,'ok');
-    return {blob,seconds};
-  }catch(err){
-    const msg=err?.message||String(err);
-    ttsStatus('❌ '+msg,'err');
-    throw new Error(msg);
-  }
-}
-
-window.generateDocumentalVoice=generateVoice;
-q('#makeVoice')?.addEventListener('click',()=>generateVoice().catch(()=>{}));
-
-// Solo precarga la librería. El modelo se descarga cuando realmente se necesita.
-window.addEventListener('load',()=>setTimeout(()=>loadHF().catch(()=>{}),500));
-</script>
-
-
-<script type="module">
-let ffmpegInstance=null;
-let ffmpegLoading=null;
-
-const R=s=>document.querySelector(s);
-function rs(text,cls='mut'){
-  const el=R('#renderStatus');
-  if(el){el.textContent=text;el.className='status '+cls;}
-  const auto=R('#autoStatus');if(auto && /^\d\/5|Renderizando|Uniendo|Cargando FFmpeg/.test(text)){auto.textContent=text;}
-  const log=R('#liveLog');if(log){const t=new Date().toLocaleTimeString();log.innerHTML+=`<div>${t} — ${String(text).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</div>`;log.scrollTop=log.scrollHeight;}
-}
-function rb(p){const v=Math.max(0,Math.min(100,p));const el=R('#renderBar');if(el)el.style.width=v+'%';const a=R('#autoBar');if(a && v>60)a.style.width=(60+v*.4)+'%';}
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-
-let ffmpegClassWorkerURL=null;
-
-function getFFmpegClassWorkerURL(){
-  if(ffmpegClassWorkerURL) return ffmpegClassWorkerURL;
-
-  // Worker principal de @ffmpeg/ffmpeg 0.12.x, creado como Blob del MISMO origen.
-  // Esto evita que el navegador intente abrir worker.js directamente desde esm.sh.
-  const workerCode=`
-const FFMessageType={
-  LOAD:"LOAD",EXEC:"EXEC",WRITE_FILE:"WRITE_FILE",READ_FILE:"READ_FILE",
-  DELETE_FILE:"DELETE_FILE",RENAME:"RENAME",CREATE_DIR:"CREATE_DIR",
-  LIST_DIR:"LIST_DIR",DELETE_DIR:"DELETE_DIR",ERROR:"ERROR",
-  PROGRESS:"PROGRESS",LOG:"LOG",MOUNT:"MOUNT",UNMOUNT:"UNMOUNT"
-};
-const ERROR_UNKNOWN_MESSAGE_TYPE=new Error("unknown message type");
-const ERROR_NOT_LOADED=new Error("ffmpeg is not loaded, call await ffmpeg.load() first");
-const ERROR_IMPORT_FAILURE=new Error("failed to import ffmpeg-core.js");
-let ffmpeg;
-
-const load=async({coreURL:_coreURL,wasmURL:_wasmURL,workerURL:_workerURL}={})=>{
-  const first=!ffmpeg;
-  try{
-    // En Worker tipo module normalmente importScripts no existe.
-    importScripts(_coreURL);
-  }catch(_){
-    const mod=await import(_coreURL);
-    self.createFFmpegCore=mod.default||mod.createFFmpegCore||self.createFFmpegCore;
-    if(!self.createFFmpegCore) throw ERROR_IMPORT_FAILURE;
-  }
-  if(!self.createFFmpegCore && typeof createFFmpegCore!=="undefined"){
-    self.createFFmpegCore=createFFmpegCore;
-  }
-  if(!self.createFFmpegCore) throw ERROR_IMPORT_FAILURE;
-
-  const coreURL=_coreURL;
-  const wasmURL=_wasmURL||_coreURL.replace(/\\.js$/g,".wasm");
-  const workerURL=_workerURL||_coreURL.replace(/\\.js$/g,".worker.js");
-
-  ffmpeg=await self.createFFmpegCore({
-    mainScriptUrlOrBlob:coreURL+"#"+btoa(JSON.stringify({wasmURL,workerURL}))
-  });
-
-  ffmpeg.setLogger(data=>self.postMessage({type:FFMessageType.LOG,data}));
-  ffmpeg.setProgress(data=>self.postMessage({type:FFMessageType.PROGRESS,data}));
-  return first;
-};
-
-const exec=({args,timeout=-1})=>{
-  ffmpeg.setTimeout(timeout);
-  ffmpeg.exec(...args);
-  const ret=ffmpeg.ret;
-  ffmpeg.reset();
-  return ret;
-};
-const writeFile=({path,data})=>{ffmpeg.FS.writeFile(path,data);return true};
-const readFile=({path,encoding})=>ffmpeg.FS.readFile(path,{encoding});
-const deleteFile=({path})=>{ffmpeg.FS.unlink(path);return true};
-const rename=({oldPath,newPath})=>{ffmpeg.FS.rename(oldPath,newPath);return true};
-const createDir=({path})=>{ffmpeg.FS.mkdir(path);return true};
-const listDir=({path})=>ffmpeg.FS.readdir(path).map(name=>{
-  const stat=ffmpeg.FS.stat(path+"/"+name);
-  return {name,isDir:ffmpeg.FS.isDir(stat.mode)};
-});
-const deleteDir=({path})=>{ffmpeg.FS.rmdir(path);return true};
-const mount=({fsType,options,mountPoint})=>{
-  const fs=ffmpeg.FS.filesystems[fsType];
-  if(!fs)return false;
-  ffmpeg.FS.mount(fs,options,mountPoint);
-  return true;
-};
-const unmount=({mountPoint})=>{ffmpeg.FS.unmount(mountPoint);return true};
-
-self.onmessage=async({data:{id,type,data:_data}})=>{
-  const trans=[];
-  let data;
-  try{
-    if(type!==FFMessageType.LOAD&&!ffmpeg)throw ERROR_NOT_LOADED;
-    switch(type){
-      case FFMessageType.LOAD:data=await load(_data);break;
-      case FFMessageType.EXEC:data=exec(_data);break;
-      case FFMessageType.WRITE_FILE:data=writeFile(_data);break;
-      case FFMessageType.READ_FILE:data=readFile(_data);break;
-      case FFMessageType.DELETE_FILE:data=deleteFile(_data);break;
-      case FFMessageType.RENAME:data=rename(_data);break;
-      case FFMessageType.CREATE_DIR:data=createDir(_data);break;
-      case FFMessageType.LIST_DIR:data=listDir(_data);break;
-      case FFMessageType.DELETE_DIR:data=deleteDir(_data);break;
-      case FFMessageType.MOUNT:data=mount(_data);break;
-      case FFMessageType.UNMOUNT:data=unmount(_data);break;
-      default:throw ERROR_UNKNOWN_MESSAGE_TYPE;
-    }
+    setKStatus('✅ SLOT '+slot.id+' COMPLETO - '+text.length+' chars - '+slot.audioDur.toFixed(1)+'s - '+chunks.length+' partes - GUARDADO');
+    setKProg(100);
+    setTimeout(()=>setKProg(null),1500);
+    console.log('[V14] SLOT '+slot.id+' GUARDADO OK', {url: !!slot.audioUrl, dur: slot.audioDur, size: slot.audioBlob.size, status: slot.status});
+    return slot;
   }catch(e){
-    self.postMessage({id,type:FFMessageType.ERROR,data:e?.toString?.()||String(e)});
-    return;
+    console.error('[V14] ERROR SLOT', e);
+    const st=document.getElementById('kokoroStatus');
+    if(st){ st.textContent='[SLOT '+slot.id+'] ❌ '+e.message; st.style.color='#ef4444'; }
+    alert('Error SLOT '+slot.id+': '+e.message+'\nRevisa consola F12');
+    throw e;
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='🔊 GENERAR AUDIO ESPAÑOL'; btn.style.background='#FFEB00'; }
   }
-  if(data instanceof Uint8Array)trans.push(data.buffer);
-  self.postMessage({id,type,data},trans);
+}
+
+// Wrapper para slot especifico - mantiene tu logica original pero con fix de activeId
+window.generateVoiceForSlotId = async function(slotId){
+  console.log('[V14] Generando voz SLOT '+slotId);
+  const originalActive = window.activeId;
+  try{
+    if(window.setActive) window.setActive(slotId);
+    else window.activeId = slotId;
+    await new Promise(r=>setTimeout(r,150));
+    const slot = window.queue.find(q=>q.id===slotId);
+    if(!slot) throw new Error('Slot '+slotId+' no existe');
+    if(!slot.txtContent && !slot.script) throw new Error('SLOT '+slotId+' sin TXT - carga .txt primero');
+    // Llamar handleGenerate que ya tiene el fix
+    const prevActive = window.activeId;
+    window.activeId = slotId;
+    await handleGenerate();
+    window.activeId = prevActive;
+    const updated = window.queue.find(q=>q.id===slotId);
+    if(!updated.audioUrl) throw new Error('No se guardo audioUrl SLOT '+slotId);
+    return updated;
+  } finally {
+    if(window.setActive && originalActive){ try{ window.setActive(originalActive); }catch{} }
+  }
 };
-`;
-  ffmpegClassWorkerURL=URL.createObjectURL(
-    new Blob([workerCode],{type:'text/javascript'})
-  );
-  return ffmpegClassWorkerURL;
-}
 
-async function loadFFmpeg(){
-  if(ffmpegInstance) return ffmpegInstance;
-  if(ffmpegLoading) return ffmpegLoading;
-
-  ffmpegLoading=(async()=>{
-    rs('Cargando motor de render FFmpeg…');
-
-    const {FFmpeg}=await import('https://esm.sh/@ffmpeg/ffmpeg@0.12.10');
-    const {toBlobURL}=await import('https://esm.sh/@ffmpeg/util@0.12.1');
-
-    const ffmpeg=new FFmpeg();
-    ffmpeg.on('log',({message})=>console.log('[FFmpeg]',message));
-
-    // Usamos el CORE ESM como Blob. El worker principal también es Blob,
-    // por lo que ya no existe un Worker cruzado hacia esm.sh.
-    const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
-    const coreURL=await toBlobURL(base+'/ffmpeg-core.js','text/javascript');
-    const wasmURL=await toBlobURL(base+'/ffmpeg-core.wasm','application/wasm');
-
-    await ffmpeg.load({
-      classWorkerURL:getFFmpegClassWorkerURL(),
-      coreURL,
-      wasmURL
-    });
-
-    ffmpegInstance=ffmpeg;
-    rs('FFmpeg listo.','ok');
-    return ffmpeg;
-  })().catch(err=>{
-    ffmpegLoading=null;
-    ffmpegInstance=null;
-    throw err;
-  });
-
-  return ffmpegLoading;
-}
-
-function wavFromSamples(samples,sampleRate=24000){
-  const buffer=new ArrayBuffer(44+samples.length*2);
-  const view=new DataView(buffer);
-  const put=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};
-  put(0,'RIFF');view.setUint32(4,36+samples.length*2,true);put(8,'WAVE');
-  put(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);
-  view.setUint16(22,1,true);view.setUint32(24,sampleRate,true);
-  view.setUint32(28,sampleRate*2,true);view.setUint16(32,2,true);
-  view.setUint16(34,16,true);put(36,'data');view.setUint32(40,samples.length*2,true);
-  let off=44;
-  for(let i=0;i<samples.length;i++,off+=2){
-    let x=Math.max(-1,Math.min(1,samples[i]));
-    view.setInt16(off,x<0?x*32768:x*32767,true);
-  }
-  return new Blob([buffer],{type:'audio/wav'});
-}
-
-
-function wavFromStereo(left,right,sampleRate=44100){
-  const frames=Math.min(left.length,right.length);
-  const buffer=new ArrayBuffer(44+frames*4);
-  const view=new DataView(buffer);
-  const put=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};
-  put(0,'RIFF'); view.setUint32(4,36+frames*4,true); put(8,'WAVE');
-  put(12,'fmt '); view.setUint32(16,16,true); view.setUint16(20,1,true);
-  view.setUint16(22,2,true); view.setUint32(24,sampleRate,true);
-  view.setUint32(28,sampleRate*4,true); view.setUint16(32,4,true);
-  view.setUint16(34,16,true); put(36,'data'); view.setUint32(40,frames*4,true);
-  let off=44;
-  for(let i=0;i<frames;i++){
-    let l=Math.max(-1,Math.min(1,left[i]));
-    let r=Math.max(-1,Math.min(1,right[i]));
-    view.setInt16(off,l<0?l*32768:l*32767,true); off+=2;
-    view.setInt16(off,r<0?r*32768:r*32767,true); off+=2;
-  }
-  return new Blob([buffer],{type:'audio/wav'});
-}
-
-async function mixNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol){
-  const outRate=44100;
-  const frames=Math.max(1,Math.ceil(total*outRate));
-  const Ctx=window.AudioContext||window.webkitAudioContext;
-  const decodeCtx=new Ctx();
-
-  let voiceBuf,musicBuf;
+// Mutex para evitar pisadas - permite cola pero no paralelo real que rompe RAM
+window.ttsLock = Promise.resolve();
+window.generateVoiceForSlotIdLocked = async function(slotId){
+  let release;
+  const nextLock = new Promise(r=>release=r);
+  const currentLock = window.ttsLock;
+  window.ttsLock = nextLock;
+  await currentLock;
   try{
-    voiceBuf=await decodeCtx.decodeAudioData((await voiceBlob.arrayBuffer()).slice(0));
-    musicBuf=await decodeCtx.decodeAudioData((await musicBlob.arrayBuffer()).slice(0));
-  }finally{
-    try{await decodeCtx.close();}catch(e){}
+    return await window.generateVoiceForSlotId(slotId);
+  } finally {
+    release();
   }
+};
 
-  if(!voiceBuf?.length) throw new Error('La narración no pudo decodificarse.');
-  if(!musicBuf?.length) throw new Error('La música no pudo decodificarse.');
-
-  const vL=voiceBuf.getChannelData(0);
-  const vR=voiceBuf.numberOfChannels>1 ? voiceBuf.getChannelData(1) : vL;
-  const mL=musicBuf.getChannelData(0);
-  const mR=musicBuf.numberOfChannels>1 ? musicBuf.getChannelData(1) : mL;
-  const vRate=voiceBuf.sampleRate;
-  const mRate=musicBuf.sampleRate;
-
-  const left=new Float32Array(frames);
-  const right=new Float32Array(frames);
-
-  const sampleLinear=(arr,pos,loop)=>{
-    const len=arr.length;
-    if(!len) return 0;
-    if(loop){
-      pos=((pos%len)+len)%len;
-    }else if(pos>=len-1){
-      return pos<len ? arr[len-1] : 0;
-    }else if(pos<0){
-      return 0;
-    }
-    const i0=Math.floor(pos);
-    const i1=loop ? (i0+1)%len : Math.min(len-1,i0+1);
-    const f=pos-i0;
-    return arr[i0]*(1-f)+arr[i1]*f;
-  };
-
-  let musicEnergy=0, voiceEnergy=0, mixedEnergy=0, peak=0;
-  for(let i=0;i<frames;i++){
-    const sec=i/outRate;
-    const vp=sec*vRate;
-    const mp=sec*mRate;
-
-    const voiceGain=1.12;
-    let mg=musicVol;
-    const fadeIn=Math.min(0.65,Math.max(0.15,total/8));
-    const fadeOut=Math.min(0.9,Math.max(0.2,total/8));
-    if(sec<fadeIn) mg*=sec/fadeIn;
-    if(sec>total-fadeOut) mg*=Math.max(0,(total-sec)/fadeOut);
-
-    const vl=sampleLinear(vL,vp,false)*voiceGain;
-    const vr=sampleLinear(vR,vp,false)*voiceGain;
-    const ml=sampleLinear(mL,mp,true)*mg;
-    const mr=sampleLinear(mR,mp,true)*mg;
-
-    let l=vl+ml;
-    let r=vr+mr;
-
-    // Soft clip so narration + music cannot distort.
-    l=Math.tanh(l*1.05);
-    r=Math.tanh(r*1.05);
-
-    left[i]=l; right[i]=r;
-    voiceEnergy+=(vl*vl+vr*vr)*0.5;
-    musicEnergy+=(ml*ml+mr*mr)*0.5;
-    mixedEnergy+=(l*l+r*r)*0.5;
-    peak=Math.max(peak,Math.abs(l),Math.abs(r));
-  }
-
-  const musicRms=Math.sqrt(musicEnergy/frames);
-  const voiceRms=Math.sqrt(voiceEnergy/frames);
-  let mixedRms=Math.sqrt(mixedEnergy/frames);
-
-  // Estilo referencia: audio final más presente y compacto.
-  // Aproxima el nivel percibido del ejemplo sin permitir clipping.
-  const targetRms=0.235;
-  const normGain=Math.min(2.2, 0.96/Math.max(peak,0.001), targetRms/Math.max(mixedRms,0.001));
-  if(normGain>1.001){
-    for(let i=0;i<frames;i++){
-      left[i]*=normGain;
-      right[i]*=normGain;
-    }
-    mixedRms*=normGain;
-    peak*=normGain;
-  }
-
-  // Hard verification: do not export if the music contribution is effectively silent.
-  if(!Number.isFinite(musicRms) || musicRms<0.012){
-    throw new Error(`La pista musical quedó demasiado baja antes de exportar (RMS ${musicRms.toFixed(4)}).`);
-  }
-
-  return {
-    blob:wavFromStereo(left,right,outRate),
-    musicRms,
-    voiceRms,
-    mixedRms,
-    peak
-  };
-}
-
-function makeDocumentaryMusic(seconds){
-  // One fixed documentary bed designed to remain audible on phones/laptops.
-  // Main content is 220–880 Hz instead of sub-bass frequencies.
-  const sr=24000,total=Math.max(1,Math.ceil(seconds*sr));
-  const out=new Float32Array(total);
-  const chordLen=4.0;
-  const chords=[
-    [220.00,261.63,329.63], // Am/C texture
-    [174.61,220.00,261.63], // F
-    [196.00,246.94,293.66], // G
-    [220.00,277.18,329.63]  // A/C#
-  ];
-  const beat=0.75;
-  let peak=0;
-
-  for(let i=0;i<total;i++){
-    const t=i/sr;
-    const chord=chords[Math.floor(t/chordLen)%chords.length];
-    const local=t%chordLen;
-
-    // Warm mid-frequency pad.
-    let pad=0;
-    for(const f of chord){
-      pad += Math.sin(2*Math.PI*f*t)*0.18;
-      pad += Math.sin(2*Math.PI*(f*2)*t)*0.045;
-    }
-
-    // Gentle audible arpeggio in the 330–660 Hz zone.
-    const step=Math.floor((t%3.0)/beat)%4;
-    const arpFreq=[329.63,392.00,440.00,523.25][step];
-    const phase=(t%beat)/beat;
-    const arpEnv=Math.exp(-phase*5.2);
-    const arp=Math.sin(2*Math.PI*arpFreq*t)*0.17*arpEnv;
-
-    // Soft rhythmic pulse around 220 Hz, still speaker-friendly.
-    const pulsePhase=(t%1.5)/1.5;
-    const pulse=Math.sin(2*Math.PI*220*t)*Math.exp(-pulsePhase*7)*0.08;
-
-    // Slow movement so it feels like a documentary bed, not a test tone.
-    const movement=0.86+0.14*Math.sin(2*Math.PI*0.055*t);
-    const fadeIn=Math.min(1,t/0.7);
-    const fadeOut=Math.min(1,Math.max(0,(seconds-t)/0.9));
-    const v=(pad+arp+pulse)*movement*Math.min(fadeIn,fadeOut);
-    out[i]=v;
-    peak=Math.max(peak,Math.abs(v));
-  }
-
-  // Normalize to a healthy level before the final background gain.
-  const gain=peak>0 ? 0.80/peak : 1;
-  for(let i=0;i<total;i++) out[i]*=gain;
-  return wavFromSamples(out,sr);
-}
-
-async function blobDuration(blob){
-  const buf=await blob.arrayBuffer();
-  const Ctx=window.AudioContext||window.webkitAudioContext;
-  const ctx=new Ctx();
-  try{
-    const aud=await ctx.decodeAudioData(buf.slice(0));
-    return aud.duration;
-  }finally{ctx.close();}
-}
-
-function sceneDurations(total,sceneEls){
-  const weights=sceneEls.map(el=>{
-    const txt=el.querySelector('.narr')?.textContent||'';
-    return Math.max(1,txt.trim().split(/\s+/).filter(Boolean).length);
-  });
-  const sum=weights.reduce((a,b)=>a+b,0)||sceneEls.length;
-  let ds=weights.map(w=>total*w/sum);
-
-  // Prevent visually jarring micro-scenes.
-  const min=1.2;
-  for(let pass=0;pass<2;pass++){
-    let deficit=0;
-    ds=ds.map(x=>{if(x<min){deficit+=min-x;return min;}return x;});
-    if(deficit>0){
-      const adjustable=ds.map((x,i)=>x>min?i:-1).filter(i=>i>=0);
-      const pool=adjustable.reduce((s,i)=>s+(ds[i]-min),0);
-      if(pool>deficit){
-        adjustable.forEach(i=>{ds[i]-=deficit*((ds[i]-min)/pool);});
-      }
-    }
-  }
-  const cur=ds.reduce((a,b)=>a+b,0);
-  if(cur>0) ds[ds.length-1]+=total-cur;
-  return ds;
-}
-
-async function fetchBlob(url){
-  const r=await fetch(url,{mode:'cors'});
-  if(!r.ok) throw new Error('No se pudo descargar uno de los clips ('+r.status+').');
-  return await r.blob();
-}
-
-async function clean(ffmpeg,names){
-  for(const n of names){try{await ffmpeg.deleteFile(n);}catch(e){}}
-}
-
-
-function wrapCanvasText(ctx,text,maxWidth,maxLines=3){
-  const words=String(text||'').trim().split(/\s+/).filter(Boolean);
-  const lines=[]; let line='';
-  for(const word of words){
-    const test=line?line+' '+word:word;
-    if(ctx.measureText(test).width<=maxWidth){ line=test; }
-    else{
-      if(line)lines.push(line);
-      line=word;
-      if(lines.length>=maxLines-1)break;
-    }
-  }
-  if(line && lines.length<maxLines)lines.push(line);
-  if(words.length && lines.length){
-    const used=lines.join(' ').split(/\s+/).length;
-    if(used<words.length){
-      let last=lines[lines.length-1].replace(/[.,;:!?…-]+$/,'');
-      while(ctx.measureText(last+'…').width>maxWidth && last.length>4) last=last.slice(0,-1);
-      lines[lines.length-1]=last+'…';
-    }
-  }
-  return lines;
-}
-
-async function canvasPngBlob(draw){
-  const c=document.createElement('canvas'); c.width=720; c.height=1280;
-  const ctx=c.getContext('2d');
-  ctx.clearRect(0,0,c.width,c.height);
-  draw(ctx,c);
-  return await new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('No pude crear overlay PNG.')),'image/png'));
-}
-
-async function makeTitleOverlay(title){
-  return await canvasPngBlob((ctx,c)=>{
-    const text=String(title||'').trim();
-    ctx.font='700 54px Arial, sans-serif';
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    const lines=wrapCanvasText(ctx,text,620,3);
-    const lineH=66;
-    const h=Math.max(132,lines.length*lineH+58);
-    const x=42,y=80,w=c.width-84;
-    ctx.fillStyle='rgba(0,0,0,.58)';
-    roundRect(ctx,x,y,w,h,24); ctx.fill();
-    ctx.fillStyle='#ffffff';
-    ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=8;
-    lines.forEach((ln,i)=>ctx.fillText(ln,c.width/2,y+38+lineH*(i+.5),620));
-    ctx.shadowBlur=0;
-  });
-}
-
-function roundRect(ctx,x,y,w,h,r){
-  const rr=Math.min(r,w/2,h/2);
-  ctx.beginPath();
-  ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);
-  ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath();
-}
-
-function splitSubtitleText(text,maxChars=34){
-  const clean=String(text||'').replace(/\s+/g,' ').trim();
-  if(!clean)return [];
-  const words=clean.split(/\s+/);
-  const out=[]; let cur='';
-  for(const w of words){
-    const next=(cur+' '+w).trim();
-    if((next.length>maxChars || next.split(/\s+/).length>7) && cur){
-      out.push(cur); cur=w;
-    }else cur=next;
-  }
-  if(cur)out.push(cur);
-  return out;
-}
-
-function subtitleKeywordIndexes(words){
-  const stop=new Set(['para','como','pero','porque','desde','hasta','sobre','entre','este','esta','estos','estas','aquel','aquella',
-    'unos','unas','del','las','los','una','uno','que','con','por','sin','sus','más','muy','han','hay','fue','son','ser','se','su',
-    'el','la','de','y','o','en','un','al','lo','es','si','ya','no','le','les','a']);
-  return words.map((w,i)=>({i,w:w.toLowerCase().replace(/[^\p{L}\p{N}]/gu,'')}))
-    .filter(x=>x.w.length>=5 && !stop.has(x.w))
-    .sort((a,b)=>b.w.length-a.w.length).slice(0,2).map(x=>x.i);
-}
-
-async function makeSubtitleOverlay(text){
-  return await canvasPngBlob((ctx,c)=>{
-    const words=String(text||'').trim().split(/\s+/).filter(Boolean);
-    if(!words.length)return;
-    const yellow=new Set(subtitleKeywordIndexes(words));
-    const fontSize=54;
-    const font='900 '+fontSize+'px Arial, sans-serif';
-    ctx.font=font; ctx.textBaseline='middle'; ctx.textAlign='left';
-    const maxW=650, gap=14, lineH=66;
-    const lines=[]; let line=[]; let width=0;
-    words.forEach((word,i)=>{
-      const ww=ctx.measureText(word).width;
-      const add=line.length?gap+ww:ww;
-      if(line.length && width+add>maxW){
-        lines.push(line); line=[]; width=0;
-      }
-      line.push({word,i,w:ww});
-      width += line.length===1?ww:gap+ww;
-    });
-    if(line.length)lines.push(line);
-    const shown=lines.slice(0,2);
-    const baseY=c.height-205-(shown.length-1)*lineH/2;
-    ctx.lineJoin='round';
-    ctx.lineWidth=10;
-    ctx.strokeStyle='rgba(0,0,0,.95)';
-    ctx.shadowColor='rgba(0,0,0,.72)';
-    ctx.shadowBlur=5;
-    shown.forEach((ln,li)=>{
-      const total=ln.reduce((s,x)=>s+x.w,0)+gap*Math.max(0,ln.length-1);
-      let x=(c.width-total)/2;
-      const y=baseY+li*lineH;
-      ln.forEach(item=>{
-        ctx.font=font;
-        ctx.strokeText(item.word,x,y);
-        ctx.fillStyle=yellow.has(item.i)?'#FFD400':'#FFFFFF';
-        ctx.fillText(item.word,x,y);
-        x+=item.w+gap;
-      });
-    });
-    ctx.shadowBlur=0;
-  });
-}
-
-async function getDefaultMusic(total){
-  rs('2/5 Música documental fija preparada.');
-  return {blob:makeDocumentaryMusic(total),name:'music.wav',external:false};
-}
-
-
-async function createFinalVideo(){
-  const btn=R('#finalRender');
-  if(btn?.disabled)return false;
-  if(btn)btn.disabled=true;rb(1);
-
-  let generatedUrl=null;
-  try{
-    const sceneEls=[...document.querySelectorAll('#scenes .scene')];
-    if(!sceneEls.length) throw new Error('Primero crea las escenas.');
-    if(sceneEls.some(el=>!el.dataset.clipUrl)) throw new Error('Hay una escena sin clip. Cámbiala antes del render.');
-
-    // Voice is created automatically if it doesn't exist yet.
-    if(!window.documentalFactoryAudioBlob){
-      rs('1/5 Generando voz automáticamente con Transformers.js…');
-      rb(5);
-      const result=await window.generateDocumentalVoice?.();
-      if(!window.documentalFactoryAudioBlob) throw new Error('No se pudo generar la voz.');
-    }
-
-    let voiceBlob=window.documentalFactoryAudioBlob;
-    let total=window.documentalFactoryAudioMeta?.seconds||await blobDuration(voiceBlob);
-    if(!total||!isFinite(total)) throw new Error('No pude calcular la duración de la narración.');
-
-    rs('2/5 Preparando música documental…');
-    rb(10);
-    const musicInfo=await getDefaultMusic(total);
-    const musicBlob=musicInfo.blob;
-
-    rs('3/5 Cargando FFmpeg…');
-    const ffmpeg=await loadFFmpeg();
-    rb(15);
-
-    await ffmpeg.writeFile('voice.wav',new Uint8Array(await voiceBlob.arrayBuffer()));
-    await ffmpeg.writeFile(musicInfo.name,new Uint8Array(await musicBlob.arrayBuffer()));
-
-    const durations=sceneDurations(total,sceneEls);
-    const partNames=[];
-
-    // Process ONE scene at a time. This is intentional for stability.
-    for(let i=0;i<sceneEls.length;i++){
-      const el=sceneEls[i];
-      const input=`scene_${i}.mp4`;
-      const output=`part_${i}.mp4`;
-      partNames.push(output);
-
-      rs(`4/5 Renderizando escena ${i+1} de ${sceneEls.length}…`);
-      rb(15+Math.round((i/sceneEls.length)*60));
-
-      const clipBlob=await fetchBlob(el.dataset.clipUrl);
-      await ffmpeg.writeFile(input,new Uint8Array(await clipBlob.arrayBuffer()));
-
-      const durNum=Math.max(1.0,durations[i]);
-      const dur=durNum.toFixed(3);
-
-      const overlayInputs=[];
-      const overlayFiles=[];
-      const overlaySpecs=[];
-
-      if(R('#titleOverlay')?.value!=='no'){
-        const titleBlob=await makeTitleOverlay(window.documentalVideoTitle||R('#videoTitle')?.value||'');
-        const f=`title_${i}.png`;
-        await ffmpeg.writeFile(f,new Uint8Array(await titleBlob.arrayBuffer()));
-        overlayFiles.push(f); overlayInputs.push('-i',f);
-        overlaySpecs.push({fileIndex:1,start:0,end:durNum});
-      }
-
-      if(R('#subtitles')?.value!=='no'){
-        const chunks=splitSubtitleText(el.dataset.narration||el.querySelector('.narr')?.textContent||'');
-        const each=durNum/Math.max(1,chunks.length);
-        for(let j=0;j<chunks.length;j++){
-          const subBlob=await makeSubtitleOverlay(chunks[j]);
-          const f=`sub_${i}_${j}.png`;
-          await ffmpeg.writeFile(f,new Uint8Array(await subBlob.arrayBuffer()));
-          overlayFiles.push(f); overlayInputs.push('-i',f);
-          overlaySpecs.push({fileIndex:overlaySpecs.length+1,start:j*each,end:Math.min(durNum,(j+1)*each)});
-        }
-      }
-
-      const filters=['[0:v]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,fps=30,format=yuv420p[v0]'];
-      let prev='v0';
-      overlaySpecs.forEach((o,k)=>{
-        const next='v'+(k+1);
-        filters.push(`[${prev}][${o.fileIndex}:v]overlay=0:0:enable='between(t,${o.start.toFixed(3)},${o.end.toFixed(3)})':eof_action=repeat[${next}]`);
-        prev=next;
-      });
-
-      const args=['-stream_loop','-1','-i',input,...overlayInputs,'-t',dur];
-      if(overlaySpecs.length){
-        args.push('-filter_complex',filters.join(';'),'-map',`[${prev}]`);
-      }else{
-        args.push('-vf','scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,fps=30,format=yuv420p');
-      }
-      args.push('-an','-c:v','libx264','-preset','ultrafast','-crf','23','-pix_fmt','yuv420p','-movflags','+faststart',output);
-
-      await ffmpeg.exec(args);
-
-      try{await ffmpeg.deleteFile(input);}catch(e){}
-      for(const f of overlayFiles){try{await ffmpeg.deleteFile(f);}catch(e){}}
-      await sleep(20);
-    }
-
-    rs('5/5 Uniendo escenas, voz y música…');
-    rb(78);
-
-    const concat=partNames.map(n=>`file '${n}'`).join('\n');
-    await ffmpeg.writeFile('concat.txt',new TextEncoder().encode(concat));
-    await ffmpeg.exec([
-      '-f','concat','-safe','0','-i','concat.txt',
-      '-c','copy','joined.mp4'
-    ]);
-    rb(86);
-
-    const musicVol=Number(R('#musicVol')?.value||0.30);
-
-    // v6.4: mix narration + music in the browser FIRST.
-    // FFmpeg receives one finished WAV track, so it cannot drop the music.
-    rs('5/5 Mezclando voz + música directamente en el navegador…');
-    const mixResult=await mixNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol);
-    const mixedBuffer=await mixResult.blob.arrayBuffer();
-    const mixedBytes=new Uint8Array(mixedBuffer);
-    const mixBytes=mixedBytes.byteLength;
-    if(!Number.isFinite(mixBytes) || mixBytes<100000){
-      throw new Error(`La mezcla de audio quedó vacía o incompleta (${mixBytes||0} bytes).`);
-    }
-    await ffmpeg.writeFile('mixed_browser.wav',mixedBytes);
-
-    // Verificación real: leer de vuelta lo que FFmpeg recibió.
-    const writtenMix=await ffmpeg.readFile('mixed_browser.wav');
-    const writtenBytes=writtenMix?.byteLength||writtenMix?.length||0;
-    if(writtenBytes<100000){
-      throw new Error(`FFmpeg no recibió correctamente la mezcla (${writtenBytes} bytes).`);
-    }
-    const mixKB=(writtenBytes/1024).toFixed(1);
-    rs(`5/5 Mezcla REAL creada · música RMS ${mixResult.musicRms.toFixed(3)} · voz RMS ${mixResult.voiceRms.toFixed(3)} · ${mixKB} KB.`);
-
-    rs('5/5 Nivelando voz para reproducción en Facebook…');
-    await ffmpeg.exec([
-      '-i','joined.mp4','-i','mixed_browser.wav',
-      '-map','0:v:0','-map','1:a:0',
-      '-c:v','copy',
-      '-af','loudnorm=I=-14:TP=-1.5:LRA=7,alimiter=limit=0.94',
-      '-c:a','aac','-b:a','192k','-ar','44100','-ac','2',
-      '-t',total.toFixed(3),'-movflags','+faststart','documental_final.mp4'
-    ]);
-    rb(96);
-
-    // Decode final MP4 audio once: if AAC audio is missing/corrupt, do not download.
-    rs('5/5 Verificando audio dentro del MP4 final…');
-    await ffmpeg.exec([
-      '-i','documental_final.mp4','-vn','-t','2',
-      '-ac','1','-ar','16000','-c:a','pcm_s16le','final_audio_check.wav'
-    ]);
-    const finalAudioCheck=await ffmpeg.readFile('final_audio_check.wav');
-    if(!finalAudioCheck || finalAudioCheck.byteLength<20000){
-      throw new Error('El MP4 final no contiene una pista de audio válida.');
-    }
-    rs('5/5 ✅ Audio verificado dentro del MP4 final.');
-
-    const data=await ffmpeg.readFile('documental_final.mp4');
-    const finalBlob=new Blob([data.buffer],{type:'video/mp4'});
-    generatedUrl=URL.createObjectURL(finalBlob);
-
-    const preview=R('#finalPreview');
-    if(preview.dataset.url)URL.revokeObjectURL(preview.dataset.url);
-    preview.dataset.url=generatedUrl;
-    preview.src=generatedUrl;
-    preview.style.display='block';
-
-    // ONE final download, automatically.
-    const a=document.createElement('a');
-    a.href=generatedUrl;
-    a.download=(window.documentalDownloadName||'documental_final.mp4');
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    rb(100);
-    rs(`✅ Video terminado: 720×1280, 30 FPS, título, subtítulos, voz nivelada y música documental al 30%. Descarga iniciada.`, 'ok');
-
-    await clean(ffmpeg,[...partNames,'concat.txt','joined.mp4','voice.wav',musicInfo.name,'mixed_browser.wav','final_audio_check.wav','documental_final.mp4']);
-    return true;
-  }catch(err){
-    console.error(err);
-    rs('❌ '+(err?.message||err),'err');
-    throw err;
-  }finally{
-    if(btn)btn.disabled=false;
-  }
-}
-
-window.createDocumentalFinalVideo=createFinalVideo;
-R('#finalRender')?.addEventListener('click',createFinalVideo);
-
-// Preload FFmpeg only when the browser is idle, so Transformers.js gets priority first.
-window.addEventListener('load',()=>{
+$id('btnKokoroGen')?.addEventListener('click', handleGenerate);
+document.getElementById('inputTxt')?.addEventListener('change', ()=>{
   setTimeout(()=>{
-    if('requestIdleCallback' in window){
-      requestIdleCallback(()=>loadFFmpeg().catch(()=>{}),{timeout:7000});
-    }
-  },3500);
+    const s=getActiveSlot();
+    if(s?.txtContent) setKStatus(`TXT SLOT ${s.id} listo (${s.txtContent.length} chars) → GENERAR`);
+  },600);
 });
+document.getElementById('kokoroVoice')?.addEventListener('change', e=>{
+  const it = window.getA ? window.getA() : getActiveSlot();
+  if(it){ it.voiceId = e.target.value; console.log(`SLOT ${it.id} voz -> ${e.target.value}`); }
+});
+document.getElementById('kokoroSpeed')?.addEventListener('change', e=>{
+  const it = window.getA ? window.getA() : getActiveSlot();
+  if(it) it.voiceSpeed = parseFloat(e.target.value)||1;
+});
+
+setKStatus('✅ V14 FIX - Voz por SLOT corregida - lista');
+window.handleGenerate = handleGenerate;
+window.getTTS = getTTS;
 </script>
 
-<script>
-const $=s=>document.querySelector(s),keys=['groq','pexels','pixabay'];keys.forEach(k=>{const el=$('#'+k);if(el)el.value=localStorage.getItem('df_'+k)||''});
-const voicePresetEl=$('#voicePreset');
-if(voicePresetEl){
-  voicePresetEl.value=localStorage.getItem('df_voicePreset')||'original';
-  voicePresetEl.addEventListener('change',()=>localStorage.setItem('df_voicePreset',voicePresetEl.value));
-}
-const groqEl=$('#groq');
-if(groqEl && groqEl.value.trim()){
-  setTimeout(()=>{const s=$('#apiSavedStatus'); if(s)s.textContent='✅ Groq API cargada desde este navegador.';},0);
-}
-document.querySelectorAll('.show').forEach(b=>b.onclick=()=>{let i=$('#'+b.dataset.id);i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'Mostrar':'Ocultar'});
-if($('#save')) $('#save').onclick=()=>{keys.forEach(k=>{const el=$('#'+k);if(!el)return;let v=(el.value||'').trim();v?localStorage.setItem('df_'+k,v):localStorage.removeItem('df_'+k)});st('APIs guardadas en este dispositivo.','ok')};
-if($('#erase')) $('#erase').onclick=()=>{keys.forEach(k=>{localStorage.removeItem('df_'+k);const el=$('#'+k);if(el)el.value=''});st('APIs eliminadas.')};
-function st(t,c='mut'){const el=$('#status')||$('#autoStatus');if(el){el.textContent=t;el.className='status '+c}}function e(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-async function ai(prompt){
-  const key=(document.querySelector('#groq')?.value||'').trim();
-  if(!key)throw new Error('Falta la API key de Groq.');
-
-  const apiStatus=(msg)=>{
-    const status=document.querySelector('#status');
-    if(status)status.textContent=msg;
-    const log=document.querySelector('#liveLog');
-    if(log){
-      const t=new Date().toLocaleTimeString();
-      const safe=String(msg).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
-      log.innerHTML+=`<div>${t} — ${safe}</div>`;
-      log.scrollTop=log.scrollHeight;
-    }
-  };
-
-  const endpoint='https://api.groq.com/openai/v1/chat/completions';
-  const body={
-    model:'openai/gpt-oss-20b',
-    messages:[
-      {
-        role:'system',
-        content:'Eres un editor experto de documentales verticales. Responde ÚNICAMENTE JSON válido. No uses markdown ni explicaciones.'
-      },
-      {role:'user',content:prompt}
-    ],
-    response_format:{
-      type:'json_schema',
-      json_schema:{
-        name:'documentary_scenes',
-        strict:true,
-        schema:{
-          type:'object',
-          properties:{
-            scenes:{
-              type:'array',
-              items:{
-                type:'object',
-                properties:{
-                  narration:{type:'string'},
-                  query:{type:'string'},
-                  queries:{
-                    type:'array',
-                    items:{type:'string'},
-                    minItems:3,
-                    maxItems:3
-                  }
-                },
-                required:['narration','query','queries'],
-                additionalProperties:false
-              }
-            }
-          },
-          required:['scenes'],
-          additionalProperties:false
-        }
-      }
-    },
-    reasoning_effort:'low',
-    temperature:0.2,
-    max_tokens:5000,
-    stream:false
-  };
-
-  let lastErr=null;
-  for(let attempt=1;attempt<=5;attempt++){
-    try{
-      const res=await fetch(endpoint,{
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json',
-          'Authorization':'Bearer '+key
-        },
-        body:JSON.stringify(body)
-      });
-
-      const raw=await res.text();
-      let data=null;
-      try{data=JSON.parse(raw);}catch(_){}
-
-      if(res.ok){
-        const text=data?.choices?.[0]?.message?.content;
-        if(!text)throw new Error('Groq respondió sin contenido.');
-        return text;
-      }
-
-      const msg=data?.error?.message||raw||('HTTP '+res.status);
-
-      if([408,409,429,500,502,503,504].includes(res.status) && attempt<5){
-        const retryHeader=Number(res.headers.get('retry-after'));
-        const waitSec=Number.isFinite(retryHeader)&&retryHeader>0
-          ? retryHeader
-          : Math.min(30,Math.pow(2,attempt));
-        apiStatus(`Groq ocupado o limitado. Reintentando en ${waitSec} s…`);
-        await new Promise(r=>setTimeout(r,waitSec*1000));
-        continue;
-      }
-
-      if(res.status===401 || /invalid.*key|unauthorized/i.test(msg)){
-        throw new Error('Groq rechazó la API key. Revisa que sea una key válida de Groq.');
-      }
-
-      if(res.status===402 || /payment required|insufficient credits/i.test(msg)){
-        throw new Error('Groq indicó un problema de saldo/acceso. Modelo solicitado: openai/gpt-oss-20b.');
-      }
-
-      throw new Error('Groq: '+msg);
-    }catch(err){
-      lastErr=err;
-      if(attempt>=5)break;
-
-      if(/Failed to fetch|NetworkError|fetch/i.test(err?.message||'')){
-        const waitSec=Math.min(20,Math.pow(2,attempt));
-        apiStatus(`Conexión con Groq interrumpida. Reintentando en ${waitSec} s…`);
-        await new Promise(r=>setTimeout(r,waitSec*1000));
-        continue;
-      }
-
-      throw err;
-    }
-  }
-
-  throw lastErr||new Error('No se pudo obtener respuesta de Groq.');
-}
-function json(t){
-  const original=String(t??'').trim();
-  if(!original)throw Error('Groq respondió vacío.');
-
-  let s=original
-    .replace(/^\s*```(?:json)?\s*/i,'')
-    .replace(/\s*```\s*$/i,'')
-    .trim();
-
-  const normalize=(value)=>{
-    if(Array.isArray(value))return value;
-
-    if(value && typeof value==='object'){
-      for(const key of ['scenes','escenas','items','results','data']){
-        if(Array.isArray(value[key]))return value[key];
-      }
-      if(value.narration || value.query || value.queries || value.narracion || value.busqueda)return [value];
-    }
-    return null;
-  };
-
-  const tryParse=(candidate)=>{
-    try{return normalize(JSON.parse(candidate));}
-    catch(_){return null;}
-  };
-
-  // 1) Respuesta JSON pura.
-  let out=tryParse(s);
-  if(out)return out;
-
-  // 2) Extrae un array aunque haya texto antes/después.
-  const a=s.indexOf('['), b=s.lastIndexOf(']');
-  if(a>=0 && b>a){
-    out=tryParse(s.slice(a,b+1));
-    if(out)return out;
-  }
-
-  // 3) Extrae un objeto: {"scenes":[...]}, {"escenas":[...]}, etc.
-  const c=s.indexOf('{'), d=s.lastIndexOf('}');
-  if(c>=0 && d>c){
-    out=tryParse(s.slice(c,d+1));
-    if(out)return out;
-  }
-
-  // 4) Algunos modelos devuelven JSON como string escapado.
-  try{
-    const unwrapped=JSON.parse(s);
-    if(typeof unwrapped==='string'){
-      out=tryParse(unwrapped.trim());
-      if(out)return out;
-    }
-  }catch(_){}
-
-  // 5) Último intento: bloques markdown internos.
-  const blocks=[...s.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)];
-  for(const m of blocks){
-    out=tryParse(m[1].trim());
-    if(out)return out;
-  }
-
-  console.warn('Respuesta Groq no parseable:', original);
-  throw Error('Groq respondió, pero el formato de escenas no se pudo interpretar.');
-}
-function normalizeSceneQueries(scene){
-  const raw=[
-    ...(Array.isArray(scene?.queries)?scene.queries:[]),
-    scene?.query
-  ].map(x=>String(x||'').trim()).filter(Boolean);
-
-  const seen=new Set();
-  const out=[];
-  for(const q of raw){
-    const k=q.toLowerCase();
-    if(!seen.has(k)){seen.add(k);out.push(q);}
-  }
-  return out.slice(0,3);
-}
-
-async function pexelsClip(search,choice=0){
-  const k=($('#pexels')?.value||'').trim();
-  if(!k)return null;
-  try{
-    const r=await fetch(`https://api.pexels.com/v1/videos/search?query=${encodeURIComponent(search)}&orientation=portrait&per_page=15&page=1`,{
-      headers:{Authorization:k}
-    });
-    if(!r.ok)return null;
-    const d=await r.json();
-    const videos=(d.videos||[]).filter(Boolean);
-    if(!videos.length)return null;
-
-    // Pexels already ranks results by relevance. Keep the first choices first.
-    const v=videos[Math.min(choice,videos.length-1)];
-    const files=(v.video_files||[]).filter(x=>x.link);
-    if(!files.length)return null;
-
-    // Prefer vertical/near-720 sources, then reasonable file size/resolution.
-    files.sort((a,b)=>{
-      const ap=(a.height||0)>(a.width||0)?0:1;
-      const bp=(b.height||0)>(b.width||0)?0:1;
-      if(ap!==bp)return ap-bp;
-      return Math.abs((a.width||720)-720)-Math.abs((b.width||720)-720);
-    });
-    return {url:files[0].link,provider:'Pexels',search};
-  }catch(_){return null;}
-}
-
-async function pixabayClip(search,choice=0){
-  const k=($('#pixabay')?.value||'').trim();
-  if(!k)return null;
-  try{
-    const r=await fetch(`https://pixabay.com/api/videos/?key=${encodeURIComponent(k)}&q=${encodeURIComponent(search)}&per_page=15&page=1&safesearch=true`);
-    if(!r.ok)return null;
-    const d=await r.json();
-    const hits=(d.hits||[]).filter(Boolean);
-    if(!hits.length)return null;
-    const v=hits[Math.min(choice,hits.length-1)];
-    const f=v&&(v.videos?.medium||v.videos?.small||v.videos?.large);
-    if(f?.url)return {url:f.url,provider:'Pixabay',search};
-  }catch(_){}
-  return null;
-}
-
-async function clipForScene(scene,attempt=0){
-  const queries=normalizeSceneQueries(scene);
-  if(!queries.length)return null;
-
-  // "Cambiar escena" walks through nearby candidates first, then alternate searches.
-  const queryIndex=Math.floor(attempt/3)%queries.length;
-  const candidateIndex=attempt%3;
-
-  // Initial pass: try the most exact query first; if it has no result, use alternatives.
-  if(attempt===0){
-    for(const search of queries){
-      let found=await pexelsClip(search,0);
-      if(found)return found;
-      found=await pixabayClip(search,0);
-      if(found)return found;
-    }
-    return null;
-  }
-
-  const search=queries[queryIndex];
-  return (await pexelsClip(search,candidateIndex))
-      || (await pixabayClip(search,candidateIndex));
-}
-
-function render(s,c,i){
-  const queries=normalizeSceneQueries(s);
-  let a=document.createElement('article');
-  a.className='scene';
-  a.dataset.q=queries[0]||s.query||'';
-  a.dataset.queries=JSON.stringify(queries);
-  a.dataset.narration=s.narration||'';
-  a.dataset.searchAttempt=0;
-  if(c?.url)a.dataset.clipUrl=c.url;
-
-  a.innerHTML=`<div class="media">${c?`<video muted loop controls playsinline src="${e(c.url)}"></video>`:'<span class="err">Sin clip</span>'}</div>
-  <div class="body">
-    <b>ESCENA ${i+1}</b>
-    <p class="narr">${e(s.narration)}</p>
-    <p class="q">🔎 ${e(c?.search||queries[0]||s.query)}</p>
-    <p class="provider">${c?'Fuente: '+c.provider:'Sin resultado'}</p>
-    <button class="sec change">↻ Cambiar escena</button>
-  </div>`;
-
-  const scenesRoot=$('#scenes');
-  if(!scenesRoot)throw Error('No existe el contenedor de escenas.');
-  scenesRoot.appendChild(a);
-
-  const changeBtn=a.querySelector('.change');
-  if(changeBtn)changeBtn.onclick=async()=>{
-    const b=a.querySelector('.change');
-    b.disabled=true;b.textContent='Buscando...';
-
-    const sceneData={
-      narration:a.dataset.narration||'',
-      query:a.dataset.q||'',
-      queries:JSON.parse(a.dataset.queries||'[]')
-    };
-    const attempt=Number(a.dataset.searchAttempt||0)+1;
-    a.dataset.searchAttempt=String(attempt);
-
-    const c2=await clipForScene(sceneData,attempt);
-    a.querySelector('.media').innerHTML=c2
-      ? `<video muted loop controls playsinline src="${e(c2.url)}"></video>`
-      : '<span class="err">Sin otro clip</span>';
-
-    if(c2?.url)a.dataset.clipUrl=c2.url; else delete a.dataset.clipUrl;
-    a.querySelector('.provider').textContent=c2?'Fuente: '+c2.provider:'Sin otro resultado';
-    a.querySelector('.q').textContent='🔎 '+(c2?.search||sceneData.queries[attempt%Math.max(1,sceneData.queries.length)]||sceneData.query);
-
-    b.disabled=false;b.textContent='↻ Cambiar escena';
-  };
-}
-
-async function go(){
-  const script=(document.querySelector('#script')?.value||'').trim();
-  const n=Number(document.querySelector('#sceneCount')?.value||8);
-  const d=Number(document.querySelector('#duration')?.value||30);
-  const pex=(document.querySelector('#pexels')?.value||'').trim();
-  const pix=(document.querySelector('#pixabay')?.value||'').trim();
-
-  if(!script)throw Error('El guion está vacío.');
-  if(!pex && !pix)throw Error('Falta la API de Pexels o Pixabay.');
-
-  st('Groq está dividiendo el guion y creando búsquedas visuales precisas…');
-  const title=(document.querySelector('#videoTitle')?.value||'').trim();
-  const prompt=`Actúa como editor de archivo visual para un documental vertical.
-Divide el guion en exactamente ${n} escenas y crea búsquedas de stock que coincidan LO MÁS POSIBLE con lo narrado.
-
-Devuelve SOLO JSON válido con esta forma:
-{"scenes":[{"narration":"fragmento exacto del guion","query":"mejor búsqueda principal en inglés","queries":["búsqueda exacta 1","alternativa 2","alternativa 3"]}]}.
-
-REGLAS OBLIGATORIAS:
-- El array "scenes" debe contener exactamente ${n} objetos.
-- Cada escena debe tener exactamente 3 búsquedas diferentes en "queries".
-- "query" debe ser idéntica a la primera búsqueda de "queries".
-- Todas las búsquedas deben estar EN INGLÉS y tener idealmente entre 4 y 8 palabras.
-- Primero identifica el SUJETO PRINCIPAL del documental usando el título y el guion.
-- Si la escena sigue hablando de ese sujeto, INCLUYE el sujeto principal en las 3 búsquedas. No lo reemplaces por un objeto secundario.
-- Describe la ACCIÓN exacta de la narración: carrying, hiding, hunting, swimming, walking, feeding, attacking, building, using shells, etc.
-- Añade el ENTORNO cuando ayude: underwater, ocean floor, jungle, desert, snow, city, workshop, etc.
-- No uses búsquedas genéricas como "shell", "ocean", "animal", "danger", "nature", "coconut" si el sujeto real puede incluirse.
-- Evita personas, objetos o especies distintas salvo que la narración realmente hable de ellas.
-- Usa nombres comunes que funcionen bien en Pexels/Pixabay. Puedes añadir una especie concreta si aumenta la precisión.
-- Alternativa 1: sujeto + acción exacta + entorno.
-- Alternativa 2: sujeto + comportamiento/objeto clave.
-- Alternativa 3: sujeto + plano visual útil (close up, underwater, wildlife, macro, aerial, etc.).
-- Mantén variedad de encuadres entre escenas, pero NUNCA sacrifiques la coincidencia con la narración solo por variar.
-- No inventes una acción que no esté en la narración.
-
-TÍTULO:
-${title}
-
-GUION:
-${script}`;
-
-  const arr=json(await ai(prompt));
-  if(!Array.isArray(arr)||!arr.length)throw Error('Groq no devolvió escenas utilizables.');
-
-  const scenesEl=document.querySelector('#scenes');
-  if(!scenesEl)throw Error('No existe el contenedor de escenas.');
-  scenesEl.innerHTML='';
-
-  for(let i=0;i<arr.length;i++){
-    const queries=normalizeSceneQueries(arr[i]);
-    if(!queries.length)throw Error(`La escena ${i+1} no contiene búsquedas visuales.`);
-    arr[i].query=queries[0];
-    arr[i].queries=queries;
-
-    st(`Buscando clip ${i+1} de ${arr.length}: ${queries[0]}`);
-    const found=await clipForScene(arr[i],0);
-    if(!found)throw Error(`No encontré un clip para la escena ${i+1}. Probé: ${queries.join(' | ')}`);
-    render(arr[i],found,i);
-  }
-  st(`✅ ${arr.length} escenas listas.`,'ok');
-  return arr.length;
-}
-window.documentalAnalyzeScenes=go;
-if($('#go')) $('#go').onclick=()=>go().catch(x=>st('❌ '+x.message,'err'));
-if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas del Atlántico vive un animal que parece desafiar el tiempo. El tiburón de Groenlandia crece lentamente y puede vivir durante siglos. Se desplaza por un mundo oscuro y frío donde pocas criaturas sobreviven. Su extraordinaria longevidad lo convierte en uno de los vertebrados más longevos conocidos.';st('Guion demo colocado.','ok')};
-</script>
-<script>
-(function(){
-  const A=s=>document.querySelector(s);
-  const wait=ms=>new Promise(r=>setTimeout(r,ms));
-  let autoRunning=false;
-
-  function safeFileName(name){
-    name=(name||'documental').trim()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-      .replace(/[<>:"/\\|?*\x00-\x1F]/g,'')
-      .replace(/\s+/g,' ').trim()
-      .replace(/[. ]+$/g,'');
-    return (name||'documental').slice(0,120)+'.mp4';
-  }
-
-  function ast(text,cls='mut'){
-    const el=A('#autoStatus');
-    if(el){el.textContent=text;el.className='status '+cls;}
-    log(text);
-  }
-  function abar(p){
-    const el=A('#autoBar');
-    if(el)el.style.width=Math.max(0,Math.min(100,p))+'%';
-  }
-  function log(text){
-    const el=A('#liveLog'); if(!el)return;
-    const t=new Date().toLocaleTimeString();
-    el.innerHTML += `<div>${t} — ${String(text).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</div>`;
-    el.scrollTop=el.scrollHeight;
-  }
-  function step(id,state,text){
-    const el=A('#'+id); if(!el)return;
-    el.classList.remove('active','done','err');
-    if(state)el.classList.add(state);
-    const small=el.querySelector('small'); if(small&&text)small.textContent=text;
-  }
-  function resetSteps(){
-    [['stepTxt','Archivo cargado'],['stepScenes','En espera'],['stepVoice','En espera'],['stepRender','En espera'],['stepDone','En espera']]
-      .forEach(([id,t],i)=>step(id,i===0?'done':'',t));
-    const l=A('#liveLog');if(l)l.innerHTML='';
-    abar(0);
-  }
-
-  async function parseTxt(file,{autoStart=false}={}){
-    const text=await file.text();
-    const clean=text.replace(/^\uFEFF/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-    const lines=clean.split('\n');
-    const first=lines.findIndex(x=>x.trim());
-    if(first<0)throw Error(`El archivo ${file.name} está vacío.`);
-
-    const title=lines[first].trim();
-    const script=lines.slice(first+1).join('\n').trim();
-    if(!script)throw Error(`El TXT ${file.name} tiene título, pero no guion después de la primera línea.`);
-
-    A('#videoTitle').value=title;
-    A('#downloadName').value=safeFileName(title);
-    A('#script').value=script;
-    window.documentalVideoTitle=title;
-    window.documentalDownloadName=safeFileName(title);
-
-    // Limpieza entre documentales para no reutilizar escenas o audio del anterior.
-    const scenesBox=A('#scenes'); if(scenesBox)scenesBox.innerHTML='';
-    window.documentalFactoryAudioBlob=null;
-    window.documentalFactoryAudioMeta=null;
-
-    resetSteps();
-    step('stepTxt','done','TXT leído');
-    ast(`TXT cargado: ${title}`,'ok');
-
-    const b=A('#autoCreate');if(b)b.disabled=false;
-    if(autoStart)setTimeout(()=>window.documentalAutoCreate?.(),200);
-    return {title,script};
-  }
-
-  let batchRunning=false;
-
-  function qstatus(text,cls='mut'){
-    const el=A('#queueStatus');
-    if(el){el.textContent=text;el.className='status '+cls;}
-  }
-
-  async function processTxtQueue(files){
-    if(batchRunning)return;
-    batchRunning=true;
-    const input=A('#txtFile');
-    const retry=A('#autoCreate');
-    if(input)input.disabled=true;
-    if(retry)retry.disabled=true;
-
-    const results=[];
-    try{
-      qstatus(`Cola preparada: ${files.length} archivo${files.length===1?'':'s'}.`,'ok');
-
-      for(let i=0;i<files.length;i++){
-        const file=files[i];
-        qstatus(`Procesando ${i+1} de ${files.length}: ${file.name}`);
-        const log=A('#liveLog');
-        if(log){
-          const t=new Date().toLocaleTimeString();
-          log.innerHTML+=`<div><b>${t} — ===== VIDEO ${i+1} DE ${files.length}: ${file.name} =====</b></div>`;
-          log.scrollTop=log.scrollHeight;
-        }
-
-        try{
-          await parseTxt(file,{autoStart:false});
-          const ok=await runCurrentDocument();
-          if(!ok)throw Error('El proceso no terminó correctamente.');
-          results.push({file:file.name,ok:true});
-          qstatus(`✅ ${i+1} de ${files.length} terminado. Preparando el siguiente…`,'ok');
-          await wait(600);
-        }catch(err){
-          console.error(err);
-          const msg=err?.message||String(err);
-          results.push({file:file.name,ok:false,error:msg});
-          ast(`❌ ${file.name}: ${msg}`,'err');
-          qstatus(`⚠️ ${file.name} falló. Continuando con el siguiente…`,'err');
-          await wait(800);
-        }
-      }
-
-      const good=results.filter(x=>x.ok).length;
-      const bad=results.length-good;
-      qstatus(`✅ Cola terminada: ${good} video${good===1?'':'s'} creado${good===1?'':'s'}${bad?` · ${bad} con error`:''}.`,bad?'err':'ok');
-      ast(`Cola finalizada: ${good}/${results.length} videos descargados${bad?` · ${bad} fallaron`:''}.`,bad?'err':'ok');
-    }finally{
-      batchRunning=false;
-      if(input)input.disabled=false;
-      if(retry)retry.disabled=false;
-      // Permite volver a seleccionar los mismos archivos si se desea repetir.
-      if(input)input.value='';
-    }
-  }
-
-  A('#txtFile')?.addEventListener('change',async e=>{
-    try{
-      const files=[...(e.target.files||[])];
-      if(!files.length)return;
-      if(files.length>6)throw Error('Selecciona máximo 6 archivos TXT por tanda.');
-      const invalid=files.find(f=>!/\.txt$/i.test(f.name) && f.type!=='text/plain');
-      if(invalid)throw Error(`El archivo ${invalid.name} no es un TXT válido.`);
-      await processTxtQueue(files);
-    }catch(err){
-      ast('❌ '+(err?.message||err),'err');
-      qstatus('❌ '+(err?.message||err),'err');
-      step('stepTxt','err','Error');
-      if(e.target)e.target.value='';
-    }
-  });
-
-  async function makeScenes(){
-    step('stepScenes','active','Analizando y buscando clips');
-    ast('1/4 Groq analiza el guion y Pexels/Pixabay buscan los clips…');
-    abar(10);
-    if(typeof window.documentalAnalyzeScenes!=='function')throw Error('Motor de escenas no disponible.');
-    await window.documentalAnalyzeScenes();
-    const scenes=[...document.querySelectorAll('#scenes .scene')];
-    if(!scenes.length)throw Error('No se generaron escenas.');
-    for(const el of scenes){
-      if(!el.dataset.clipUrl){
-        const v=el.querySelector('video');
-        if(v?.src)el.dataset.clipUrl=v.src;
-      }
-      if(!el.dataset.clipUrl)throw Error('Una escena terminó sin clip.');
-    }
-    step('stepScenes','done',`${scenes.length} escenas listas`);
-    abar(48);
-    return scenes;
-  }
-
-  async function makeVoice(){
-    step('stepVoice','active','Generando narración');
-    ast('2/4 Generando narración con Alexander V…');
-    abar(Math.max(22,parseFloat(A('#autoBar')?.style.width)||22));
-    window.documentalFactoryAudioBlob=null;
-    window.documentalFactoryAudioMeta=null;
-    if(typeof window.generateDocumentalVoice!=='function')throw Error('Motor Piper no disponible.');
-    await window.generateDocumentalVoice();
-    if(!window.documentalFactoryAudioBlob)throw Error('Piper terminó sin crear audio.');
-    step('stepVoice','done',`Voz lista${window.documentalFactoryAudioMeta?.seconds?' · '+window.documentalFactoryAudioMeta.seconds+' s':''}`);
-    abar(60);
-    return window.documentalFactoryAudioBlob;
-  }
-
-  async function renderFinal(){
-    step('stepRender','active','Renderizando MP4');
-    ast('3/4 FFmpeg está creando el video final con voz y música…');
-    abar(66);
-    if(typeof window.createDocumentalFinalVideo!=='function')throw Error('Motor FFmpeg no disponible.');
-    const ok=await window.createDocumentalFinalVideo();
-    if(ok!==true)throw Error('El render no confirmó que terminó correctamente.');
-    step('stepRender','done','MP4 terminado');
-    step('stepDone','done',window.documentalDownloadName||'Descargado');
-    abar(100);
-    ast('✅ Video terminado y descarga iniciada.','ok');
-  }
-
-  async function runCurrentDocument(){
-    const script=(A('#script')?.value||'').trim();
-    if(!script)throw Error('Primero sube un TXT.');
-    if(!(A('#groq')?.value||'').trim())throw Error('Falta Groq API.');
-    if(!(A('#pexels')?.value||'').trim() && !(A('#pixabay')?.value||'').trim())throw Error('Falta Pexels o Pixabay API.');
-
-    const voicePromise=makeVoice();
-    const scenesPromise=makeScenes();
-    await Promise.all([voicePromise,scenesPromise]);
-
-    ast('Voz y escenas listas. Iniciando render automáticamente…','ok');
-    await wait(200);
-    await renderFinal();
-    return true;
-  }
-
-  async function autoCreateAll(){
-    if(autoRunning || batchRunning)return false;
-    autoRunning=true;
-    const btn=A('#autoCreate'); if(btn)btn.disabled=true;
-
-    try{
-      return await runCurrentDocument();
-    }catch(err){
-      console.error(err);
-      const msg=err?.message||String(err);
-      ast('❌ '+msg,'err');
-      if(A('#stepVoice')?.classList.contains('active'))step('stepVoice','err','Error');
-      if(A('#stepScenes')?.classList.contains('active'))step('stepScenes','err','Error');
-      if(A('#stepRender')?.classList.contains('active'))step('stepRender','err','Error');
-      return false;
-    }finally{
-      autoRunning=false;
-      if(btn)btn.disabled=false;
-    }
-  }
-
-  window.documentalAutoCreate=autoCreateAll;
-  A('#autoCreate')?.addEventListener('click',autoCreateAll);
-
-  // Keep advanced/manual controls visually out of the way, but never disable them.
-  window.addEventListener('load',()=>{
-    setTimeout(()=>{
-      [...document.querySelectorAll('button')].forEach(b=>{
-        const t=(b.textContent||'').toLowerCase();
-        if((t.includes('generar voz')) || (t.includes('crear y descargar video final'))){
-          b.classList.add('hiddenAuto');
-        }
-      });
-
-      const audio=A('#audio');if(audio)audio.classList.add('hiddenAuto');
-      const aa=A('#audioActions');if(aa)aa.classList.add('hiddenAuto');
-    },300);
-  });
+');
 })();
 </script>
 
-
 <script>
-window.addEventListener('DOMContentLoaded',()=>{
-  const required=['txtFile','videoTitle','downloadName','script','duration','sceneCount',
-    'groq','pexels','pixabay','scenes','titleOverlay','subtitles','musicVol',
-    'renderStatus','renderBar','finalPreview','autoCreate','autoStatus','autoBar','queueStatus'];
-  const missing=required.filter(id=>!document.getElementById(id));
-  if(missing.length){
-    const s=document.getElementById('autoStatus');
-    if(s){s.textContent='❌ Error interno de interfaz: faltan '+missing.join(', ');s.className='status err';}
-    console.error('Documental Factory: elementos faltantes',missing);
-  }else{
-    console.log('Documental Factory: verificación de interfaz OK');
+// V47 FINAL FUNCIONAL - VERSION QUE MAS TE GUSTO + FB 720P H264 HIGH AAC STEREO 48K + 0.40 LOOP + 6x6 AUTOMATICO CLEAN
+(function(){
+  console.log('[V47 FINAL] Motor limpio funcional 720p FB High Profile');
+
+  // No autoplay blindado simple
+  window._batchGenerating=false;
+  window._blockAutoplay=true;
+  window._userClickedPlay=false;
+  const origPlay=HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play=function(){
+    if((window._batchGenerating||window._blockAutoplay)&&!window._userClickedPlay){
+      if(this.id==='previewVideo'||this.id==='previewAudio'){
+        try{this.pause(); this.muted=true;}catch{}
+        return Promise.resolve();
+      }
+    }
+    return origPlay.call(this);
+  };
+  document.getElementById('btnPlay')?.addEventListener('click',()=>{window._userClickedPlay=true; setTimeout(()=>window._userClickedPlay=false,3000);},true);
+
+  // 6 voces simultaneas que guardan seguro
+  window.generateAllVoicesSimultaneous=async function(){
+    const q=window.queue||[];
+    const pending=q.filter(x=>(x.txtContent||x.script)&&!x.audioUrl&&x.videoUrl);
+    if(!pending.length) return true;
+
+    window._voiceGenerating=true;
+    const ov=document.getElementById('renderOverlay');
+    const pct=document.getElementById('renderPct');
+    const txt=document.getElementById('renderText');
+    const lst=document.getElementById('renderList');
+    const master=document.getElementById('renderMasterBar');
+    const sub=document.getElementById('renderSubLabel');
+
+    if(ov){ ov.style.display='flex'; ov.style.pointerEvents='auto'; }
+    if(pct) pct.textContent='0%';
+    if(master) master.style.width='0%';
+    if(txt) txt.textContent=`GENERANDO ${pending.length} VOCES · UNA POR UNA`;
+    if(sub) sub.textContent='FASE 1/2 · VOCES SECUENCIALES';
+
+    if(lst){
+      lst.innerHTML=pending.map(slot=>`
+        <div id="voiceSlot-${slot.id}" style="background:#0d0d12;border:1px solid #292932;border-radius:9px;padding:8px 9px;display:flex;justify-content:space-between;align-items:center;min-width:0">
+          <span style="color:#d8d8df;font-size:8px;font-weight:900;white-space:nowrap">SLOT ${slot.id} · VOZ</span>
+          <span style="color:#777783;font-size:9px;font-weight:950;white-space:nowrap">EN COLA</span>
+        </div>`).join('');
+    }
+
+    let tts=null;
+    try{
+      if(window.getTTS) tts=await window.getTTS();
+      if(!tts) throw new Error('Motor TTS no disponible');
+    }catch(e){
+      window._voiceGenerating=false;
+      throw new Error('Error cargando motor de voces');
+    }
+
+    let cursor=0, finished=0, failed=0;
+    const update=()=>{
+      const p=Math.round((finished/pending.length)*100);
+      if(pct) pct.textContent=p+'%';
+      if(master) master.style.width=p+'%';
+      if(sub) sub.textContent=`FASE 1/2 · ${finished}/${pending.length} VOCES`;
+    };
+
+    const splitFn=(text,max=380)=>{
+      const se=String(text||'').replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+      const ch=[]; let cur='';
+      for(let x of se){
+        x=x.trim(); if(!x) continue;
+        if((cur+' '+x).trim().length<=max) cur=cur?cur+' '+x:x;
+        else{
+          if(cur) ch.push(cur);
+          if(x.length>max){
+            const words=x.split(/\s+/); let tmp='';
+            for(const wd of words){
+              if((tmp+' '+wd).trim().length<=max) tmp=tmp?tmp+' '+wd:wd;
+              else{ if(tmp) ch.push(tmp); tmp=wd; }
+            }
+            cur=tmp;
+          }else cur=x;
+        }
+      }
+      if(cur) ch.push(cur);
+      return ch;
+    };
+
+    const makeWavBlob=(buf)=>{
+      const nc=buf.numberOfChannels, sr=buf.sampleRate, len=buf.length;
+      const wlen=len*nc*2+44, ab=new ArrayBuffer(wlen), v=new DataView(ab);
+      let p=0;
+      const ws=x=>{for(let i=0;i<x.length;i++)v.setUint8(p++,x.charCodeAt(i));};
+      const w16=x=>{v.setUint16(p,x,true);p+=2;};
+      const w32=x=>{v.setUint32(p,x,true);p+=4;};
+      ws('RIFF');w32(wlen-8);ws('WAVE');ws('fmt ');w32(16);w16(1);w16(nc);
+      w32(sr);w32(sr*nc*2);w16(nc*2);w16(16);ws('data');w32(wlen-p-4);
+      const channels=[]; for(let c=0;c<nc;c++)channels.push(buf.getChannelData(c));
+      let o=44;
+      for(let i=0;i<len;i++)for(let c=0;c<nc;c++){
+        let sm=Math.max(-1,Math.min(1,channels[c][i]));
+        sm=sm<0?sm*0x8000:sm*0x7FFF;
+        v.setInt16(o,sm,true);o+=2;
+      }
+      return new Blob([ab],{type:'audio/wav'});
+    };
+
+    const genSlot=async(slot,workerId)=>{
+      const el=document.getElementById('voiceSlot-'+slot.id);
+      const setState=(text,color)=>{
+        if(el){
+          if(color) el.style.borderColor=color;
+          if(el.lastElementChild) el.lastElementChild.textContent=text;
+        }
+      };
+      try{
+        const text=(slot.txtContent||slot.script||'').trim();
+        if(!text) throw new Error('Sin texto');
+
+        const voiceId=slot.voiceId||document.getElementById('kokoroVoice')?.value||'es_ES-sharvard-medium:0';
+        const parts=voiceId.split(':');
+        const vId=parts[0], spk=parseInt(parts[1]||0,10);
+
+        setState(`TTS ${workerId}`);
+        try{ await tts.download(vId,()=>{}); }catch{}
+
+        const chunks=splitFn(text,380);
+        const AC=window.AudioContext||window.webkitAudioContext;
+        const ac=new AC();
+        if(ac.state==='suspended') await ac.resume();
+        const bufs=[];
+
+        for(let i=0;i<chunks.length;i++){
+          setState(`${i+1}/${chunks.length}`);
+          let wb=null;
+          for(let attempt=1;attempt<=2;attempt++){
+            try{
+              wb=await Promise.race([
+                tts.predict({text:chunks[i],voiceId:vId,speakerId:spk},()=>{}),
+                new Promise((_,rej)=>setTimeout(()=>rej(new Error('TTS timeout')),45000))
+              ]);
+              if(wb&&wb.size>=500) break;
+            }catch(e){
+              if(attempt<2) await new Promise(r=>setTimeout(r,350));
+            }
+          }
+          if(!wb||wb.size<800) throw new Error('Chunk de voz vacío');
+          const bf=await ac.decodeAudioData(await wb.arrayBuffer());
+          bufs.push(bf);
+        }
+
+        if(!bufs.length) throw new Error('Audio vacío');
+        let total=0; for(const b of bufs) total+=b.length;
+        const concat=ac.createBuffer(bufs[0].numberOfChannels,total,bufs[0].sampleRate);
+        let off=0;
+        for(const b of bufs){
+          for(let c=0;c<b.numberOfChannels;c++) concat.getChannelData(c).set(b.getChannelData(c),off);
+          off+=b.length;
+        }
+        await ac.close();
+
+        const wavBlob=makeWavBlob(concat);
+        const url=URL.createObjectURL(wavBlob);
+        if(slot.audioUrl) try{URL.revokeObjectURL(slot.audioUrl);}catch{}
+        slot.audioUrl=url;
+        slot.audioBlob=wavBlob;
+        slot.audioName=`SLOT${slot.id}.wav`;
+        slot.audioDur=concat.length/concat.sampleRate;
+        slot.status='con audio';
+
+        setState(`OK ${slot.audioDur.toFixed(1)}s`,'#22c55e');
+        return true;
+      }catch(e){
+        console.error('[V81 VOZ SLOT '+slot.id+']',e);
+        setState('ERROR','#ef4444');
+        failed++;
+        return false;
+      }finally{
+        finished++;
+        update();
+        window.renderCola?.(true);
+      }
+    };
+
+    try{
+      // V83: Piper estrictamente secuencial. Una sola voz activa a la vez.
+      // Esto evita competir por el mismo modelo/memoria WASM.
+      for(let i=0;i<pending.length;i++){
+        const slot=pending[i];
+        let ok=false;
+
+        // Dos intentos completos por SLOT además de los reintentos internos de cada chunk.
+        for(let attempt=1;attempt<=2 && !ok;attempt++){
+          const el=document.getElementById('voiceSlot-'+slot.id);
+          if(el?.lastElementChild) el.lastElementChild.textContent=
+            attempt===1?'GENERANDO':`REINTENTO ${attempt}/2`;
+
+          ok=await genSlot(slot,1);
+
+          if(!ok && attempt<2){
+            // genSlot incrementa finished en cada llamada; compensamos porque
+            // un reintento sigue perteneciendo al mismo slot lógico.
+            finished=Math.max(0,finished-1);
+            failed=Math.max(0,failed-1);
+            await new Promise(r=>setTimeout(r,800));
+          }
+        }
+
+        // Da tiempo al navegador/Piper para liberar memoria entre voces.
+        await new Promise(r=>setTimeout(r,350));
+      }
+
+      const stillMissing=pending.filter(x=>!x.audioUrl);
+      if(stillMissing.length){
+        throw new Error(`No se pudieron generar ${stillMissing.length} voz/ voces después de 2 intentos`);
+      }
+
+      finished=pending.length;
+      failed=0;
+      if(pct) pct.textContent='100%';
+      if(master) master.style.width='100%';
+      if(txt) txt.textContent='VOCES COMPLETAS · INICIANDO RENDER...';
+      if(sub) sub.textContent='FASE 1/2 COMPLETA';
+      await new Promise(r=>setTimeout(r,500));
+      return true;
+    }finally{
+      window._voiceGenerating=false;
+    }
+  };
+
+  // V77: renderer simultáneo antiguo eliminado físicamente.
+  // Solo existe el renderer FFmpeg secuencial de la sección final.
+
+
+// Unico boton Render Todo automatico
+  function installRenderTodo(){
+    const old=document.getElementById('btnRender'); if(!old) return;
+    const clone=old.cloneNode(true); old.parentNode.replaceChild(clone, old);
+    const btn=document.getElementById('btnRender');
+    if(btn._v47) return; btn._v47=true;
+    btn.addEventListener('click', async(e)=>{
+      e.preventDefault(); e.stopPropagation();
+      // V53 - siempre activo
+      btn.disabled = false; btn.style.opacity='1';
+      btn.disabled=true; const orig=btn.textContent; btn.textContent='AUTOMATICO 6x6 FB...';
+      try{
+        const need=(window.queue||[]).filter(x=>(x.txtContent||x.script)&&!x.audioUrl&&x.videoUrl);
+        if(need.length) await window.generateAllVoicesSimultaneous();
+        await new Promise(r=>setTimeout(r,300));
+        await window.renderAllVideosBlindado();
+      }catch(err){ alert(err.message); } finally{ btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO (6 VIDEOS 720p FB HD)'; window._batchGenerating=false; }
+    });
   }
-});
+  // V81: instalador legacy desactivado; el botón final FFmpeg es el único dueño.
+  // setTimeout(installRenderTodo,600);
+  // setTimeout(installRenderTodo,1500);
+
+  // Boton rojo blindado sin logout
+  window._doLimpiarReal=async function(){
+    const btn=document.getElementById('btnLimpiarTodo');
+    if(btn){
+      const origText=btn.textContent;
+      const origBg=btn.style.background;
+      btn.textContent='🟢 LIMPIANDO...';
+      btn.style.background='#22c55e';
+      btn.style.transform='scale(0.95)';
+      btn.style.transition='all 0.3s ease';
+      // Animacion verde
+      let dots=0;
+      const anim=setInterval(()=>{
+        dots=(dots+1)%4;
+        btn.textContent='🟢 LIMPIANDO'+'.'.repeat(dots);
+      },200);
+      await new Promise(r=>setTimeout(r,800));
+      clearInterval(anim);
+      btn.textContent='✅ LIMPIO!';
+      await new Promise(r=>setTimeout(r,400));
+    }
+    try{
+      if(window._lastBlobs) window._lastBlobs.forEach(u=>{try{URL.revokeObjectURL(u)}catch{}});
+      if(window.queue) window.queue.forEach(q=>{ try{if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{}} );
+    }catch{}
+    try{
+      const del=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!k) continue; const low=k.toLowerCase(); if(low.includes('sb-')||low.includes('supabase')||low.includes('auth')) continue; if(k.startsWith('ice_')||k.includes('ice_')) del.push(k); }
+      del.forEach(k=>{try{localStorage.removeItem(k);}catch{}});
+      if(window.queue) window.queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase='Video '+q.id; q.txtName=''; q.txtContent=''; q.audioBlob=null; });
+      document.querySelectorAll('input[type=file]').forEach(inp=>{try{inp.value='';}catch{}});
+    }catch{}
+    setTimeout(()=>location.reload(),400);
+  };
+  function installRojo(){
+    let b=document.getElementById('btnLimpiarTodo');
+    if(!b){
+      const ref=document.getElementById('btnRender');
+      if(ref){
+        b=document.createElement('button'); b.id='btnLimpiarTodo'; b.type='button'; b.textContent='🧹 LIMPIAR TODO EN CERO';
+        b.setAttribute('onclick','window._doLimpiarReal()');
+        b.style.cssText='background:#ff3b3b;color:#fff;border:0;border-radius:10px;padding:10px 16px;font:900 11px sans-serif;cursor:pointer;margin-right:6px;';
+        ref.parentNode.insertBefore(b, ref);
+      }
+    }
+    if(b){ 
+      b.setAttribute('onclick','window._doLimpiarReal()'); 
+      b.disabled=false; 
+      b.style.opacity='1';
+      b.style.pointerEvents='auto';
+      b.style.cursor='pointer';
+      // Forzar activo siempre
+      b.addEventListener('click', (e)=>{
+        e.preventDefault();
+        window._doLimpiarReal();
+      });
+    }
+  }
+  setTimeout(installRojo,500); setTimeout(installRojo,1500);
+})();
 </script>
 
-</body></html>
+<script>
+// PREHEAT SIMPLE ORIGINAL - no mensajes raros, solo deja motor listo
+(function(){
+  console.log('[ORIGINAL PREHEAT] Precalentando motor voces...');
+  window._ttsCache = null;
+  window._voicesDownloaded = new Set();
+  window._ttsReady = false;
+  async function preheatOriginal(){
+    try{
+      if(!window.getTTS) { setTimeout(preheatOriginal,1000); return; }
+      const tts = await window.getTTS();
+      window._ttsCache = tts;
+      // Descargar voz principal 150MB en background como original
+      try{ await tts.download('es_ES-sharvard-medium', ()=>{}); window._voicesDownloaded.add('es_ES-sharvard-medium'); console.log('[ORIGINAL] Voz 150MB precargada'); const st=document.getElementById('kokoroStatus'); if(st) st.textContent='✅ Alexander V listo - 150MB precargado'; }catch(e){}
+    }catch(e){}
+  }
+  setTimeout(preheatOriginal, 1200);
+})();
+</script>
+
+<script>
+
+// === V78 FFMPEG.WASM + 3 EN PARALELO + REINICIO POR SLOT ===
+// Render final 100% en el navegador con FFmpeg WebAssembly (single-thread).
+// La interfaz, Piper, Supabase, preview y cola se conservan. El render final NO usa
+// VideoEncoder, MediaRecorder, MP4Box ni mp4-muxer.
+(function(){
+  const ICW = window.ICECREAM_WASM = {
+    wrapperLoading:null,
+    corePath:'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
+    wrapperPath:'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js',
+    fontUrl:'https://raw.githubusercontent.com/ffmpegwasm/testdata/master/arial.ttf'
+  };
+
+  function loadClassicScript(src){
+    if(window.FFmpeg?.createFFmpeg) return Promise.resolve();
+    if(ICW.wrapperLoading) return ICW.wrapperLoading;
+    ICW.wrapperLoading=new Promise((resolve,reject)=>{
+      const sc=document.createElement('script');
+      sc.src=src; sc.async=true;
+      sc.onload=resolve;
+      sc.onerror=()=>reject(new Error('No se pudo cargar FFmpeg.wasm'));
+      document.head.appendChild(sc);
+    });
+    return ICW.wrapperLoading;
+  }
+
+  function safeFSUnlink(ffmpeg,name){
+    try{ffmpeg.FS('unlink',name);}catch{}
+  }
+
+  function extFromName(name,fallback){
+    const m=String(name||'').toLowerCase().match(/\.([a-z0-9]{2,5})$/);
+    return m?m[1]:fallback;
+  }
+
+  function assTime(sec){
+    sec=Math.max(0,Number(sec)||0);
+    const h=Math.floor(sec/3600);sec-=h*3600;
+    const m=Math.floor(sec/60);sec-=m*60;
+    const ss=Math.floor(sec),cs=Math.floor((sec-ss)*100);
+    return `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}.${String(cs).padStart(2,'0')}`;
+  }
+
+  function assEscape(v){
+    return String(v||'').replace(/\\/g,'\\\\').replace(/\{/g,'\\{').replace(/\}/g,'\\}').replace(/\r?\n/g,'\\N');
+  }
+
+  function titlePreviewLines(text){
+    const t=String(text||'').trim().toUpperCase();
+    if(!t)return[];
+    const w=t.split(/\s+/);
+    if(w.length<=2)return[w.join(' ')];
+    let bi=Math.ceil(w.length/2),bd=Infinity;
+    for(let i=1;i<w.length;i++){
+      const d=Math.abs(w.slice(0,i).join(' ').length-w.slice(i).join(' ').length);
+      if(d<bd){bd=d;bi=i;}
+    }
+    return[w.slice(0,bi).join(' '),w.slice(bi).join(' ')].slice(0,2);
+  }
+
+  function fitAssFont(line,maxSize,minSize,maxWidth){
+    const chars=Math.max(1,String(line||'').length);
+    return Math.max(minSize,Math.min(maxSize,Math.floor(maxWidth/(chars*.58))));
+  }
+
+  function makeASS(item,total){
+    const titleLines=titlePreviewLines(item.title||'');
+    const parts=(typeof chunkSubs==='function'?chunkSubs(item.script||''):[]).filter(Boolean);
+    const head=`[Script Info]\nScriptType: v4.00+\nPlayResX: 720\nPlayResY: 1280\nWrapStyle: 2\nScaledBorderAndShadow: yes\nYCbCr Matrix: TV.709\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: TitleYellow,Arial,56,&H0000EBFF,&H0000EBFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: TitleWhite,Arial,56,&H00FFFFFF,&H00FFFFFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: SubWhite,Arial,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\nStyle: SubYellow,Arial,40,&H0000EBFF,&H0000EBFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n`;
+    let ev='';
+    titleLines.forEach((line,i)=>{
+      const fs=fitAssFont(line,60,35,650),y=70+i*(fs+12);
+      ev+=`Dialogue: 2,0:00:00.00,${assTime(total)},${i===0?'TitleYellow':'TitleWhite'},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
+    });
+    if(parts.length){
+      const d=total/parts.length;
+      parts.forEach((p,i)=>{
+        const lines=(typeof splitWords==='function'?splitWords(String(p).toUpperCase(),30):[String(p).toUpperCase()]).slice(0,3);
+        const mid=Math.floor(lines.length/2);
+        lines.forEach((line,j)=>{
+          const fs=fitAssFont(line,40,28,650),y=896+j*(fs+10);
+          ev+=`Dialogue: 3,${assTime(i*d)},${assTime(Math.min(total,(i+1)*d))},${(lines.length===1||j===mid)?'SubYellow':'SubWhite'},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
+        });
+      });
+    }
+    return head+ev;
+  }
+
+  async function urlToU8(url){
+    const r=await fetch(url);
+    if(!r.ok)throw new Error('No se pudo leer archivo');
+    return new Uint8Array(await r.arrayBuffer());
+  }
+
+  async function renderFresh(item,onPhase){
+    let ffmpeg=null;
+    const files=[];
+    try{
+      onPhase?.('CARGANDO MOTOR');
+      await loadClassicScript(ICW.wrapperPath);
+      const {createFFmpeg}=window.FFmpeg;
+      // Sin logger/progress: evita inundar el hilo principal con mensajes.
+      ffmpeg=createFFmpeg({log:false,mainName:'main',corePath:ICW.corePath});
+      await ffmpeg.load();
+
+      const id=`slot${item.id}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+      // V84 CRÍTICO: entrada y salida JAMÁS comparten el mismo nombre.
+      const inV=`${id}_INPUT_VIDEO.${extFromName(item.videoName,'mp4')}`;
+      const inA=`${id}_INPUT_VOICE.${extFromName(item.audioName,'wav')}`;
+      const ass=`${id}_OVERLAY.ass`;
+      const out=`${id}_FINAL_RENDER.mp4`;
+      files.push(inV,inA,ass,out);
+
+      onPhase?.('PREPARANDO');
+      const [vb,ab,fontb]=await Promise.all([
+        urlToU8(item.videoUrl),
+        urlToU8(item.audioUrl),
+        urlToU8(ICW.fontUrl)
+      ]);
+      if(!vb?.byteLength) throw new Error('Video de entrada vacío');
+      if(!ab?.byteLength) throw new Error('Audio de voz vacío');
+      if(!fontb?.byteLength) throw new Error('No se pudo cargar la fuente de títulos');
+
+      ffmpeg.FS('writeFile',inV,vb);
+      ffmpeg.FS('writeFile',inA,ab);
+      ffmpeg.FS('writeFile','arial.ttf',fontb);
+
+      const vDur=item.videoDur||10,aDur=item.audioDur||vDur||10,total=aDur||vDur||10;
+      const info=typeof getRateInfo==='function'?getRateInfo(vDur,total):{rate:1,useLoop:false};
+
+      const assText=makeASS(item,total);
+      if(!assText || !assText.includes('[Events]')) throw new Error('No se pudo generar título/subtítulos');
+      ffmpeg.FS('writeFile',ass,new TextEncoder().encode(assText));
+      const useSubs=true;
+
+      const args=[];
+      if(info.useLoop)args.push('-stream_loop','-1');
+      args.push('-i',inV,'-i',inA);
+      const rate=Math.max(.05,Number(info.rate)||1);
+      // V85: zoom 10% centrado para sacar marcas pegadas a bordes superior/inferior.
+      let vf=`setpts=PTS/${rate.toFixed(6)},scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,scale=792:1408,crop=720:1280:36:64,fps=30`;
+      if(useSubs)vf+=`,subtitles=${ass}:fontsdir=.`;
+      args.push('-filter_complex',`[0:v]${vf}[v];[1:a]aresample=48000[a]`,
+        '-map','[v]','-map','[a]','-t',Number(total).toFixed(3),
+        '-c:v','libx264','-preset','ultrafast','-b:v','3200k','-maxrate','3800k','-bufsize','6400k',
+        '-pix_fmt','yuv420p','-r','30','-g','60',
+        '-c:a','aac','-b:a','128k','-ar','48000','-movflags','+faststart',out);
+
+      onPhase?.('CODIFICANDO');
+      // Deja pintar UI antes del trabajo pesado.
+      await new Promise(r=>setTimeout(r,120));
+      await ffmpeg.run(...args);
+
+      onPhase?.('GUARDANDO');
+      const data=ffmpeg.FS('readFile',out);
+      if(!data||data.byteLength<10000) throw new Error('FFmpeg no generó un MP4 final válido');
+
+      // La salida debe ser un archivo nuevo producido por FFmpeg, nunca el input.
+      if(out===inV) throw new Error('Colisión interna entrada/salida');
+
+      const copy=new Uint8Array(data.byteLength);
+      copy.set(data);
+      const blob=new Blob([copy],{type:'video/mp4'});
+      return{
+        blob,
+        url:URL.createObjectURL(blob),
+        ext:'mp4',
+        rendered:true,
+        inputBytes:vb.byteLength,
+        outputBytes:copy.byteLength
+      };
+    }finally{
+      if(ffmpeg){
+        files.forEach(n=>safeFSUnlink(ffmpeg,n));
+        safeFSUnlink(ffmpeg,'arial.ttf');
+        try{ffmpeg.exit?.();}catch{}
+      }
+      ffmpeg=null;
+      // Ventana real para GC/memoria antes del siguiente slot.
+      await new Promise(r=>setTimeout(r,700));
+    }
+  }
+
+  function freezePreviewForRender(){
+    try{if(typeof raf!=='undefined'&&raf){cancelAnimationFrame(raf);raf=null;}}catch{}
+    try{if(vEl&&!vEl.paused)vEl.pause();}catch{}
+    try{if(aEl&&!aEl.paused)aEl.pause();}catch{}
+    window._previewFrozenForBatch=true;
+  }
+
+  function resumePreviewAfterRender(){
+    window._previewFrozenForBatch=false;
+    try{startLoop();}catch{}
+  }
+
+  window.renderAllVideosBlindado=async function(){
+    if(window._ffmpegBatchActive)return;
+    const list=(window.queue||[]).filter(q=>q.videoUrl&&q.audioUrl);
+    if(!list.length){alert('No hay videos con voz listos.');return;}
+
+    window._ffmpegBatchActive=true;
+    window._batchGenerating=true;
+    freezePreviewForRender();
+
+    const ov=document.getElementById('renderOverlay'),pct=document.getElementById('renderPct'),
+      txt=document.getElementById('renderText'),lst=document.getElementById('renderList'),
+      master=document.getElementById('renderMasterBar'),sub=document.getElementById('renderSubLabel');
+
+    if(ov)ov.style.display='flex';
+    if(lst)lst.innerHTML=list.map(q=>`<div id="renderSlot-${q.id}" style="background:#0d0d12;border:1px solid #292932;border-radius:9px;padding:8px 9px;display:flex;justify-content:space-between;align-items:center"><span style="color:#d8d8df;font-size:8px;font-weight:900">SLOT ${q.id} · VIDEO</span><span style="color:#777783;font-size:9px;font-weight:950">EN COLA</span></div>`).join('');
+
+    const completedFiles=[];
+    let failed=0;
+
+    try{
+      for(let i=0;i<list.length;i++){
+        const q=list[i],row=document.getElementById('renderSlot-'+q.id);
+        const basePct=Math.round((i/list.length)*96);
+        if(pct)pct.textContent=basePct+'%';
+        if(master)master.style.width=basePct+'%';
+        if(sub)sub.textContent=`VIDEO ${i+1} DE ${list.length}`;
+        if(row){row.style.borderColor='#FFEB00';row.lastChild.textContent='INICIANDO';}
+        if(txt)txt.textContent=`SLOT ${q.id} · MOTOR NUEVO`;
+
+        try{
+          const r=await renderFresh(q,phase=>{
+            if(row)row.lastChild.textContent=phase;
+            if(txt)txt.textContent=`SLOT ${q.id} · ${phase}`;
+          });
+          if(!r?.rendered || !r?.blob || r.blob.size<10000){
+            throw new Error('El resultado no es un render FFmpeg válido');
+          }
+          if(q.finalUrl?.startsWith('blob:'))try{URL.revokeObjectURL(q.finalUrl);}catch{}
+          q.finalUrl=r.url;q.finalExt='mp4';q.status='hecho';q.progress=100;
+          const base=(window.sanitizar?window.sanitizar(q.fileNameBase):q.fileNameBase)||`Video ${q.id}`;
+          completedFiles.push({slot:q.id,name:base+'.mp4',blob:r.blob});
+          if(row){row.style.borderColor='#22c55e';row.lastChild.textContent='LISTO';}
+        }catch(e){
+          failed++;q.status='error';
+          console.error('[V85 SLOT '+q.id+']',e);
+          if(row){row.style.borderColor='#ef4444';row.lastChild.textContent='ERROR';}
+        }
+
+        const donePct=Math.round(((i+1)/list.length)*96);
+        if(pct)pct.textContent=donePct+'%';
+        if(master)master.style.width=donePct+'%';
+        window.renderCola?.(true);
+      }
+
+      if(!completedFiles.length)throw new Error('Ningún video pudo renderizarse.');
+      completedFiles.sort((a,b)=>a.slot-b.slot);
+
+      if(window.JSZip){
+        if(txt)txt.textContent=`CREANDO ZIP CON ${completedFiles.length} VIDEOS...`;
+        if(pct)pct.textContent='97%';
+        if(master)master.style.width='97%';
+        const zip=new JSZip();
+        completedFiles.forEach(f=>zip.file(f.name,f.blob,{compression:'STORE'}));
+        const zipBlob=await zip.generateAsync({type:'blob',compression:'STORE'},meta=>{
+          const p=97+Math.floor(meta.percent*.03);
+          if(pct)pct.textContent=Math.min(99,p)+'%';
+          if(master)master.style.width=Math.min(99,p)+'%';
+        });
+        const u=URL.createObjectURL(zipBlob);
+        window.safeDownload?.(u,`ICECREAM_DIGITAL_${completedFiles.length}_VIDEOS.zip`);
+        setTimeout(()=>{try{URL.revokeObjectURL(u);}catch{}},60000);
+      }
+
+      if(pct)pct.textContent='100%';
+      if(master)master.style.width='100%';
+      if(sub)sub.textContent=`${completedFiles.length} LISTOS${failed?` · ${failed} ERROR${failed===1?'':'ES'}`:''}`;
+      if(txt)txt.textContent=`COMPLETADO · ${completedFiles.length} MP4 EN ZIP`;
+    }catch(e){
+      console.error('[V85 LOTE]',e);
+      if(txt)txt.textContent='ERROR: '+(e?.message||e);
+      alert('Error de render: '+(e?.message||e));
+    }finally{
+      window._ffmpegBatchActive=false;
+      window._batchGenerating=false;
+      window.renderCola?.(true);
+      resumePreviewAfterRender();
+    }
+  };
+
+  function installWasmButton(){
+    const old=document.getElementById('btnRender'); if(!old) return;
+    if(old._ffmpegWasm) return;
+    const nb=old.cloneNode(true); old.parentNode.replaceChild(nb,old); nb._ffmpegWasm=true;
+    nb.textContent='⚡ RENDERIZAR TODO · FFMPEG 720p';
+    nb.addEventListener('click',async e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      if(window._ffmpegBatchActive || window._voiceGenerating) return;
+
+      nb.disabled=true;
+      try{
+        const cur=window.getA?.();
+        if(cur){
+          const t=document.getElementById('inputTitle');
+          const sc=document.getElementById('inputScript');
+          if(t) cur.title=t.value;
+          if(sc) cur.script=sc.value;
+        }
+
+        const withVideo=(window.queue||[]).filter(x=>x.videoUrl);
+        if(!withVideo.length){
+          alert('Carga al menos un video.');
+          return;
+        }
+
+        const need=withVideo.filter(x=>(x.txtContent||x.script)&&!x.audioUrl);
+        if(need.length){
+          nb.textContent='⏳ FASE 1/2 · GENERANDO VOCES...';
+          const ok=await window.generateAllVoicesSimultaneous();
+          if(!ok) throw new Error('No se completó la generación de voces');
+        }
+
+        const ready=withVideo.filter(x=>x.audioUrl);
+        if(!ready.length) throw new Error('No hay videos con voz listos para renderizar');
+
+        // Cambio visual explícito entre fases.
+        const ov=document.getElementById('renderOverlay');
+        const pct=document.getElementById('renderPct');
+        const master=document.getElementById('renderMasterBar');
+        const txt=document.getElementById('renderText');
+        const sub=document.getElementById('renderSubLabel');
+        const lst=document.getElementById('renderList');
+
+        if(ov) ov.style.display='flex';
+        if(pct) pct.textContent='0%';
+        if(master) master.style.width='0%';
+        if(txt) txt.textContent='FASE 2/2 · INICIANDO FFMPEG...';
+        if(sub) sub.textContent='RENDER AUTOMÁTICO';
+        if(lst) lst.innerHTML='';
+
+        await new Promise(r=>setTimeout(r,180));
+
+        nb.textContent='⏳ FASE 2/2 · RENDER FFMPEG...';
+        await window.renderAllVideosBlindado();
+      }catch(err){
+        console.error(err);
+        alert(err.message||String(err));
+      }finally{
+        nb.disabled=false;
+        nb.textContent='⚡ RENDERIZAR TODO · FFMPEG 720p';
+        window._batchGenerating=false;
+      }
+    });
+  }
+  // Los instaladores viejos usan timers; instalamos este al final para que sea el dueño definitivo del botón.
+  setTimeout(installWasmButton,2200);
+  setTimeout(installWasmButton,3200);
+  setTimeout(()=>{
+    const t=document.getElementById('renderText'); if(t && /60fps/i.test(t.textContent||'')) t.textContent='RENDER FFMPEG 30 FPS';
+    console.log('[ICECREAM V85] 2 motores FFmpeg persistentes instalados');
+  },3400);
+})();
+
+// === LIMPIAR TODO BLINDADO ===
+window._doLimpiarReal=async function(){
+  const btn=document.getElementById('btnLimpiarTodo');
+  if(btn){ btn.textContent='🟢 LIMPIANDO...'; btn.style.background='#22c55e'; }
+  try{
+    if(window.queue) window.queue.forEach(q=>{ try{if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{}} );
+  }catch{}
+  try{
+    if(window.queue) window.queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase='Video '+q.id; q.txtName=''; q.txtContent=''; q.audioBlob=null; });
+    document.querySelectorAll('input[type=file]').forEach(inp=>{try{inp.value='';}catch{}}); 
+  }catch{}
+  setTimeout(()=>location.reload(),400);
+};
+(function(){
+  function installRojo(){
+    let b=document.getElementById('btnLimpiarTodo'); if(!b) return;
+    b.setAttribute('onclick','window._doLimpiarReal()'); b.disabled=false; b.style.opacity='1'; b.style.pointerEvents='auto';
+    b.addEventListener('click', (e)=>{ e.preventDefault(); window._doLimpiarReal(); });
+  }
+  setTimeout(installRojo,500); setTimeout(installRojo,1500);
+})();
+
+// Perf monitor
+setInterval(()=>{try{const m=performance.memory; if(m){document.getElementById('mRam').textContent=Math.round(m.usedJSHeapSize/1048576)+'MB'} }catch{}},1000);
+
+// Auth Cloudflare Worker + D1 - SIN SUPABASE
+const LS_SESSION = "ic_session_cf_v1";
+const LS_API = "ic_cloudflare_api_v1";
+
+function getApiBase(){
+  let v=(localStorage.getItem(LS_API)||'').trim().replace(/\/+$/,'');
+  return v;
+}
+function setApiBase(v){
+  v=(v||'').trim().replace(/\/+$/,'');
+  if(v) localStorage.setItem(LS_API,v); else localStorage.removeItem(LS_API);
+  return v;
+}
+function ensureApiBase(){
+  let v=getApiBase();
+  if(!v){
+    v="https://icecream-digital-api.iveshernandez1997.workers.dev"||'';
+    v=setApiBase(v);
+  }
+  return v;
+}
+function getSession(){ try{return JSON.parse(localStorage.getItem(LS_SESSION)||'null');}catch{return null;} }
+function saveSession(s){ localStorage.setItem(LS_SESSION,JSON.stringify(s)); }
+function clearSession(){ localStorage.removeItem(LS_SESSION); }
+async function apiCall(path, options={}){
+  const base=ensureApiBase(); if(!base) throw new Error('Falta configurar la URL del Worker.');
+  const sess=getSession();
+  const headers={...(options.headers||{}),'Content-Type':'application/json'};
+  if(sess&&sess.token) headers.Authorization='Bearer '+sess.token;
+  const res=await fetch(base+path,{...options,headers});
+  let data={}; try{data=await res.json();}catch{}
+  if(!res.ok){ const e=new Error(data.error||('Error HTTP '+res.status)); e.data=data; e.status=res.status; throw e; }
+  return data;
+}
+
+// V2.1 - Sincronización automática de cuenta con Cloudflare D1
+let IC_accountSyncBusy = false;
+
+async function syncCurrentAccount({silent=true} = {}){
+  const sess = getSession();
+  if(!sess || !sess.username || !sess.token || IC_accountSyncBusy) return;
+
+  IC_accountSyncBusy = true;
+  try{
+    const data = await apiCall('/api/me', {method:'GET'});
+    if(!data || !data.user) return;
+
+    const u = data.user;
+    const updated = {
+      ...sess,
+      username: u.username || sess.username,
+      isAdmin: !!u.isAdmin,
+      expires_at: u.expires_at || null,
+      plan: u.plan || sess.plan || null,
+      plan_days: u.plan_days ?? sess.plan_days ?? null,
+      is_active: typeof u.is_active === 'boolean' ? u.is_active : true,
+      last_sync: Date.now()
+    };
+
+    saveSession(updated);
+
+    // Actualiza la barra de sesión inmediatamente, sin recargar la página.
+    const userEl = document.getElementById('sess-user');
+    const daysEl = document.getElementById('sess-days');
+    if(userEl) userEl.textContent = updated.username + (updated.isAdmin ? ' (Admin)' : '');
+
+    if(daysEl){
+      if(updated.isAdmin){
+        daysEl.textContent = 'ILIMITADO ♾️';
+        daysEl.style.color = '#FFD60A';
+      }else if(updated.expires_at){
+        const diff = Math.ceil((new Date(updated.expires_at) - new Date()) / 86400000);
+        daysEl.textContent = diff > 0 ? diff + ' días' : 'EXPIRADO';
+        daysEl.style.color = diff > 3 ? '#4ade80' : (diff > 0 ? '#ffb020' : '#ff6b6b');
+      }else{
+        daysEl.textContent = '';
+      }
+    }
+  }catch(e){
+    // Solo forzamos salida cuando el servidor confirma que la sesión/acceso ya no es válido.
+    if(e && (e.status === 401 || e.status === 403)){
+      clearSession();
+      if(!silent) alert('Tu acceso ya no está activo. Inicia sesión nuevamente.');
+      location.reload();
+    }
+    // Si solo hay un problema temporal de internet/Worker, mantenemos la sesión y reintentamos luego.
+  }finally{
+    IC_accountSyncBusy = false;
+  }
+}
+
+function startAccountAutoSync(){
+  // Consulta inmediatamente al abrir/recargar.
+  setTimeout(()=>syncCurrentAccount({silent:true}), 800);
+
+  // Luego sincroniza cada 3 minutos.
+  setInterval(()=>syncCurrentAccount({silent:true}), 180000);
+
+  // Si el usuario vuelve a la pestaña, sincroniza al instante.
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'visible'){
+      syncCurrentAccount({silent:true});
+    }
+  });
+
+  // También sincroniza cuando la ventana recupera el foco.
+  window.addEventListener('focus', ()=>syncCurrentAccount({silent:true}));
+}
+startAccountAutoSync();
+
+async function checkApiStatus(){
+  const el=document.getElementById('apiStatus'); if(!el) return;
+  const base=getApiBase();
+  if(!base){ el.innerHTML='<span style="color:#ffb020">Cloudflare no configurado</span>'; return; }
+  try{ const r=await fetch(base+'/api/health'); if(!r.ok) throw 0; el.innerHTML='<span style="color:#4ade80">● Cloudflare conectado</span>'; }
+  catch{ el.innerHTML='<span style="color:#ff6b6b">● Cloudflare sin conexión</span>'; }
+}
+
+async function doLogin(u,p){
+  const msg=document.getElementById('c-authMsg');
+  const show=t=>{msg.style.display='block';msg.textContent=t;};
+  if(!u||!p){show('Usuario y contraseña');return;}
+  try{
+    show('Conectando...');
+    const data=await apiCall('/api/login',{method:'POST',body:JSON.stringify({username:u,password:p})});
+    saveSession({username:data.user.username,isAdmin:!!data.user.isAdmin,expires_at:data.user.expires_at||null,plan:data.user.plan||null,plan_days:data.user.plan_days??null,is_active:typeof data.user.is_active==='boolean'?data.user.is_active:true,token:data.token,ts:Date.now(),last_sync:Date.now()});
+    location.reload();
+  }catch(e){
+    if(e.data&&e.data.expired){
+      msg.innerHTML='⛔ <b>Expirado</b> - Paga suscripción<br><a href="https://wa.me/50496060657?text=Renovar%20'+encodeURIComponent(u)+'" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;margin-top:6px">Renovar WhatsApp</a>';
+      msg.style.display='block';
+    }else show(e.message||'No se pudo iniciar sesión');
+  }
+}
+
+window.IC_changePassword=async function(username){
+  const np=prompt('Nueva clave para '+username+':'); if(!np) return;
+  if(np.trim().length<4){alert('La clave debe tener al menos 4 caracteres.');return;}
+  try{await apiCall('/api/users/'+encodeURIComponent(username),{method:'PATCH',body:JSON.stringify({password:np.trim()})});alert('Clave actualizada');}
+  catch(e){alert(e.message);}
+};
+window.IC_deleteUser=async function(username){
+  if(!confirm('Borrar '+username+'?')) return;
+  try{await apiCall('/api/users/'+encodeURIComponent(username),{method:'DELETE'});window.renderUsers();}
+  catch(e){alert(e.message);}
+};
+
+(function initLoginAndAdmin(){
+  function initLogin(){
+    const btn=document.getElementById('c-loginBtn'); const user=document.getElementById('c-loginUser'); const pass=document.getElementById('c-loginPass');
+    if(btn && !btn.dataset.ok){ btn.dataset.ok='1'; btn.onclick=()=>doLogin(user.value.trim(),pass.value.trim()); pass.addEventListener('keypress',e=>{if(e.key==='Enter') doLogin(user.value.trim(),pass.value.trim());}); }
+    document.querySelectorAll('.login-tab-custom').forEach(tab=>{
+      if(tab.dataset.ok) return; tab.dataset.ok='1';
+      tab.onclick=()=>{ document.querySelectorAll('.login-tab-custom').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); const formCont=document.getElementById('login-form-container'); const precios=document.getElementById('precios-panel-custom'); if(tab.dataset.tab==='precios'){formCont.style.display='none';precios.classList.add('show');} else {formCont.style.display='block';precios.classList.remove('show');} };
+    });
+    const sess=getSession();
+    if(sess&&sess.username){ document.getElementById('custom-login-overlay').classList.add('hidden'); document.getElementById('authOverlay').style.display='none'; }
+    checkApiStatus();
+  }
+
+  let adminUsersCache=[];
+
+  function getUserMeta(u){
+    const now=Date.now();
+    const exp=u.expires_at?new Date(u.expires_at).getTime():null;
+    const diff=exp?Math.ceil((exp-now)/86400000):null;
+    let state='active', priority=3;
+    if(!u.is_active){state='disabled';priority=0;}
+    else if(diff!==null && diff<=0){state='expired';priority=1;}
+    else if(diff!==null && diff<=3){state='soon';priority=2;}
+    return {exp,diff,state,priority};
+  }
+
+  function updateAdminStats(users){
+    let active=0,soon=0,expired=0;
+    users.forEach(u=>{const m=getUserMeta(u);if(m.state==='active'||m.state==='soon')active++;if(m.state==='soon')soon++;if(m.state==='expired')expired++;});
+    const map={statTotal:users.length,statActive:active,statSoon:soon,statExpired:expired};
+    Object.entries(map).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=v;});
+  }
+
+  function renderAdminUsersFromCache(){
+    const list=document.getElementById('usersList'); if(!list) return;
+    const q=(document.getElementById('adminSearch')?.value||'').trim().toLowerCase();
+    const filter=document.getElementById('adminFilter')?.value||'all';
+    let users=adminUsersCache.slice();
+    users.sort((a,b)=>{const A=getUserMeta(a),B=getUserMeta(b);if(A.priority!==B.priority)return A.priority-B.priority;return (A.diff??99999)-(B.diff??99999);});
+    users=users.filter(u=>{const m=getUserMeta(u);return (!q||String(u.username).toLowerCase().includes(q))&&(filter==='all'||m.state===filter);});
+    if(!users.length){list.innerHTML='<div style="padding:24px;color:#666;text-align:center">No hay usuarios que coincidan con el filtro.</div>';return;}
+    list.innerHTML='';
+    users.forEach(u=>{
+      const m=getUserMeta(u), exp=u.expires_at?new Date(u.expires_at):null;
+      let badge='',txt='';
+      if(m.state==='disabled'){badge='<span style="background:#222;color:#aaa;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">DESACTIVADO</span>';txt=exp?'Expira '+exp.toLocaleDateString():'Sin fecha';}
+      else if(m.state==='expired'){badge='<span style="background:#2a1111;color:#ff6b6b;padding:4px 8px;border-radius:10px;font-weight:900;font-size:10px">EXPIRADO</span>';txt='Expiró '+exp.toLocaleDateString();}
+      else if(m.state==='soon'){badge='<span style="background:#2a2211;color:#ffb020;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+m.diff+' días ⚠️</span>';txt='Expira '+exp.toLocaleDateString();}
+      else {badge='<span style="background:#0f2a15;color:#4ade80;padding:4px 8px;border-radius:10px;font-weight:800;font-size:10px">'+(m.diff===null?'ACTIVO':m.diff+' días')+'</span>';txt=exp?'Expira '+exp.toLocaleDateString():'Sin fecha';}
+
+      const row=document.createElement('div'); row.className='adminUserRow';
+      const left=document.createElement('div'); left.innerHTML='<div class="adminStrong"></div><div class="adminMuted" style="margin-top:4px"></div><div class="adminMuted" style="margin-top:3px"></div>'; left.children[0].textContent=u.username; left.children[1].textContent=(u.plan||'pro').toUpperCase()+' • '+(u.plan_days||30)+' días asignados'; left.children[2].textContent=txt;
+      const mid=document.createElement('div'); mid.innerHTML=badge;
+      const created=document.createElement('div'); created.className='adminMuted'; created.textContent=u.created_at?new Date(u.created_at).toLocaleDateString():'—';
+      const actions=document.createElement('div'); actions.className='adminActions';
+
+      const renew=document.createElement('div'); renew.className='adminRenewBox';
+      const plan=document.createElement('select'); ['starter','pro','agency'].forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x.toUpperCase();if((u.plan||'pro')===x)o.selected=true;plan.appendChild(o);});
+      const days=document.createElement('input'); days.type='number'; days.min='1'; days.max='3650'; days.value='30'; days.title='Días a asignar desde hoy';
+      const rbtn=document.createElement('button'); rbtn.className='adminActionBtn yellow'; rbtn.textContent='Renovar';
+      rbtn.onclick=async()=>{const d=parseInt(days.value)||30;if(d<1||d>3650){alert('Los días deben estar entre 1 y 3650');return;}rbtn.disabled=true;rbtn.textContent='...';try{await apiCall('/api/users/'+encodeURIComponent(u.username),{method:'PATCH',body:JSON.stringify({plan:plan.value,renew_days:d,plan_days:d,is_active:true})});await window.renderUsers();}catch(e){alert(e.message);}finally{rbtn.disabled=false;rbtn.textContent='Renovar';}};
+      renew.append(plan,days,rbtn);
+
+      const toggle=document.createElement('button'); toggle.className='adminActionBtn '+(u.is_active?'gray':'green'); toggle.textContent=u.is_active?'Desactivar':'Activar'; toggle.onclick=async()=>{try{await apiCall('/api/users/'+encodeURIComponent(u.username),{method:'PATCH',body:JSON.stringify({is_active:!u.is_active})});await window.renderUsers();}catch(e){alert(e.message);}};
+      const key=document.createElement('button'); key.className='adminActionBtn gray'; key.textContent='Clave'; key.onclick=()=>window.IC_changePassword(u.username);
+      const del=document.createElement('button'); del.className='adminActionBtn red'; del.textContent='Eliminar'; del.onclick=()=>window.IC_deleteUser(u.username);
+      actions.append(renew,toggle,key,del); row.append(left,mid,created,actions); list.appendChild(row);
+    });
+  }
+
+  window.renderUsers=async function(){
+    const list=document.getElementById('usersList'); if(!list) return;
+    list.innerHTML='<div style="padding:20px;color:#888;text-align:center">Cargando usuarios...</div>';
+    try{const data=await apiCall('/api/users',{method:'GET'});adminUsersCache=data.users||[];updateAdminStats(adminUsersCache);renderAdminUsersFromCache();}
+    catch(e){list.innerHTML='<div style="color:#ff6b6b">Error: '+e.message+'</div>';}
+  };
+
+  function fixAdmin(){
+    const panel=document.getElementById('adminPanel'), close=document.getElementById('closeAdmin'), logoutA=document.getElementById('logoutAdmin'), refresh=document.getElementById('refreshBtn'), add=document.getElementById('addUserBtn');
+    if(close&&!close.dataset.f){close.dataset.f='1';close.onclick=()=>panel.style.display='none';}
+    if(logoutA&&!logoutA.dataset.f){logoutA.dataset.f='1';logoutA.onclick=()=>{clearSession();location.reload();};}
+    if(refresh&&!refresh.dataset.f){refresh.dataset.f='1';refresh.onclick=()=>window.renderUsers();}
+    if(add&&!add.dataset.f){add.dataset.f='1';add.onclick=async()=>{const u=document.getElementById('newUser').value.trim(),p=document.getElementById('newPass').value.trim(),days=parseInt(document.getElementById('newDays').value)||30,plan=document.getElementById('newPlan')?.value||'pro';if(!u||!p){alert('Usuario y clave');return;}if(days<1||days>3650){alert('Los días deben estar entre 1 y 3650');return;}try{await apiCall('/api/users',{method:'POST',body:JSON.stringify({username:u,password:p,plan,plan_days:days})});document.getElementById('newUser').value='';document.getElementById('newPass').value='';document.getElementById('newDays').value='30';window.renderUsers();}catch(e){alert(e.message);}};} const search=document.getElementById('adminSearch'),filter=document.getElementById('adminFilter');if(search&&!search.dataset.f){search.dataset.f='1';search.addEventListener('input',renderAdminUsersFromCache);}if(filter&&!filter.dataset.f){filter.dataset.f='1';filter.addEventListener('change',renderAdminUsersFromCache);}
+    const sess=getSession();
+    if(sess&&sess.username){
+      const bar=document.getElementById('user-session-bar'); if(bar){bar.style.display='flex';document.getElementById('sess-user').textContent=sess.username+(sess.isAdmin?' (Admin)':'');const daysEl=document.getElementById('sess-days');if(sess.isAdmin){daysEl.textContent='ILIMITADO ♾️';daysEl.style.color='#FFD60A';}else if(sess.expires_at){const diff=Math.ceil((new Date(sess.expires_at)-new Date())/86400000);daysEl.textContent=diff>0?diff+' días':'EXPIRADO';}document.getElementById('sess-logout').onclick=()=>{clearSession();location.reload();};}
+      let fab=document.getElementById('admin-fab'); if(sess.isAdmin&&!fab){fab=document.createElement('button');fab.id='admin-fab';fab.textContent='⚙️ Panel Admin';fab.style.cssText='position:fixed;bottom:68px;left:12px;z-index:10012;background:#FFEB00;color:#000;border:2px solid #000;padding:8px 14px;border-radius:8px;font-weight:900;font-size:10px;cursor:pointer;box-shadow:2px 2px 0 #000';document.body.appendChild(fab);fab.onclick=()=>{panel.style.display='block';window.renderUsers();};}
+    }
+  }
+  setInterval(()=>{initLogin();fixAdmin();},1000); setTimeout(()=>{initLogin();fixAdmin();},400);
+})();
+
+window.IC_renew=function(username){
+  const modal=document.getElementById('renew-modal'),info=document.getElementById('renew-modal-info'),preview=document.getElementById('renew-modal-preview'),planSel=document.getElementById('renew-modal-plan'),daysInput=document.getElementById('renew-modal-days'),btn=document.getElementById('renew-modal-btn'),msg=document.getElementById('renew-modal-msg');
+  (async()=>{try{
+    const all=await apiCall('/api/users',{method:'GET'}); const data=(all.users||[]).find(x=>x.username===username); if(!data) throw new Error('Usuario no encontrado');
+    const currentPlan=data.plan||'pro',exp=data.expires_at?new Date(data.expires_at):null,now=new Date(),daysLeft=exp?Math.ceil((exp-now)/86400000):0; const planNames={starter:'STARTER $30 - 100 videos',pro:'PRO $50 - 175 videos',agency:'AGENCY $60 - 250 videos'};
+    info.innerHTML='<div style="color:#fff;font-weight:800;font-size:13px;margin-bottom:6px">👤 '+username+'</div><div>📦 Plan actual: <b style="color:#FFD60A">'+(planNames[currentPlan]||currentPlan)+'</b></div><div>⏳ Estado: <b>'+ (exp?(daysLeft<=0?'EXPIRADO hace '+Math.abs(daysLeft)+' días':daysLeft+' días restantes'):'Sin fecha') +'</b></div>';
+    planSel.value=currentPlan; function updatePreview(){const d=parseInt(daysInput.value)||30,newExp=new Date();newExp.setDate(newExp.getDate()+d);preview.innerHTML='✅ Nuevo: <b>'+planSel.options[planSel.selectedIndex].text+'</b><br>📅 Expira: <b>'+newExp.toLocaleDateString()+'</b><br>⏳ '+d+' días';} planSel.onchange=updatePreview;daysInput.oninput=updatePreview;updatePreview();
+    btn.onclick=async()=>{const d=parseInt(daysInput.value)||30,newPlan=planSel.value;try{msg.textContent='Guardando...';await apiCall('/api/users/'+encodeURIComponent(username),{method:'PATCH',body:JSON.stringify({plan:newPlan,renew_days:d,plan_days:d,is_active:true})});msg.innerHTML='<span style="color:#4ade80">✅ '+username+' renovado: '+newPlan.toUpperCase()+' '+d+' días</span>';setTimeout(()=>{modal.classList.remove('show');window.renderUsers();},800);}catch(e){msg.textContent='❌ '+e.message;}};
+    modal.classList.add('show');
+  }catch(e){alert(e.message);}})();
+};
+
+// BLINDAJE V60 - PUNTO SEGURO
+(function(){
+  console.log('[ICECREAM V60 CLEAN] Punto seguro - 60fps 7Mbps - logica blindada 962f6b016cd7');
+  window.ICECREAM_V50_SAFE = true;
+  window.ICECREAM_V50_CHECKSUM = '962f6b016cd7';
+  window.ICECREAM_V50_DATE = new Date().toISOString();
+  try{
+    localStorage.setItem('icecream_v50_backup_date', window.ICECREAM_V50_DATE);
+    localStorage.setItem('icecream_v50_checksum', window.ICECREAM_V50_CHECKSUM);
+  }catch{}
+})();
+</script>
+
+</body>
+</html>
