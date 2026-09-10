@@ -2,7 +2,7 @@
 <style>
 :root{--b:#08111f;--p:#0f1b2d;--p2:#0a1424;--l:#263853;--t:#f8fafc;--m:#91a4bd;--g:#37d67a}*{box-sizing:border-box}body{margin:0;background:var(--b);color:var(--t);font-family:Arial,sans-serif}.w{max-width:1200px;margin:auto;padding:25px}h1{font-size:42px;margin:0}.mut{color:var(--m)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{background:var(--p);border:1px solid var(--l);border-radius:18px;padding:18px;margin-top:18px}label{display:block;font-size:13px;font-weight:bold;margin:12px 0 6px}textarea,input,select{width:100%;background:var(--p2);color:white;border:1px solid var(--l);border-radius:11px;padding:12px}textarea{min-height:230px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}button{border:0;border-radius:10px;padding:11px 14px;font-weight:bold;cursor:pointer}.pri{background:var(--g);color:#06150c}.sec{background:#233552;color:white}.danger{background:#4b2027;color:#ffd0d0}.scenes{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:15px}.scene{background:var(--p2);border:1px solid var(--l);border-radius:15px;overflow:hidden}.media{aspect-ratio:9/16;max-height:390px;background:#03070d;display:grid;place-items:center}.media video{width:100%;height:100%;object-fit:cover}.body{padding:12px}.body p{font-size:12px;color:var(--m)}.q{font-family:monospace}.status{margin-top:12px;font-size:13px}.ok{color:#7ef0a9}.err{color:#ff9696}.api{display:grid;grid-template-columns:1fr auto;gap:7px}.tiny{font-size:11px;color:var(--m)}.renderbox{margin-top:18px;padding:18px;border:1px solid var(--l);border-radius:16px;background:var(--p2)}.progress{height:12px;background:#050b14;border:1px solid var(--l);border-radius:999px;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0%;background:var(--g);transition:width .25s}.finalvideo{width:100%;max-height:620px;background:#000;border-radius:14px;margin-top:12px;display:none}.hiddenAuto{display:none!important}@media(max-width:850px){.grid{grid-template-columns:1fr}.scenes{grid-template-columns:repeat(2,1fr)}}@media(max-width:550px){.scenes{grid-template-columns:1fr}}
 .pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}.pipe{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--l);border-radius:12px;background:#08101d;opacity:.62}.pipe span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#152237;font-weight:800}.pipe b,.pipe small{display:block}.pipe small{font-size:10px;color:var(--m);margin-top:2px}.pipe.active{opacity:1;border-color:#5d87ff}.pipe.active span{background:#2857d7}.pipe.done{opacity:1;border-color:#2b9b66}.pipe.done span{background:#157347}.pipe.err{opacity:1;border-color:#b94b4b}.pipe.err span{background:#8e2d2d}.liveLog{max-height:145px;overflow:auto;font-size:11px;line-height:1.5;background:#050a12;border:1px solid var(--l);border-radius:10px;padding:10px;margin-top:10px;color:#b9c5d6}.liveLog:empty{display:none}@media(max-width:800px){.pipeline{grid-template-columns:1fr 1fr}.pipe:last-child{grid-column:1/-1}}</style></head><body>
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Estilo Referencia v6.10 Alexander Piper</div><div class="w"><h1>Documental Factory</h1><div class="mut">Sube un .TXT y el sistema hace voz, escenas, música, render y descarga automáticamente.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Estilo Referencia v6.10.1 Alexander Principal</div><div class="w"><h1>Documental Factory</h1><div class="mut">Sube un .TXT y el sistema hace voz, escenas, música, render y descarga automáticamente.</div>
 <div class="grid">
 <section class="card">
   <h2>1. Subir guion .TXT</h2>
@@ -68,14 +68,11 @@
 <label>Pixabay API (opcional)</label><div class="api"><input id="pixabay" type="password"><button class="sec show" data-id="pixabay">Mostrar</button></div>
 <div class="actions"><button class="sec" id="save">Guardar APIs</button><button class="danger" id="erase">Eliminar</button></div><div id="apiSavedStatus" class="tiny" style="margin-top:8px"></div><p class="tiny">Las claves se guardan solo en localStorage de este navegador. Cada usuario usa sus propias APIs.</p>
 <hr style="border:0;border-top:1px solid var(--l);margin:18px 0">
-<h2>3. Voz — Piper español</h2>
-<p class="tiny">Motor Piper de la versión Ice Cream Digital. Alexander queda seleccionado por defecto. El modelo se descarga la primera vez y luego el navegador puede reutilizarlo desde caché.</p>
+<h2>3. Voz — español latino</h2>
+<p class="tiny">Voz principal fija: Alexander V.</p>
 <label>Voz</label>
-<select id="voicePreset">
-  <option value="es_ES-sharvard-medium:0" selected>Alexander V — Masculina</option>
-  <option value="es_ES-sharvard-medium:1">Alejandra Pineda P — Femenina</option>
-</select>
-<div class="tiny" style="margin-top:7px">Las dos opciones usan el modelo es_ES-sharvard-medium; cambia el speaker real, no un filtro de tono.</div>
+<div class="inputLike">Alexander V — Español ES (Masculino)</div>
+<input id="voicePreset" type="hidden" value="es_ES-sharvard-medium:0">
 <div class="actions"><button class="pri" id="makeVoice">🎙️ Generar voz</button></div>
 <div id="ttsStatus" class="status mut">Motor Piper listo para cargar cuando subas el TXT.</div>
 <audio id="audio" controls style="width:100%;margin-top:10px;display:none"></audio>
@@ -218,7 +215,7 @@ async function getPiperTTS(){
   for(const url of cdns){
     try{
       piperTTS=await import(url);
-      ttsStatus('✅ Motor Piper cargado.','ok');
+      ttsStatus('✅ Alexander V listo.','ok');
       return piperTTS;
     }catch(e){
       lastErr=e;
@@ -277,25 +274,23 @@ async function generateVoice(){
   const text=(q('#script')?.value||'').trim();
   if(!text)throw new Error('El guion está vacío.');
 
-  const selected=q('#voicePreset')?.value||'es_ES-sharvard-medium:0';
-  const parts=selected.split(':');
-  const voiceId=parts[0]||'es_ES-sharvard-medium';
-  const speakerId=parseInt(parts[1]||'0',10);
-  const voiceName=speakerId===1?'Alejandra Pineda P':'Alexander V';
+  const voiceId='es_ES-sharvard-medium';
+  const speakerId=0;
+  const voiceName='Alexander V';
 
   try{
     const tts=await getPiperTTS();
     const chunks=splitPiperText(text,380);
     if(!chunks.length)throw new Error('No pude dividir el guion para narrarlo.');
 
-    ttsStatus(`Preparando ${voiceName}…`);
+    ttsStatus('Preparando Alexander V…');
     let downloaded=false,lastDownloadErr=null;
     for(let attempt=1;attempt<=3 && !downloaded;attempt++){
       try{
         await tts.download(voiceId,(prog)=>{
           if(prog?.loaded && prog?.total){
             const pct=Math.round(prog.loaded*100/prog.total);
-            ttsStatus(`Descargando ${voiceName}: ${pct}%`);
+            ttsStatus(`Descargando Alexander V: ${pct}%`);
           }
         });
         downloaded=true;
@@ -312,7 +307,7 @@ async function generateVoice(){
     const buffers=[];
 
     for(let i=0;i<chunks.length;i++){
-      ttsStatus(`Generando ${voiceName} ${i+1}/${chunks.length}…`);
+      ttsStatus(`Generando Alexander V ${i+1}/${chunks.length}…`);
       let wavBlob=null;
       for(let attempt=1;attempt<=2;attempt++){
         try{
@@ -339,8 +334,7 @@ async function generateVoice(){
     let off=0;
     for(const b of buffers){
       for(let c=0;c<channels;c++){
-        const src=b.getChannelData(Math.min(c,b.numberOfChannels-1));
-        merged.getChannelData(c).set(src,off);
+        merged.getChannelData(c).set(b.getChannelData(Math.min(c,b.numberOfChannels-1)),off);
       }
       off+=b.length;
     }
@@ -361,8 +355,12 @@ async function generateVoice(){
     if(actions){
       actions.innerHTML='<button class="sec" id="downloadVoice">⬇ Descargar WAV</button>';
       q('#downloadVoice')?.addEventListener('click',()=>{
-        const a=document.createElement('a');a.href=url;a.download='narracion_piper.wav';
-        document.body.appendChild(a);a.click();a.remove();
+        const a=document.createElement('a');
+        a.href=url;
+        a.download='narracion_alexander.wav';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
       });
     }
 
@@ -371,13 +369,13 @@ async function generateVoice(){
       engine:'piper-tts-web',
       language:'es-ES',
       voice:voiceId,
-      speakerId,
-      voiceName,
+      speakerId:0,
+      voiceName:'Alexander V',
       seconds:Number(seconds)||null,
       samplingRate:sampleRate
     };
 
-    ttsStatus(`✅ ${voiceName} generada — ${seconds.toFixed(1)} s.`,'ok');
+    ttsStatus(`✅ Alexander V generada — ${seconds.toFixed(1)} s.`,'ok');
     return {blob,seconds};
   }catch(err){
     const msg=err?.message||String(err);
@@ -1131,7 +1129,7 @@ window.addEventListener('load',()=>{
 const $=s=>document.querySelector(s),keys=['groq','pexels','pixabay'];keys.forEach(k=>{const el=$('#'+k);if(el)el.value=localStorage.getItem('df_'+k)||''});
 const voicePresetEl=$('#voicePreset');
 if(voicePresetEl){
-  voicePresetEl.value=localStorage.getItem('df_voicePreset')||'es_ES-sharvard-medium:0';
+  voicePresetEl.value=localStorage.getItem('df_voicePreset')||'original';
   voicePresetEl.addEventListener('change',()=>localStorage.setItem('df_voicePreset',voicePresetEl.value));
 }
 const groqEl=$('#groq');
@@ -1699,7 +1697,7 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
 
   async function makeVoice(){
     step('stepVoice','active','Generando narración');
-    ast('2/4 Generando narración con Piper…');
+    ast('2/4 Generando narración con Alexander V…');
     abar(Math.max(22,parseFloat(A('#autoBar')?.style.width)||22));
     window.documentalFactoryAudioBlob=null;
     window.documentalFactoryAudioMeta=null;
