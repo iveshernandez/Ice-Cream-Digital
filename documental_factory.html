@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.4.4 Groq Stable JSON</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.4 Stable</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -1901,13 +1901,6 @@ async function ai(prompt){
     stream:false
   };
 
-  // Groq stable JSON: use JSON Object from the first request.
-  // The complete visual prompt remains intact; only the server-side strict schema is removed.
-  if(body?.response_format?.type==='json_schema'){
-    body.response_format={type:'json_object'};
-    body.temperature=0;
-  }
-
   let lastErr=null;
   for(let attempt=1;attempt<=5;attempt++){
     try{
@@ -1931,12 +1924,6 @@ async function ai(prompt){
       }
 
       const msg=data?.error?.message||raw||('HTTP '+res.status);
-
-      if(/failed to generate json|failed_generation/i.test(msg) && attempt<5){
-        apiStatus(`Groq tuvo un fallo de formato. Reintentando ${attempt}/4 sin cambiar el guion…`);
-        await new Promise(r=>setTimeout(r,500*attempt));
-        continue;
-      }
 
       if([408,409,429,500,502,503,504].includes(res.status) && attempt<5){
         const retryHeader=Number(res.headers.get('retry-after'));
@@ -1982,12 +1969,6 @@ function json(t){
     .replace(/^\s*```(?:json)?\s*/i,'')
     .replace(/\s*```\s*$/i,'')
     .trim();
-
-  // Si Groq agregó texto accidental antes/después, rescata el objeto JSON exterior.
-  if(!s.startsWith('{')){
-    const a=s.indexOf('{'), b=s.lastIndexOf('}');
-    if(a>=0 && b>a)s=s.slice(a,b+1).trim();
-  }
 
   const normalize=(value)=>{
     if(Array.isArray(value))return value;
