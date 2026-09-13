@@ -5,7 +5,7 @@
 <script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>V85 Ice Cream Digital-Video</title>
+<title>Icecream Digital · Editor + Documental Factory</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Anton&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070709">
@@ -122,6 +122,34 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
 }
 </style>
 
+
+<style id="ic-documental-tabs-style">
+  #mainAppTabs{
+    position:sticky;top:0;z-index:9000;height:54px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    background:rgba(7,7,9,.96);backdrop-filter:blur(18px);
+    border-bottom:1px solid #24242a;padding:7px 12px;
+  }
+  .mainAppTab{
+    border:1px solid #2d2d33!important;background:#141418!important;color:#aaa!important;
+    padding:10px 18px!important;border-radius:10px!important;font-size:11px!important;
+    font-weight:900!important;cursor:pointer;min-width:170px;
+  }
+  .mainAppTab.active{
+    background:#FFEB00!important;color:#000!important;border-color:#FFEB00!important;
+    box-shadow:0 0 0 2px rgba(255,235,0,.10);
+  }
+  #editorIcecreamPanel{display:block}
+  #documentalFactoryPanel{display:none;width:100%;height:calc(100vh - 54px);background:#070709}
+  #documentalFactoryFrame{display:block;width:100%;height:100%;border:0;background:#070709}
+  #editorIcecreamPanel > header{top:54px!important}
+  #editorIcecreamPanel .glass[style*="position:sticky"]{top:142px!important}
+  @media(max-width:700px){
+    #mainAppTabs{justify-content:flex-start;overflow-x:auto}
+    .mainAppTab{min-width:145px;padding:9px 12px!important}
+  }
+</style>
+
 </head>
 <body>
 
@@ -228,6 +256,13 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
   </div>
 </div>
 
+
+<div id="mainAppTabs" aria-label="Herramientas">
+  <button type="button" class="mainAppTab active" id="tabEditorIcecream">🍦 Editor Icecream</button>
+  <button type="button" class="mainAppTab" id="tabDocumentalFactory">🎬 Documental Factory</button>
+</div>
+
+<div id="editorIcecreamPanel">
 <header>
 <div style="display:flex;align-items:center;gap:12px">
 <div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div>
@@ -242,16 +277,16 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
 
 <div style="max-width:1280px;margin:0 auto;padding:10px;">
 <div class="glass" style="padding:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid #FFEB00;background:rgba(255,235,0,0.06);justify-content:center;border-radius:12px">
-<div style="font-size:10px;font-weight:900;letter-spacing:0.5px">🎵 MÚSICA DE FONDO (DESACTIVADA EN V74) POR DEFECTO</div>
-<label id="lblBg" class="file-btn" style="width:auto;padding:8px 14px;font-size:10px;margin:0" for="inputBgMusic"><span id="txtBg">Cargar audio fondo</span></label>
-<input type="file" id="inputBgMusic" accept="audio/*">
-<div style="display:flex;align-items:center;gap:6px">
-<span style="font-size:9px;color:#888">Vol:</span>
-<input type="range" id="bgVol" disabled min="0" max="0.5" step="0.01" value="0.12" style="width:80px">
-<span id="bgVolTxt" style="font-size:10px;color:#FFEB00;font-weight:800">12%</span>
-<label style="display:flex;align-items:center;gap:4px;font-size:9px;color:#aaa;cursor:pointer"><input type="checkbox" id="bgEnabled" disabled checked> Activo</label>
-</div>
-<span id="bgName" style="font-size:9px;color:#4ade80;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+<div style="font-size:10px;font-weight:900;letter-spacing:0.5px">🎵 AUDIO INCRUSTADO + MÚSICA DOCUMENTAL</div>
+<div style="background:#0f2a18;border:1px solid #1f6b36;color:#63e684;padding:8px 12px;border-radius:9px;font-size:10px;font-weight:900">● ACTIVO</div>
+<div style="font-size:10px;color:#ddd;font-weight:800">Curiosidad / misterio · 16% base</div>
+<div style="font-size:9px;color:#aaa">Ducking automático: 6–8% con Alexander · hasta ~19.5% en pausas</div>
+<input type="hidden" id="bgVol" value="0.16">
+<span id="bgVolTxt" style="display:none">16%</span>
+<input type="checkbox" id="bgEnabled" checked style="display:none">
+<input type="file" id="inputBgMusic" accept="audio/*" style="display:none">
+<label id="lblBg" style="display:none"><span id="txtBg">Música incrustada</span></label>
+<span id="bgName" style="display:none">Curiosidad / misterio</span>
 <audio id="previewBg" preload="auto" loop style="display:none"></audio>
 </div>
 </div>
@@ -340,6 +375,51 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
 Nunca fui yo, siempre fue Dios. La gloria y la honra sean para Él…
 </div>
 
+
+</div><!-- /editorIcecreamPanel -->
+
+<section id="documentalFactoryPanel" aria-label="Documental Factory">
+  <iframe
+    id="documentalFactoryFrame"
+    title="Documental Factory"
+    data-src="documental_factory.html"
+    allow="autoplay; clipboard-write"
+  ></iframe>
+</section>
+
+<script id="ic-documental-tabs-script">
+(function(){
+  const editorPanel=document.getElementById('editorIcecreamPanel');
+  const factoryPanel=document.getElementById('documentalFactoryPanel');
+  const editorBtn=document.getElementById('tabEditorIcecream');
+  const factoryBtn=document.getElementById('tabDocumentalFactory');
+  const frame=document.getElementById('documentalFactoryFrame');
+
+  function openTab(which){
+    const isFactory=which==='factory';
+    editorPanel.style.display=isFactory?'none':'block';
+    factoryPanel.style.display=isFactory?'block':'none';
+    editorBtn.classList.toggle('active',!isFactory);
+    factoryBtn.classList.toggle('active',isFactory);
+
+    // Lazy-load Documental Factory only the first time it is opened.
+    // This avoids loading a second FFmpeg/TTS environment while using Editor Icecream.
+    if(isFactory && !frame.src){
+      frame.src=frame.dataset.src;
+    }
+    try{ localStorage.setItem('icecream_active_tool', isFactory?'factory':'editor'); }catch(e){}
+    window.scrollTo({top:0,behavior:'instant'});
+  }
+
+  editorBtn.addEventListener('click',()=>openTab('editor'));
+  factoryBtn.addEventListener('click',()=>openTab('factory'));
+
+  // Editor Icecream remains the default tab every fresh load.
+  openTab('editor');
+  window.openIcecreamToolTab=openTab;
+})();
+</script>
+
 <script>
 // === CORE V50 CLEAN - SIN DUPLICADOS ===
 const $=s=>document.getElementById(s);
@@ -387,8 +467,8 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 };
 
 try{
-  const savedVol=localStorage.getItem('ice_bg_vol');
-  if(savedVol) {$("bgVol").value=savedVol; $("bgVolTxt").textContent=Math.round(parseFloat(savedVol)*100)+'%';}
+  $("bgVol").value='0.16';
+  $("bgEnabled").checked=true;
 }catch(e){}
 const log=m=>{const d=$("debug");d.textContent=new Date().toLocaleTimeString()+" | "+m+"\n"+d.textContent.slice(0,400);};
 const getA=()=>queue.find(q=>q.id===activeId);
@@ -650,7 +730,7 @@ async function loadBgFile(file){
   log(`Fondo por defecto: ${file.name}`);
 }
 $("inputBgMusic").addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; await loadBgFile(f); e.target.value=''; });
-$("bgVol").addEventListener('input', e=>{ const v=parseFloat(e.target.value); bgEl.volume=v; $("bgVolTxt").textContent=Math.round(v*100)+'%'; try{ localStorage.setItem('ice_bg_vol', String(v)); }catch{} });
+$("bgVol").addEventListener('input', e=>{ e.target.value='0.16'; });
 $("inputTitle").addEventListener('input',()=>{ const it=getA(); const up=$("inputTitle").value.toUpperCase(); $("inputTitle").value=up; it.title=up; const fn=sanitizar(up); if(fn) $("inputFileName").value=fn; it.fileNameBase=$("inputFileName").value; renderOverlay(); });
 $("inputScript").addEventListener('input',()=>{ getA().script=$("inputScript").value; renderOverlay(); });
 $("inputFileName").addEventListener('input',()=>{ getA().fileNameBase=$("inputFileName").value; renderCola(); });
@@ -684,7 +764,7 @@ function queueDownload(url,name){
   next();
 }
 window.safeDownload=safeDownload; window.queueDownload=queueDownload; window.renderCola=renderCola; window.calcDurInfo=calcDurInfo; window.getA=getA; window.sanitizar=sanitizar;
-setActive(1);renderCola(true);log('V85 ZOOM 10% + RENDER FINAL REAL - lista');
+setActive(1);renderCola(true);log('V86 AUDIO INCRUSTADO + MUSICA CURIOSIDAD + DUCKING - lista');
 </script>
 
 <script>
@@ -1416,6 +1496,130 @@ window.getTTS = getTTS;
     return head+ev;
   }
 
+
+  // === EDITOR ICECREAM: MÚSICA INCRUSTADA + DUCKING (misma configuración de Documental Factory v8.6) ===
+  function editorWavFromSamples(samples,sampleRate=24000){
+    const buffer=new ArrayBuffer(44+samples.length*2),view=new DataView(buffer);
+    const put=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};
+    put(0,'RIFF');view.setUint32(4,36+samples.length*2,true);put(8,'WAVE');
+    put(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);
+    view.setUint16(22,1,true);view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*2,true);
+    view.setUint16(32,2,true);view.setUint16(34,16,true);put(36,'data');view.setUint32(40,samples.length*2,true);
+    let off=44;
+    for(let i=0;i<samples.length;i++,off+=2){
+      let x=Math.max(-1,Math.min(1,samples[i]));
+      view.setInt16(off,x<0?x*32768:x*32767,true);
+    }
+    return new Blob([buffer],{type:'audio/wav'});
+  }
+
+  function editorWavFromStereo(left,right,sampleRate=44100){
+    const frames=Math.min(left.length,right.length),buffer=new ArrayBuffer(44+frames*4),view=new DataView(buffer);
+    const put=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};
+    put(0,'RIFF');view.setUint32(4,36+frames*4,true);put(8,'WAVE');
+    put(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);
+    view.setUint16(22,2,true);view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*4,true);
+    view.setUint16(32,4,true);view.setUint16(34,16,true);put(36,'data');view.setUint32(40,frames*4,true);
+    let off=44;
+    for(let i=0;i<frames;i++){
+      let l=Math.max(-1,Math.min(1,left[i])),r=Math.max(-1,Math.min(1,right[i]));
+      view.setInt16(off,l<0?l*32768:l*32767,true);off+=2;
+      view.setInt16(off,r<0?r*32768:r*32767,true);off+=2;
+    }
+    return new Blob([buffer],{type:'audio/wav'});
+  }
+
+  function makeEditorDocumentaryMusic(seconds){
+    const sr=24000,total=Math.max(1,Math.ceil(seconds*sr)),out=new Float32Array(total);
+    const bpm=96,beat=60/bpm,chordLen=beat*8;
+    const chords=[
+      [110.00,164.81,220.00,246.94],
+      [98.00,146.83,196.00,220.00],
+      [87.31,130.81,174.61,196.00],
+      [110.00,146.83,220.00,261.63]
+    ];
+    const plucks=[329.63,392.00,440.00,523.25,440.00,392.00,349.23,493.88];
+    let peak=0;
+    for(let i=0;i<total;i++){
+      const t=i/sr,chord=chords[Math.floor(t/chordLen)%chords.length];
+      let pad=0;
+      for(let n=0;n<chord.length;n++){
+        const f=chord[n];
+        pad+=Math.sin(2*Math.PI*f*t+n*0.45)*(n===0?0.105:0.055);
+      }
+      const eighth=beat/2,step=Math.floor(t/eighth)%8,ph=(t%eighth)/eighth;
+      const pluckEnv=Math.exp(-ph*8.5),active=[1,0,1,0,1,1,0,1][step],pf=plucks[step];
+      const pluck=active*pluckEnv*(Math.sin(2*Math.PI*pf*t)*0.12+Math.sin(2*Math.PI*pf*2.01*t)*0.025);
+      const bp=(t%beat)/beat,pulseEnv=Math.exp(-bp*7.5);
+      const pulse=(Math.sin(2*Math.PI*82.41*t)*0.075+Math.sin(2*Math.PI*123.47*t)*0.025)*pulseEnv;
+      const halfBeat=beat/2,tp=(t%halfBeat)/halfBeat;
+      const deterministic=((Math.sin((i+11)*78.233)*43758.5453)%1)*2-1;
+      const tick=deterministic*Math.exp(-tp*35)*0.012;
+      const shimmer=Math.sin(2*Math.PI*293.66*t)*0.018*(0.5+0.5*Math.sin(2*Math.PI*0.085*t));
+      const phrase=0.88+0.12*Math.sin(2*Math.PI*0.045*t);
+      const fadeIn=Math.min(1,t/0.8),fadeOut=Math.min(1,Math.max(0,(seconds-t)/1.0));
+      const v=(pad+pluck+pulse+tick+shimmer)*phrase*Math.min(fadeIn,fadeOut);
+      out[i]=v;peak=Math.max(peak,Math.abs(v));
+    }
+    const gain=peak>0?0.62/peak:1;
+    for(let i=0;i<total;i++)out[i]*=gain;
+    return editorWavFromSamples(out,sr);
+  }
+
+  async function mixEditorNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol=0.16){
+    const outRate=44100,frames=Math.max(1,Math.ceil(total*outRate));
+    const Ctx=window.AudioContext||window.webkitAudioContext,decodeCtx=new Ctx();
+    let voiceBuf,musicBuf;
+    try{
+      voiceBuf=await decodeCtx.decodeAudioData((await voiceBlob.arrayBuffer()).slice(0));
+      musicBuf=await decodeCtx.decodeAudioData((await musicBlob.arrayBuffer()).slice(0));
+    }finally{try{await decodeCtx.close();}catch(e){}}
+    if(!voiceBuf?.length)throw new Error('La narración no pudo decodificarse.');
+    if(!musicBuf?.length)throw new Error('La música incrustada no pudo decodificarse.');
+    const vL=voiceBuf.getChannelData(0),vR=voiceBuf.numberOfChannels>1?voiceBuf.getChannelData(1):vL;
+    const mL=musicBuf.getChannelData(0),mR=musicBuf.numberOfChannels>1?musicBuf.getChannelData(1):mL;
+    const vRate=voiceBuf.sampleRate,mRate=musicBuf.sampleRate;
+    const left=new Float32Array(frames),right=new Float32Array(frames);
+    const sampleLinear=(arr,pos,loop)=>{
+      const len=arr.length;if(!len)return 0;
+      if(loop)pos=((pos%len)+len)%len;
+      else if(pos>=len-1)return pos<len?arr[len-1]:0;
+      else if(pos<0)return 0;
+      const i0=Math.floor(pos),i1=loop?(i0+1)%len:Math.min(len-1,i0+1),f=pos-i0;
+      return arr[i0]*(1-f)+arr[i1]*f;
+    };
+    let musicEnergy=0,voiceEnergy=0,mixedEnergy=0,peak=0,env=0;
+    const attack=Math.exp(-1/(outRate*0.018)),release=Math.exp(-1/(outRate*0.36));
+    for(let i=0;i<frames;i++){
+      const sec=i/outRate,vp=sec*vRate,mp=sec*mRate,voiceGain=1.12;
+      const vl=sampleLinear(vL,vp,false)*voiceGain,vr=sampleLinear(vR,vp,false)*voiceGain;
+      const level=Math.max(Math.abs(vl),Math.abs(vr));
+      env=level>env?attack*env+(1-attack)*level:release*env+(1-release)*level;
+      const speech=Math.max(0,Math.min(1,(env-0.014)/0.075));
+      const duck=1-(0.58*speech);
+      let mg=musicVol*duck;
+      if(env<0.010)mg=Math.min(0.20,musicVol*1.22);
+      const fadeIn=Math.min(0.7,Math.max(0.18,total/8)),fadeOut=Math.min(1.0,Math.max(0.25,total/8));
+      if(sec<fadeIn)mg*=sec/fadeIn;
+      if(sec>total-fadeOut)mg*=Math.max(0,(total-sec)/fadeOut);
+      const ml=sampleLinear(mL,mp,true)*mg,mr=sampleLinear(mR,mp,true)*mg;
+      let l=Math.tanh((vl+ml)*1.035),r=Math.tanh((vr+mr)*1.035);
+      left[i]=l;right[i]=r;
+      voiceEnergy+=(vl*vl+vr*vr)*0.5;musicEnergy+=(ml*ml+mr*mr)*0.5;
+      mixedEnergy+=(l*l+r*r)*0.5;peak=Math.max(peak,Math.abs(l),Math.abs(r));
+    }
+    const musicRms=Math.sqrt(musicEnergy/frames),voiceRms=Math.sqrt(voiceEnergy/frames);
+    let mixedRms=Math.sqrt(mixedEnergy/frames);
+    const targetRms=0.195;
+    const normGain=Math.min(1.35,0.95/Math.max(peak,0.001),targetRms/Math.max(mixedRms,0.001));
+    if(normGain>1.001){
+      for(let i=0;i<frames;i++){left[i]*=normGain;right[i]*=normGain;}
+      mixedRms*=normGain;peak*=normGain;
+    }
+    if(!Number.isFinite(musicRms)||musicRms<0.006)throw new Error('La música incrustada quedó demasiado baja.');
+    return{blob:editorWavFromStereo(left,right,outRate),musicRms,voiceRms,mixedRms,peak};
+  }
+
   async function urlToU8(url){
     const r=await fetch(url);
     if(!r.ok)throw new Error('No se pudo leer archivo');
@@ -1436,26 +1640,30 @@ window.getTTS = getTTS;
       const id=`slot${item.id}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
       // V84 CRÍTICO: entrada y salida JAMÁS comparten el mismo nombre.
       const inV=`${id}_INPUT_VIDEO.${extFromName(item.videoName,'mp4')}`;
-      const inA=`${id}_INPUT_VOICE.${extFromName(item.audioName,'wav')}`;
+      const inA=`${id}_INPUT_AUDIO_MIX.wav`;
       const ass=`${id}_OVERLAY.ass`;
       const out=`${id}_FINAL_RENDER.mp4`;
       files.push(inV,inA,ass,out);
 
-      onPhase?.('PREPARANDO');
-      const [vb,ab,fontb]=await Promise.all([
+      onPhase?.('PREPARANDO AUDIO + DUCKING');
+      const [vb,voiceBlob,fontb]=await Promise.all([
         urlToU8(item.videoUrl),
-        urlToU8(item.audioUrl),
+        fetch(item.audioUrl).then(r=>{if(!r.ok)throw new Error('No se pudo leer la voz');return r.blob();}),
         urlToU8(ICW.fontUrl)
       ]);
       if(!vb?.byteLength) throw new Error('Video de entrada vacío');
-      if(!ab?.byteLength) throw new Error('Audio de voz vacío');
+      if(!voiceBlob?.size) throw new Error('Audio de voz vacío');
       if(!fontb?.byteLength) throw new Error('No se pudo cargar la fuente de títulos');
+
+      const vDur=item.videoDur||10,aDur=item.audioDur||vDur||10,total=aDur||vDur||10;
+      const musicBlob=makeEditorDocumentaryMusic(total);
+      const mix=await mixEditorNarrationMusicBrowser(voiceBlob,musicBlob,total,0.16);
+      const ab=new Uint8Array(await mix.blob.arrayBuffer());
 
       ffmpeg.FS('writeFile',inV,vb);
       ffmpeg.FS('writeFile',inA,ab);
       ffmpeg.FS('writeFile','arial.ttf',fontb);
 
-      const vDur=item.videoDur||10,aDur=item.audioDur||vDur||10,total=aDur||vDur||10;
       const info=typeof getRateInfo==='function'?getRateInfo(vDur,total):{rate:1,useLoop:false};
 
       const assText=makeASS(item,total);
@@ -1470,7 +1678,7 @@ window.getTTS = getTTS;
       // V85: zoom 10% centrado para sacar marcas pegadas a bordes superior/inferior.
       let vf=`setpts=PTS/${rate.toFixed(6)},scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,scale=792:1408,crop=720:1280:36:64,fps=30`;
       if(useSubs)vf+=`,subtitles=${ass}:fontsdir=.`;
-      args.push('-filter_complex',`[0:v]${vf}[v];[1:a]aresample=48000[a]`,
+      args.push('-filter_complex',`[0:v]${vf}[v];[1:a]aresample=48000,alimiter=limit=0.95[a]`,
         '-map','[v]','-map','[a]','-t',Number(total).toFixed(3),
         '-c:v','libx264','-preset','ultrafast','-b:v','3200k','-maxrate','3800k','-bufsize','6400k',
         '-pix_fmt','yuv420p','-r','30','-g','60',
