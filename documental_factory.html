@@ -198,6 +198,24 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 }
 </style>
 
+
+<style id="v3-2-render-right">
+/* Render final ocupa el espacio derecho bajo Voz */
+#renderRightSlot{margin-top:10px}
+#renderRightSlot > section.card{
+  margin:0!important;padding:0!important;border:0!important;background:transparent!important;
+  box-shadow:none!important;
+}
+#renderRightSlot .renderbox{
+  margin:0!important;padding:10px!important;
+  border:1px solid var(--l)!important;border-radius:10px!important;
+}
+#renderRightSlot .finalvideo{max-height:240px!important}
+@media(max-width:800px){
+  #renderRightSlot{margin-top:9px}
+}
+</style>
+
 </head><body>
 
 <div id="icFactoryHeader">
@@ -214,7 +232,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.1 Priority Layout</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.2 Render Right</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -291,9 +309,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 <div id="ttsStatus" class="status mut">Motor Piper listo para cargar cuando subas el TXT.</div>
 <audio id="audio" controls style="width:100%;margin-top:10px;display:none"></audio>
 <div id="audioActions" class="actions"></div>
-</section></div>
-
-<section class="card">
+<div id="renderRightSlot"><section class="card">
 <div class="renderbox" style="margin-top:0">
 <h2 style="margin-top:0">5. Render final</h2>
 <div class="row">
@@ -310,7 +326,10 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 <video id="finalPreview" class="finalvideo" controls playsinline></video>
 <p class="tiny">Estilo referencia: subtítulos grandes blancos con palabras clave amarillas, cortes visuales más frecuentes, una sola música fija y mezcla final reforzada. No necesita ningún archivo MP3/M4A externo.</p>
 </div>
-</section>
+</section></div>
+</section></div>
+
+
 
 <section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">Búsqueda ultra precisa: Groq crea 5 búsquedas visuales por escena, mantiene el sujeto principal, evita conceptos abstractos y la app bloquea clips repetidos dentro del mismo documental.</div><div id="scenes" class="scenes"></div>
 </section></div>
