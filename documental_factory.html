@@ -170,8 +170,51 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 }
 </style>
 
+
+<style id="v3-1-priority-layout">
+#icFactoryHeader{
+  position:sticky;top:0;z-index:9999;height:44px;box-sizing:border-box;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;border-bottom:1px solid #24242a;
+  background:rgba(8,8,10,.96);backdrop-filter:blur(10px)
+}
+#icFactoryHeader .ic-brand{display:flex;align-items:center;gap:9px}
+#icFactoryHeader .ic-badge{
+  width:28px;height:28px;border-radius:8px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#ffef5a,#ffb700);color:#111;
+  font-size:12px;font-weight:1000;letter-spacing:-.4px
+}
+#icFactoryHeader .ic-name{font-size:11px;font-weight:1000;letter-spacing:.45px}
+#icFactoryHeader .ic-sub{font-size:8px;color:#8d8d98;margin-top:1px}
+#icFactoryHeader .ic-meta{display:flex;gap:7px}
+#icFactoryHeader .ic-meta span{
+  font-size:8px;color:#aaa;padding:4px 7px;border:1px solid #2b2b31;
+  border-radius:7px;background:#111216
+}
+#icFactoryHeader + .w{padding-top:10px!important}
+@media(max-width:620px){
+  #icFactoryHeader{padding:6px 9px;height:auto;min-height:44px}
+  #icFactoryHeader .ic-meta{display:none}
+}
+</style>
+
 </head><body>
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3 Compact UI</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+
+<div id="icFactoryHeader">
+  <div class="ic-brand">
+    <div class="ic-badge">IC</div>
+    <div>
+      <div class="ic-name">ICECREAM DIGITAL</div>
+      <div class="ic-sub">Documental Factory</div>
+    </div>
+  </div>
+  <div class="ic-meta">
+    <span>Alexander V</span>
+    <span>720p · 30 FPS</span>
+  </div>
+</div>
+
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.1 Priority Layout</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -249,9 +292,9 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 <audio id="audio" controls style="width:100%;margin-top:10px;display:none"></audio>
 <div id="audioActions" class="actions"></div>
 </section></div>
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">Búsqueda ultra precisa: Groq crea 5 búsquedas visuales por escena, mantiene el sujeto principal, evita conceptos abstractos y la app bloquea clips repetidos dentro del mismo documental.</div><div id="scenes" class="scenes"></div>
 
-<div class="renderbox">
+<section class="card">
+<div class="renderbox" style="margin-top:0">
 <h2 style="margin-top:0">5. Render final</h2>
 <div class="row">
   <div><label>Título en video</label><div class="inputLike">Visible durante todo el video — fijo</div><input id="titleOverlay" type="hidden" value="yes"></div>
@@ -267,6 +310,9 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 <video id="finalPreview" class="finalvideo" controls playsinline></video>
 <p class="tiny">Estilo referencia: subtítulos grandes blancos con palabras clave amarillas, cortes visuales más frecuentes, una sola música fija y mezcla final reforzada. No necesita ningún archivo MP3/M4A externo.</p>
 </div>
+</section>
+
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">Búsqueda ultra precisa: Groq crea 5 búsquedas visuales por escena, mantiene el sujeto principal, evita conceptos abstractos y la app bloquea clips repetidos dentro del mismo documental.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
