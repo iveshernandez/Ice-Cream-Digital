@@ -232,7 +232,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.2 Render Right</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.3 Auto Title</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -1153,6 +1153,78 @@ function wrapCanvasText(ctx,text,maxWidth,maxLines=3){
   return lines;
 }
 
+/* Título adaptable: nunca corta el título con "…".
+   Reduce el tamaño y distribuye automáticamente el texto en más líneas. */
+function wrapTitleAll(ctx,text,maxWidth){
+  const words=String(text||'').trim().split(/\s+/).filter(Boolean);
+  const lines=[]; let line='';
+
+  function pushLongWord(word){
+    let chunk='';
+    for(const ch of word){
+      const test=chunk+ch;
+      if(chunk && ctx.measureText(test).width>maxWidth){
+        lines.push(chunk);
+        chunk=ch;
+      }else chunk=test;
+    }
+    if(chunk)return chunk;
+    return '';
+  }
+
+  for(const originalWord of words){
+    let word=originalWord;
+    if(ctx.measureText(word).width>maxWidth){
+      if(line){lines.push(line);line='';}
+      word=pushLongWord(word);
+      if(!word)continue;
+    }
+    const test=line?line+' '+word:word;
+    if(!line || ctx.measureText(test).width<=maxWidth){
+      line=test;
+    }else{
+      lines.push(line);
+      line=word;
+    }
+  }
+  if(line)lines.push(line);
+  return lines;
+}
+
+function fitTitleLayout(ctx,text,maxWidth){
+  const clean=String(text||'').replace(/\s+/g,' ').trim();
+  const maxFont=54, minFont=24;
+
+  // Primero intenta mantenerlo compacto, hasta 4 líneas.
+  for(let size=maxFont;size>=minFont;size-=2){
+    ctx.font=`700 ${size}px Arial, sans-serif`;
+    const lines=wrapTitleAll(ctx,clean,maxWidth);
+    if(lines.length<=4){
+      return {fontSize:size,lines,lineH:Math.round(size*1.20)};
+    }
+  }
+
+  // Para títulos especialmente largos permite hasta 5 líneas.
+  ctx.font=`700 ${minFont}px Arial, sans-serif`;
+  let lines=wrapTitleAll(ctx,clean,maxWidth);
+  if(lines.length<=5){
+    return {fontSize:minFont,lines,lineH:Math.round(minFont*1.20)};
+  }
+
+  // Caso extremo: sigue reduciendo para mostrar SIEMPRE el título completo.
+  for(let size=22;size>=16;size-=2){
+    ctx.font=`700 ${size}px Arial, sans-serif`;
+    lines=wrapTitleAll(ctx,clean,maxWidth);
+    if(lines.length<=6){
+      return {fontSize:size,lines,lineH:Math.round(size*1.20)};
+    }
+  }
+
+  ctx.font='700 16px Arial, sans-serif';
+  lines=wrapTitleAll(ctx,clean,maxWidth);
+  return {fontSize:16,lines,lineH:20};
+}
+
 async function canvasPngBlob(draw){
   const c=document.createElement('canvas'); c.width=720; c.height=1280;
   const ctx=c.getContext('2d');
@@ -1164,17 +1236,31 @@ async function canvasPngBlob(draw){
 async function makeTitleOverlay(title){
   return await canvasPngBlob((ctx,c)=>{
     const text=String(title||'').trim();
-    ctx.font='700 54px Arial, sans-serif';
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    const lines=wrapCanvasText(ctx,text,620,3);
-    const lineH=66;
-    const h=Math.max(132,lines.length*lineH+58);
+
+    const maxTextWidth=620;
+    const fitted=fitTitleLayout(ctx,text,maxTextWidth);
+    ctx.font=`700 ${fitted.fontSize}px Arial, sans-serif`;
+
+    const lines=fitted.lines;
+    const lineH=fitted.lineH;
+    const padTop=Math.max(24,Math.round(fitted.fontSize*.48));
+    const padBottom=padTop;
+    const h=Math.max(112,lines.length*lineH+padTop+padBottom);
     const x=42,y=80,w=c.width-84;
+
     ctx.fillStyle='rgba(0,0,0,.58)';
     roundRect(ctx,x,y,w,h,24); ctx.fill();
+
     ctx.fillStyle='#ffffff';
-    ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=8;
-    lines.forEach((ln,i)=>ctx.fillText(ln,c.width/2,y+38+lineH*(i+.5),620));
+    ctx.shadowColor='rgba(0,0,0,.9)';
+    ctx.shadowBlur=Math.max(5,Math.round(fitted.fontSize*.15));
+
+    const totalTextH=lines.length*lineH;
+    const firstY=y+(h-totalTextH)/2+lineH/2;
+    lines.forEach((ln,i)=>{
+      ctx.fillText(ln,c.width/2,firstY+i*lineH,maxTextWidth);
+    });
     ctx.shadowBlur=0;
   });
 }
