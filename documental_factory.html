@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.4.2 Persistent Alexander</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.4.3 Groq JSON Recovery</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -1902,6 +1902,7 @@ async function ai(prompt){
   };
 
   let lastErr=null;
+  let usedJsonFallback=false;
   for(let attempt=1;attempt<=5;attempt++){
     try{
       const res=await fetch(endpoint,{
@@ -1924,6 +1925,20 @@ async function ai(prompt){
       }
 
       const msg=data?.error?.message||raw||('HTTP '+res.status);
+
+      // Groq puede fallar al cerrar un JSON Schema estricto aun cuando entiende bien el guion.
+      // Si pasa, reintenta una sola vez con JSON Object, manteniendo la misma estructura pedida.
+      if(!usedJsonFallback && /failed to generate json|failed_generation/i.test(msg)){
+        usedJsonFallback=true;
+        body.response_format={type:'json_object'};
+        body.temperature=0;
+        body.messages[0].content=
+          'Responde ÚNICAMENTE un objeto JSON válido. No uses markdown, comentarios ni texto fuera del JSON. '+
+          'Respeta exactamente las claves y estructura solicitadas por el usuario.';
+        apiStatus('Groq no pudo cerrar el JSON estricto. Reintentando en modo compatible…');
+        await new Promise(r=>setTimeout(r,350));
+        continue;
+      }
 
       if([408,409,429,500,502,503,504].includes(res.status) && attempt<5){
         const retryHeader=Number(res.headers.get('retry-after'));
@@ -1969,6 +1984,12 @@ function json(t){
     .replace(/^\s*```(?:json)?\s*/i,'')
     .replace(/\s*```\s*$/i,'')
     .trim();
+
+  // Si Groq agregó texto accidental antes/después, rescata el objeto JSON exterior.
+  if(!s.startsWith('{')){
+    const a=s.indexOf('{'), b=s.lastIndexOf('}');
+    if(a>=0 && b>a)s=s.slice(a,b+1).trim();
+  }
 
   const normalize=(value)=>{
     if(Array.isArray(value))return value;
