@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.4 Visual Match</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.4.2 Persistent Alexander</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -473,23 +473,82 @@ async function getPiperTTS(){
 }
 
 
+function isPiperFileMissingError(err){
+  const msg=String(err?.message||err||'').toLowerCase();
+  return err?.name==='NotFoundError'
+    || msg.includes('requested file or directory could not be found')
+    || msg.includes('file or directory')
+    || msg.includes('not found')
+    || msg.includes('opfs');
+}
+
+async function piperHasAlexander(tts,voiceId){
+  try{
+    if(typeof tts?.stored!=='function')return null;
+    const stored=await tts.stored();
+    return Array.isArray(stored)?stored.includes(voiceId):null;
+  }catch(_){
+    return null;
+  }
+}
+
+async function repairAlexanderModel(tts,voiceId,reason=''){
+  // IMPORTANTE: nunca borrar el modelo precargado de Alexander V.
+  // Si algún archivo falta, Piper vuelve a descargar/completar lo necesario sobre la caché existente.
+  alexanderModelReady=false;
+  alexanderDownloadPromise=null;
+  ttsStatus('♻️ Verificando Alexander V sin borrar la voz precargada…');
+
+  let lastErr=null;
+  for(let attempt=1;attempt<=3;attempt++){
+    try{
+      await tts.download(voiceId,(prog)=>{
+        if(prog?.loaded && prog?.total){
+          const pct=Math.round(prog.loaded*100/prog.total);
+          ttsStatus(`Completando Alexander V: ${pct}%`);
+        }
+      });
+      const present=await piperHasAlexander(tts,voiceId);
+      if(present===false)throw new Error('Alexander V no quedó disponible después de verificar la descarga.');
+      alexanderModelReady=true;
+      ttsStatus('✅ Alexander V listo y conservado en caché.','ok');
+      return tts;
+    }catch(e){
+      lastErr=e;
+      if(attempt<3)await new Promise(r=>setTimeout(r,900*attempt));
+    }
+  }
+  throw lastErr||new Error('No se pudo verificar el modelo de Alexander V.');
+}
+
 async function ensureAlexanderReady(){
   const voiceId='es_ES-sharvard-medium';
 
+  const tts=await getPiperTTS();
+
   if(alexanderModelReady){
-    ttsStatus('✅ Alexander V ya está cargado. Reutilizando modelo.','ok');
-    return await getPiperTTS();
+    // Ya fue validado/descargado en esta sesión: reutilizar directamente.
+    // La limpieza de FFmpeg y archivos temporales NO toca Alexander V.
+    ttsStatus('✅ Alexander V ya está precargado. Reutilizando la misma voz.','ok');
+    return tts;
   }
 
   if(alexanderDownloadPromise){
     ttsStatus('Alexander V ya se está preparando…');
     await alexanderDownloadPromise;
-    return await getPiperTTS();
+    return tts;
   }
 
   alexanderDownloadPromise=(async()=>{
-    const tts=await getPiperTTS();
     ttsStatus('Preparando Alexander V por única vez…');
+
+    // If Piper already has the complete model, do not download it again.
+    const present=await piperHasAlexander(tts,voiceId);
+    if(present===true){
+      alexanderModelReady=true;
+      ttsStatus('✅ Alexander V encontrado en caché y listo.','ok');
+      return tts;
+    }
 
     let downloaded=false,lastDownloadErr=null;
     for(let attempt=1;attempt<=3 && !downloaded;attempt++){
@@ -508,6 +567,11 @@ async function ensureAlexanderReady(){
     }
 
     if(!downloaded)throw lastDownloadErr||new Error('No se pudo preparar el modelo de Alexander V.');
+
+    const storedOk=await piperHasAlexander(tts,voiceId);
+    if(storedOk===false){
+      return await repairAlexanderModel(tts,voiceId,'descarga incompleta');
+    }
 
     alexanderModelReady=true;
     ttsStatus('✅ Alexander V cargado. Se reutilizará para toda la cola.','ok');
@@ -591,7 +655,7 @@ async function generateVoice(){
     for(let i=0;i<chunks.length;i++){
       ttsStatus(`Generando Alexander V ${i+1}/${chunks.length}…`);
       let wavBlob=null;
-      for(let attempt=1;attempt<=2;attempt++){
+      for(let attempt=1;attempt<=3;attempt++){
         try{
           wavBlob=await Promise.race([
             tts.predict({text:chunks[i],voiceId,speakerId},()=>{}),
@@ -599,8 +663,16 @@ async function generateVoice(){
           ]);
           if(wavBlob?.size>=800)break;
         }catch(e){
-          if(attempt>=2)throw e;
-          await new Promise(r=>setTimeout(r,350));
+          // OPFS/model cache can become stale even though Alexander was marked "ready".
+          // Repair it automatically and retry the SAME chunk, without killing the whole TXT queue.
+          if(isPiperFileMissingError(e) && attempt<3){
+            ttsStatus(`♻️ Archivo de Alexander faltante en parte ${i+1}. Reparando automáticamente…`);
+            await repairAlexanderModel(tts,voiceId,e?.message||'');
+            await new Promise(r=>setTimeout(r,250));
+            continue;
+          }
+          if(attempt>=3)throw e;
+          await new Promise(r=>setTimeout(r,450));
         }
       }
       if(!wavBlob || wavBlob.size<800)throw new Error(`La parte ${i+1} de la voz salió vacía.`);
@@ -672,8 +744,18 @@ async function generateVoice(){
 window.generateDocumentalVoice=generateVoice;
 q('#makeVoice')?.addEventListener('click',()=>generateVoice().catch(()=>{}));
 
-// Solo precarga la librería. El modelo se descarga cuando realmente se necesita.
-window.addEventListener('load',()=>setTimeout(()=>loadHF().catch(()=>{}),500));
+// Precarga Alexander V una sola vez al abrir Documental Factory.
+// Después toda la cola reutiliza exactamente el mismo modelo persistente.
+window.addEventListener('load',()=>{
+  setTimeout(async()=>{
+    try{
+      await loadHF();
+      await ensureAlexanderReady();
+    }catch(e){
+      console.warn('[Alexander] La precarga automática no terminó:',e);
+    }
+  },500);
+});
 </script>
 
 
@@ -850,8 +932,8 @@ async function resetFFmpegAfterVideo(){
   ffmpegLoading=null;
   if(old){
     try{
-      // FFmpeg.wasm keeps a large WebAssembly heap. Terminating the worker
-      // releases it so the next documentary starts with fresh memory.
+      // FFmpeg.wasm keeps a large WebAssembly heap. Terminating ONLY this worker
+      // releases render memory. Alexander V/Piper stays precargado and is never removed here.
       old.terminate();
     }catch(e){
       console.warn('[FFmpeg] No se pudo terminar el worker:',e);
