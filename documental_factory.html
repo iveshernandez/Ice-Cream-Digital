@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.4 Stable</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.5 Visual Match Strict</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -2033,38 +2033,81 @@ function cleanVisualTerm(v){
     .trim();
 }
 
+function sceneDomain(scene){
+  const d=cleanVisualTerm(scene?.domain);
+  const s=cleanVisualTerm(scene?.subject);
+  const q=cleanVisualTerm(scene?.query);
+  const all=`${d} ${s} ${q}`;
+
+  if(/\b(auto|automotive|car|vehicle|engine|tire|wheel|brake|mechanic)\b/.test(all))return 'automotive';
+  if(/\b(animal|wildlife|orca|whale|shark|octopus|bird|fish|dolphin|seal|turtle)\b/.test(all))return 'animal';
+  if(/\b(food|cooking|kitchen|soup|recipe|meal|pot|pan)\b/.test(all))return 'food';
+  if(/\b(medical|health|human|eye|skin|doctor|anatomy|body)\b/.test(all))return 'medical';
+  if(/\b(science|laboratory|physics|chemistry|space|planet)\b/.test(all))return 'science';
+  if(/\b(technology|computer|phone|robot|machine|electronics)\b/.test(all))return 'technology';
+  return d||'general';
+}
+
+function subjectAnchorTokens(scene){
+  const s=cleanVisualTerm(scene?.subject);
+  const stop=new Set(['animal','object','subject','main','the','a','an','of','in','on','with','close','up']);
+  return s.split(/\s+/).filter(t=>t.length>2 && !stop.has(t));
+}
+
 function normalizeSceneQueries(scene){
   const subject=String(scene?.subject||'').trim();
   const target=String(scene?.visual_target||'').trim();
+  const domain=sceneDomain(scene);
 
   const raw=[
     scene?.query,
     ...(Array.isArray(scene?.queries)?scene.queries:[])
   ].map(x=>String(x||'').replace(/\s+/g,' ').trim()).filter(Boolean);
 
-  // Every query keeps the visual anchor whenever Groq accidentally makes a fallback too broad.
   const seen=new Set(), out=[];
   for(let q of raw){
-    const low=cleanVisualTerm(q);
-    const subj=cleanVisualTerm(subject);
-    const targ=cleanVisualTerm(target);
+    let low=cleanVisualTerm(q);
+    const anchors=subjectAnchorTokens(scene);
 
-    if(subj && !low.includes(subj.split(' ')[0])){
+    // V3.5: the principal subject must survive in EVERY query for concrete-subject documentaries.
+    if(subject && anchors.length && !anchors.some(t=>low.includes(t))){
+      q=(subject+' '+q).trim();
+      low=cleanVisualTerm(q);
+    }
+
+    // Domain anchors prevent drift into decorative stock.
+    if(domain==='automotive' && !/\b(car|vehicle|engine|tire|wheel|brake|mechanic|automotive)\b/.test(low)){
+      q=('car '+q).trim();
+    }
+    if(domain==='animal' && subject && !subjectAnchorTokens(scene).some(t=>cleanVisualTerm(q).includes(t))){
       q=(subject+' '+q).trim();
     }
-    if(targ && q.length<22){
-      q=(q+' '+target).trim();
+    if(domain==='medical' && !/\b(human|doctor|medical|body|eye|skin|anatomy|patient)\b/.test(cleanVisualTerm(q))){
+      q=('human '+q).trim();
     }
+    if(domain==='food' && !/\b(food|cooking|kitchen|dish|meal|pot|pan|soup)\b/.test(cleanVisualTerm(q))){
+      q=('food '+q).trim();
+    }
+
+    if(target && q.length<28)q=(q+' '+target).trim();
 
     const k=cleanVisualTerm(q);
     if(!seen.has(k)){seen.add(k);out.push(q);}
   }
+
+  // Guarantee one safe exact-subject query first.
+  if(subject){
+    const exact=[subject,target].filter(Boolean).join(' ').trim();
+    const ek=cleanVisualTerm(exact);
+    if(ek && !seen.has(ek))out.unshift(exact);
+  }
+
   return out.slice(0,5);
 }
 
 function sceneVisualProfile(scene){
   return {
-    domain:cleanVisualTerm(scene?.domain),
+    domain:sceneDomain(scene),
     subject:cleanVisualTerm(scene?.subject),
     target:cleanVisualTerm(scene?.visual_target),
     must:(Array.isArray(scene?.must_include)?scene.must_include:[])
@@ -2076,77 +2119,146 @@ function sceneVisualProfile(scene){
 
 function tokenizeVisual(s){
   const stop=new Set(['the','a','an','and','or','of','in','on','at','to','for','with','from','by',
-    'video','vertical','close','up','shot','footage','real','realistic','cinematic']);
+    'video','vertical','close','up','shot','footage','real','realistic','cinematic','documentary']);
   return cleanVisualTerm(s).split(/\s+/).filter(x=>x.length>2 && !stop.has(x));
 }
 
-function candidateMetadataText(candidate){
+function candidateActualMetadata(candidate){
+  // IMPORTANT: do NOT include candidate.search here. Search is our request, not proof of what the clip contains.
   return cleanVisualTerm([
     candidate?.tags,
     candidate?.pageUrl,
     candidate?.userName,
-    candidate?.provider,
+    candidate?.provider
+  ].filter(Boolean).join(' '));
+}
+
+function candidateMetadataText(candidate){
+  return cleanVisualTerm([
+    candidateActualMetadata(candidate),
     candidate?.search
   ].filter(Boolean).join(' '));
+}
+
+const DOMAIN_BLOCKLISTS={
+  automotive:['flower','flowers','bee','bees','insect','bird','birds','tree','bark','forest','ocean','underwater','food','kitchen','abstract','paint','ink','horse','dog','cat'],
+  food:['car','vehicle','engine','tire','wheel','brake','mechanic','factory','machine','bee','bird','forest'],
+  medical:['car','vehicle','engine','tire','wheel','forest','landscape','flower','bee','bird','kitchen','food','abstract','paint','ink'],
+  technology:['flower','bee','bird','forest','ocean','underwater','horse','dog','cat']
+};
+
+const ANIMAL_OTHER_SPECIES=[
+  'turtle','turtles','bird','birds','eagle','eagles','shark','sharks','dolphin','dolphins',
+  'seal','seals','penguin','penguins','horse','horses','dog','dogs','cat','cats','bee','bees',
+  'insect','insects','octopus','octopuses','orca','orcas','whale','whales','fish'
+];
+
+function domainReject(scene,candidate){
+  const p=sceneVisualProfile(scene);
+  const actual=candidateActualMetadata(candidate);
+  if(!actual)return false; // Pexels exposes little semantic metadata; rank/query rules handle it separately.
+
+  for(const bad of (DOMAIN_BLOCKLISTS[p.domain]||[])){
+    if(actual.includes(bad) && !p.subject.includes(bad) && !p.target.includes(bad))return true;
+  }
+
+  // For animal documentaries, reject a clearly different species when metadata exposes it.
+  if(p.domain==='animal'){
+    const allowed=new Set([...tokenizeVisual(p.subject),...tokenizeVisual(p.target)]);
+    for(const species of ANIMAL_OTHER_SPECIES){
+      if(actual.includes(species) && !allowed.has(species)){
+        // "whale" is allowed for killer whale/orca subjects.
+        if(species.startsWith('whale') && (p.subject.includes('orca')||p.subject.includes('killer whale')))continue;
+        if(species.startsWith('orca') && p.subject.includes('killer whale'))continue;
+        return true;
+      }
+    }
+  }
+
+  for(const bad of p.avoid){
+    const toks=tokenizeVisual(bad);
+    if(toks.some(t=>actual.includes(t)))return true;
+  }
+  return false;
+}
+
+function pexelsEligibility(scene,candidate,queryIndex){
+  if(candidate?.provider!=='Pexels')return true;
+  const rank=Number(candidate?.rank||0);
+
+  // Pexels doesn't expose useful tags. Keep only top results from exact searches.
+  if(queryIndex===0)return rank<=2;
+  if(queryIndex<=2)return rank<=1;
+  return rank===0;
 }
 
 function visualMatchScore(scene,candidate,queryIndex=0,choice=0){
   const p=sceneVisualProfile(scene);
   const meta=candidateMetadataText(candidate);
+  const actual=candidateActualMetadata(candidate);
   const query=cleanVisualTerm(candidate?.search||'');
   const hay=(meta+' '+query).trim();
 
+  if(domainReject(scene,candidate))return 0;
+  if(!pexelsEligibility(scene,candidate,queryIndex))return 0;
+
   let score=0;
 
-  // Query priority: first query is Groq's most exact visual request.
-  score += Math.max(0,42-queryIndex*7);
-  score += Math.max(0,18-choice*3);
+  // Exact query + top rank matter much more in V3.5.
+  score += Math.max(0,48-queryIndex*9);
+  score += Math.max(0,20-choice*4);
 
-  // Subject is the most important visual anchor.
-  const subjectTokens=tokenizeVisual(p.subject);
-  const subjectHits=subjectTokens.filter(t=>hay.includes(t)).length;
+  const subjectTokens=subjectAnchorTokens(scene);
+  const querySubjectHits=subjectTokens.filter(t=>query.includes(t)).length;
   if(subjectTokens.length){
-    score += Math.min(25, subjectHits*10);
-    if(subjectHits===0)score -= 18;
+    score += Math.min(20,querySubjectHits*10);
+    if(querySubjectHits===0)return 0; // subject is mandatory in the request
   }
 
-  // Required concepts.
+  // Actual metadata evidence gets a strong reward (especially Pixabay tags).
+  if(actual && subjectTokens.length){
+    const actualHits=subjectTokens.filter(t=>actual.includes(t)).length;
+    if(actualHits)score += Math.min(24,actualHits*12);
+    else if(candidate?.provider==='Pixabay' && p.domain==='animal')score -= 28;
+  }
+
   for(const term of p.must){
     const toks=tokenizeVisual(term);
     if(!toks.length)continue;
     const hits=toks.filter(t=>hay.includes(t)).length;
-    if(hits) score += Math.min(10,4+hits*3);
+    if(hits)score += Math.min(8,3+hits*2);
   }
 
-  // Visual target/context.
   const targetTokens=tokenizeVisual(p.target);
   const targetHits=targetTokens.filter(t=>hay.includes(t)).length;
-  score += Math.min(14,targetHits*4);
+  score += Math.min(12,targetHits*3);
 
-  // Explicit negative concepts.
-  for(const bad of p.avoid){
-    const toks=tokenizeVisual(bad);
-    if(toks.some(t=>meta.includes(t)))score -= 35;
-  }
-
-  // Pixabay exposes tags; reward actual metadata agreement.
   if(candidate?.tags){
     const qTokens=tokenizeVisual(query);
-    const tagHits=qTokens.filter(t=>meta.includes(t)).length;
+    const tagHits=qTokens.filter(t=>actual.includes(t)).length;
     score += Math.min(18,tagHits*4);
   }
+
+  // Pexels confidence is capped because it exposes almost no semantic tags.
+  if(candidate?.provider==='Pexels')score=Math.min(score,86);
 
   return Math.max(0,Math.min(100,Math.round(score)));
 }
 
 function matchLabel(score){
-  if(score>=82)return {text:'Coincidencia alta',cls:'ok'};
-  if(score>=68)return {text:'Coincidencia aceptable',cls:'mut'};
-  return {text:'Coincidencia baja',cls:'err'};
+  if(score>=86)return {text:'Coincidencia alta',cls:'ok'};
+  if(score>=78)return {text:'Coincidencia segura',cls:'mut'};
+  return {text:'Rechazado',cls:'err'};
 }
 
 let clipSearchCache=new Map();
 let usedClipKeys=new Set();
+let safeSubjectClipCache=new Map();
+
+function safeSubjectKey(scene){
+  const p=sceneVisualProfile(scene);
+  return cleanVisualTerm(`${p.domain}|${p.subject}`);
+}
 
 async function pexelsCandidates(search){
   const k=($('#pexels')?.value||'').trim();
@@ -2155,7 +2267,7 @@ async function pexelsCandidates(search){
     const cacheKey='pexels|'+search.toLowerCase();
     let videos=clipSearchCache.get(cacheKey);
     if(!videos){
-      const r=await fetch(`https://api.pexels.com/v1/videos/search?query=${encodeURIComponent(search)}&orientation=portrait&per_page=20&page=1`,{
+      const r=await fetch(`https://api.pexels.com/v1/videos/search?query=${encodeURIComponent(search)}&orientation=portrait&per_page=12&page=1`,{
         headers:{Authorization:k}
       });
       if(!r.ok)return [];
@@ -2163,7 +2275,7 @@ async function pexelsCandidates(search){
       videos=(d.videos||[]).filter(Boolean);
       clipSearchCache.set(cacheKey,videos);
     }
-    return videos.slice(0,12).map((v,rank)=>{
+    return videos.slice(0,5).map((v,rank)=>{
       const files=(v.video_files||[]).filter(x=>x.link);
       files.sort((a,b)=>{
         const ap=(a.height||0)>(a.width||0)?0:1;
@@ -2192,13 +2304,13 @@ async function pixabayCandidates(search){
     const cacheKey='pixabay|'+search.toLowerCase();
     let hits=clipSearchCache.get(cacheKey);
     if(!hits){
-      const r=await fetch(`https://pixabay.com/api/videos/?key=${encodeURIComponent(k)}&q=${encodeURIComponent(search)}&per_page=20&page=1&safesearch=true`);
+      const r=await fetch(`https://pixabay.com/api/videos/?key=${encodeURIComponent(k)}&q=${encodeURIComponent(search)}&per_page=12&page=1&safesearch=true`);
       if(!r.ok)return [];
       const d=await r.json();
       hits=(d.hits||[]).filter(Boolean);
       clipSearchCache.set(cacheKey,hits);
     }
-    return hits.slice(0,12).map((v,rank)=>{
+    return hits.slice(0,6).map((v,rank)=>{
       const f=v&&(v.videos?.medium||v.videos?.small||v.videos?.large);
       if(!f?.url)return null;
       return {
@@ -2219,8 +2331,7 @@ async function clipForScene(scene,attempt=0){
   const queries=normalizeSceneQueries(scene);
   if(!queries.length)return null;
 
-  // Strict threshold first. If nothing clears it, use a safer subject fallback instead of a random unrelated clip.
-  const strictThreshold=68;
+  const strictThreshold=78;
   const qStart=attempt%queries.length;
   let pool=[];
 
@@ -2233,54 +2344,70 @@ async function clipForScene(scene,attempt=0){
       pixabayCandidates(search)
     ]);
 
-    const candidates=[...pex,...pix];
+    // Limit depth aggressively to reduce semantic drift.
+    const pexLimit=qi===0?3:(qi<=2?2:1);
+    const pixLimit=qi===0?5:(qi<=2?4:2);
+    const candidates=[...pex.slice(0,pexLimit),...pix.slice(0,pixLimit)];
+
     for(const c of candidates){
       if(usedClipKeys.has(c.clipKey))continue;
+      if(domainReject(scene,c))continue;
+      if(!pexelsEligibility(scene,c,qi))continue;
       const score=visualMatchScore(scene,c,qi,c.rank||0);
+      if(score<=0)continue;
       pool.push({...c,score,queryIndex:qi});
     }
 
-    // If a very strong result exists, don't waste more requests.
-    const bestNow=pool.sort((a,b)=>b.score-a.score)[0];
-    if(bestNow?.score>=88)break;
+    pool.sort((a,b)=>b.score-a.score);
+    if(pool[0]?.score>=90)break;
   }
 
   pool.sort((a,b)=>b.score-a.score);
-  let best=pool.find(x=>x.score>=strictThreshold);
+  let best=pool.find(x=>x.score>=strictThreshold)||null;
 
-  // Safe fallback: stay on the documentary's main subject.
+  // Strict same-subject fallback only.
   if(!best){
-    const p=sceneVisualProfile(scene);
-    const subjectSearch=[
-      scene?.subject,
-      scene?.domain,
-      scene?.visual_target
-    ].filter(Boolean).join(' ').trim();
+    const subject=String(scene?.subject||'').trim();
+    const target=String(scene?.visual_target||'').trim();
+    const subjectSearch=[subject,target].filter(Boolean).join(' ').trim();
 
     if(subjectSearch){
       const [pex,pix]=await Promise.all([
         pexelsCandidates(subjectSearch),
         pixabayCandidates(subjectSearch)
       ]);
-      const safe=[...pex,...pix]
+      const safe=[...pex.slice(0,3),...pix.slice(0,5)]
         .filter(c=>!usedClipKeys.has(c.clipKey))
+        .filter(c=>!domainReject(scene,c))
         .map(c=>({...c,score:visualMatchScore(scene,c,0,c.rank||0),safeFallback:true}))
+        .filter(c=>c.score>=strictThreshold)
         .sort((a,b)=>b.score-a.score);
-
       best=safe[0]||null;
-      if(best && best.score<52)best=null;
     }
   }
 
+  const cacheKey=safeSubjectKey(scene);
+
   if(best){
     usedClipKeys.add(best.clipKey);
+    // Keep a known-good subject clip. Reuse is intentionally allowed only as last resort.
+    if(best.score>=78 && !safeSubjectClipCache.has(cacheKey)){
+      safeSubjectClipCache.set(cacheKey,{...best,reusedSubjectFallback:true});
+    }
     return best;
   }
+
+  // Better to repeat a coherent subject shot than show a turtle/flower/abstract clip.
+  const reusable=safeSubjectClipCache.get(cacheKey);
+  if(reusable){
+    return {...reusable,score:Math.max(78,reusable.score||78),reusedSubjectFallback:true};
+  }
+
   return null;
 }
 
 window.documentalClipForScene=clipForScene;
-window.documentalResetClipSearch=()=>{clipSearchCache=new Map();usedClipKeys=new Set();};
+window.documentalResetClipSearch=()=>{clipSearchCache=new Map();usedClipKeys=new Set();safeSubjectClipCache=new Map();};
 
 function render(s,c,i){
   const queries=normalizeSceneQueries(s);
@@ -2406,6 +2533,12 @@ REGLAS CRÍTICAS DE PRECISIÓN VISUAL:
 - "domain" debe permanecer coherente durante TODO el documental.
 - "subject" es el protagonista visual persistente. Ejemplos: car tire, car engine, octopus, bowl of soup, human eye.
 - NUNCA reemplaces el sujeto por una metáfora, una idea abstracta o un objeto genérico.
+- Si el documental tiene un sujeto concreto (animal, vehículo, objeto, persona o parte anatómica), ESE SUJETO debe aparecer explícitamente en LAS 5 búsquedas de cada escena.
+- En documentales de animales, NO sustituyas la especie principal por otra especie. Ejemplo: si el sujeto es orca/killer whale, nunca propongas turtle, bird, shark, dolphin o seal.
+- NO uses analogías visuales ni metáforas: una superficie agrietada NO representa una manguera dañada; una abeja NO representa una falla mecánica.
+- Una toma genérica de mar, carretera, bosque, ciudad o paisaje solo es válida si la narración habla específicamente de ese entorno.
+- Cuando una escena trate de una acción difícil de encontrar, usa un proxy visual DEL MISMO SUJETO. Ejemplo: "orca teaching calf to steal fish" puede caer a "orca mother calf swimming near fishing boat", nunca a otro animal.
+- Prefiere repetir una toma correcta del sujeto antes que cambiar a un clip bonito pero ajeno al tema.
 - "visual_target" debe describir SOLO algo que una cámara pueda mostrar físicamente en ese momento.
 - Cada una de las 5 búsquedas debe estar en INGLÉS y contener sujeto + objeto/parte + acción/estado + entorno cuando aplique.
 - La primera búsqueda es la MÁS exacta. Las siguientes son variaciones controladas, no ideas diferentes.
