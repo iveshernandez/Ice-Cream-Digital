@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v9.0 · V4 Visual Bank</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v9.1 · V4.1 Resilient Visual Bank</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V4 Visual Bank: primero crea un perfil global del documental, luego construye un banco verificado en Pixabay y finalmente asigna clips a las escenas. Congruencia antes que variedad.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V4.1 Visual Bank: crea un perfil global, construye primero un banco verificado en Pixabay y, si los tags son insuficientes, activa un rescate seguro con búsquedas exactas del sujeto. Congruencia antes que variedad.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -2139,9 +2139,17 @@ function mainSubjectScore(c,profile){
   const {main}=profileTerms(profile);
 
   let score=0;
-  if(containsAny(actual,main))score+=70;
-  else if(containsAny(query,main))score+=42;
-  else return 0;
+  if(containsAny(actual,main))score+=72;
+  else if(containsAny(query,main))score+=46;
+  else {
+    // Soft token match for singular/plural or alias variations such as orca/orcas, whale/whales.
+    const actualTokens=tokenizeVisual(actual);
+    const queryTokens=tokenizeVisual(query);
+    const mainTokens=uniqueTerms(main.flatMap(tokenizeVisual));
+    const soft=mainTokens.some(t=>actualTokens.some(a=>a===t||a===t+'s'||t===a+'s')||queryTokens.some(q=>q===t||q===t+'s'||t===q+'s'));
+    if(soft)score+=38;
+    else return 0;
+  }
 
   // Pixabay tags are our verification signal.
   const actualTokens=tokenizeVisual(actual);
@@ -2169,32 +2177,64 @@ function contextScore(c,profile,contextKey){
   return Math.min(100,Math.round(score));
 }
 
+
+function localMainQueries(profile){
+  const subject=String(profile?.main_subject||'').trim();
+  const aliases=(profile?.aliases||[]).map(x=>String(x||'').trim()).filter(Boolean);
+  const roots=uniqueTerms([subject,...aliases]).slice(0,6);
+
+  const out=[];
+  const push=q=>{
+    q=String(q||'').replace(/\s+/g,' ').trim();
+    if(q&&!out.some(x=>cleanVisualTerm(x)===cleanVisualTerm(q)))out.push(q);
+  };
+
+  for(const r of roots)push(r);
+
+  const base=roots[0]||subject;
+  if(base){
+    push(`${base} underwater`);
+    push(`${base} swimming`);
+    push(`${base} ocean`);
+    push(`${base} group`);
+    push(`${base} close up`);
+    push(`${base} wildlife`);
+  }
+
+  return out.slice(0,12);
+}
+
 async function buildVisualBank(profile){
   const key=(document.querySelector('#pixabay')?.value||'').trim();
-  if(!key)throw Error('V4 necesita la API de Pixabay para construir el banco visual.');
+  if(!key)throw Error('V4.1 necesita la API de Pixabay para construir el banco visual.');
 
   visualProfile=profile;
   clipSearchCache=new Map();
   usedClipKeys=new Set();
 
-  const queries=uniqueTerms(profile?.bank_queries||[]).slice(0,12);
+  // Merge Groq queries with deterministic local subject queries.
+  const groqQueries=uniqueTerms(profile?.bank_queries||[]);
+  const rescueQueries=localMainQueries(profile);
+  const queries=uniqueTerms([...groqQueries,...rescueQueries]).slice(0,16);
+
   const mainPool=[];
   const contextPool=[];
 
+  // PASS 1: strict verification using real Pixabay tags.
   for(let i=0;i<queries.length;i++){
     const q=queries[i];
     st(`Construyendo banco visual ${i+1}/${queries.length}: ${q}`);
     const candidates=await pixabayCandidates(q);
 
-    for(const c of candidates.slice(0,18)){
+    for(const c of candidates.slice(0,20)){
       if(isForbiddenCandidate(c,profile))continue;
 
       const ms=mainSubjectScore(c,profile);
-      if(ms>=72)mainPool.push({...c,bankType:'MAIN',score:ms});
+      if(ms>=68)mainPool.push({...c,bankType:'MAIN',score:ms,verifiedBy:'tags/query'});
 
       for(const ctx of (profile.allowed_context||[])){
         const cs=contextScore(c,profile,ctx);
-        if(cs>=62)contextPool.push({...c,bankType:'CONTEXT',contextKey:ctx,score:cs});
+        if(cs>=60)contextPool.push({...c,bankType:'CONTEXT',contextKey:ctx,score:cs});
       }
     }
   }
@@ -2208,14 +2248,53 @@ async function buildVisualBank(profile){
     return [...best.values()].sort((a,b)=>b.score-a.score);
   };
 
-  const main=dedupe(mainPool).slice(0,30);
+  let main=dedupe(mainPool).slice(0,30);
+
+  // PASS 2: rescue mode.
+  // If Pixabay search finds the subject but metadata is sparse, accept only top results
+  // from exact subject/alias searches. This avoids failing the whole documentary.
+  if(main.length===0){
+    st(`⚠️ Sin clips verificados por tags para "${profile.main_subject}". Activando rescate por búsqueda exacta…`);
+
+    const rescue=[];
+    const exactQueries=localMainQueries(profile);
+
+    for(let i=0;i<exactQueries.length;i++){
+      const q=exactQueries[i];
+      const candidates=await pixabayCandidates(q);
+
+      for(const c of candidates.slice(0,4)){
+        if(isForbiddenCandidate(c,profile))continue;
+
+        const queryHasSubject=containsAny(q,[profile.main_subject,...(profile.aliases||[])]);
+        if(!queryHasSubject)continue;
+
+        // Top Pixabay search results from exact subject queries are allowed with a guarded score.
+        const actual=candidateActualText(c);
+        const verified=containsAny(actual,[profile.main_subject,...(profile.aliases||[])]);
+        const score=verified ? 82-Math.min(12,(c.rank||0)*3) : 68-Math.min(9,(c.rank||0)*3);
+
+        rescue.push({
+          ...c,
+          bankType:'MAIN',
+          score:Math.max(55,score),
+          verifiedBy:verified?'tags':'exact-search'
+        });
+      }
+    }
+
+    main=dedupe(rescue).slice(0,24);
+  }
+
   const contexts={};
   for(const ctx of (profile.allowed_context||[])){
-    contexts[ctx]=dedupe(contextPool.filter(c=>cleanVisualTerm(c.contextKey)===cleanVisualTerm(ctx))).slice(0,15);
+    contexts[ctx]=dedupe(
+      contextPool.filter(c=>cleanVisualTerm(c.contextKey)===cleanVisualTerm(ctx))
+    ).slice(0,15);
   }
 
   if(main.length===0){
-    throw Error(`Pixabay no encontró clips verificados del sujeto principal: ${profile.main_subject}.`);
+    throw Error(`Pixabay no encontró ningún resultado utilizable para el sujeto principal: ${profile.main_subject}. Prueba revisar la API o el nombre del sujeto.`);
   }
 
   visualBank={main,contexts};
