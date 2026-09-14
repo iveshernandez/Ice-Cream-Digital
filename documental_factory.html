@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.5 Visual Match Strict</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v8.6 · V3.6 Pixabay First</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -2239,8 +2239,12 @@ function visualMatchScore(scene,candidate,queryIndex=0,choice=0){
     score += Math.min(18,tagHits*4);
   }
 
-  // Pexels confidence is capped because it exposes almost no semantic tags.
-  if(candidate?.provider==='Pexels')score=Math.min(score,86);
+  // V3.6: verified Pixabay tags get priority. Pexels stays capped because it exposes little semantic metadata.
+  if(candidate?.provider==='Pixabay' && actual && subjectTokens.length){
+    const verifiedSubject=subjectTokens.some(t=>actual.includes(t));
+    if(verifiedSubject)score+=12;
+  }
+  if(candidate?.provider==='Pexels')score=Math.min(score,82);
 
   return Math.max(0,Math.min(100,Math.round(score)));
 }
@@ -2332,6 +2336,7 @@ async function clipForScene(scene,attempt=0){
   if(!queries.length)return null;
 
   const strictThreshold=78;
+  // Pixabay is the primary stock source in V3.6; Pexels is fallback only.
   const qStart=attempt%queries.length;
   let pool=[];
 
@@ -2339,15 +2344,23 @@ async function clipForScene(scene,attempt=0){
     const qi=(qStart+qStep)%queries.length;
     const search=queries[qi];
 
-    const [pex,pix]=await Promise.all([
-      pexelsCandidates(search),
-      pixabayCandidates(search)
-    ]);
+    // V3.6: Pixabay FIRST because its tags let us verify the real clip content.
+    // Pexels is queried only if Pixabay does not provide enough trustworthy options.
+    const pix=await pixabayCandidates(search);
+    const pixLimit=qi===0?7:(qi<=2?5:3);
+    let candidates=pix.slice(0,pixLimit);
 
-    // Limit depth aggressively to reduce semantic drift.
-    const pexLimit=qi===0?3:(qi<=2?2:1);
-    const pixLimit=qi===0?5:(qi<=2?4:2);
-    const candidates=[...pex.slice(0,pexLimit),...pix.slice(0,pixLimit)];
+    const verifiedPix=candidates
+      .filter(c=>!usedClipKeys.has(c.clipKey))
+      .filter(c=>!domainReject(scene,c))
+      .map(c=>({...c,_preScore:visualMatchScore(scene,c,qi,c.rank||0)}))
+      .filter(c=>c._preScore>=78);
+
+    if(verifiedPix.length<2){
+      const pex=await pexelsCandidates(search);
+      const pexLimit=qi===0?2:1;
+      candidates=[...candidates,...pex.slice(0,pexLimit)];
+    }
 
     for(const c of candidates){
       if(usedClipKeys.has(c.clipKey))continue;
@@ -2372,16 +2385,24 @@ async function clipForScene(scene,attempt=0){
     const subjectSearch=[subject,target].filter(Boolean).join(' ').trim();
 
     if(subjectSearch){
-      const [pex,pix]=await Promise.all([
-        pexelsCandidates(subjectSearch),
-        pixabayCandidates(subjectSearch)
-      ]);
-      const safe=[...pex.slice(0,3),...pix.slice(0,5)]
+      // Safe fallback is also Pixabay-first.
+      const pix=await pixabayCandidates(subjectSearch);
+      let safe=pix.slice(0,8)
         .filter(c=>!usedClipKeys.has(c.clipKey))
         .filter(c=>!domainReject(scene,c))
         .map(c=>({...c,score:visualMatchScore(scene,c,0,c.rank||0),safeFallback:true}))
         .filter(c=>c.score>=strictThreshold)
         .sort((a,b)=>b.score-a.score);
+
+      if(!safe.length){
+        const pex=await pexelsCandidates(subjectSearch);
+        safe=pex.slice(0,2)
+          .filter(c=>!usedClipKeys.has(c.clipKey))
+          .filter(c=>!domainReject(scene,c))
+          .map(c=>({...c,score:visualMatchScore(scene,c,0,c.rank||0),safeFallback:true}))
+          .filter(c=>c.score>=strictThreshold)
+          .sort((a,b)=>b.score-a.score);
+      }
       best=safe[0]||null;
     }
   }
