@@ -4252,8 +4252,19 @@ let ort=null, AutoTokenizer=null;
 async function loadSdRuntime(notify){
   notify?.('2% · Cargando ONNX Runtime WebGPU…');
   try{
-    const mod=await import('https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/+esm');
-    ort=mod.default||mod;
+    window.sdActivity?.('3% · Cargando build oficial ONNX WebGPU…',3);
+    if(!window.ort){
+      await new Promise((resolve,reject)=>{
+        const sc=document.createElement('script');
+        sc.src='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.webgpu.min.js';
+        sc.onload=resolve;
+        sc.onerror=()=>reject(new Error('No se pudo descargar ort.webgpu.min.js'));
+        document.head.appendChild(sc);
+      });
+    }
+    ort=window.ort;
+    if(!ort?.InferenceSession)throw new Error('El build WebGPU cargó pero ORT no quedó disponible.');
+    window.sdActivity?.('6% · ONNX Runtime WebGPU registrado.',6);
   }catch(e){
     throw new Error('ONNX RUNTIME: '+(e?.message||e));
   }
@@ -4331,6 +4342,7 @@ async function init(notify=ui){
       }
     }catch(_){}
     notify('10% · Comprobando WebGPU…');
+    window.sdActivity?.('10% · ORT WebGPU cargado · comprobando GPU Intel…',10);
     if(!navigator.gpu)throw new Error('WEBGPU: navigator.gpu no está disponible.');
     const adapter=await navigator.gpu.requestAdapter();
     if(!adapter)throw new Error('WEBGPU: no se pudo obtener el adaptador GPU.');
