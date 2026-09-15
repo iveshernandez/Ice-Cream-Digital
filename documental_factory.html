@@ -316,6 +316,56 @@ window.addEventListener('unhandledrejection',function(e){
 });
 </script>
 
+
+<script id="sd-activity-reporter">
+(function(){
+  const lines=[];
+  window.sdActivity=function(text,pct){
+    const now=new Date().toLocaleTimeString();
+    text=String(text||'');
+    let n=Number(pct);
+    if(!Number.isFinite(n)){
+      const m=text.match(/(\d{1,3})%/); n=m?Number(m[1]):null;
+    }
+    if(Number.isFinite(n)){
+      n=Math.max(0,Math.min(100,n));
+      const p=document.getElementById('sdActivityPct'); if(p)p.textContent=Math.round(n)+'%';
+      const b=document.getElementById('sdActivityBar'); if(b)b.style.width=n+'%';
+    }
+    const c=document.getElementById('sdActivityCurrent'); if(c)c.textContent=text.replace(/^\d+%\s*[·-]?\s*/,'');
+    lines.push(now+' — '+text);
+    if(lines.length>80)lines.shift();
+    const log=document.getElementById('sdActivityLog');
+    if(log){log.textContent=lines.join('\n');log.scrollTop=log.scrollHeight;}
+    // Also mirror into the Factory's main log when available.
+    try{
+      const main=document.querySelector('#log, .log, #statusLog');
+      if(main && main!==log){
+        const row=document.createElement('div');
+        row.textContent=now+' — 🖼️ SD‑Turbo: '+text;
+        main.appendChild(row);
+        main.scrollTop=main.scrollHeight;
+      }
+    }catch(_){}
+  };
+})();
+</script>
+
+
+<script id="sd-status-observer">
+window.addEventListener('DOMContentLoaded',()=>{
+  const box=document.getElementById('sdLocalStatus');
+  if(!box)return;
+  let last='';
+  const push=()=>{
+    const t=(box.textContent||'').trim();
+    if(t && t!==last){last=t;window.sdActivity?.(t);}
+  };
+  new MutationObserver(push).observe(box,{childList:true,subtree:true,characterData:true});
+  push();
+});
+</script>
+
 </head><body>
 
 <div id="icFactoryHeader">
@@ -4402,7 +4452,7 @@ window.addEventListener('load',()=>{
  // Image readiness: use the actual SD-Turbo init promise/function.
  async function imageCheck(){
    try{
-     set('engineImage','loading','Cargando módulo WebGPU…',1);
+     set('engineImage','loading','Cargando módulo WebGPU…',1); window.sdActivity?.('1% · Cargando módulo WebGPU…',1);
      let waited=0;
      while(typeof window.sdTurboLocalInit!=='function' && waited<120000){
        await new Promise(r=>setTimeout(r,300)); waited+=300;
@@ -4426,10 +4476,10 @@ window.addEventListener('load',()=>{
      }finally{
        clearInterval(watcher);
      }
-     set('engineImage','ready','Listo · WebGPU local',100);
+     set('engineImage','ready','Listo · WebGPU local',100); window.sdActivity?.('100% · SD‑Turbo listo · WebGPU local',100);
    }catch(e){
      const detail=(e?.message||String(e)||'Error desconocido').slice(0,180);
-     console.error('[SD-Turbo diagnóstico]',e);
+     console.error('[SD-Turbo diagnóstico]',e); window.sdActivity?.('❌ '+detail,0);
      set('engineImage','err',detail,0);
      const box=document.getElementById('sdLocalStatus');
      if(box)box.textContent='❌ '+detail;
@@ -4483,4 +4533,16 @@ window.addEventListener('load',()=>{
 
 <style>
 #sdLocalStatus{display:none!important}
-</style>
+</style
+<div id="sdActivityPanel" style="margin-top:10px;border:1px solid #29425f;border-radius:10px;background:#07111e;padding:10px 12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px">
+    <b>Actividad · SD‑Turbo WebGPU</b>
+    <span id="sdActivityPct" style="font-weight:900">0%</span>
+  </div>
+  <div style="height:7px;background:#142337;border-radius:999px;overflow:hidden;margin-bottom:7px">
+    <i id="sdActivityBar" style="display:block;height:100%;width:0%;background:currentColor"></i>
+  </div>
+  <div id="sdActivityCurrent" style="font-size:12px;font-weight:800">Esperando inicio…</div>
+  <pre id="sdActivityLog" style="margin:8px 0 0;max-height:145px;overflow:auto;white-space:pre-wrap;font-size:11px;line-height:1.35;background:#030912;border:1px solid #1c3048;border-radius:8px;padding:8px">Esperando SD‑Turbo…</pre>
+</div>
+>
