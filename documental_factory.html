@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.1.2 · V5.1.2 Full Duration Render Fix</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.2 · V5.2 Visual Director</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.1.2 Dynamic AI: corrige el MP4 ultracorto; cada imagen IA ahora genera todos sus frames a 30 FPS durante la duración real de la escena.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.2 Visual Director: continuidad sin repetición. Groq dirige cada escena con sujeto, acción y plano diferentes, manteniendo el render dinámico a 30 FPS.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -2227,9 +2227,19 @@ Devuelve:
 
 REGLAS OBLIGATORIAS:
 - OBJETIVO: alrededor de ${n} escenas. No fuerces divisiones artificiales solo para alcanzar el número exacto.
+- Antes de redactar internamente los image_prompt, piensa la secuencia completa como un director documental: establecimiento → sujeto → acción → detalle → reacción/consecuencia → siguiente acción. Devuelve solamente el JSON solicitado.
 - narration debe cubrir TODO el guion, en orden, sin resumir ni inventar.
 - NO dividas por cantidad de palabras. Corta una escena cuando cambie la idea, acción, sujeto visible, lugar, causa, consecuencia o momento narrativo.
 - Cada escena debe sentirse como un nuevo plano de un documental real y continuar naturalmente la escena anterior.
+- CONTINUIDAD NO SIGNIFICA REPETIR LA MISMA COMPOSICIÓN. Conserva identidad, especie, entorno y lógica narrativa, pero cambia claramente el encuadre y la acción.
+- PROGRESIÓN VISUAL OBLIGATORIA: cada image_prompt debe mostrar el momento concreto narrado en ESA escena y avanzar la historia respecto a la imagen anterior.
+- VARIEDAD DE PLANOS OBLIGATORIA: alterna plano general, plano medio, primer plano, detalle, vista submarina, superficie, vista lateral, vista desde el barco y perspectiva ambiental cuando sean pertinentes.
+- No uses el mismo tipo de plano en dos escenas consecutivas.
+- No repitas sistemáticamente 'orca en primer plano con barco al fondo'. Si aparece un barco, red, pescador, presa, cría, costa u otro elemento mencionado, conviértelo en sujeto visual principal cuando la narración hable de él.
+- VARIEDAD DE ACCIONES: observar, aproximarse, girar, sumergirse, emerger, perseguir, interactuar, enseñar, imitar, reaccionar o alejarse según lo que REALMENTE diga la narración. No inventes acciones ajenas al guion.
+- Cada prompt debe especificar claramente: SUJETO PRINCIPAL + ACCIÓN + ENTORNO + TIPO DE PLANO/ÁNGULO + CONTINUIDAD relevante.
+- Evita composiciones genéricas, poses estáticas y prompts casi idénticos.
+- Mantén al protagonista reconocible entre escenas cuando corresponda, pero no obligues a que aparezca en todas si la narración está enfocada temporalmente en otro sujeto u objeto.
 - Cada image_prompt debe representar físicamente lo que se está narrando EN ESA escena.
 - No uses metáforas visuales.
 - No sustituyas el sujeto por otro animal, objeto, persona o paisaje.
