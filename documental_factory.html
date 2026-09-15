@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v9.1 · V4.1 Resilient Visual Bank</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.0 · V5 Pure AI</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V4.1 Visual Bank: crea un perfil global, construye primero un banco verificado en Pixabay y, si los tags son insuficientes, activa un rescate seguro con búsquedas exactas del sujeto. Congruencia antes que variedad.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5 Pure AI: Groq crea prompts visuales exactos y Cloudflare Workers AI genera cada escena. Sin Pixabay, Pexels ni bancos de videos.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -1851,23 +1851,13 @@ async function ai(prompt){
     response_format:{
       type:'json_schema',
       json_schema:{
-        name:'documentary_visual_bank',
+        name:'documentary_ai_scenes',
         strict:true,
         schema:{
           type:'object',
           properties:{
-            visual_profile:{
-              type:'object',
-              properties:{
-                domain:{type:'string'},
-                main_subject:{type:'string'},
-                aliases:{type:'array',items:{type:'string'},minItems:2,maxItems:8},
-                allowed_context:{type:'array',items:{type:'string'},minItems:2,maxItems:10},
-                forbidden:{type:'array',items:{type:'string'},minItems:2,maxItems:16},
-                bank_queries:{type:'array',items:{type:'string'},minItems:8,maxItems:12}
-              },
-              required:['domain','main_subject','aliases','allowed_context','forbidden','bank_queries'],
-              additionalProperties:false
+            visual_identity:{
+              type:'string'
             },
             scenes:{
               type:'array',
@@ -1875,15 +1865,14 @@ async function ai(prompt){
                 type:'object',
                 properties:{
                   narration:{type:'string'},
-                  mode:{type:'string',enum:['MAIN','CONTEXT']},
-                  context_key:{type:'string'}
+                  image_prompt:{type:'string'}
                 },
-                required:['narration','mode','context_key'],
+                required:['narration','image_prompt'],
                 additionalProperties:false
               }
             }
           },
-          required:['visual_profile','scenes'],
+          required:['visual_identity','scenes'],
           additionalProperties:false
         }
       }
@@ -2030,7 +2019,7 @@ function jsonDocument(t){
   const tryParse=(candidate)=>{
     try{
       const v=JSON.parse(candidate);
-      if(v && typeof v==='object' && !Array.isArray(v) && v.visual_profile && Array.isArray(v.scenes))return v;
+      if(v && typeof v==='object' && !Array.isArray(v) && Array.isArray(v.scenes))return v;
     }catch(_){}
     return null;
   };
@@ -2044,315 +2033,66 @@ function jsonDocument(t){
     if(out)return out;
   }
 
-  console.warn('Respuesta Groq V4 no parseable:',original);
-  throw Error('Groq respondió, pero no pude leer el perfil visual y las escenas.');
+  console.warn('Respuesta Groq V5 no parseable:',original);
+  throw Error('Groq respondió, pero no pude leer las escenas IA.');
 }
 
-function cleanVisualTerm(v){
-  return String(v||'')
-    .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^a-z0-9\s-]/g,' ')
-    .replace(/\s+/g,' ')
-    .trim();
-}
-function tokenizeVisual(v){
-  const stop=new Set(['the','a','an','and','or','of','in','on','at','to','for','with','from','by',
-    'video','vertical','close','up','shot','footage','real','realistic','cinematic','documentary']);
-  return cleanVisualTerm(v).split(/\s+/).filter(x=>x.length>2&&!stop.has(x));
-}
-function uniqueTerms(arr){
-  const seen=new Set(),out=[];
-  for(const x of (arr||[])){
-    const v=cleanVisualTerm(x);
-    if(v&&!seen.has(v)){seen.add(v);out.push(v);}
-  }
-  return out;
-}
-function containsAny(hay,terms){
-  hay=cleanVisualTerm(hay);
-  return (terms||[]).some(t=>{
-    const tt=cleanVisualTerm(t);
-    if(!tt)return false;
-    if(hay.includes(tt))return true;
-    const toks=tokenizeVisual(tt);
-    return toks.length&&toks.every(k=>hay.includes(k));
+const AI_IMAGE_WORKER='https://icecream-ai-images.iveshernandez1997.workers.dev';
+
+let generatedSceneImages=[];
+
+async function generateAIImage(prompt){
+  const r=await fetch(AI_IMAGE_WORKER,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({prompt:String(prompt||'').trim()})
   });
-}
 
-let clipSearchCache=new Map();
-let usedClipKeys=new Set();
-let visualBank=null;
-let visualProfile=null;
-
-async function pixabayCandidates(search){
-  const k=(document.querySelector('#pixabay')?.value||'').trim();
-  if(!k)return [];
-  const cacheKey='pixabay|'+cleanVisualTerm(search);
-  if(clipSearchCache.has(cacheKey))return clipSearchCache.get(cacheKey);
-
-  try{
-    const r=await fetch(`https://pixabay.com/api/videos/?key=${encodeURIComponent(k)}&q=${encodeURIComponent(search)}&per_page=30&page=1&safesearch=true`);
-    if(!r.ok)return [];
-    const d=await r.json();
-    const hits=(d.hits||[]).map((v,rank)=>{
-      const f=v&&(v.videos?.medium||v.videos?.small||v.videos?.large);
-      if(!f?.url)return null;
-      return {
-        url:f.url,
-        provider:'Pixabay',
-        search,
-        clipKey:'pixabay:'+String(v.id||f.url),
-        tags:v.tags||'',
-        pageUrl:v.pageURL||'',
-        userName:v.user||'',
-        rank
-      };
-    }).filter(Boolean);
-    clipSearchCache.set(cacheKey,hits);
-    return hits;
-  }catch(_){return [];}
-}
-
-function profileTerms(profile){
-  const main=uniqueTerms([profile?.main_subject,...(profile?.aliases||[])]);
-  const context=uniqueTerms(profile?.allowed_context||[]);
-  const forbidden=uniqueTerms(profile?.forbidden||[]);
-  return {main,context,forbidden};
-}
-function candidateText(c){
-  return cleanVisualTerm([c?.tags,c?.pageUrl,c?.search].filter(Boolean).join(' '));
-}
-function candidateActualText(c){
-  return cleanVisualTerm([c?.tags,c?.pageUrl].filter(Boolean).join(' '));
-}
-function isForbiddenCandidate(c,profile){
-  const actual=candidateActualText(c);
-  if(!actual)return false;
-  const {forbidden}=profileTerms(profile);
-  return containsAny(actual,forbidden);
-}
-function mainSubjectScore(c,profile){
-  if(isForbiddenCandidate(c,profile))return 0;
-  const actual=candidateActualText(c);
-  const query=cleanVisualTerm(c?.search);
-  const {main}=profileTerms(profile);
-
-  let score=0;
-  if(containsAny(actual,main))score+=72;
-  else if(containsAny(query,main))score+=46;
-  else {
-    // Soft token match for singular/plural or alias variations such as orca/orcas, whale/whales.
-    const actualTokens=tokenizeVisual(actual);
-    const queryTokens=tokenizeVisual(query);
-    const mainTokens=uniqueTerms(main.flatMap(tokenizeVisual));
-    const soft=mainTokens.some(t=>actualTokens.some(a=>a===t||a===t+'s'||t===a+'s')||queryTokens.some(q=>q===t||q===t+'s'||t===q+'s'));
-    if(soft)score+=38;
-    else return 0;
+  if(!r.ok){
+    let msg=`HTTP ${r.status}`;
+    try{
+      const j=await r.json();
+      msg=j?.message||j?.error||msg;
+    }catch(_){}
+    throw Error(`IA de imágenes: ${msg}`);
   }
 
-  // Pixabay tags are our verification signal.
-  const actualTokens=tokenizeVisual(actual);
-  for(const term of main){
-    const toks=tokenizeVisual(term);
-    if(toks.some(t=>actualTokens.includes(t)))score+=8;
-  }
-  score+=Math.max(0,18-(Number(c?.rank||0)*2));
-  return Math.min(100,Math.round(score));
-}
-function contextScore(c,profile,contextKey){
-  if(isForbiddenCandidate(c,profile))return 0;
-  const actual=candidateActualText(c);
-  const query=cleanVisualTerm(c?.search);
-  const key=cleanVisualTerm(contextKey);
-  const {main,context}=profileTerms(profile);
+  const type=(r.headers.get('content-type')||'').toLowerCase();
+  if(!type.startsWith('image/'))throw Error('El Worker de IA no devolvió una imagen.');
 
-  let score=0;
-  if(key && containsAny(actual,[key]))score+=58;
-  else if(key && containsAny(query,[key]))score+=34;
-
-  if(containsAny(actual,main))score+=24; // Same subject + context is ideal.
-  if(containsAny(actual,context))score+=12;
-  score+=Math.max(0,12-(Number(c?.rank||0)));
-  return Math.min(100,Math.round(score));
+  const blob=await r.blob();
+  if(!blob.size)throw Error('La IA devolvió una imagen vacía.');
+  return {blob,url:URL.createObjectURL(blob)};
 }
 
-
-function localMainQueries(profile){
-  const subject=String(profile?.main_subject||'').trim();
-  const aliases=(profile?.aliases||[]).map(x=>String(x||'').trim()).filter(Boolean);
-  const roots=uniqueTerms([subject,...aliases]).slice(0,6);
-
-  const out=[];
-  const push=q=>{
-    q=String(q||'').replace(/\s+/g,' ').trim();
-    if(q&&!out.some(x=>cleanVisualTerm(x)===cleanVisualTerm(q)))out.push(q);
-  };
-
-  for(const r of roots)push(r);
-
-  const base=roots[0]||subject;
-  if(base){
-    push(`${base} underwater`);
-    push(`${base} swimming`);
-    push(`${base} ocean`);
-    push(`${base} group`);
-    push(`${base} close up`);
-    push(`${base} wildlife`);
+function clearGeneratedSceneImages(){
+  for(const x of generatedSceneImages){
+    try{if(x?.url)URL.revokeObjectURL(x.url);}catch(_){}
   }
-
-  return out.slice(0,12);
+  generatedSceneImages=[];
 }
 
-async function buildVisualBank(profile){
-  const key=(document.querySelector('#pixabay')?.value||'').trim();
-  if(!key)throw Error('V4.1 necesita la API de Pixabay para construir el banco visual.');
+window.documentalResetClipSearch=()=>{
+  clearGeneratedSceneImages();
+};
 
-  visualProfile=profile;
-  clipSearchCache=new Map();
-  usedClipKeys=new Set();
 
-  // Merge Groq queries with deterministic local subject queries.
-  const groqQueries=uniqueTerms(profile?.bank_queries||[]);
-  const rescueQueries=localMainQueries(profile);
-  const queries=uniqueTerms([...groqQueries,...rescueQueries]).slice(0,16);
-
-  const mainPool=[];
-  const contextPool=[];
-
-  // PASS 1: strict verification using real Pixabay tags.
-  for(let i=0;i<queries.length;i++){
-    const q=queries[i];
-    st(`Construyendo banco visual ${i+1}/${queries.length}: ${q}`);
-    const candidates=await pixabayCandidates(q);
-
-    for(const c of candidates.slice(0,20)){
-      if(isForbiddenCandidate(c,profile))continue;
-
-      const ms=mainSubjectScore(c,profile);
-      if(ms>=68)mainPool.push({...c,bankType:'MAIN',score:ms,verifiedBy:'tags/query'});
-
-      for(const ctx of (profile.allowed_context||[])){
-        const cs=contextScore(c,profile,ctx);
-        if(cs>=60)contextPool.push({...c,bankType:'CONTEXT',contextKey:ctx,score:cs});
-      }
-    }
-  }
-
-  const dedupe=(arr)=>{
-    const best=new Map();
-    for(const c of arr){
-      const prev=best.get(c.clipKey);
-      if(!prev||c.score>prev.score)best.set(c.clipKey,c);
-    }
-    return [...best.values()].sort((a,b)=>b.score-a.score);
-  };
-
-  let main=dedupe(mainPool).slice(0,30);
-
-  // PASS 2: rescue mode.
-  // If Pixabay search finds the subject but metadata is sparse, accept only top results
-  // from exact subject/alias searches. This avoids failing the whole documentary.
-  if(main.length===0){
-    st(`⚠️ Sin clips verificados por tags para "${profile.main_subject}". Activando rescate por búsqueda exacta…`);
-
-    const rescue=[];
-    const exactQueries=localMainQueries(profile);
-
-    for(let i=0;i<exactQueries.length;i++){
-      const q=exactQueries[i];
-      const candidates=await pixabayCandidates(q);
-
-      for(const c of candidates.slice(0,4)){
-        if(isForbiddenCandidate(c,profile))continue;
-
-        const queryHasSubject=containsAny(q,[profile.main_subject,...(profile.aliases||[])]);
-        if(!queryHasSubject)continue;
-
-        // Top Pixabay search results from exact subject queries are allowed with a guarded score.
-        const actual=candidateActualText(c);
-        const verified=containsAny(actual,[profile.main_subject,...(profile.aliases||[])]);
-        const score=verified ? 82-Math.min(12,(c.rank||0)*3) : 68-Math.min(9,(c.rank||0)*3);
-
-        rescue.push({
-          ...c,
-          bankType:'MAIN',
-          score:Math.max(55,score),
-          verifiedBy:verified?'tags':'exact-search'
-        });
-      }
-    }
-
-    main=dedupe(rescue).slice(0,24);
-  }
-
-  const contexts={};
-  for(const ctx of (profile.allowed_context||[])){
-    contexts[ctx]=dedupe(
-      contextPool.filter(c=>cleanVisualTerm(c.contextKey)===cleanVisualTerm(ctx))
-    ).slice(0,15);
-  }
-
-  if(main.length===0){
-    throw Error(`Pixabay no encontró ningún resultado utilizable para el sujeto principal: ${profile.main_subject}. Prueba revisar la API o el nombre del sujeto.`);
-  }
-
-  visualBank={main,contexts};
-  return visualBank;
-}
-
-function nextUnused(pool){
-  if(!Array.isArray(pool)||!pool.length)return null;
-  let c=pool.find(x=>!usedClipKeys.has(x.clipKey));
-  if(!c)c=pool[usedClipKeys.size%pool.length]||pool[0]; // intentional reuse
-  if(c?.clipKey)usedClipKeys.add(c.clipKey);
-  return c||null;
-}
-
-function clipFromBank(scene,attempt=0){
-  if(!visualBank||!visualProfile)return null;
-  const mode=String(scene?.mode||'MAIN').toUpperCase();
-
-  if(mode==='CONTEXT'){
-    const key=String(scene?.context_key||'').trim();
-    const keys=Object.keys(visualBank.contexts||{});
-    const exact=keys.find(k=>cleanVisualTerm(k)===cleanVisualTerm(key));
-    const pool=exact?visualBank.contexts[exact]:[];
-
-    // Context is allowed only when it has verified material.
-    if(pool?.length){
-      const rotated=[...pool.slice(attempt),...pool.slice(0,attempt)];
-      return nextUnused(rotated);
-    }
-  }
-
-  // Absolute fallback: return to MAIN SUBJECT, never another unrelated topic.
-  const rotated=[...visualBank.main.slice(attempt),...visualBank.main.slice(0,attempt)];
-  return nextUnused(rotated);
-}
-
-window.documentalClipForScene=clipFromBank;
-window.documentalResetClipSearch=()=>{clipSearchCache=new Map();usedClipKeys=new Set();visualBank=null;visualProfile=null;};
 
 function render(s,c,i){
   let a=document.createElement('article');
   a.className='scene';
   a.dataset.narration=s.narration||'';
-  a.dataset.mode=s.mode||'MAIN';
-  a.dataset.contextKey=s.context_key||'';
-  a.dataset.searchAttempt=0;
+  a.dataset.imagePrompt=s.image_prompt||'';
   if(c?.url)a.dataset.clipUrl=c.url;
-  if(c?.clipKey)a.dataset.clipKey=c.clipKey;
 
-  const modeLabel=(s.mode==='CONTEXT'&&s.context_key)?`CONTEXTO: ${s.context_key}`:'SUJETO PRINCIPAL';
-  a.innerHTML=`<div class="media">${c?`<video muted loop controls playsinline src="${e(c.url)}"></video>`:'<span class="err">Sin clip</span>'}</div>
+  a.innerHTML=`<div class="media">${c?`<img src="${e(c.url)}" alt="Escena IA ${i+1}" style="width:100%;height:100%;object-fit:cover;display:block">`:'<span class="err">Sin imagen IA</span>'}</div>
   <div class="body">
     <b>ESCENA ${i+1}</b>
     <p class="narr">${e(s.narration)}</p>
-    <p class="q">🎬 ${e(modeLabel)}</p>
-    <p class="provider">${c?'Fuente: '+c.provider:'Sin resultado'}</p>
-    <p class="match ${c?'ok':'err'}">${c?`🏦 Banco visual · ${c.score||0}%`:'Sin clip del banco'}</p>
-    <button class="sec change">↻ Cambiar escena</button>
+    <p class="q">🤖 ${e(s.image_prompt)}</p>
+    <p class="provider">Fuente: Cloudflare Workers AI · FLUX</p>
+    <p class="match ok">✨ Generada exclusivamente con IA</p>
+    <button class="sec change">↻ Regenerar imagen</button>
   </div>`;
 
   const scenesRoot=$('#scenes');
@@ -2362,30 +2102,29 @@ function render(s,c,i){
   const changeBtn=a.querySelector('.change');
   if(changeBtn)changeBtn.onclick=async()=>{
     const b=a.querySelector('.change');
-    b.disabled=true;b.textContent='Cambiando...';
-
-    const sceneData={
-      narration:a.dataset.narration||'',
-      mode:a.dataset.mode||'MAIN',
-      context_key:a.dataset.contextKey||''
-    };
-    const attempt=Number(a.dataset.searchAttempt||0)+1;
-    a.dataset.searchAttempt=String(attempt);
-
-    const c2=clipFromBank(sceneData,attempt);
-    a.querySelector('.media').innerHTML=c2
-      ? `<video muted loop controls playsinline src="${e(c2.url)}"></video>`
-      : '<span class="err">Sin otro clip válido</span>';
-
-    if(c2?.url){a.dataset.clipUrl=c2.url;if(c2.clipKey)a.dataset.clipKey=c2.clipKey;}
-    a.querySelector('.provider').textContent=c2?'Fuente: '+c2.provider:'Sin otro resultado';
-    const match=a.querySelector('.match');
-    if(match){
-      match.className='match '+(c2?'ok':'err');
-      match.textContent=c2?`🏦 Banco visual · ${c2.score||0}%`:'Sin otro clip válido';
+    b.disabled=true;b.textContent='Generando IA...';
+    try{
+      const old=a.dataset.clipUrl||'';
+      const c2=await generateAIImage(a.dataset.imagePrompt);
+      generatedSceneImages.push(c2);
+      a.dataset.clipUrl=c2.url;
+      a.querySelector('.media').innerHTML=`<img src="${e(c2.url)}" alt="Escena IA regenerada" style="width:100%;height:100%;object-fit:cover;display:block">`;
+      a.querySelector('.provider').textContent='Fuente: Cloudflare Workers AI · FLUX';
+      const match=a.querySelector('.match');
+      if(match){match.className='match ok';match.textContent='✨ Imagen IA regenerada';}
+      if(old){
+        const idx=generatedSceneImages.findIndex(x=>x?.url===old);
+        if(idx>=0){
+          try{URL.revokeObjectURL(generatedSceneImages[idx].url);}catch(_){}
+          generatedSceneImages.splice(idx,1);
+        }
+      }
+    }catch(err){
+      const match=a.querySelector('.match');
+      if(match){match.className='match err';match.textContent='❌ '+(err?.message||err);}
+    }finally{
+      b.disabled=false;b.textContent='↻ Regenerar imagen';
     }
-
-    b.disabled=false;b.textContent='↻ Cambiar escena';
   };
 }
 
@@ -2418,15 +2157,13 @@ document.querySelector('#script')?.addEventListener('input',updateAutomaticScene
 async function go(){
   const script=(document.querySelector('#script')?.value||'').trim();
   const n=updateAutomaticSceneCount();
-
   if(!script)throw Error('El guion está vacío.');
-  const pix=(document.querySelector('#pixabay')?.value||'').trim();
-  if(!pix)throw Error('V4 necesita la API de Pixabay.');
 
   const title=(document.querySelector('#videoTitle')?.value||'').trim();
 
-  st('Groq está creando el perfil visual y la estructura de escenas…');
-  const prompt=`Analiza este documental completo y crea UN PERFIL VISUAL GLOBAL antes de dividirlo en escenas.
+  st('Groq está creando escenas y prompts visuales exactos para IA…');
+
+  const prompt=`Convierte este documental en EXACTAMENTE ${n} escenas visuales para un generador de imágenes.
 
 TÍTULO:
 ${title}
@@ -2434,73 +2171,63 @@ ${title}
 GUION:
 ${script}
 
-Debes devolver EXACTAMENTE este formato JSON:
+Devuelve:
 {
-  "visual_profile":{
-    "domain":"animal / automotive / food / medical / science / nature / technology / etc",
-    "main_subject":"sujeto físico principal en inglés",
-    "aliases":["alias 1","alias 2"],
-    "allowed_context":["contexto físico 1","contexto físico 2"],
-    "forbidden":["elemento incorrecto 1","elemento incorrecto 2"],
-    "bank_queries":["query 1","query 2","query 3","query 4","query 5","query 6","query 7","query 8"]
-  },
+  "visual_identity":"descripción breve y constante del protagonista, apariencia, ambiente y estilo visual",
   "scenes":[
-    {"narration":"fragmento del guion","mode":"MAIN","context_key":""},
-    {"narration":"fragmento del guion","mode":"CONTEXT","context_key":"uno de allowed_context"}
+    {
+      "narration":"fragmento exacto del guion que corresponde a esta escena",
+      "image_prompt":"prompt visual EN INGLÉS para generar exactamente lo narrado"
+    }
   ]
 }
 
-REGLAS:
+REGLAS OBLIGATORIAS:
 - Debe haber EXACTAMENTE ${n} escenas.
-- "narration" cubre TODO el guion en orden, sin saltos.
-- El main_subject es el protagonista físico del documental y debe ser MUY concreto.
-- aliases contiene formas reales y equivalentes del mismo sujeto. Para una orca: "orca", "killer whale", "orca whale", "orca pod", "orca calf".
-- allowed_context contiene solamente objetos o entornos que realmente apoyan el relato. Ejemplo orca: "fishing boat", "fishing net", "fish", "ocean".
-- forbidden contiene elementos que JAMÁS deberían aparecer aunque compartan ambiente. Ejemplo orca: "turtle", "bird", "ant", "flower", "cow", "flag", "city", "building".
-- bank_queries contiene entre 8 y 12 búsquedas EN INGLÉS para construir un banco de videos del documental completo.
-- Al menos 70% de bank_queries debe contener explícitamente main_subject o uno de sus aliases.
-- Las bank_queries deben variar acciones/ángulos/entorno DEL MISMO SUJETO. No uses metáforas.
-- MAIN significa que esa escena debe usar el sujeto principal.
-- CONTEXT se permite SOLO cuando la narración habla directamente de un objeto/entorno de allowed_context.
-- Como regla general, entre 70% y 90% de las escenas deben ser MAIN.
-- Una escena difícil NO debe convertirse en una metáfora visual. Debe volver al sujeto principal.
-- No uses otros animales, personas, paisajes decorativos, banderas, flores, edificios o conceptos abstractos salvo que sean literalmente parte del relato y estén en allowed_context.
-- Prioridad absoluta: congruencia visual > variedad.
+- narration debe cubrir TODO el guion, en orden, sin resumir ni inventar.
+- Cada image_prompt debe representar físicamente lo que se está narrando EN ESA escena.
+- No uses metáforas visuales.
+- No sustituyas el sujeto por otro animal, objeto, persona o paisaje.
+- Mantén la misma identidad visual del protagonista en todas las escenas.
+- Repite en cada prompt los rasgos importantes del protagonista cuando sea necesario para continuidad.
+- Estilo: photorealistic cinematic documentary photography, realistic anatomy, natural lighting, high detail.
+- Composición vertical 9:16 pensada para video móvil.
+- Sin texto, sin letras, sin logos, sin watermark.
+- Si la narración describe una acción, el prompt debe mostrar esa acción.
+- Si la acción es difícil, muestra al mismo sujeto en el contexto físico más cercano; nunca una metáfora.
+- Congruencia con la narración > variedad.
 `;
 
   const doc=jsonDocument(await ai(prompt));
-  const profile=doc.visual_profile;
   const arr=doc.scenes;
+  const identity=String(doc.visual_identity||'').trim();
 
-  if(!profile?.main_subject)throw Error('Groq no identificó el sujeto principal.');
-  if(!Array.isArray(arr)||arr.length!==n)throw Error(`Groq debía devolver ${n} escenas y devolvió ${arr?.length||0}.`);
+  if(!Array.isArray(arr)||arr.length!==n){
+    throw Error(`Groq debía devolver ${n} escenas y devolvió ${arr?.length||0}.`);
+  }
 
+  clearGeneratedSceneImages();
   const scenesEl=document.querySelector('#scenes');
   if(!scenesEl)throw Error('No existe el contenedor de escenas.');
   scenesEl.innerHTML='';
 
-  st(`Construyendo banco visual de "${profile.main_subject}" en Pixabay…`);
-  const bank=await buildVisualBank(profile);
-
-  const ctxCount=Object.values(bank.contexts||{}).reduce((a,b)=>a+(b?.length||0),0);
-  st(`Banco listo: ${bank.main.length} clips principales + ${ctxCount} contextuales.`,'ok');
-
-  usedClipKeys=new Set();
-
   for(let i=0;i<arr.length;i++){
     const scene=arr[i];
-    // Safety: invalid context keys fall back to MAIN.
-    if(scene.mode==='CONTEXT'){
-      const allowed=(profile.allowed_context||[]).some(x=>cleanVisualTerm(x)===cleanVisualTerm(scene.context_key));
-      if(!allowed){scene.mode='MAIN';scene.context_key='';}
-    }
+    const finalPrompt=[
+      scene.image_prompt,
+      identity ? `Maintain this visual identity consistently: ${identity}.` : '',
+      'Photorealistic cinematic documentary still, realistic anatomy, natural lighting, high detail, vertical 9:16 composition, no text, no letters, no logo, no watermark.'
+    ].filter(Boolean).join(' ');
 
-    const found=clipFromBank(scene,0);
-    if(!found)throw Error(`No pude asignar un clip válido a la escena ${i+1}.`);
-    render(scene,found,i);
+    scene.image_prompt=finalPrompt;
+
+    st(`Generando escena IA ${i+1}/${arr.length}…`);
+    const image=await generateAIImage(finalPrompt);
+    generatedSceneImages.push(image);
+    render(scene,image,i);
   }
 
-  st(`✅ V4: ${arr.length} escenas asignadas desde un banco visual coherente.`,'ok');
+  st(`✅ V5 Pure AI: ${arr.length} escenas generadas completamente con IA.`,'ok');
   return arr.length;
 }
 window.documentalAnalyzeScenes=go;
@@ -2737,7 +2464,7 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
 
   async function makeScenes(){
     step('stepScenes','active','Analizando y buscando clips');
-    ast('1/4 Groq crea escenas precisas y bloquea clips repetidos…');
+    ast('1/4 Groq crea escenas y prompts para IA…');
     abar(10);
     if(typeof window.documentalAnalyzeScenes!=='function')throw Error('Motor de escenas no disponible.');
     await window.documentalAnalyzeScenes();
