@@ -264,7 +264,7 @@ button[onclick*="Cloudflare"],button[onclick*="cloudflare"],
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.7.2 · Clean APIs + Engine Status</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div><div class="sdLocalBox" id="sdLocalStatus">🟢 Imágenes: SD‑Turbo 512×512 · ONNX Runtime Web · WebGPU local · sin Pollinations/Cloudflare</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.7.4 · Engine Percent</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div><div class="sdLocalBox" id="sdLocalStatus">🟢 Imágenes: SD‑Turbo 512×512 · ONNX Runtime Web · WebGPU local · sin Pollinations/Cloudflare</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -331,9 +331,9 @@ button[onclick*="Cloudflare"],button[onclick*="cloudflare"],
 <div class="enginePanel" id="enginePanel">
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
-    <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V<small>Inicializando…</small></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · SD‑Turbo WebGPU<small>Inicializando…</small></span></div>
-    <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm<small>Inicializando…</small></span></div>
+    <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · SD‑Turbo WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
 
@@ -4327,58 +4327,62 @@ window.addEventListener('load',()=>{
 
 <script id="engine-status-v10-7-2">
 (()=>{
- const set=(id,state,detail)=>{
+ const set=(id,state,detail,pct)=>{
    const el=document.getElementById(id); if(!el)return;
    el.classList.remove('loading','ready','err'); el.classList.add(state);
    const sm=el.querySelector('small'); if(sm)sm.textContent=detail;
+   let n=Number.isFinite(Number(pct))?Math.max(0,Math.min(100,Math.round(Number(pct)))):(state==='ready'?100:0);
+   const pe=el.querySelector('.enginePct'); if(pe)pe.textContent=n+'%';
+   const bar=el.querySelector('.engineTrack i'); if(bar)bar.style.width=n+'%';
  };
  window.documentalSetEngineState=set;
 
  // Image readiness: use the actual SD-Turbo init promise/function.
  async function imageCheck(){
    try{
-     set('engineImage','loading','Cargando modelo…');
+     set('engineImage','loading','Cargando modelo…',5);
      let waited=0;
      while(typeof window.sdTurboLocalInit!=='function' && waited<120000){
-       await new Promise(r=>setTimeout(r,300)); waited+=300;
+       await new Promise(r=>setTimeout(r,300)); waited+=300; set('engineImage','loading','Cargando módulo WebGPU…',Math.min(15,5+waited/8000));
      }
      if(typeof window.sdTurboLocalInit!=='function')throw Error('Módulo no cargó');
+     set('engineImage','loading','Descargando / compilando SD‑Turbo…',25);
      await window.sdTurboLocalInit();
-     set('engineImage','ready','Listo · WebGPU local');
-   }catch(e){ set('engineImage','err','Error al cargar'); }
+     set('engineImage','ready','Listo · WebGPU local',100);
+   }catch(e){ set('engineImage','err','Error al cargar',0); }
  }
 
  // FFmpeg: reuse Factory's own loader.
  async function ffCheck(){
-   try{
-     set('engineFfmpeg','loading','Cargando…');
-     if(typeof window.loadFFmpeg==='function') await window.loadFFmpeg();
-     else{
-       let n=0; while(typeof window.loadFFmpeg!=='function' && n<60000){
-         await new Promise(r=>setTimeout(r,300)); n+=300;
-       }
-       if(typeof window.loadFFmpeg!=='function')throw Error('Motor no disponible');
-       await window.loadFFmpeg();
+   set('engineFfmpeg','loading','Cargando…',5);
+   let n=0;
+   while(n<120000){
+     const rs=(document.getElementById('renderStatus')?.textContent||'');
+     const body=(document.body?.innerText||'');
+     if(/FFmpeg listo/i.test(rs) || /FFmpeg listo/i.test(body)){
+       set('engineFfmpeg','ready','Listo · 720×1280 / 30 FPS',100);
+       return;
      }
-     set('engineFfmpeg','ready','Listo · 720×1280 / 30 FPS');
-   }catch(e){ set('engineFfmpeg','err','Error al cargar'); }
+     await new Promise(r=>setTimeout(r,350)); n+=350; set('engineFfmpeg','loading','Cargando FFmpeg.wasm…',Math.min(95,5+n/1300));
+   }
+   set('engineFfmpeg','err','No respondió',0);
  }
 
  // Alexander is already preloaded by Factory. Watch its own visible log/state,
  // and also mark ready once the exposed generation function is available.
  async function voiceCheck(){
-   set('engineVoice','loading','Cargando Alexander V…');
+   set('engineVoice','loading','Cargando Alexander V…',5);
    let n=0;
    while(n<120000){
      const body=(document.body?.innerText||'');
      if(/Alexander V ya está precargado|Alexander V.*lista|voz española lista/i.test(body) ||
         typeof window.generateDocumentalVoice==='function'){
-       set('engineVoice','ready','Listo · Alexander V');
+       set('engineVoice','ready','Listo · Alexander V',100);
        return;
      }
-     await new Promise(r=>setTimeout(r,400)); n+=400;
+     await new Promise(r=>setTimeout(r,400)); n+=400; set('engineVoice','loading','Cargando Alexander V…',Math.min(95,5+n/1300));
    }
-   set('engineVoice','err','No respondió');
+   set('engineVoice','err','No respondió',0);
  }
 
  window.addEventListener('load',()=>{
@@ -4389,4 +4393,39 @@ window.addEventListener('load',()=>{
 })();
 </script>
 
+
+<script id="remove-obsolete-image-api-ui">
+(()=>{
+  function removeObsoleteApiUI(){
+    const obsolete=['cfAccount','cfToken','pollinations'];
+    for(const id of obsolete){
+      const el=document.getElementById(id);
+      if(!el) continue;
+      // Remove the smallest wrapper that contains its label/control/help.
+      let row=el.parentElement;
+      if(row && row.parentElement){
+        const txt=(row.textContent||'').toLowerCase();
+        if(txt.includes('cloudflare') || txt.includes('pollinations')) row.remove();
+        else el.remove();
+      } else el.remove();
+    }
+    // Remove buttons/text referring to obsolete providers.
+    document.querySelectorAll('button,a,p,small,div').forEach(el=>{
+      const t=(el.textContent||'').trim();
+      if(!t) return;
+      if(/^(Mostrar Cloudflare|Mostrar Pollinations|Probar Cloudflare)$/i.test(t)) el.remove();
+      if(/Cloudflare es el motor principal|Pollinations se usa automáticamente|Workers AI → Use REST API/i.test(t)){
+        if(!el.querySelector('input,textarea,select')) el.remove();
+      }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',removeObsoleteApiUI);
+  else removeObsoleteApiUI();
+})();
+</script>
+
 </body></html>
+
+<style>
+#sdLocalStatus{display:none!important}
+</style>
