@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.1 · V5.1 Dynamic AI</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.1.1 · V5.1.1 Flexible Semantic Scenes</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.1 Dynamic AI: escenas IA guiadas por cambios de idea, cámara Ken Burns avanzada, transiciones suaves y título solo 5 s. Sin bancos de videos.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.1.1 Dynamic AI: el número de escenas es un objetivo flexible; Groq corta por cambios naturales de idea/acción sin abortar por pequeñas diferencias. Cámara dinámica, transiciones y título 5 s.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -2206,7 +2206,7 @@ async function go(){
 
   st('Groq está creando escenas y prompts visuales exactos para IA…');
 
-  const prompt=`Convierte este documental en EXACTAMENTE ${n} escenas visuales para un generador de imágenes.
+  const prompt=`Convierte este documental en aproximadamente ${n} escenas visuales para un generador de imágenes. Prioriza los cambios naturales de idea y acción; puedes usar unas pocas escenas menos o más si mejora la narración.
 
 TÍTULO:
 ${title}
@@ -2226,7 +2226,7 @@ Devuelve:
 }
 
 REGLAS OBLIGATORIAS:
-- Debe haber EXACTAMENTE ${n} escenas.
+- OBJETIVO: alrededor de ${n} escenas. No fuerces divisiones artificiales solo para alcanzar el número exacto.
 - narration debe cubrir TODO el guion, en orden, sin resumir ni inventar.
 - NO dividas por cantidad de palabras. Corta una escena cuando cambie la idea, acción, sujeto visible, lugar, causa, consecuencia o momento narrativo.
 - Cada escena debe sentirse como un nuevo plano de un documental real y continuar naturalmente la escena anterior.
@@ -2247,8 +2247,19 @@ REGLAS OBLIGATORIAS:
   const arr=doc.scenes;
   const identity=String(doc.visual_identity||'').trim();
 
-  if(!Array.isArray(arr)||arr.length!==n){
-    throw Error(`Groq debía devolver ${n} escenas y devolvió ${arr?.length||0}.`);
+  if(!Array.isArray(arr)||arr.length<1){
+    throw Error('Groq no devolvió escenas utilizables.');
+  }
+
+  // V5.1.1: the requested scene count is a target, not a reason to abort.
+  // Groq may naturally return slightly fewer/more semantic scenes.
+  const minAccept=Math.max(8,n-4);
+  const maxAccept=Math.min(24,n+3);
+
+  if(arr.length<minAccept || arr.length>maxAccept){
+    st(`⚠️ Groq propuso ${arr.length} escenas para un objetivo de ${n}. Se usarán las escenas semánticas disponibles.`,'ok');
+  }else if(arr.length!==n){
+    st(`ℹ️ Objetivo ${n} escenas · Groq creó ${arr.length}. Continuando sin repetir ni inventar escenas.`,'ok');
   }
 
   clearGeneratedSceneImages();
