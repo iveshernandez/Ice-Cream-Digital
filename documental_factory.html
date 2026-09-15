@@ -4217,8 +4217,12 @@ async function cachedBytes(path,notify){
   let r=await cache.match(url);
   if(!r){
     notify?.('⬇️ Primera vez: descargando '+path+'…');
-    r=await fetch(url,{cache:'no-store'});
-    if(!r.ok)throw new Error('No se pudo descargar '+path+' (HTTP '+r.status+')');
+    try{
+      r=await fetch(url,{cache:'no-store'});
+    }catch(e){
+      throw new Error('DESCARGA '+path+': '+(e?.message||e));
+    }
+    if(!r.ok)throw new Error('DESCARGA '+path+': HTTP '+r.status);
     await cache.put(url,r.clone());
   }
   return await r.arrayBuffer();
@@ -4227,12 +4231,13 @@ async function init(notify=ui){
   if(sessions)return sessions;
   if(loading)return loading;
   loading=(async()=>{
-    if(!navigator.gpu)throw new Error('Este navegador no tiene WebGPU habilitado.');
+    notify('5% · Comprobando WebGPU…');
+    if(!navigator.gpu)throw new Error('WEBGPU: navigator.gpu no está disponible.');
     const adapter=await navigator.gpu.requestAdapter();
-    if(!adapter)throw new Error('No se pudo obtener el adaptador WebGPU.');
-    if(!adapter.features.has('shader-f16'))throw new Error('La GPU/navegador no expone shader-f16.');
+    if(!adapter)throw new Error('WEBGPU: no se pudo obtener el adaptador GPU.');
+    if(!adapter.features.has('shader-f16'))throw new Error('WEBGPU: shader-f16 no está disponible.');
 
-    notify('🧠 Cargando SD‑Turbo WebGPU… La primera vez descarga el modelo.');
+    notify('10% · WebGPU correcto · preparando archivos SD‑Turbo…');
     const common={
       executionProviders:['webgpu'],
       enableMemPattern:false,
@@ -4249,14 +4254,19 @@ async function init(notify=ui){
       text:{path:'text_encoder/model.onnx',opt:{freeDimensionOverrides:{batch_size:1}}},
       vae:{path:'vae_decoder/model.onnx',opt:{freeDimensionOverrides:{batch_size:1,num_channels_latent:4,height_latent:64,width_latent:64}}}
     };
+    notify('15% · Cargando UNet…');
     const ub=await cachedBytes(defs.unet.path,notify);
+    notify('35% · UNet listo · cargando Text Encoder…');
     const tb=await cachedBytes(defs.text.path,notify);
+    notify('55% · Text Encoder listo · cargando VAE…');
     const vb=await cachedBytes(defs.vae.path,notify);
 
-    notify('⚙️ Compilando SD‑Turbo para tu GPU Intel…');
+    notify('70% · Archivos listos · compilando UNet en WebGPU…');
     const unet=await ort.InferenceSession.create(ub,{...common,...defs.unet.opt});
+    notify('82% · UNet compilado · compilando Text Encoder…');
     const text=await ort.InferenceSession.create(tb,{...common,...defs.text.opt,
       preferredOutputLocation:{last_hidden_state:'gpu-buffer'}});
+    notify('92% · Text Encoder compilado · compilando VAE…');
     const vae=await ort.InferenceSession.create(vb,{...common,...defs.vae.opt});
     sessions={unet,text,vae};
     notify('🟢 SD‑Turbo WebGPU listo · 512×512 local');
@@ -4333,7 +4343,7 @@ window.addEventListener('load',()=>{
  const set=(id,state,detail,pct)=>{
    const el=document.getElementById(id); if(!el)return;
    el.classList.remove('loading','ready','err'); el.classList.add(state);
-   const sm=el.querySelector('small'); if(sm)sm.textContent=detail;
+   const sm=el.querySelector('small'); if(sm){sm.textContent=detail;sm.title=detail||'';}
    let n=Number.isFinite(Number(pct))?Math.max(0,Math.min(100,Math.round(Number(pct)))):(state==='ready'?100:0);
    const pe=el.querySelector('.enginePct'); if(pe)pe.textContent=n+'%';
    const bar=el.querySelector('.engineTrack i'); if(bar)bar.style.width=n+'%';
@@ -4343,16 +4353,38 @@ window.addEventListener('load',()=>{
  // Image readiness: use the actual SD-Turbo init promise/function.
  async function imageCheck(){
    try{
-     set('engineImage','loading','Cargando modelo…',5);
+     set('engineImage','loading','Cargando módulo WebGPU…',1);
      let waited=0;
      while(typeof window.sdTurboLocalInit!=='function' && waited<120000){
-       await new Promise(r=>setTimeout(r,300)); waited+=300; set('engineImage','loading','Cargando módulo WebGPU…',Math.min(15,5+waited/8000));
+       await new Promise(r=>setTimeout(r,300)); waited+=300;
+       set('engineImage','loading','Cargando módulo WebGPU…',Math.min(9,1+waited/15000));
      }
-     if(typeof window.sdTurboLocalInit!=='function')throw Error('Módulo no cargó');
-     set('engineImage','loading','Descargando / compilando SD‑Turbo…',25);
-     await window.sdTurboLocalInit();
+     if(typeof window.sdTurboLocalInit!=='function')throw Error('MÓDULO: sdTurboLocalInit no apareció.');
+
+     const statusBox=document.getElementById('sdLocalStatus');
+     let lastText='';
+     const watcher=setInterval(()=>{
+       const t=(statusBox?.textContent||'').trim();
+       if(!t || t===lastText)return;
+       lastText=t;
+       const m=t.match(/(\d{1,3})%/);
+       const pct=m?Math.max(0,Math.min(99,Number(m[1]))):10;
+       set('engineImage','loading',t.replace(/^\d+%\s*[·-]?\s*/,'').slice(0,120),pct);
+     },150);
+
+     try{
+       await window.sdTurboLocalInit();
+     }finally{
+       clearInterval(watcher);
+     }
      set('engineImage','ready','Listo · WebGPU local',100);
-   }catch(e){ set('engineImage','err','Error al cargar',0); }
+   }catch(e){
+     const detail=(e?.message||String(e)||'Error desconocido').slice(0,180);
+     console.error('[SD-Turbo diagnóstico]',e);
+     set('engineImage','err',detail,0);
+     const box=document.getElementById('sdLocalStatus');
+     if(box)box.textContent='❌ '+detail;
+   }
  }
 
  // FFmpeg: reuse Factory's own loader.
