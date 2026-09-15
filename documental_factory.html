@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.0 · V5 Pure AI</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.1 · V5.1 Dynamic AI</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -318,7 +318,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 <div class="renderbox" style="margin-top:0">
 <h2 style="margin-top:0">5. Render final</h2>
 <div class="row">
-  <div><label>Título en video</label><div class="inputLike">Visible durante todo el video — fijo</div><input id="titleOverlay" type="hidden" value="yes"></div>
+  <div><label>Título en video</label><div class="inputLike">Visible solo durante los primeros 5 segundos</div><input id="titleOverlay" type="hidden" value="yes"></div>
   <div><label>Subtítulos</label><select id="subtitles"><option value="yes" selected>Activados</option><option value="no">Desactivados</option></select></div>
 </div>
 <div class="row">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5 Pure AI: Groq crea prompts visuales exactos y Cloudflare Workers AI genera cada escena. Sin Pixabay, Pexels ni bancos de videos.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.1 Dynamic AI: escenas IA guiadas por cambios de idea, cámara Ken Burns avanzada, transiciones suaves y título solo 5 s. Sin bancos de videos.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -1546,7 +1546,8 @@ async function createFinalVideo(){
         blob=await fetchBlob(finalUrl,{attempts:2});
       }
 
-      const ext=(blob?.type||'').includes('webm')?'webm':'mp4';
+      const mime=(blob?.type||'').toLowerCase();
+      const ext=mime.includes('webm')?'webm':(mime.includes('image/')?'jpg':'mp4');
       const name=`src_cache_${sourceFilesToClean.length}.${ext}`;
       await ffmpeg.writeFile(name,new Uint8Array(await blob.arrayBuffer()));
       const info={name,usedFallback,finalUrl};
@@ -1638,9 +1639,12 @@ async function createFinalVideo(){
       const overlayFiles=[];
       const overlaySpecs=[];
 
-      if(sharedTitleFile){
+      // V5.1: strong title only during the first 5 seconds of the whole video.
+      const elapsedBefore=durations.slice(0,i).reduce((a,b)=>a+b,0);
+      const titleRemaining=Math.max(0,5-elapsedBefore);
+      if(sharedTitleFile && titleRemaining>0){
         overlayInputs.push('-i',sharedTitleFile);
-        overlaySpecs.push({fileIndex:1,start:0,end:durNum});
+        overlaySpecs.push({fileIndex:1,start:0,end:Math.min(durNum,titleRemaining)});
       }
 
       if(R('#subtitles')?.value!=='no'){
@@ -1656,13 +1660,37 @@ async function createFinalVideo(){
       }
 
       const startOffset=Math.max(0,Number(el.dataset.start||0));
-      const sceneSpeed=Math.min(1.10,Math.max(0.92,Number(el.dataset.speed||1)));
-      const sceneZoom=Math.min(1.18,Math.max(1.0,Number(el.dataset.zoom||1)));
-      const panX=Math.min(1,Math.max(0,Number(el.dataset.panX||0.5)));
-      const panY=Math.min(1,Math.max(0,Number(el.dataset.panY||0.5)));
-      const targetW=Math.round(720*sceneZoom);
-      const targetH=Math.round(1280*sceneZoom);
-      const baseVideoFilter=`setpts=PTS/${sceneSpeed.toFixed(3)},scale=${targetW}:${targetH}:force_original_aspect_ratio=increase,crop=720:1280:(iw-720)*${panX.toFixed(3)}:(ih-1280)*${panY.toFixed(3)},fps=30,format=yuv420p`;
+      const motion=String(el.dataset.motion||'zoom-in');
+      const frames=Math.max(30,Math.round(durNum*30));
+      const fadeDur=Math.min(0.35,Math.max(0.18,durNum*0.08));
+      const fadeOutStart=Math.max(0,durNum-fadeDur);
+
+      // Advanced Ken Burns: every scene gets a different camera movement.
+      // First fill a safe oversized vertical canvas, then animate crop/zoom at 30 fps.
+      let zExpr="min(zoom+0.00055,1.12)";
+      let xExpr="iw/2-(iw/zoom/2)";
+      let yExpr="ih/2-(ih/zoom/2)";
+
+      if(motion==='zoom-out'){
+        zExpr="if(eq(on,1),1.13,max(1.001,zoom-0.00055))";
+      }else if(motion==='pan-left-right'){
+        zExpr="1.10";
+        xExpr="(iw-iw/zoom)*(on/"+frames+")";
+      }else if(motion==='pan-right-left'){
+        zExpr="1.10";
+        xExpr="(iw-iw/zoom)*(1-on/"+frames+")";
+      }else if(motion==='pan-up'){
+        zExpr="1.10";
+        yExpr="(ih-ih/zoom)*(1-on/"+frames+")";
+      }else if(motion==='diagonal'){
+        zExpr="min(zoom+0.00035,1.10)";
+        xExpr="(iw-iw/zoom)*(on/"+frames+")";
+        yExpr="(ih-ih/zoom)*(1-on/"+frames+")";
+      }
+
+      const fadeIn=i===0?'':`fade=t=in:st=0:d=${fadeDur.toFixed(3)},`;
+      const fadeOut=i===sceneEls.length-1?'':`fade=t=out:st=${fadeOutStart.toFixed(3)}:d=${fadeDur.toFixed(3)},`;
+      const baseVideoFilter=`scale=900:1600:force_original_aspect_ratio=increase,crop=900:1600,zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=1:s=720x1280:fps=30,${fadeIn}${fadeOut}format=yuv420p`;
       const filters=[`[0:v]${baseVideoFilter}[v0]`];
       let prev='v0';
       overlaySpecs.forEach((o,k)=>{
@@ -2085,13 +2113,27 @@ function render(s,c,i){
   a.dataset.imagePrompt=s.image_prompt||'';
   if(c?.url)a.dataset.clipUrl=c.url;
 
+  const motionPatterns=[
+    {name:'zoom-in',zoom:'1.12',panX:'0.50',panY:'0.50'},
+    {name:'pan-left-right',zoom:'1.14',panX:'0.18',panY:'0.50'},
+    {name:'zoom-out',zoom:'1.13',panX:'0.50',panY:'0.46'},
+    {name:'pan-right-left',zoom:'1.14',panX:'0.82',panY:'0.50'},
+    {name:'pan-up',zoom:'1.13',panX:'0.50',panY:'0.78'},
+    {name:'diagonal',zoom:'1.15',panX:'0.22',panY:'0.72'}
+  ];
+  const motion=motionPatterns[i%motionPatterns.length];
+  a.dataset.motion=motion.name;
+  a.dataset.zoom=motion.zoom;
+  a.dataset.panX=motion.panX;
+  a.dataset.panY=motion.panY;
+
   a.innerHTML=`<div class="media">${c?`<img src="${e(c.url)}" alt="Escena IA ${i+1}" style="width:100%;height:100%;object-fit:cover;display:block">`:'<span class="err">Sin imagen IA</span>'}</div>
   <div class="body">
     <b>ESCENA ${i+1}</b>
     <p class="narr">${e(s.narration)}</p>
     <p class="q">🤖 ${e(s.image_prompt)}</p>
     <p class="provider">Fuente: Cloudflare Workers AI · FLUX</p>
-    <p class="match ok">✨ Generada exclusivamente con IA</p>
+    <p class="match ok">✨ IA · movimiento ${e(a.dataset.motion)}</p>
     <button class="sec change">↻ Regenerar imagen</button>
   </div>`;
 
@@ -2137,8 +2179,9 @@ function estimateNarrationSeconds(text){
 function automaticSceneCount(script){
   const selected=String(document.querySelector('#duration')?.value||'auto');
   const seconds=selected==='auto' ? estimateNarrationSeconds(script) : Number(selected);
-  // About one visual change every 5 seconds.
-  return Math.max(10,Math.min(40,Math.round(seconds/5)));
+  // V5.1 Dynamic AI: visual change about every 4.5 seconds.
+  // For ~60–70 s this normally creates 13–16 semantic scenes.
+  return Math.max(10,Math.min(24,Math.round(seconds/4.5)));
 }
 
 function updateAutomaticSceneCount(){
@@ -2147,7 +2190,7 @@ function updateAutomaticSceneCount(){
   const hidden=document.querySelector('#sceneCount');
   const label=document.querySelector('#sceneCountLabel');
   if(hidden)hidden.value=String(n);
-  if(label)label.textContent=`${n} escenas — aprox. 1 cada 5 s`;
+  if(label)label.textContent=`${n} escenas — aprox. 1 cada 4–5 s`;
   return n;
 }
 
@@ -2185,6 +2228,8 @@ Devuelve:
 REGLAS OBLIGATORIAS:
 - Debe haber EXACTAMENTE ${n} escenas.
 - narration debe cubrir TODO el guion, en orden, sin resumir ni inventar.
+- NO dividas por cantidad de palabras. Corta una escena cuando cambie la idea, acción, sujeto visible, lugar, causa, consecuencia o momento narrativo.
+- Cada escena debe sentirse como un nuevo plano de un documental real y continuar naturalmente la escena anterior.
 - Cada image_prompt debe representar físicamente lo que se está narrando EN ESA escena.
 - No uses metáforas visuales.
 - No sustituyas el sujeto por otro animal, objeto, persona o paisaje.
