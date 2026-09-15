@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.5.1 · V5.5.1 Exact Scene Mapping</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6 · V5.6 Automatic Vertical Cover</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.5.1 Exact Scene Mapping: cada tarjeta IA conserva un archivo FFmpeg único; elimina colisiones del precargado paralelo y mantiene el cambio uniforme (~4 s).</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.6 Automatic Cover: crea una portada IA vertical única por video y la coloca en los primeros 0.12 s; conserva Exact Scene Mapping.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -1719,7 +1719,37 @@ async function createFinalVideo(){
     rs('5/5 Uniendo bloques · 0% de esta etapa…');
     rb(78);
 
-    const concat=chunkNames.map(n=>`file '${n}'`).join('\n');
+    // V5.6: put the AI cover in the first ~0.12 s (4 frames at 30 FPS).
+    // The title is rendered by our own overlay, so FLUX never has to spell text.
+    let coverSegmentName='';
+    if(window.documentalAutoCoverUrl){
+      try{
+        rs('5/5 Preparando portada automática…');
+        const coverResp=await fetch(window.documentalAutoCoverUrl);
+        if(!coverResp.ok)throw new Error('No pude leer la portada IA.');
+        const coverBlob=await coverResp.blob();
+        const coverInput='auto_cover.jpg';
+        coverSegmentName='auto_cover.mp4';
+        await ffmpeg.writeFile(coverInput,new Uint8Array(await coverBlob.arrayBuffer()));
+
+        const coverArgs=['-loop','1','-framerate','30','-i',coverInput];
+        if(sharedTitleFile){
+          coverArgs.push('-i',sharedTitleFile,
+            '-filter_complex',"[0:v]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280[bg];[bg][1:v]overlay=0:0:format=yuv420p[v]",
+            '-map','[v]');
+        }else{
+          coverArgs.push('-vf','scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,format=yuv420p');
+        }
+        coverArgs.push('-an','-t','0.12','-c:v','libx264','-preset','ultrafast','-crf','22','-r','30','-pix_fmt','yuv420p','-movflags','+faststart',coverSegmentName);
+        await ffmpeg.exec(coverArgs);
+      }catch(err){
+        console.warn('No se pudo insertar portada:',err);
+        coverSegmentName='';
+      }
+    }
+
+    const concatVideoNames=coverSegmentName?[coverSegmentName,...chunkNames]:chunkNames;
+    const concat=concatVideoNames.map(n=>`file '${n}'`).join('\n');
     await ffmpeg.writeFile('concat.txt',new TextEncoder().encode(concat));
     await ffmpeg.exec([
       '-f','concat','-safe','0','-i','concat.txt',
@@ -1797,7 +1827,7 @@ async function createFinalVideo(){
     rb(100);
     rs(`✅ Video terminado: ${total.toFixed(1)} s naturales, 720×1280, 30 FPS, título, subtítulos, voz nivelada y música documental al 30%. Descarga iniciada. Liberando memoria…`, 'ok');
 
-    await clean(ffmpeg,[...partNames,...chunkNames,...sourceFilesToClean,sharedTitleFile,'concat.txt','joined.mp4','voice.wav','voice_target.wav',musicInfo.name,'mixed_browser.wav','final_audio_check.wav','documental_final.mp4'].filter(Boolean));
+    await clean(ffmpeg,[...partNames,...chunkNames,...sourceFilesToClean,sharedTitleFile,'auto_cover.jpg',coverSegmentName,'concat.txt','joined.mp4','voice.wav','voice_target.wav',musicInfo.name,'mixed_browser.wav','final_audio_check.wav','documental_final.mp4'].filter(Boolean));
     return true;
   }catch(err){
     window.documentalFfmpegProgressCtx=null;
@@ -2313,7 +2343,36 @@ REGLAS OBLIGATORIAS:
     render(scene,image,i);
   }
 
-  st(`✅ V5 Pure AI: ${arr.length} escenas generadas completamente con IA.`,'ok');
+  // V5.6: one dedicated AI cover per documentary.
+  // No extra Groq request: reuse title + visual identity + story context already available.
+  try{
+    if(window.documentalAutoCoverUrl){
+      try{URL.revokeObjectURL(window.documentalAutoCoverUrl);}catch{}
+      window.documentalAutoCoverUrl='';
+    }
+    st('🖼️ Generando portada vertical automática…');
+    const coverContext=arr.slice(0,3).map(x=>x.image_prompt||'').join(' ');
+    const coverPrompt=[
+      'Vertical 9:16 cinematic documentary social media cover.',
+      `Documentary title/context: ${title}.`,
+      identity ? `Keep this visual identity: ${identity}.` : '',
+      `Story visual context: ${coverContext}.`,
+      'Create ONE striking hero composition that summarizes the story.',
+      'Photorealistic, cinematic, dramatic natural lighting, strong depth, premium documentary poster, highly detailed.',
+      'Main subject large and immediately understandable on a phone screen.',
+      'Leave clean darker negative space in the upper third for title graphics.',
+      'NO text, NO letters, NO captions, NO logos, NO watermark, NO collage, NO split screen.'
+    ].filter(Boolean).join(' ');
+    const cover=await generateAIImage(coverPrompt);
+    window.documentalAutoCoverUrl=cover.url;
+    st('✅ Portada vertical IA lista.','ok');
+  }catch(err){
+    console.warn('Auto cover:',err);
+    window.documentalAutoCoverUrl='';
+    st('⚠️ La portada IA falló; el documental puede continuar sin ella.','ok');
+  }
+
+  st(`✅ V5.6 Pure AI: ${arr.length} escenas + portada automática listas.`,'ok');
   return arr.length;
 }
 window.documentalAnalyzeScenes=go;
@@ -2459,6 +2518,10 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     const scenesBox=A('#scenes'); if(scenesBox)scenesBox.innerHTML='';
     window.documentalFactoryAudioBlob=null;
     window.documentalFactoryAudioMeta=null;
+    if(window.documentalAutoCoverUrl){
+      try{URL.revokeObjectURL(window.documentalAutoCoverUrl);}catch{}
+      window.documentalAutoCoverUrl='';
+    }
 
     resetSteps();
     step('stepTxt','done','TXT leído');
@@ -2574,6 +2637,10 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     abar(Math.max(22,parseFloat(A('#autoBar')?.style.width)||22));
     window.documentalFactoryAudioBlob=null;
     window.documentalFactoryAudioMeta=null;
+    if(window.documentalAutoCoverUrl){
+      try{URL.revokeObjectURL(window.documentalAutoCoverUrl);}catch{}
+      window.documentalAutoCoverUrl='';
+    }
     if(typeof window.generateDocumentalVoice!=='function')throw Error('Motor Piper no disponible.');
     await window.generateDocumentalVoice();
     if(!window.documentalFactoryAudioBlob)throw Error('Piper terminó sin crear audio.');
