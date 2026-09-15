@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6 · V5.6 Automatic Vertical Cover</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6.1 · V5.6.1 Visible Auto Cover</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.6 Automatic Cover: crea una portada IA vertical única por video y la coloca en los primeros 0.12 s; conserva Exact Scene Mapping.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.6.1 Visible Auto Cover: muestra la portada exacta antes del render y la inserta como los primeros 0.70 s del MP4; conserva Exact Scene Mapping.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -1719,7 +1719,7 @@ async function createFinalVideo(){
     rs('5/5 Uniendo bloques · 0% de esta etapa…');
     rb(78);
 
-    // V5.6: put the AI cover in the first ~0.12 s (4 frames at 30 FPS).
+    // V5.6: put the AI cover in the first 0.70 s (21 frames at 30 FPS).
     // The title is rendered by our own overlay, so FLUX never has to spell text.
     let coverSegmentName='';
     if(window.documentalAutoCoverUrl){
@@ -1740,7 +1740,7 @@ async function createFinalVideo(){
         }else{
           coverArgs.push('-vf','scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,format=yuv420p');
         }
-        coverArgs.push('-an','-t','0.12','-c:v','libx264','-preset','ultrafast','-crf','22','-r','30','-pix_fmt','yuv420p','-movflags','+faststart',coverSegmentName);
+        coverArgs.push('-an','-t','0.70','-c:v','libx264','-preset','ultrafast','-crf','22','-r','30','-pix_fmt','yuv420p','-movflags','+faststart',coverSegmentName);
         await ffmpeg.exec(coverArgs);
       }catch(err){
         console.warn('No se pudo insertar portada:',err);
@@ -2365,7 +2365,16 @@ REGLAS OBLIGATORIAS:
     ].filter(Boolean).join(' ');
     const cover=await generateAIImage(coverPrompt);
     window.documentalAutoCoverUrl=cover.url;
-    st('✅ Portada vertical IA lista.','ok');
+    let cp=document.getElementById('autoCoverPreview');
+    if(!cp){
+      cp=document.createElement('section');
+      cp.id='autoCoverPreview';
+      cp.style.cssText='margin:14px 0;padding:12px;border:1px solid #31506f;border-radius:12px;background:#081525';
+      const host=document.querySelector('.grid')?.parentElement||document.body;
+      host.insertBefore(cp,host.firstChild);
+    }
+    cp.innerHTML=`<div style="font-weight:800;margin-bottom:8px">🖼️ PORTADA AUTOMÁTICA — ESTA IMAGEN IRÁ AL INICIO DEL MP4</div><img src="${cover.url}" style="display:block;width:min(270px,100%);aspect-ratio:9/16;object-fit:cover;border-radius:10px;margin:auto">`;
+    st('✅ Portada vertical IA lista y visible para verificar.','ok');
   }catch(err){
     console.warn('Auto cover:',err);
     window.documentalAutoCoverUrl='';
