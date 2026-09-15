@@ -7,7 +7,4324 @@
 
 
 .inputLike{width:100%;background:var(--p2);color:white;border:1px solid var(--l);border-radius:11px;padding:12px;min-height:42px}
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Documental Factory</title>
+<style>
+:root{--b:#08111f;--p:#0f1b2d;--p2:#0a1424;--l:#263853;--t:#f8fafc;--m:#91a4bd;--g:#37d67a}*{box-sizing:border-box}body{margin:0;background:var(--b);color:var(--t);font-family:Arial,sans-serif}.w{max-width:1200px;margin:auto;padding:25px}h1{font-size:42px;margin:0}.mut{color:var(--m)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{background:var(--p);border:1px solid var(--l);border-radius:18px;padding:18px;margin-top:18px}label{display:block;font-size:13px;font-weight:bold;margin:12px 0 6px}textarea,input,select{width:100%;background:var(--p2);color:white;border:1px solid var(--l);border-radius:11px;padding:12px}textarea{min-height:230px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}button{border:0;border-radius:10px;padding:11px 14px;font-weight:bold;cursor:pointer}.pri{background:var(--g);color:#06150c}.sec{background:#233552;color:white}.danger{background:#4b2027;color:#ffd0d0}.scenes{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:15px}.scene{background:var(--p2);border:1px solid var(--l);border-radius:15px;overflow:hidden}.media{aspect-ratio:9/16;max-height:390px;background:#03070d;display:grid;place-items:center}.media video{width:100%;height:100%;object-fit:cover}.body{padding:12px}.body p{font-size:12px;color:var(--m)}.q{font-family:monospace}.status{margin-top:12px;font-size:13px}.ok{color:#7ef0a9}.err{color:#ff9696}.api{display:grid;grid-template-columns:1fr auto;gap:7px}.tiny{font-size:11px;color:var(--m)}.renderbox{margin-top:18px;padding:18px;border:1px solid var(--l);border-radius:16px;background:var(--p2)}.progress{height:12px;background:#050b14;border:1px solid var(--l);border-radius:999px;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0%;background:var(--g);transition:width .25s}.finalvideo{width:100%;max-height:620px;background:#000;border-radius:14px;margin-top:12px;display:none}.hiddenAuto{display:none!important}@media(max-width:850px){.grid{grid-template-columns:1fr}.scenes{grid-template-columns:repeat(2,1fr)}}@media(max-width:550px){.scenes{grid-template-columns:1fr}}
+.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}.pipe{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--l);border-radius:12px;background:#08101d;opacity:.62}.pipe span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#152237;font-weight:800}.pipe b,.pipe small{display:block}.pipe small{font-size:10px;color:var(--m);margin-top:2px}.pipe.active{opacity:1;border-color:#5d87ff}.pipe.active span{background:#2857d7}.pipe.done{opacity:1;border-color:#2b9b66}.pipe.done span{background:#157347}.pipe.err{opacity:1;border-color:#b94b4b}.pipe.err span{background:#8e2d2d}.liveLog{max-height:145px;overflow:auto;font-size:11px;line-height:1.5;background:#050a12;border:1px solid var(--l);border-radius:10px;padding:10px;margin-top:10px;color:#b9c5d6}.liveLog:empty{display:none}@media(max-width:800px){.pipeline{grid-template-columns:1fr 1fr}.pipe:last-child{grid-column:1/-1}}
 
+
+
+
+.inputLike{width:100%;background:var(--p2);color:white;border:1px solid var(--l);border-radius:11px;padding:12px;min-height:42px}
+
+
+
+
+
+
+
+@media(max-width:700px){.videoQueueItem>span:last-child{grid-column:2}}
+</style>
+<style id="v3-compact-ui-factory">
+/* ===== DOCUMENTAL FACTORY V3 COMPACT UI — VISUAL ONLY ===== */
+body{font-size:13px!important}
+.w{
+  max-width:1280px!important;
+  padding:12px 16px 18px!important;
+}
+h1{
+  font-size:27px!important;
+  line-height:1!important;
+  margin:0 0 3px!important;
+  letter-spacing:-.5px!important;
+}
+h2{
+  font-size:16px!important;
+  margin:0 0 7px!important;
+}
+h3{font-size:13px!important;margin:7px 0!important}
+.mut{font-size:11px!important}
+
+.grid{
+  gap:9px!important;
+}
+.card{
+  border-radius:12px!important;
+  padding:11px!important;
+  margin-top:9px!important;
+}
+label{
+  font-size:10px!important;
+  margin:7px 0 4px!important;
+}
+textarea,input,select,.inputLike{
+  padding:8px 9px!important;
+  border-radius:8px!important;
+  min-height:34px!important;
+  font-size:11px!important;
+}
+textarea{
+  min-height:150px!important;
+  line-height:1.35!important;
+}
+.row{
+  gap:7px!important;
+}
+.actions{
+  gap:6px!important;
+  margin-top:8px!important;
+}
+button{
+  border-radius:8px!important;
+  padding:8px 10px!important;
+  font-size:10px!important;
+}
+.tiny{
+  font-size:9px!important;
+  line-height:1.35!important;
+}
+.status{
+  margin-top:7px!important;
+  font-size:10px!important;
+}
+
+/* Pipeline */
+.pipeline{
+  gap:5px!important;
+  margin:8px 0!important;
+}
+.pipe{
+  gap:6px!important;
+  padding:6px!important;
+  border-radius:8px!important;
+}
+.pipe span{
+  width:22px!important;height:22px!important;
+  font-size:10px!important;
+}
+.pipe b{font-size:9px!important}
+.pipe small{font-size:8px!important}
+
+/* Scene grid: more compact desktop cards */
+.scenes{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:8px!important;
+  margin-top:9px!important;
+}
+.scene{
+  border-radius:10px!important;
+}
+.media{
+  max-height:290px!important;
+}
+.body{
+  padding:7px!important;
+}
+.body p{
+  font-size:9px!important;
+  margin:5px 0!important;
+}
+
+/* Rendering/progress */
+.renderbox{
+  margin-top:9px!important;
+  padding:10px!important;
+  border-radius:10px!important;
+}
+.progress{
+  height:8px!important;
+  margin-top:6px!important;
+}
+.liveLog{
+  max-height:90px!important;
+  font-size:9px!important;
+  line-height:1.35!important;
+  padding:7px!important;
+  margin-top:6px!important;
+  border-radius:8px!important;
+}
+.finalvideo{
+  max-height:500px!important;
+  border-radius:10px!important;
+  margin-top:8px!important;
+}
+
+/* Queue/status items if present */
+.videoQueueItem{
+  padding:7px!important;
+  gap:6px!important;
+  border-radius:8px!important;
+  font-size:9px!important;
+}
+
+/* Build label discreet */
+body > div[style*="position:fixed"][style*="bottom:6px"]{
+  font-size:8px!important;
+  opacity:.25!important;
+}
+
+/* Responsive */
+@media(max-width:1050px){
+  .scenes{grid-template-columns:repeat(3,1fr)!important}
+}
+@media(max-width:800px){
+  .grid{grid-template-columns:1fr!important}
+  .scenes{grid-template-columns:repeat(2,1fr)!important}
+  .pipeline{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(max-width:520px){
+  .w{padding:9px!important}
+  h1{font-size:23px!important}
+  .scenes{grid-template-columns:1fr!important}
+}
+</style>
+
+
+<style id="v3-1-priority-layout">
+#icFactoryHeader{
+  position:sticky;top:0;z-index:9999;height:44px;box-sizing:border-box;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;border-bottom:1px solid #24242a;
+  background:rgba(8,8,10,.96);backdrop-filter:blur(10px)
+}
+#icFactoryHeader .ic-brand{display:flex;align-items:center;gap:9px}
+#icFactoryHeader .ic-badge{
+  width:28px;height:28px;border-radius:8px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#ffef5a,#ffb700);color:#111;
+  font-size:12px;font-weight:1000;letter-spacing:-.4px
+}
+#icFactoryHeader .ic-name{font-size:11px;font-weight:1000;letter-spacing:.45px}
+#icFactoryHeader .ic-sub{font-size:8px;color:#8d8d98;margin-top:1px}
+#icFactoryHeader .ic-meta{display:flex;gap:7px}
+#icFactoryHeader .ic-meta span{
+  font-size:8px;color:#aaa;padding:4px 7px;border:1px solid #2b2b31;
+  border-radius:7px;background:#111216
+}
+#icFactoryHeader + .w{padding-top:10px!important}
+@media(max-width:620px){
+  #icFactoryHeader{padding:6px 9px;height:auto;min-height:44px}
+  #icFactoryHeader .ic-meta{display:none}
+}
+</style>
+
+
+<style id="v3-2-render-right">
+/* Render final ocupa el espacio derecho bajo Voz */
+#renderRightSlot{margin-top:10px}
+#renderRightSlot > section.card{
+  margin:0!important;padding:0!important;border:0!important;background:transparent!important;
+  box-shadow:none!important;
+}
+#renderRightSlot .renderbox{
+  margin:0!important;padding:10px!important;
+  border:1px solid var(--l)!important;border-radius:10px!important;
+}
+#renderRightSlot .finalvideo{max-height:240px!important}
+@media(max-width:800px){
+  #renderRightSlot{margin-top:9px}
+}
+</style>
+
+<style id="v3-4-visual-match">
+.scene .match{font-size:9px;font-weight:800;margin-top:4px}
+.scene .match.ok{color:#7ef0a9}
+.scene .match.err{color:#ff9696}
+.apiHelp{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;text-decoration:none;background:#233552;color:white;border-radius:8px;padding:8px 10px;font-size:10px;font-weight:bold}.apiHelp:hover{filter:brightness(1.12)}</style>
+
+<style id="v10-7-2-clean-api-status">
+/* Solo Groq permanece visible en Tus APIs */
+
+/* Indicadores de motores */
+.enginePanel{margin:10px 0 4px;padding:10px;border:1px solid #263d59;border-radius:11px;background:#0b1727}
+.enginePanelTitle{font-size:11px;font-weight:900;margin-bottom:8px}
+.engineGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.engineState{display:flex;align-items:center;gap:7px;padding:8px;border:1px solid #2b3c55;border-radius:9px;background:#101e31;font-size:9px;font-weight:800}
+.engineDot{width:9px;height:9px;border-radius:50%;background:#7d8795;box-shadow:0 0 0 2px #ffffff10;flex:0 0 auto}
+.engineState.loading .engineDot{background:#f2bd4b;box-shadow:0 0 8px #f2bd4b}
+.engineState.ready .engineDot{background:#38d878;box-shadow:0 0 8px #38d878}
+.engineState.err .engineDot{background:#ff6262;box-shadow:0 0 8px #ff6262}
+.engineText small{display:block;color:#8fa2ba;font-size:8px;margin-top:2px;font-weight:600}
+@media(max-width:650px){.engineGrid{grid-template-columns:1fr}}
+</style>
+</head><body>
+
+<div id="icFactoryHeader">
+  <div class="ic-brand">
+    <div class="ic-badge">IC</div>
+    <div>
+      <div class="ic-name">ICECREAM DIGITAL</div>
+      <div class="ic-sub">Documental Factory</div>
+    </div>
+  </div>
+  <div class="ic-meta">
+    <span>Alexander V</span>
+    <span>720p · 30 FPS</span>
+  </div>
+</div>
+
+<div id="tabTxt">
+<div class="grid">
+<section class="card">
+  <h2>1. Subir guion .TXT</h2>
+  <p class="tiny">La primera línea será el título del video y también el nombre del archivo final. Todo lo demás será el guion.</p>
+
+  <label>Archivo .txt</label>
+  <input id="txtFile" type="file" accept=".txt,text/plain" multiple>
+  <div class="tiny" style="margin-top:7px">Puedes seleccionar hasta 48 archivos TXT. Se procesan uno por uno y cada MP4 se descarga por separado. Mientras trabaja, la app intentará mantener el equipo despierto con Wake Lock. Alexander V se carga una sola vez por sesión y se reutiliza en toda la cola.</div>
+  <div id="queueStatus" class="status mut">Cola: sin archivos.</div>
+  <div id="wakeStatus" class="status mut">💡 Mantener activo: en espera.</div>
+
+
+  <div class="row">
+    <div>
+      <label>Título detectado</label>
+      <input id="videoTitle" type="text" readonly placeholder="Se tomará de la primera línea">
+    </div>
+    <div>
+      <label>Nombre de descarga</label>
+      <input id="downloadName" type="text" readonly placeholder="titulo-del-video.mp4">
+    </div>
+  </div>
+
+  <label>Guion detectado</label>
+  <textarea id="script" rows="10" placeholder="Aquí aparecerá el contenido del .txt después de la primera línea"></textarea>
+
+  <div class="row">
+    <div>
+      <label>Duración del documental</label>
+      <select id="duration">
+        <option value="auto" selected>Automática según el guion</option>
+        <option value="60">1 minuto</option>
+        <option value="90">1 minuto 30 segundos</option>
+        <option value="120">2 minutos</option>
+        <option value="180">3 minutos</option>
+      </select>
+    </div>
+    <div>
+      <label>Número de escenas</label>
+      <div class="inputLike" id="sceneCountLabel">Automático — aprox. 1 escena cada 5 s</div>
+      <input id="sceneCount" type="hidden" value="12">
+    </div>
+  </div>
+  <p class="tiny">La duración real sigue la narración de Alexander. Si eliges 1, 1:30, 2 o 3 minutos, usa un guion de duración cercana. En automático, la app calcula las escenas según la longitud del texto.</p>
+
+  <div class="actions">
+    <button class="pri" id="autoCreate" disabled>⚡ REINTENTAR CREACIÓN</button>
+  </div>
+  <div id="autoStatus" class="status mut">Sube un archivo .txt. El proceso comenzará automáticamente.</div>
+<div class="pipeline" id="pipeline">
+  <div class="pipe" id="stepTxt"><span>1</span><div><b>TXT</b><small>Esperando archivo</small></div></div>
+  <div class="pipe" id="stepScenes"><span>2</span><div><b>Escenas</b><small>En espera</small></div></div>
+  <div class="pipe" id="stepVoice"><span>3</span><div><b>Voz española</b><small>En espera</small></div></div>
+  <div class="pipe" id="stepRender"><span>4</span><div><b>Render</b><small>En espera</small></div></div>
+  <div class="pipe" id="stepDone"><span>5</span><div><b>Descarga</b><small>En espera</small></div></div>
+</div>
+<div id="liveLog" class="liveLog"></div>
+
+  <div class="progress"><div id="autoBar"></div></div>
+</section>
+
+<section class="card"><h2>2. Tus APIs</h2>
+<div class="enginePanel" id="enginePanel">
+  <div class="enginePanelTitle">Estado de motores</div>
+  <div class="engineGrid">
+    <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · SD‑Turbo WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+  </div>
+</div>
+
+<label>Groq API</label>
+<div class="api"><input id="groq" type="password" autocomplete="off"><a class="apiHelp" href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">🔗 Obtener API</a></div>
+
+<div class="api"></div>
+
+<div class="api"></div>
+<div class="tiny" style="margin-top:5px"></div>
+
+<div class="api"></div>
+<div class="actions">
+<button class="sec show" data-id="groq">Mostrar Groq</button>
+</div>
+<div class="actions"><button class="sec" id="save">Guardar APIs</button><button class="danger" id="erase">Eliminar</button></div>
+<div id="apiSavedStatus" class="tiny" style="margin-top:8px"></div>
+<p class="tiny"></p>
+<hr style="border:0;border-top:1px solid var(--l);margin:18px 0">
+<h2>3. Voz — español latino</h2>
+<p class="tiny">Voz principal fija: Alexander V.</p>
+<label>Voz</label>
+<div class="inputLike">Alexander V — Español ES (Masculino)</div>
+<input id="voicePreset" type="hidden" value="es_ES-sharvard-medium:0">
+<div class="actions"><button class="pri" id="makeVoice">🎙️ Generar voz</button></div>
+<div id="ttsStatus" class="status mut">Motor Piper listo para cargar cuando subas el TXT.</div>
+<audio id="audio" controls style="width:100%;margin-top:10px;display:none"></audio>
+<div id="audioActions" class="actions"></div>
+<div id="renderRightSlot"><section class="card">
+<div class="renderbox" style="margin-top:0">
+<h2 style="margin-top:0">5. Render final</h2>
+<div class="row">
+  <div><label>Título en video</label><div class="inputLike">Visible solo durante los primeros 5 segundos</div><input id="titleOverlay" type="hidden" value="yes"></div>
+  <div><label>Subtítulos</label><select id="subtitles"><option value="yes" selected>Activados</option><option value="no">Desactivados</option></select></div>
+</div>
+<div class="row">
+  <div><label>Música</label><div class="inputLike">Curiosidad / misterio documental — fija</div></div>
+  <div><label>Volumen música</label><div class="inputLike">16% base · baja a 6–8% con Alexander · sube en pausas</div><input id="musicVol" type="hidden" value="0.16"></div>
+</div>
+<div class="actions"><button class="pri" id="finalRender">🎬 CREAR Y DESCARGAR VIDEO FINAL</button></div>
+<div id="renderStatus" class="status mut">Cuando tus escenas estén listas, este botón hará todo en una sola operación.</div>
+<div class="progress"><div id="renderBar"></div></div>
+<video id="finalPreview" class="finalvideo" controls playsinline></video>
+<p class="tiny">Estilo referencia: subtítulos grandes blancos con palabras clave amarillas, cortes visuales más frecuentes, una sola música fija y mezcla final reforzada. No necesita ningún archivo MP3/M4A externo.</p>
+</div>
+</section></div>
+</section></div>
+
+
+
+</section></div>
+</div>
+
+
+</div>
+
+<script type="module">
+const q=s=>document.querySelector(s);
+let hfModule=null;
+let hfLoading=null;
+let synthesizer=null;
+let loadedVoice=null;
+
+function ttsStatus(text,cls='mut'){
+  const el=q('#ttsStatus');
+  if(el){el.textContent=text;el.className='status '+cls;}
+  const log=q('#liveLog');
+  if(log){
+    const t=new Date().toLocaleTimeString();
+    log.innerHTML+=`<div>${t} — ${String(text).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</div>`;
+    log.scrollTop=log.scrollHeight;
+  }
+}
+
+async function loadHF(){
+  if(hfModule)return hfModule;
+  if(hfLoading)return hfLoading;
+  hfLoading=(async()=>{
+    ttsStatus('Cargando motor Transformers.js…');
+    hfModule=await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+    // Dejamos que Transformers.js gestione ONNX/WASM internamente.
+    if(hfModule.env){
+      hfModule.env.allowLocalModels=false;
+      hfModule.env.useBrowserCache=true;
+    }
+    ttsStatus('✅ Motor Transformers.js listo.','ok');
+    return hfModule;
+  })().catch(err=>{
+    hfLoading=null;hfModule=null;
+    ttsStatus('❌ No se pudo cargar Transformers.js: '+(err?.message||err),'err');
+    throw err;
+  });
+  return hfLoading;
+}
+
+function splitText(text,maxChars=220){
+  const clean=(text||'').replace(/\s+/g,' ').trim();
+  if(!clean)return [];
+  const sentences=clean.match(/[^.!?¿¡]+[.!?]+|[^.!?¿¡]+$/g)||[clean];
+  const chunks=[];
+  let current='';
+  for(let s of sentences){
+    s=s.trim();
+    if(!s)continue;
+    if((current+' '+s).trim().length<=maxChars){
+      current=(current+' '+s).trim();
+      continue;
+    }
+    if(current){chunks.push(current);current='';}
+    while(s.length>maxChars){
+      let cut=s.lastIndexOf(' ',maxChars);
+      if(cut<80)cut=maxChars;
+      chunks.push(s.slice(0,cut).trim());
+      s=s.slice(cut).trim();
+    }
+    current=s;
+  }
+  if(current)chunks.push(current);
+  return chunks;
+}
+
+function floatTo16BitPCM(float32){
+  const out=new Int16Array(float32.length);
+  for(let i=0;i<float32.length;i++){
+    const s=Math.max(-1,Math.min(1,float32[i]));
+    out[i]=s<0?s*0x8000:s*0x7FFF;
+  }
+  return out;
+}
+
+function concatFloatArrays(parts,total){
+  const out=new Float32Array(total);
+  let offset=0;
+  for(const p of parts){out.set(p,offset);offset+=p.length;}
+  return out;
+}
+
+function wavBlobFromFloat(audio,sampleRate){
+  const pcm=floatTo16BitPCM(audio);
+  const buffer=new ArrayBuffer(44+pcm.byteLength);
+  const view=new DataView(buffer);
+  const write=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};
+  write(0,'RIFF');
+  view.setUint32(4,36+pcm.byteLength,true);
+  write(8,'WAVE');
+  write(12,'fmt ');
+  view.setUint32(16,16,true);
+  view.setUint16(20,1,true);
+  view.setUint16(22,1,true);
+  view.setUint32(24,sampleRate,true);
+  view.setUint32(28,sampleRate*2,true);
+  view.setUint16(32,2,true);
+  view.setUint16(34,16,true);
+  write(36,'data');
+  view.setUint32(40,pcm.byteLength,true);
+  new Int16Array(buffer,44).set(pcm);
+  return new Blob([buffer],{type:'audio/wav'});
+}
+
+let piperTTS=null;
+let alexanderModelReady=false;
+let alexanderDownloadPromise=null;
+
+async function getPiperTTS(){
+  if(piperTTS)return piperTTS;
+  ttsStatus('Cargando motor Piper…');
+  const cdns=[
+    'https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm',
+    'https://esm.run/@mintplex-labs/piper-tts-web@1.0.4',
+    'https://cdn.skypack.dev/@mintplex-labs/piper-tts-web@1.0.4'
+  ];
+  let lastErr=null;
+  for(const url of cdns){
+    try{
+      piperTTS=await import(url);
+      ttsStatus('✅ Alexander V listo.','ok');
+      return piperTTS;
+    }catch(e){
+      lastErr=e;
+      console.warn('[Piper] CDN falló:',url,e);
+    }
+  }
+  throw new Error('No se pudo cargar Piper. '+(lastErr?.message||'Revisa la conexión.'));
+}
+
+
+function isPiperFileMissingError(err){
+  const msg=String(err?.message||err||'').toLowerCase();
+  return err?.name==='NotFoundError'
+    || msg.includes('requested file or directory could not be found')
+    || msg.includes('file or directory')
+    || msg.includes('not found')
+    || msg.includes('opfs');
+}
+
+async function piperHasAlexander(tts,voiceId){
+  try{
+    if(typeof tts?.stored!=='function')return null;
+    const stored=await tts.stored();
+    return Array.isArray(stored)?stored.includes(voiceId):null;
+  }catch(_){
+    return null;
+  }
+}
+
+async function repairAlexanderModel(tts,voiceId,reason=''){
+  // IMPORTANTE: nunca borrar el modelo precargado de Alexander V.
+  // Si algún archivo falta, Piper vuelve a descargar/completar lo necesario sobre la caché existente.
+  alexanderModelReady=false;
+  alexanderDownloadPromise=null;
+  ttsStatus('♻️ Verificando Alexander V sin borrar la voz precargada…');
+
+  let lastErr=null;
+  for(let attempt=1;attempt<=3;attempt++){
+    try{
+      await tts.download(voiceId,(prog)=>{
+        if(prog?.loaded && prog?.total){
+          const pct=Math.round(prog.loaded*100/prog.total);
+          ttsStatus(`Completando Alexander V: ${pct}%`);
+        }
+      });
+      const present=await piperHasAlexander(tts,voiceId);
+      if(present===false)throw new Error('Alexander V no quedó disponible después de verificar la descarga.');
+      alexanderModelReady=true;
+      ttsStatus('✅ Alexander V listo y conservado en caché.','ok');
+      return tts;
+    }catch(e){
+      lastErr=e;
+      if(attempt<3)await new Promise(r=>setTimeout(r,900*attempt));
+    }
+  }
+  throw lastErr||new Error('No se pudo verificar el modelo de Alexander V.');
+}
+
+async function ensureAlexanderReady(){
+  const voiceId='es_ES-sharvard-medium';
+
+  const tts=await getPiperTTS();
+
+  if(alexanderModelReady){
+    // Ya fue validado/descargado en esta sesión: reutilizar directamente.
+    // La limpieza de FFmpeg y archivos temporales NO toca Alexander V.
+    ttsStatus('✅ Alexander V ya está precargado. Reutilizando la misma voz.','ok');
+    return tts;
+  }
+
+  if(alexanderDownloadPromise){
+    ttsStatus('Alexander V ya se está preparando…');
+    await alexanderDownloadPromise;
+    return tts;
+  }
+
+  alexanderDownloadPromise=(async()=>{
+    ttsStatus('Preparando Alexander V por única vez…');
+
+    // If Piper already has the complete model, do not download it again.
+    const present=await piperHasAlexander(tts,voiceId);
+    if(present===true){
+      alexanderModelReady=true;
+      ttsStatus('✅ Alexander V encontrado en caché y listo.','ok');
+      return tts;
+    }
+
+    let downloaded=false,lastDownloadErr=null;
+    for(let attempt=1;attempt<=3 && !downloaded;attempt++){
+      try{
+        await tts.download(voiceId,(prog)=>{
+          if(prog?.loaded && prog?.total){
+            const pct=Math.round(prog.loaded*100/prog.total);
+            ttsStatus(`Cargando Alexander V una sola vez: ${pct}%`);
+          }
+        });
+        downloaded=true;
+      }catch(e){
+        lastDownloadErr=e;
+        if(attempt<3)await new Promise(r=>setTimeout(r,1000));
+      }
+    }
+
+    if(!downloaded)throw lastDownloadErr||new Error('No se pudo preparar el modelo de Alexander V.');
+
+    const storedOk=await piperHasAlexander(tts,voiceId);
+    if(storedOk===false){
+      return await repairAlexanderModel(tts,voiceId,'descarga incompleta');
+    }
+
+    alexanderModelReady=true;
+    ttsStatus('✅ Alexander V cargado. Se reutilizará para toda la cola.','ok');
+    return tts;
+  })();
+
+  try{
+    return await alexanderDownloadPromise;
+  }catch(e){
+    alexanderDownloadPromise=null;
+    alexanderModelReady=false;
+    throw e;
+  }
+}
+
+window.ensureAlexanderReady=ensureAlexanderReady;
+
+function splitPiperText(txt,maxLen=380){
+  const sentences=String(txt||'').replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
+  const chunks=[]; let cur='';
+  for(let s of sentences){
+    s=s.trim(); if(!s)continue;
+    if((cur+' '+s).trim().length<=maxLen)cur=cur?cur+' '+s:s;
+    else{
+      if(cur)chunks.push(cur);
+      if(s.length>maxLen){
+        const words=s.split(/\s+/); let tmp='';
+        for(const w of words){
+          if((tmp+' '+w).trim().length<=maxLen)tmp=tmp?tmp+' '+w:w;
+          else{if(tmp)chunks.push(tmp);tmp=w;}
+        }
+        cur=tmp;
+      }else cur=s;
+    }
+  }
+  if(cur)chunks.push(cur);
+  return chunks;
+}
+
+async function decodePiperBlob(blob,audioCtx){
+  return await audioCtx.decodeAudioData(await blob.arrayBuffer());
+}
+
+function audioBufferToWavBlob(buffer){
+  const nc=buffer.numberOfChannels,sr=buffer.sampleRate,len=buffer.length;
+  const wavLen=len*nc*2+44,ab=new ArrayBuffer(wavLen),v=new DataView(ab);
+  let p=0;
+  const ws=s=>{for(let i=0;i<s.length;i++)v.setUint8(p++,s.charCodeAt(i));};
+  const w16=x=>{v.setUint16(p,x,true);p+=2;};
+  const w32=x=>{v.setUint32(p,x,true);p+=4;};
+  ws('RIFF');w32(wavLen-8);ws('WAVE');ws('fmt ');w32(16);w16(1);w16(nc);
+  w32(sr);w32(sr*nc*2);w16(nc*2);w16(16);ws('data');w32(wavLen-p-4);
+  const ch=[];for(let c=0;c<nc;c++)ch.push(buffer.getChannelData(c));
+  let o=44;
+  for(let i=0;i<len;i++)for(let c=0;c<nc;c++){
+    let sm=Math.max(-1,Math.min(1,ch[c][i]));
+    sm=sm<0?sm*0x8000:sm*0x7FFF;
+    v.setInt16(o,sm,true);o+=2;
+  }
+  return new Blob([ab],{type:'audio/wav'});
+}
+
+async function generateVoice(){
+  const text=(q('#script')?.value||'').trim();
+  if(!text)throw new Error('El guion está vacío.');
+
+  const voiceId='es_ES-sharvard-medium';
+  const speakerId=0;
+  const voiceName='Alexander V';
+
+  try{
+    const tts=await ensureAlexanderReady();
+    const chunks=splitPiperText(text,380);
+    if(!chunks.length)throw new Error('No pude dividir el guion para narrarlo.');
+
+    const AC=window.AudioContext||window.webkitAudioContext;
+    const ac=new AC();
+    if(ac.state==='suspended')await ac.resume();
+    const buffers=[];
+
+    for(let i=0;i<chunks.length;i++){
+      ttsStatus(`Generando Alexander V ${i+1}/${chunks.length}…`);
+      let wavBlob=null;
+      for(let attempt=1;attempt<=3;attempt++){
+        try{
+          wavBlob=await Promise.race([
+            tts.predict({text:chunks[i],voiceId,speakerId},()=>{}),
+            new Promise((_,rej)=>setTimeout(()=>rej(new Error('Tiempo agotado generando voz.')),45000))
+          ]);
+          if(wavBlob?.size>=800)break;
+        }catch(e){
+          // OPFS/model cache can become stale even though Alexander was marked "ready".
+          // Repair it automatically and retry the SAME chunk, without killing the whole TXT queue.
+          if(isPiperFileMissingError(e) && attempt<3){
+            ttsStatus(`♻️ Archivo de Alexander faltante en parte ${i+1}. Reparando automáticamente…`);
+            await repairAlexanderModel(tts,voiceId,e?.message||'');
+            await new Promise(r=>setTimeout(r,250));
+            continue;
+          }
+          if(attempt>=3)throw e;
+          await new Promise(r=>setTimeout(r,450));
+        }
+      }
+      if(!wavBlob || wavBlob.size<800)throw new Error(`La parte ${i+1} de la voz salió vacía.`);
+      buffers.push(await decodePiperBlob(wavBlob,ac));
+      await new Promise(r=>setTimeout(r,40));
+    }
+
+    if(!buffers.length)throw new Error('Piper terminó sin crear audio.');
+    const sampleRate=buffers[0].sampleRate;
+    const channels=buffers[0].numberOfChannels;
+    const total=buffers.reduce((n,b)=>n+b.length,0);
+    const merged=ac.createBuffer(channels,total,sampleRate);
+    let off=0;
+    for(const b of buffers){
+      for(let c=0;c<channels;c++){
+        merged.getChannelData(c).set(b.getChannelData(Math.min(c,b.numberOfChannels-1)),off);
+      }
+      off+=b.length;
+    }
+
+    const seconds=merged.length/merged.sampleRate;
+    const blob=audioBufferToWavBlob(merged);
+    await ac.close();
+    if(blob.size<1000)throw new Error('El WAV final quedó vacío.');
+
+    const url=URL.createObjectURL(blob);
+    const player=q('#audio');
+    if(player){
+      if(player.dataset.url)URL.revokeObjectURL(player.dataset.url);
+      player.dataset.url=url;player.src=url;player.style.display='block';
+    }
+
+    const actions=q('#audioActions');
+    if(actions){
+      actions.innerHTML='<button class="sec" id="downloadVoice">⬇ Descargar WAV</button>';
+      q('#downloadVoice')?.addEventListener('click',()=>{
+        const a=document.createElement('a');
+        a.href=url;
+        a.download='narracion_alexander.wav';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      });
+    }
+
+    window.documentalFactoryAudioBlob=blob;
+    window.documentalFactoryAudioMeta={
+      engine:'piper-tts-web',
+      language:'es-ES',
+      voice:voiceId,
+      speakerId:0,
+      voiceName:'Alexander V',
+      seconds:Number(seconds)||null,
+      samplingRate:sampleRate
+    };
+
+    ttsStatus(`✅ Alexander V generada — ${seconds.toFixed(1)} s.`,'ok');
+    return {blob,seconds};
+  }catch(err){
+    let msg=err?.message||String(err);
+          if(msg==='Failed to fetch'){
+            msg='No se pudo descargar un recurso externo ni usar su respaldo. Revisa conexión/API y vuelve a intentar.';
+          }
+    ttsStatus('❌ '+msg,'err');
+    throw new Error(msg);
+  }
+}
+
+window.generateDocumentalVoice=generateVoice;
+q('#makeVoice')?.addEventListener('click',()=>generateVoice().catch(()=>{}));
+
+// Precarga Alexander V una sola vez al abrir Documental Factory.
+// Después toda la cola reutiliza exactamente el mismo modelo persistente.
+window.addEventListener('load',()=>{
+  setTimeout(async()=>{
+    try{
+      await loadHF();
+      await ensureAlexanderReady();
+    }catch(e){
+      console.warn('[Alexander] La precarga automática no terminó:',e);
+    }
+  },500);
+});
+</script>
+
+
+<script type="module">
+let ffmpegInstance=null;
+let ffmpegLoading=null;
+
+const R=s=>document.querySelector(s);
+function rs(text,cls='mut'){
+  const el=R('#renderStatus');
+  if(el){el.textContent=text;el.className='status '+cls;}
+  const auto=R('#autoStatus');if(auto && /^\d\/5|Renderizando|Uniendo|Cargando FFmpeg/.test(text)){auto.textContent=text;}
+  const log=R('#liveLog');if(log){const t=new Date().toLocaleTimeString();log.innerHTML+=`<div>${t} — ${String(text).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</div>`;log.scrollTop=log.scrollHeight;}
+}
+function rb(p){const v=Math.max(0,Math.min(100,p));const el=R('#renderBar');if(el)el.style.width=v+'%';const a=R('#autoBar');if(a && v>60)a.style.width=(60+v*.4)+'%';}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+let ffmpegClassWorkerURL=null;
+
+function getFFmpegClassWorkerURL(){
+  if(ffmpegClassWorkerURL) return ffmpegClassWorkerURL;
+
+  // Worker principal de @ffmpeg/ffmpeg 0.12.x, creado como Blob del MISMO origen.
+  // Esto evita que el navegador intente abrir worker.js directamente desde esm.sh.
+  const workerCode=`
+const FFMessageType={
+  LOAD:"LOAD",EXEC:"EXEC",WRITE_FILE:"WRITE_FILE",READ_FILE:"READ_FILE",
+  DELETE_FILE:"DELETE_FILE",RENAME:"RENAME",CREATE_DIR:"CREATE_DIR",
+  LIST_DIR:"LIST_DIR",DELETE_DIR:"DELETE_DIR",ERROR:"ERROR",
+  PROGRESS:"PROGRESS",LOG:"LOG",MOUNT:"MOUNT",UNMOUNT:"UNMOUNT"
+};
+const ERROR_UNKNOWN_MESSAGE_TYPE=new Error("unknown message type");
+const ERROR_NOT_LOADED=new Error("ffmpeg is not loaded, call await ffmpeg.load() first");
+const ERROR_IMPORT_FAILURE=new Error("failed to import ffmpeg-core.js");
+let ffmpeg;
+
+const load=async({coreURL:_coreURL,wasmURL:_wasmURL,workerURL:_workerURL}={})=>{
+  const first=!ffmpeg;
+  try{
+    // En Worker tipo module normalmente importScripts no existe.
+    importScripts(_coreURL);
+  }catch(_){
+    const mod=await import(_coreURL);
+    self.createFFmpegCore=mod.default||mod.createFFmpegCore||self.createFFmpegCore;
+    if(!self.createFFmpegCore) throw ERROR_IMPORT_FAILURE;
+  }
+  if(!self.createFFmpegCore && typeof createFFmpegCore!=="undefined"){
+    self.createFFmpegCore=createFFmpegCore;
+  }
+  if(!self.createFFmpegCore) throw ERROR_IMPORT_FAILURE;
+
+  const coreURL=_coreURL;
+  const wasmURL=_wasmURL||_coreURL.replace(/\\.js$/g,".wasm");
+  const workerURL=_workerURL||_coreURL.replace(/\\.js$/g,".worker.js");
+
+  ffmpeg=await self.createFFmpegCore({
+    mainScriptUrlOrBlob:coreURL+"#"+btoa(JSON.stringify({wasmURL,workerURL}))
+  });
+
+  ffmpeg.setLogger(data=>self.postMessage({type:FFMessageType.LOG,data}));
+  ffmpeg.setProgress(data=>self.postMessage({type:FFMessageType.PROGRESS,data}));
+  return first;
+};
+
+const exec=({args,timeout=-1})=>{
+  ffmpeg.setTimeout(timeout);
+  ffmpeg.exec(...args);
+  const ret=ffmpeg.ret;
+  ffmpeg.reset();
+  return ret;
+};
+const writeFile=({path,data})=>{ffmpeg.FS.writeFile(path,data);return true};
+const readFile=({path,encoding})=>ffmpeg.FS.readFile(path,{encoding});
+const deleteFile=({path})=>{ffmpeg.FS.unlink(path);return true};
+const rename=({oldPath,newPath})=>{ffmpeg.FS.rename(oldPath,newPath);return true};
+const createDir=({path})=>{ffmpeg.FS.mkdir(path);return true};
+const listDir=({path})=>ffmpeg.FS.readdir(path).map(name=>{
+  const stat=ffmpeg.FS.stat(path+"/"+name);
+  return {name,isDir:ffmpeg.FS.isDir(stat.mode)};
+});
+const deleteDir=({path})=>{ffmpeg.FS.rmdir(path);return true};
+const mount=({fsType,options,mountPoint})=>{
+  const fs=ffmpeg.FS.filesystems[fsType];
+  if(!fs)return false;
+  ffmpeg.FS.mount(fs,options,mountPoint);
+  return true;
+};
+const unmount=({mountPoint})=>{ffmpeg.FS.unmount(mountPoint);return true};
+
+self.onmessage=async({data:{id,type,data:_data}})=>{
+  const trans=[];
+  let data;
+  try{
+    if(type!==FFMessageType.LOAD&&!ffmpeg)throw ERROR_NOT_LOADED;
+    switch(type){
+      case FFMessageType.LOAD:data=await load(_data);break;
+      case FFMessageType.EXEC:data=exec(_data);break;
+      case FFMessageType.WRITE_FILE:data=writeFile(_data);break;
+      case FFMessageType.READ_FILE:data=readFile(_data);break;
+      case FFMessageType.DELETE_FILE:data=deleteFile(_data);break;
+      case FFMessageType.RENAME:data=rename(_data);break;
+      case FFMessageType.CREATE_DIR:data=createDir(_data);break;
+      case FFMessageType.LIST_DIR:data=listDir(_data);break;
+      case FFMessageType.DELETE_DIR:data=deleteDir(_data);break;
+      case FFMessageType.MOUNT:data=mount(_data);break;
+      case FFMessageType.UNMOUNT:data=unmount(_data);break;
+      default:throw ERROR_UNKNOWN_MESSAGE_TYPE;
+    }
+  }catch(e){
+    self.postMessage({id,type:FFMessageType.ERROR,data:e?.toString?.()||String(e)});
+    return;
+  }
+  if(data instanceof Uint8Array)trans.push(data.buffer);
+  self.postMessage({id,type,data},trans);
+};
+`;
+  ffmpegClassWorkerURL=URL.createObjectURL(
+    new Blob([workerCode],{type:'text/javascript'})
+  );
+  return ffmpegClassWorkerURL;
+}
+
+async function loadFFmpeg(){
+  if(ffmpegInstance) return ffmpegInstance;
+  if(ffmpegLoading) return ffmpegLoading;
+
+  ffmpegLoading=(async()=>{
+    rs('Cargando motor de render FFmpeg…');
+
+    const {FFmpeg}=await import('https://esm.sh/@ffmpeg/ffmpeg@0.12.10');
+    const {toBlobURL}=await import('https://esm.sh/@ffmpeg/util@0.12.1');
+
+    const ffmpeg=new FFmpeg();
+    ffmpeg.on('log',({message})=>console.log('[FFmpeg]',message));
+    ffmpeg.on('progress',({progress,time})=>{
+      const ctx=window.documentalFfmpegProgressCtx;
+      if(!ctx)return;
+      const p=Math.max(0,Math.min(1,Number(progress)||0));
+      const overall=Math.max(0,Math.min(99,ctx.base+ctx.span*p));
+      rb(overall);
+      const local=Math.round(p*100);
+      const total=Math.round(overall);
+      rs(`${ctx.label} · ${local}% de esta etapa · ${total}% total`);
+    });
+
+    // Usamos el CORE ESM como Blob. El worker principal también es Blob,
+    // por lo que ya no existe un Worker cruzado hacia esm.sh.
+    const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
+    const coreURL=await toBlobURL(base+'/ffmpeg-core.js','text/javascript');
+    const wasmURL=await toBlobURL(base+'/ffmpeg-core.wasm','application/wasm');
+
+    await ffmpeg.load({
+      classWorkerURL:getFFmpegClassWorkerURL(),
+      coreURL,
+      wasmURL
+    });
+
+    ffmpegInstance=ffmpeg;
+    rs('FFmpeg listo.','ok');
+    return ffmpeg;
+  })().catch(err=>{
+    ffmpegLoading=null;
+    ffmpegInstance=null;
+    throw err;
+  });
+
+  return ffmpegLoading;
+}
+
+
+async function resetFFmpegAfterVideo(){
+  const old=ffmpegInstance;
+  ffmpegInstance=null;
+  ffmpegLoading=null;
+  if(old){
+    try{
+      // FFmpeg.wasm keeps a large WebAssembly heap. Terminating ONLY this worker
+      // releases render memory. Alexander V/Piper stays precargado and is never removed here.
+      old.terminate();
+    }catch(e){
+      console.warn('[FFmpeg] No se pudo terminar el worker:',e);
+    }
+  }
+  // Give the browser a moment to reclaim detached ArrayBuffers/WASM memory.
+  await sleep(250);
+}
+
+function wavFromSamples(samples,sampleRate=24000){
+  const buffer=new ArrayBuffer(44+samples.length*2);
+  const view=new DataView(buffer);
+  const put=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};
+  put(0,'RIFF');view.setUint32(4,36+samples.length*2,true);put(8,'WAVE');
+  put(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);
+  view.setUint16(22,1,true);view.setUint32(24,sampleRate,true);
+  view.setUint32(28,sampleRate*2,true);view.setUint16(32,2,true);
+  view.setUint16(34,16,true);put(36,'data');view.setUint32(40,samples.length*2,true);
+  let off=44;
+  for(let i=0;i<samples.length;i++,off+=2){
+    let x=Math.max(-1,Math.min(1,samples[i]));
+    view.setInt16(off,x<0?x*32768:x*32767,true);
+  }
+  return new Blob([buffer],{type:'audio/wav'});
+}
+
+
+function wavFromStereo(left,right,sampleRate=44100){
+  const frames=Math.min(left.length,right.length);
+  const buffer=new ArrayBuffer(44+frames*4);
+  const view=new DataView(buffer);
+  const put=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};
+  put(0,'RIFF'); view.setUint32(4,36+frames*4,true); put(8,'WAVE');
+  put(12,'fmt '); view.setUint32(16,16,true); view.setUint16(20,1,true);
+  view.setUint16(22,2,true); view.setUint32(24,sampleRate,true);
+  view.setUint32(28,sampleRate*4,true); view.setUint16(32,4,true);
+  view.setUint16(34,16,true); put(36,'data'); view.setUint32(40,frames*4,true);
+  let off=44;
+  for(let i=0;i<frames;i++){
+    let l=Math.max(-1,Math.min(1,left[i]));
+    let r=Math.max(-1,Math.min(1,right[i]));
+    view.setInt16(off,l<0?l*32768:l*32767,true); off+=2;
+    view.setInt16(off,r<0?r*32768:r*32767,true); off+=2;
+  }
+  return new Blob([buffer],{type:'audio/wav'});
+}
+
+async function mixNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol){
+  const outRate=44100;
+  const frames=Math.max(1,Math.ceil(total*outRate));
+  const Ctx=window.AudioContext||window.webkitAudioContext;
+  const decodeCtx=new Ctx();
+
+  let voiceBuf,musicBuf;
+  try{
+    voiceBuf=await decodeCtx.decodeAudioData((await voiceBlob.arrayBuffer()).slice(0));
+    musicBuf=await decodeCtx.decodeAudioData((await musicBlob.arrayBuffer()).slice(0));
+  }finally{
+    try{await decodeCtx.close();}catch(e){}
+  }
+
+  if(!voiceBuf?.length) throw new Error('La narración no pudo decodificarse.');
+  if(!musicBuf?.length) throw new Error('La música no pudo decodificarse.');
+
+  const vL=voiceBuf.getChannelData(0);
+  const vR=voiceBuf.numberOfChannels>1 ? voiceBuf.getChannelData(1) : vL;
+  const mL=musicBuf.getChannelData(0);
+  const mR=musicBuf.numberOfChannels>1 ? musicBuf.getChannelData(1) : mL;
+  const vRate=voiceBuf.sampleRate;
+  const mRate=musicBuf.sampleRate;
+
+  const left=new Float32Array(frames);
+  const right=new Float32Array(frames);
+
+  const sampleLinear=(arr,pos,loop)=>{
+    const len=arr.length;
+    if(!len)return 0;
+    if(loop)pos=((pos%len)+len)%len;
+    else if(pos>=len-1)return pos<len?arr[len-1]:0;
+    else if(pos<0)return 0;
+    const i0=Math.floor(pos),i1=loop?(i0+1)%len:Math.min(len-1,i0+1),f=pos-i0;
+    return arr[i0]*(1-f)+arr[i1]*f;
+  };
+
+  let musicEnergy=0,voiceEnergy=0,mixedEnergy=0,peak=0;
+  let env=0;
+  const attack=Math.exp(-1/(outRate*0.018));
+  const release=Math.exp(-1/(outRate*0.36));
+
+  for(let i=0;i<frames;i++){
+    const sec=i/outRate;
+    const vp=sec*vRate,mp=sec*mRate;
+    const voiceGain=1.12;
+
+    const vl=sampleLinear(vL,vp,false)*voiceGain;
+    const vr=sampleLinear(vR,vp,false)*voiceGain;
+
+    // Speech envelope follower. Fast attack, slower release.
+    const level=Math.max(Math.abs(vl),Math.abs(vr));
+    env=level>env ? attack*env+(1-attack)*level : release*env+(1-release)*level;
+
+    // Base music is 18%. While Alexander is speaking, duck it to about 10–12%.
+    // This keeps music roughly 12–18 dB behind narration in typical speech.
+    const speech=Math.max(0,Math.min(1,(env-0.014)/0.075));
+    // Strong ducking: 16% base falls to ~6.7% during clear narration.
+    const duck=1-(0.58*speech);
+    let mg=musicVol*duck;
+    // In genuine pauses, let the curiosity bed breathe a little above base.
+    if(env<0.010) mg=Math.min(0.20,musicVol*1.22);
+
+    const fadeIn=Math.min(0.7,Math.max(0.18,total/8));
+    const fadeOut=Math.min(1.0,Math.max(0.25,total/8));
+    if(sec<fadeIn)mg*=sec/fadeIn;
+    if(sec>total-fadeOut)mg*=Math.max(0,(total-sec)/fadeOut);
+
+    const ml=sampleLinear(mL,mp,true)*mg;
+    const mr=sampleLinear(mR,mp,true)*mg;
+
+    let l=vl+ml, r=vr+mr;
+    l=Math.tanh(l*1.035);
+    r=Math.tanh(r*1.035);
+
+    left[i]=l;right[i]=r;
+    voiceEnergy+=(vl*vl+vr*vr)*0.5;
+    musicEnergy+=(ml*ml+mr*mr)*0.5;
+    mixedEnergy+=(l*l+r*r)*0.5;
+    peak=Math.max(peak,Math.abs(l),Math.abs(r));
+  }
+
+  const musicRms=Math.sqrt(musicEnergy/frames);
+  const voiceRms=Math.sqrt(voiceEnergy/frames);
+  let mixedRms=Math.sqrt(mixedEnergy/frames);
+
+  // Keep narration dominant and final output compact without lifting music too much.
+  const targetRms=0.195;
+  const normGain=Math.min(1.35,0.95/Math.max(peak,0.001),targetRms/Math.max(mixedRms,0.001));
+  if(normGain>1.001){
+    for(let i=0;i<frames;i++){left[i]*=normGain;right[i]*=normGain;}
+    mixedRms*=normGain;peak*=normGain;
+  }
+
+  if(!Number.isFinite(musicRms) || musicRms<0.006){
+    throw new Error(`La pista musical quedó demasiado baja antes de exportar (RMS ${musicRms.toFixed(4)}).`);
+  }
+
+  return {blob:wavFromStereo(left,right,outRate),musicRms,voiceRms,mixedRms,peak};
+}
+
+function makeDocumentaryMusic(seconds){
+  // Curiosity / mystery documentary bed: subtle pulse, plucks and suspended harmony.
+  // Designed to create intrigue without competing with narration.
+  const sr=24000,total=Math.max(1,Math.ceil(seconds*sr));
+  const out=new Float32Array(total);
+  const bpm=96;
+  const beat=60/bpm;           // 0.625 s
+  const chordLen=beat*8;       // 5 s phrases
+
+  // Minor/suspended palette around A minor / D minor.
+  const chords=[
+    [110.00,164.81,220.00,246.94],
+    [98.00,146.83,196.00,220.00],
+    [87.31,130.81,174.61,196.00],
+    [110.00,146.83,220.00,261.63]
+  ];
+  const plucks=[329.63,392.00,440.00,523.25,440.00,392.00,349.23,493.88];
+
+  let peak=0;
+  for(let i=0;i<total;i++){
+    const t=i/sr;
+    const chord=chords[Math.floor(t/chordLen)%chords.length];
+
+    // Soft dark pad.
+    let pad=0;
+    for(let n=0;n<chord.length;n++){
+      const f=chord[n];
+      pad+=Math.sin(2*Math.PI*f*t + n*0.45)*(n===0?0.105:0.055);
+    }
+
+    // Curious bell/pluck pattern, intentionally sparse.
+    const eighth=beat/2;
+    const step=Math.floor(t/eighth)%8;
+    const ph=(t%eighth)/eighth;
+    const pluckEnv=Math.exp(-ph*8.5);
+    const active=[1,0,1,0,1,1,0,1][step];
+    const pf=plucks[step];
+    const pluck=active*pluckEnv*(
+      Math.sin(2*Math.PI*pf*t)*0.12+
+      Math.sin(2*Math.PI*pf*2.01*t)*0.025
+    );
+
+    // Low investigative pulse every beat.
+    const bp=(t%beat)/beat;
+    const pulseEnv=Math.exp(-bp*7.5);
+    const pulse=(Math.sin(2*Math.PI*82.41*t)*0.075+
+                 Math.sin(2*Math.PI*123.47*t)*0.025)*pulseEnv;
+
+    // Very light clock/tick transient for "curiosity".
+    const halfBeat=beat/2;
+    const tp=(t%halfBeat)/halfBeat;
+    const deterministic=((Math.sin((i+11)*78.233)*43758.5453)%1)*2-1;
+    const tick=deterministic*Math.exp(-tp*35)*0.012;
+
+    // Slow tension shimmer.
+    const shimmer=Math.sin(2*Math.PI*293.66*t)*0.018*
+                  (0.5+0.5*Math.sin(2*Math.PI*0.085*t));
+
+    const phrase=0.88+0.12*Math.sin(2*Math.PI*0.045*t);
+    const fadeIn=Math.min(1,t/0.8);
+    const fadeOut=Math.min(1,Math.max(0,(seconds-t)/1.0));
+    const v=(pad+pluck+pulse+tick+shimmer)*phrase*Math.min(fadeIn,fadeOut);
+
+    out[i]=v;
+    peak=Math.max(peak,Math.abs(v));
+  }
+
+  // Lower source ceiling than v8.3; voice ducking handles the rest.
+  const gain=peak>0 ? 0.62/peak : 1;
+  for(let i=0;i<total;i++)out[i]*=gain;
+  return wavFromSamples(out,sr);
+}
+
+async function blobDuration(blob){
+  const buf=await blob.arrayBuffer();
+  const Ctx=window.AudioContext||window.webkitAudioContext;
+  const ctx=new Ctx();
+  try{
+    const aud=await ctx.decodeAudioData(buf.slice(0));
+    return aud.duration;
+  }finally{ctx.close();}
+}
+
+function sceneDurations(total,sceneEls){
+  // V5.5 TIMED SCENES:
+  // Every generated scene is shown once and for the same amount of time.
+  // Example: 68 s / 16 scenes = one new image every ~4.25 s.
+  // This avoids a long narration fragment keeping one image on screen for 10–15 s.
+  const count=Math.max(1,sceneEls.length);
+  const each=total/count;
+  const ds=new Array(count).fill(each);
+
+  // Correct floating-point remainder on the final scene so the visual track
+  // ends at exactly Alexander's natural narration duration.
+  const used=each*count;
+  ds[count-1]+=total-used;
+  return ds;
+}
+
+async function fetchBlob(url,{attempts=3}={}){
+  let lastErr=null;
+  for(let n=1;n<=attempts;n++){
+    try{
+      const isBlob=String(url||'').startsWith('blob:');
+      const r=await fetch(url,isBlob?{}:{mode:'cors',cache:'no-store'});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const b=await r.blob();
+      if(!b || !b.size)throw new Error('respuesta vacía');
+      return b;
+    }catch(err){
+      lastErr=err;
+      if(n<attempts)await new Promise(r=>setTimeout(r,350*n));
+    }
+  }
+  const e=new Error('Failed to fetch');
+  e.cause=lastErr;
+  throw e;
+}
+
+async function clean(ffmpeg,names){
+  for(const n of names){try{await ffmpeg.deleteFile(n);}catch(e){}}
+}
+
+
+function wrapCanvasText(ctx,text,maxWidth,maxLines=3){
+  const words=String(text||'').trim().split(/\s+/).filter(Boolean);
+  const lines=[]; let line='';
+  for(const word of words){
+    const test=line?line+' '+word:word;
+    if(ctx.measureText(test).width<=maxWidth){ line=test; }
+    else{
+      if(line)lines.push(line);
+      line=word;
+      if(lines.length>=maxLines-1)break;
+    }
+  }
+  if(line && lines.length<maxLines)lines.push(line);
+  if(words.length && lines.length){
+    const used=lines.join(' ').split(/\s+/).length;
+    if(used<words.length){
+      let last=lines[lines.length-1].replace(/[.,;:!?…-]+$/,'');
+      while(ctx.measureText(last+'…').width>maxWidth && last.length>4) last=last.slice(0,-1);
+      lines[lines.length-1]=last+'…';
+    }
+  }
+  return lines;
+}
+
+/* Título adaptable: nunca corta el título con "…".
+   Reduce el tamaño y distribuye automáticamente el texto en más líneas. */
+function wrapTitleAll(ctx,text,maxWidth){
+  const words=String(text||'').trim().split(/\s+/).filter(Boolean);
+  const lines=[]; let line='';
+
+  function pushLongWord(word){
+    let chunk='';
+    for(const ch of word){
+      const test=chunk+ch;
+      if(chunk && ctx.measureText(test).width>maxWidth){
+        lines.push(chunk);
+        chunk=ch;
+      }else chunk=test;
+    }
+    if(chunk)return chunk;
+    return '';
+  }
+
+  for(const originalWord of words){
+    let word=originalWord;
+    if(ctx.measureText(word).width>maxWidth){
+      if(line){lines.push(line);line='';}
+      word=pushLongWord(word);
+      if(!word)continue;
+    }
+    const test=line?line+' '+word:word;
+    if(!line || ctx.measureText(test).width<=maxWidth){
+      line=test;
+    }else{
+      lines.push(line);
+      line=word;
+    }
+  }
+  if(line)lines.push(line);
+  return lines;
+}
+
+function fitTitleLayout(ctx,text,maxWidth){
+  const clean=String(text||'').replace(/\s+/g,' ').trim();
+  const maxFont=54, minFont=24;
+
+  // Primero intenta mantenerlo compacto, hasta 4 líneas.
+  for(let size=maxFont;size>=minFont;size-=2){
+    ctx.font=`700 ${size}px Arial, sans-serif`;
+    const lines=wrapTitleAll(ctx,clean,maxWidth);
+    if(lines.length<=4){
+      return {fontSize:size,lines,lineH:Math.round(size*1.20)};
+    }
+  }
+
+  // Para títulos especialmente largos permite hasta 5 líneas.
+  ctx.font=`700 ${minFont}px Arial, sans-serif`;
+  let lines=wrapTitleAll(ctx,clean,maxWidth);
+  if(lines.length<=5){
+    return {fontSize:minFont,lines,lineH:Math.round(minFont*1.20)};
+  }
+
+  // Caso extremo: sigue reduciendo para mostrar SIEMPRE el título completo.
+  for(let size=22;size>=16;size-=2){
+    ctx.font=`700 ${size}px Arial, sans-serif`;
+    lines=wrapTitleAll(ctx,clean,maxWidth);
+    if(lines.length<=6){
+      return {fontSize:size,lines,lineH:Math.round(size*1.20)};
+    }
+  }
+
+  ctx.font='700 16px Arial, sans-serif';
+  lines=wrapTitleAll(ctx,clean,maxWidth);
+  return {fontSize:16,lines,lineH:20};
+}
+
+async function canvasPngBlob(draw){
+  const c=document.createElement('canvas'); c.width=720; c.height=1280;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  draw(ctx,c);
+  return await new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('No pude crear overlay PNG.')),'image/png'));
+}
+
+async function makeTitleOverlay(title){
+  return await canvasPngBlob((ctx,c)=>{
+    const text=String(title||'').trim();
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+
+    const maxTextWidth=620;
+    const fitted=fitTitleLayout(ctx,text,maxTextWidth);
+    ctx.font=`700 ${fitted.fontSize}px Arial, sans-serif`;
+
+    const lines=fitted.lines;
+    const lineH=fitted.lineH;
+    const padTop=Math.max(24,Math.round(fitted.fontSize*.48));
+    const padBottom=padTop;
+    const h=Math.max(112,lines.length*lineH+padTop+padBottom);
+    const x=42,y=80,w=c.width-84;
+
+    ctx.fillStyle='rgba(0,0,0,.58)';
+    roundRect(ctx,x,y,w,h,24); ctx.fill();
+
+    ctx.fillStyle='#ffffff';
+    ctx.shadowColor='rgba(0,0,0,.9)';
+    ctx.shadowBlur=Math.max(5,Math.round(fitted.fontSize*.15));
+
+    const totalTextH=lines.length*lineH;
+    const firstY=y+(h-totalTextH)/2+lineH/2;
+    lines.forEach((ln,i)=>{
+      ctx.fillText(ln,c.width/2,firstY+i*lineH,maxTextWidth);
+    });
+    ctx.shadowBlur=0;
+  });
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  const rr=Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);
+  ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath();
+}
+
+function splitSubtitleText(text,maxChars=34){
+  const clean=String(text||'').replace(/\s+/g,' ').trim();
+  if(!clean)return [];
+  const words=clean.split(/\s+/);
+  const out=[]; let cur='';
+  for(const w of words){
+    const next=(cur+' '+w).trim();
+    if((next.length>maxChars || next.split(/\s+/).length>7) && cur){
+      out.push(cur); cur=w;
+    }else cur=next;
+  }
+  if(cur)out.push(cur);
+  return out;
+}
+
+function subtitleKeywordIndexes(words){
+  const stop=new Set(['para','como','pero','porque','desde','hasta','sobre','entre','este','esta','estos','estas','aquel','aquella',
+    'unos','unas','del','las','los','una','uno','que','con','por','sin','sus','más','muy','han','hay','fue','son','ser','se','su',
+    'el','la','de','y','o','en','un','al','lo','es','si','ya','no','le','les','a']);
+  return words.map((w,i)=>({i,w:w.toLowerCase().replace(/[^\p{L}\p{N}]/gu,'')}))
+    .filter(x=>x.w.length>=5 && !stop.has(x.w))
+    .sort((a,b)=>b.w.length-a.w.length).slice(0,2).map(x=>x.i);
+}
+
+async function makeSubtitleOverlay(text){
+  return await canvasPngBlob((ctx,c)=>{
+    const words=String(text||'').trim().split(/\s+/).filter(Boolean);
+    if(!words.length)return;
+    const yellow=new Set(subtitleKeywordIndexes(words));
+    const fontSize=54;
+    const font='900 '+fontSize+'px Arial, sans-serif';
+    ctx.font=font; ctx.textBaseline='middle'; ctx.textAlign='left';
+    const maxW=650, gap=14, lineH=66;
+    const lines=[]; let line=[]; let width=0;
+    words.forEach((word,i)=>{
+      const ww=ctx.measureText(word).width;
+      const add=line.length?gap+ww:ww;
+      if(line.length && width+add>maxW){
+        lines.push(line); line=[]; width=0;
+      }
+      line.push({word,i,w:ww});
+      width += line.length===1?ww:gap+ww;
+    });
+    if(line.length)lines.push(line);
+    const shown=lines.slice(0,2);
+    const baseY=c.height-205-(shown.length-1)*lineH/2;
+    ctx.lineJoin='round';
+    ctx.lineWidth=10;
+    ctx.strokeStyle='rgba(0,0,0,.95)';
+    ctx.shadowColor='rgba(0,0,0,.72)';
+    ctx.shadowBlur=5;
+    shown.forEach((ln,li)=>{
+      const total=ln.reduce((s,x)=>s+x.w,0)+gap*Math.max(0,ln.length-1);
+      let x=(c.width-total)/2;
+      const y=baseY+li*lineH;
+      ln.forEach(item=>{
+        ctx.font=font;
+        ctx.strokeText(item.word,x,y);
+        ctx.fillStyle=yellow.has(item.i)?'#FFD400':'#FFFFFF';
+        ctx.fillText(item.word,x,y);
+        x+=item.w+gap;
+      });
+    });
+    ctx.shadowBlur=0;
+  });
+}
+
+async function getDefaultMusic(total){
+  rs('2/5 Música documental fija preparada.');
+  return {blob:makeDocumentaryMusic(total),name:'music.wav',external:false};
+}
+
+
+
+function buildAtempoChain(factor){
+  let f=Number(factor);
+  if(!Number.isFinite(f) || f<=0)return 'atempo=1';
+  const parts=[];
+  while(f<0.5){parts.push('atempo=0.5');f/=0.5;}
+  while(f>2.0){parts.push('atempo=2.0');f/=2.0;}
+  parts.push(`atempo=${f.toFixed(6)}`);
+  return parts.join(',');
+}
+
+async function createFinalVideo(){
+  const btn=R('#finalRender');
+  if(btn?.disabled)return false;
+  if(btn)btn.disabled=true;rb(1);
+
+  let generatedUrl=null;
+  try{
+    const sceneEls=[...document.querySelectorAll('#scenes .scene')];
+    if(!sceneEls.length) throw new Error('Primero crea las escenas.');
+    if(sceneEls.some(el=>!el.dataset.clipUrl)) throw new Error('Hay una escena sin clip. Cámbiala antes del render.');
+
+    // Voice is created automatically if it doesn't exist yet.
+    if(!window.documentalFactoryAudioBlob){
+      rs('1/5 Generando voz automáticamente con Transformers.js…');
+      rb(5);
+      const result=await window.generateDocumentalVoice?.();
+      if(!window.documentalFactoryAudioBlob) throw new Error('No se pudo generar la voz.');
+    }
+
+    let voiceBlob=window.documentalFactoryAudioBlob;
+    const naturalTotal=window.documentalFactoryAudioMeta?.seconds||await blobDuration(voiceBlob);
+    if(!naturalTotal||!isFinite(naturalTotal)) throw new Error('No pude calcular la duración de la narración.');
+
+    const forced=Number(window.documentalForcedDurationSeconds||0);
+    // The selected duration is only an APPROXIMATE target for script length.
+    // Final video duration follows Alexander's natural narration exactly.
+    let total=naturalTotal;
+
+    rs(`2/5 Alexander natural: ${naturalTotal.toFixed(1)} s · duración final aproximada`);
+    rb(8);
+
+    rs('3/5 Cargando FFmpeg…');
+    const ffmpeg=await loadFFmpeg();
+    rb(12);
+
+    await ffmpeg.writeFile('voice.wav',new Uint8Array(await voiceBlob.arrayBuffer()));
+
+    rs('2/5 Preparando música documental…');
+    rb(14);
+    const musicInfo=await getDefaultMusic(total);
+    const musicBlob=musicInfo.blob;
+    await ffmpeg.writeFile(musicInfo.name,new Uint8Array(await musicBlob.arrayBuffer()));
+
+    const durations=sceneDurations(total,sceneEls);
+    const partNames=[];
+    const chunkNames=[];
+    const CHUNK_SIZE=8;
+
+  
+  function looksMostlyEnglish(text){
+    const s=String(text||'').toLowerCase();
+    if(!s.trim())return false;
+    const en=(s.match(/\b(the|and|with|this|that|from|into|after|before|while|family|fox|video|scene|story|rescue|injured|home|they|their|was|were|is|are)\b/g)||[]).length;
+    const es=(s.match(/\b(el|la|los|las|de|del|con|este|esta|que|una|un|familia|zorro|video|escena|historia|rescate|herido|casa|ellos|su|era|son)\b/g)||[]).length;
+    return en>=4 && en>es*1.5;
+  }
+
+  async function compactCurrentParts(chunkIndex){
+      if(!partNames.length)return;
+      if(partNames.length===1){
+        chunkNames.push(partNames[0]);
+        partNames.splice(0,partNames.length);
+        return;
+      }
+      const listName=`chunk_${chunkIndex}.txt`;
+      const outName=`chunk_${chunkIndex}.mp4`;
+      const list=partNames.map(n=>`file '${n}'`).join('\n');
+      await ffmpeg.writeFile(listName,new TextEncoder().encode(list));
+      await ffmpeg.exec(['-f','concat','-safe','0','-i',listName,'-c','copy',outName]);
+      for(const n of partNames){try{await ffmpeg.deleteFile(n);}catch(e){}}
+      try{await ffmpeg.deleteFile(listName);}catch(e){}
+      chunkNames.push(outName);
+      partNames.splice(0,partNames.length);
+      await sleep(30);
+    }
+
+
+    // v7.6 FAST PATH:
+    // Cache every unique video source once inside FFmpeg's virtual FS.
+    // This is especially important for the uploaded original video, which may be reused
+    // by dozens of scenes. Previous versions fetched + copied the full source once PER scene.
+    const sourceFileCache=new Map();
+    const sourceFilesToClean=[];
+    // V5.5.1: unique monotonic ID reserved BEFORE any await.
+    // Never derive concurrent FFmpeg filenames from array.length.
+    let sourceCacheSeq=0;
+
+    async function getCachedSourceFile(url,fallbackUrl=null){
+      const reservedCacheId=sourceCacheSeq++;
+      const primary=String(url||'');
+      if(sourceFileCache.has(primary))return sourceFileCache.get(primary);
+
+      let blob=null, finalUrl=primary, usedFallback=false;
+      try{
+        blob=await fetchBlob(primary,{attempts:3});
+      }catch(err){
+        if(!fallbackUrl)throw err;
+        finalUrl=String(fallbackUrl);
+        usedFallback=true;
+        if(sourceFileCache.has(finalUrl)){
+          const cached=sourceFileCache.get(finalUrl);
+          sourceFileCache.set(primary,{...cached,usedFallback:true});
+          return sourceFileCache.get(primary);
+        }
+        blob=await fetchBlob(finalUrl,{attempts:2});
+      }
+
+      const mime=(blob?.type||'').toLowerCase();
+      const ext=mime.includes('webm')?'webm':(mime.includes('image/')?'jpg':'mp4');
+      // Each scene source gets a collision-proof filename even when 3 preload
+      // workers finish their network requests at the same time.
+      const name=`src_cache_${reservedCacheId}.${ext}`;
+      await ffmpeg.writeFile(name,new Uint8Array(await blob.arrayBuffer()));
+      const info={name,usedFallback,finalUrl};
+      sourceFileCache.set(finalUrl,info);
+      sourceFileCache.set(primary,info);
+      sourceFilesToClean.push(name);
+      return info;
+    }
+
+    // Preload all unique sources with a small concurrency pool.
+    // Network/download time overlaps, while FFmpeg encoding remains sequential and stable.
+    const preloadJobs=[];
+    const uniquePairs=[];
+    const pairSeen=new Set();
+    for(const el of sceneEls){
+      const u=String(el.dataset.clipUrl||'');
+      const f=String(el.dataset.fallbackUrl||'');
+      const key=u+'|||'+f;
+      if(u && !pairSeen.has(key)){
+        pairSeen.add(key);
+        uniquePairs.push([u,f||null]);
+      }
+    }
+
+    async function preloadWorker(){
+      while(uniquePairs.length){
+        const pair=uniquePairs.shift();
+        if(!pair)break;
+        try{await getCachedSourceFile(pair[0],pair[1]);}catch(e){
+          // Leave final handling to the scene loop so one bad stock clip never kills preload.
+          console.warn('[v7.6 preload]',e);
+        }
+      }
+    }
+    const preloadCount=Math.min(3,Math.max(1,uniquePairs.length));
+    for(let i=0;i<preloadCount;i++)preloadJobs.push(preloadWorker());
+    if(preloadJobs.length){
+      rs(`3/5 Precargando ${pairSeen.size} fuente${pairSeen.size===1?'':'s'} una sola vez…`);
+      await Promise.all(preloadJobs);
+    }
+
+    // The title is identical across all scenes. Generate/write it ONCE.
+    let sharedTitleFile=null;
+    if(R('#titleOverlay')?.value!=='no'){
+      const titleBlob=await makeTitleOverlay(window.documentalVideoTitle||R('#videoTitle')?.value||'');
+      sharedTitleFile='title_shared.png';
+      await ffmpeg.writeFile(sharedTitleFile,new Uint8Array(await titleBlob.arrayBuffer()));
+    }
+
+    // Process ONE scene at a time. Sources/title are already cached once.
+    for(let i=0;i<sceneEls.length;i++){
+      const el=sceneEls[i];
+      const input=`scene_${i}.mp4`;
+      const output=`part_${i}.mp4`;
+      partNames.push(output);
+
+      const sceneBase=15+(i/sceneEls.length)*60;
+      const sceneSpan=60/sceneEls.length;
+      window.documentalFfmpegProgressCtx={
+        base:sceneBase,
+        span:sceneSpan,
+        label:`4/5 Render escena ${i+1}/${sceneEls.length}`
+      };
+      rs(`4/5 Render escena ${i+1}/${sceneEls.length} · 0% · ${Math.round(sceneBase)}% total`);
+      rb(sceneBase);
+
+      let usedFallback=false;
+      const cachedSource=await getCachedSourceFile(
+        el.dataset.clipUrl,
+        el.dataset.fallbackUrl||null
+      );
+      usedFallback=!!cachedSource.usedFallback;
+
+      if(usedFallback){
+        rs(`⚠️ Clip externo bloqueado en escena ${i+1}. Usando video original ya precargado…`);
+        el.dataset.start=el.dataset.fallbackStart||el.dataset.start||'0';
+        const q=el.querySelector('.q');
+        if(q)q.textContent='✂️ Fallback automático: video original transformado';
+        const p=el.querySelector('.provider');
+        if(p)p.textContent='Fuente: video original transformado';
+      }
+
+      const cachedInput=cachedSource.name;
+
+      const durNum=Math.max(1.0,durations[i]);
+      const dur=durNum.toFixed(3);
+
+      const overlayInputs=[];
+      const overlayFiles=[];
+      const overlaySpecs=[];
+
+      // V5.3: title is allowed ONLY in scene 0 and for a maximum of 5 seconds.
+      // This prevents it from reappearing/accumulating after segment concatenation.
+      if(sharedTitleFile && i===0){
+        overlayInputs.push('-i',sharedTitleFile);
+        overlaySpecs.push({fileIndex:1,start:0,end:Math.min(5,durNum)});
+      }
+
+      if(R('#subtitles')?.value!=='no'){
+        const chunks=splitSubtitleText(el.dataset.narration||el.querySelector('.narr')?.textContent||'');
+        const each=durNum/Math.max(1,chunks.length);
+        for(let j=0;j<chunks.length;j++){
+          const subBlob=await makeSubtitleOverlay(chunks[j]);
+          const f=`sub_${i}_${j}.png`;
+          await ffmpeg.writeFile(f,new Uint8Array(await subBlob.arrayBuffer()));
+          overlayFiles.push(f); overlayInputs.push('-i',f);
+          overlaySpecs.push({fileIndex:overlaySpecs.length+1,start:j*each,end:Math.min(durNum,(j+1)*each)});
+        }
+      }
+
+      const startOffset=Math.max(0,Number(el.dataset.start||0));
+      const motion=String(el.dataset.motion||'zoom-in');
+      const frames=Math.max(30,Math.round(durNum*30));
+      const fadeDur=Math.min(0.35,Math.max(0.18,durNum*0.08));
+      const fadeOutStart=Math.max(0,durNum-fadeDur);
+
+      // Advanced Ken Burns: every scene gets a different camera movement.
+      // First fill a safe oversized vertical canvas, then animate crop/zoom at 30 fps.
+      let zExpr="min(zoom+0.00055,1.12)";
+      let xExpr="iw/2-(iw/zoom/2)";
+      let yExpr="ih/2-(ih/zoom/2)";
+
+      if(motion==='zoom-out'){
+        zExpr="if(eq(on,1),1.13,max(1.001,zoom-0.00055))";
+      }else if(motion==='pan-left-right'){
+        zExpr="1.10";
+        xExpr="(iw-iw/zoom)*(on/"+frames+")";
+      }else if(motion==='pan-right-left'){
+        zExpr="1.10";
+        xExpr="(iw-iw/zoom)*(1-on/"+frames+")";
+      }else if(motion==='pan-up'){
+        zExpr="1.10";
+        yExpr="(ih-ih/zoom)*(1-on/"+frames+")";
+      }else if(motion==='diagonal'){
+        zExpr="min(zoom+0.00035,1.10)";
+        xExpr="(iw-iw/zoom)*(on/"+frames+")";
+        yExpr="(ih-ih/zoom)*(1-on/"+frames+")";
+      }
+
+      const fadeIn=i===0?'':`fade=t=in:st=0:d=${fadeDur.toFixed(3)},`;
+      const fadeOut=i===sceneEls.length-1?'':`fade=t=out:st=${fadeOutStart.toFixed(3)}:d=${fadeDur.toFixed(3)},`;
+      // Still image -> full moving scene. d must equal the number of output frames.
+      const composeAndMove=`split=2[sharp][blur];`+
+        `[blur]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,gblur=sigma=28:steps=2,eq=brightness=-0.10:saturation=0.82[bg];`+
+        `[sharp]scale=720:720:force_original_aspect_ratio=decrease[fg];`+
+        `[bg][fg]overlay=(W-w)/2:(H-h)/2:format=auto,`+
+        `scale=900:1600:force_original_aspect_ratio=increase,crop=900:1600,`+
+        `zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=${frames}:s=720x1280:fps=30,`+
+        `trim=duration=${durNum.toFixed(3)},setpts=PTS-STARTPTS,${fadeIn}${fadeOut}format=yuv420p`;
+      const filters=[`[0:v]${composeAndMove}[v0]`];
+      let prev='v0';
+      overlaySpecs.forEach((o,k)=>{
+        const next='v'+(k+1);
+        filters.push(`[${prev}][${o.fileIndex}:v]overlay=0:0:enable='between(t,${o.start.toFixed(3)},${o.end.toFixed(3)})':eof_action=repeat[${next}]`);
+        prev=next;
+      });
+
+      // AI scenes are still images. Loop the image at 30 fps for the whole scene.
+      const args=['-loop','1','-framerate','30','-i',cachedInput,...overlayInputs,'-t',dur];
+      args.push('-filter_complex',filters.join(';'),'-map',`[${prev}]`);
+      args.push('-an','-c:v','libx264','-preset','ultrafast','-crf','23','-pix_fmt','yuv420p','-movflags','+faststart',output);
+
+      await ffmpeg.exec(args);
+
+      for(const f of overlayFiles){try{await ffmpeg.deleteFile(f);}catch(e){}}
+      await sleep(20);
+
+      if(((i+1)%CHUNK_SIZE===0) || i===sceneEls.length-1){
+        rs(`4/5 Liberando temporales del bloque ${Math.floor(i/CHUNK_SIZE)+1}…`);
+        await compactCurrentParts(Math.floor(i/CHUNK_SIZE));
+      }
+    }
+
+    window.documentalFfmpegProgressCtx={base:78,span:8,label:'5/5 Uniendo bloques'};
+    rs('5/5 Uniendo bloques · 0% de esta etapa…');
+    rb(78);
+
+    // V5.6: put the AI cover in the first 1.00 s (30 frames at 30 FPS).
+    // The title is rendered by our own overlay, so FLUX never has to spell text.
+    let coverSegmentName='';
+    if(window.documentalAutoCoverUrl){
+      try{
+        rs('5/5 Preparando portada automática…');
+        const coverResp=await fetch(window.documentalAutoCoverUrl);
+        if(!coverResp.ok)throw new Error('No pude leer la portada IA.');
+        const coverBlob=await coverResp.blob();
+        const coverInput='auto_cover.jpg';
+        coverSegmentName='auto_cover.mp4';
+        await ffmpeg.writeFile(coverInput,new Uint8Array(await coverBlob.arrayBuffer()));
+
+        const coverArgs=['-loop','1','-framerate','30','-i',coverInput];
+        if(sharedTitleFile){
+          coverArgs.push('-i',sharedTitleFile,
+            '-filter_complex',"[0:v]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280[bg];[bg][1:v]overlay=0:0:format=yuv420p[v]",
+            '-map','[v]');
+        }else{
+          coverArgs.push('-vf','scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,format=yuv420p');
+        }
+        coverArgs.push('-an','-t','1.00','-c:v','libx264','-preset','ultrafast','-crf','22','-r','30','-g','30','-keyint_min','1','-sc_threshold','0','-pix_fmt','yuv420p','-movflags','+faststart',coverSegmentName);
+        await ffmpeg.exec(coverArgs);
+      }catch(err){
+        console.warn('No se pudo insertar portada:',err);
+        coverSegmentName='';
+      }
+    }
+
+    const concatVideoNames=coverSegmentName?[coverSegmentName,...chunkNames]:chunkNames;
+    const concat=concatVideoNames.map(n=>`file '${n}'`).join('\n');
+    await ffmpeg.writeFile('concat.txt',new TextEncoder().encode(concat));
+    await ffmpeg.exec([
+      '-f','concat','-safe','0','-i','concat.txt',
+      '-c','copy','joined.mp4'
+    ]);
+    rb(86);
+
+    const musicVol=Number(R('#musicVol')?.value||0.30);
+
+    // v6.4: mix narration + music in the browser FIRST.
+    // FFmpeg receives one finished WAV track, so it cannot drop the music.
+    rs('5/5 Mezclando voz + música directamente en el navegador…');
+    const mixResult=await mixNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol);
+    const mixedBuffer=await mixResult.blob.arrayBuffer();
+    const mixedBytes=new Uint8Array(mixedBuffer);
+    const mixBytes=mixedBytes.byteLength;
+    if(!Number.isFinite(mixBytes) || mixBytes<100000){
+      throw new Error(`La mezcla de audio quedó vacía o incompleta (${mixBytes||0} bytes).`);
+    }
+    await ffmpeg.writeFile('mixed_browser.wav',mixedBytes);
+
+    // Verificación real: leer de vuelta lo que FFmpeg recibió.
+    const writtenMix=await ffmpeg.readFile('mixed_browser.wav');
+    const writtenBytes=writtenMix?.byteLength||writtenMix?.length||0;
+    if(writtenBytes<100000){
+      throw new Error(`FFmpeg no recibió correctamente la mezcla (${writtenBytes} bytes).`);
+    }
+    const mixKB=(writtenBytes/1024).toFixed(1);
+    rs(`5/5 Mezcla REAL creada · música RMS ${mixResult.musicRms.toFixed(3)} · voz RMS ${mixResult.voiceRms.toFixed(3)} · ${mixKB} KB.`);
+
+    window.documentalFfmpegProgressCtx={base:86,span:10,label:'5/5 Audio + MP4 final'};
+    rs('5/5 Audio + MP4 final · 0% de esta etapa…');
+    await ffmpeg.exec([
+      '-i','joined.mp4','-i','mixed_browser.wav',
+      '-map','0:v:0','-map','1:a:0',
+      '-c:v','copy',
+      '-af','loudnorm=I=-14:TP=-1.5:LRA=7,alimiter=limit=0.94',
+      '-c:a','aac','-b:a','192k','-ar','44100','-ac','2',
+      '-t',total.toFixed(3),'-movflags','+faststart','documental_final.mp4'
+    ]);
+    rb(96);
+
+    // V5.6.5 FS FINAL FIX:
+    // El MP4 ya fue creado por FFmpeg con map explícito de video + audio.
+    // Evitamos lanzar un SEGUNDO ffmpeg.exec() solo para verificar AAC, porque
+    // en FFmpeg.wasm ese paso podía provocar ErrnoError/FS error después de un render largo.
+    window.documentalFfmpegProgressCtx=null;
+    rs('5/5 Verificando archivo MP4 final…');
+
+    const data=await ffmpeg.readFile('documental_final.mp4');
+    const finalBytes=data?.byteLength||data?.length||0;
+    if(!data || finalBytes<250000){
+      throw new Error(`El MP4 final quedó vacío o incompleto (${finalBytes||0} bytes).`);
+    }
+
+    // La mezcla ya fue validada antes de muxearla (mixed_browser.wav), y el comando
+    // final usa -map 1:a:0; si el audio no pudiera codificarse, ffmpeg.exec() fallaría.
+    rs(`5/5 ✅ MP4 final creado con voz + música · ${(finalBytes/1024/1024).toFixed(1)} MB.`);
+
+    const finalBlob=new Blob([data.buffer],{type:'video/mp4'});
+    generatedUrl=URL.createObjectURL(finalBlob);
+
+    const preview=R('#finalPreview');
+    if(preview.dataset.url)URL.revokeObjectURL(preview.dataset.url);
+    preview.dataset.url=generatedUrl;
+    preview.src=generatedUrl;
+    preview.style.display='block';
+
+    // ONE final download, automatically.
+    const a=document.createElement('a');
+    a.href=generatedUrl;
+    a.download=(window.documentalDownloadName||'documental_final.mp4');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.documentalFfmpegProgressCtx=null;
+    rb(100);
+    rs(`✅ Video terminado: ${total.toFixed(1)} s naturales, 720×1280, 30 FPS, título, subtítulos, voz nivelada y música documental al 30%. Descarga iniciada. Liberando memoria…`, 'ok');
+
+    await clean(ffmpeg,[...partNames,...chunkNames,...sourceFilesToClean,sharedTitleFile,'auto_cover.jpg',coverSegmentName,'concat.txt','joined.mp4','voice.wav','voice_target.wav',musicInfo.name,'mixed_browser.wav','documental_final.mp4'].filter(Boolean));
+    return true;
+  }catch(err){
+    window.documentalFfmpegProgressCtx=null;
+    console.error(err);
+    const msg=(err?.message||String(err));
+    if(/memory access out of bounds|out of memory|abort\(memory/i.test(msg)){
+      rs('❌ FFmpeg agotó memoria temporal. Reiniciando el motor para que la cola pueda continuar…','err');
+    }else{
+      rs('❌ '+msg,'err');
+    }
+    throw err;
+  }finally{
+    if(btn)btn.disabled=false;
+    // IMPORTANT: one fresh FFmpeg worker per documentary.
+    // Prevents cumulative WASM memory growth across long queues.
+    try{ await resetFFmpegAfterVideo(); }catch(e){ console.warn('[FFmpeg reset]',e); }
+  }
+}
+
+window.createDocumentalFinalVideo=createFinalVideo;
+R('#finalRender')?.addEventListener('click',createFinalVideo);
+
+// Preload FFmpeg only when the browser is idle, so Transformers.js gets priority first.
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    if('requestIdleCallback' in window){
+      requestIdleCallback(()=>loadFFmpeg().catch(()=>{}),{timeout:7000});
+    }
+  },3500);
+});
+</script>
+
+<script>
+const voicePresetEl=$('#voicePreset');
+if(voicePresetEl){
+  voicePresetEl.value=localStorage.getItem('df_voicePreset')||'original';
+  voicePresetEl.addEventListener('change',()=>localStorage.setItem('df_voicePreset',voicePresetEl.value));
+}
+const groqEl=$('#groq');
+if(groqEl && groqEl.value.trim()){
+  setTimeout(()=>{const s=$('#apiSavedStatus'); if(s)s.textContent='✅ APIs personales cargadas desde este navegador.';},0);
+}
+document.querySelectorAll('.show').forEach(b=>b.onclick=()=>{let i=$('#'+b.dataset.id);i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'Mostrar':'Ocultar'});
+if($('#save')) $('#save').onclick=()=>{keys.forEach(k=>{const el=$('#'+k);if(!el)return;let v=(el.value||'').trim();v?localStorage.setItem('df_'+k,v):localStorage.removeItem('df_'+k)});st('APIs guardadas en este dispositivo.','ok')};
+if($('#erase')) $('#erase').onclick=()=>{keys.forEach(k=>{localStorage.removeItem('df_'+k);const el=$('#'+k);if(el)el.value=''});st('APIs eliminadas.')};
+  const status=$('#apiSavedStatus');
+  try{
+    const r=await fetch(endpoint,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({prompt:'simple blue sphere on dark background',steps:1})});
+    const j=await r.json().catch(()=>null);
+    if(!r.ok||j?.success===false)throw new Error(j?.errors?.[0]?.message||`HTTP ${r.status}`);
+  }catch(err){
+  }
+};
+function st(t,c='mut'){const el=$('#status')||$('#autoStatus');if(el){el.textContent=t;el.className='status '+c}}function e(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function ai(prompt){
+  const key=(document.querySelector('#groq')?.value||'').trim();
+  if(!key)throw new Error('Falta la API key de Groq.');
+
+  const apiStatus=(msg)=>{
+    const status=document.querySelector('#status');
+    if(status)status.textContent=msg;
+    const log=document.querySelector('#liveLog');
+    if(log){
+      const t=new Date().toLocaleTimeString();
+      const safe=String(msg).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+      log.innerHTML+=`<div>${t} — ${safe}</div>`;
+      log.scrollTop=log.scrollHeight;
+    }
+  };
+
+  const endpoint='https://api.groq.com/openai/v1/chat/completions';
+  const body={
+    model:'openai/gpt-oss-20b',
+    messages:[
+      {
+        role:'system',
+        content:'Eres un editor experto de documentales verticales. Responde ÚNICAMENTE JSON válido. No uses markdown ni explicaciones.'
+      },
+      {role:'user',content:prompt}
+    ],
+    response_format:{
+      type:'json_schema',
+      json_schema:{
+        name:'documentary_ai_scenes',
+        strict:true,
+        schema:{
+          type:'object',
+          properties:{
+            visual_identity:{
+              type:'string'
+            },
+            scenes:{
+              type:'array',
+              items:{
+                type:'object',
+                properties:{
+                  narration:{type:'string'},
+                  image_prompt:{type:'string'}
+                },
+                required:['narration','image_prompt'],
+                additionalProperties:false
+              }
+            }
+          },
+          required:['visual_identity','scenes'],
+          additionalProperties:false
+        }
+      }
+    },
+    reasoning_effort:'low',
+    temperature:0.2,
+    max_tokens:7000,
+    stream:false
+  };
+
+  let lastErr=null;
+  for(let attempt=1;attempt<=5;attempt++){
+    try{
+      const res=await fetch(endpoint,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization':'Bearer '+key
+        },
+        body:JSON.stringify(body)
+      });
+
+      const raw=await res.text();
+      let data=null;
+      try{data=JSON.parse(raw);}catch(_){}
+
+      if(res.ok){
+        const text=data?.choices?.[0]?.message?.content;
+        if(!text)throw new Error('Groq respondió sin contenido.');
+        return text;
+      }
+
+      const msg=data?.error?.message||raw||('HTTP '+res.status);
+
+      if([408,409,429,500,502,503,504].includes(res.status) && attempt<5){
+        const retryHeader=Number(res.headers.get('retry-after'));
+        const waitSec=Number.isFinite(retryHeader)&&retryHeader>0
+          ? retryHeader
+          : Math.min(30,Math.pow(2,attempt));
+        apiStatus(`Groq ocupado o limitado. Reintentando en ${waitSec} s…`);
+        await new Promise(r=>setTimeout(r,waitSec*1000));
+        continue;
+      }
+
+      if(res.status===401 || /invalid.*key|unauthorized/i.test(msg)){
+        throw new Error('Groq rechazó la API key. Revisa que sea una key válida de Groq.');
+      }
+
+      if(res.status===402 || /payment required|insufficient credits/i.test(msg)){
+        throw new Error('Groq indicó un problema de saldo/acceso. Modelo solicitado: openai/gpt-oss-20b.');
+      }
+
+      throw new Error('Groq: '+msg);
+    }catch(err){
+      lastErr=err;
+      if(attempt>=5)break;
+
+      if(/Failed to fetch|NetworkError|fetch/i.test(err?.message||'')){
+        const waitSec=Math.min(20,Math.pow(2,attempt));
+        apiStatus(`Conexión con Groq interrumpida. Reintentando en ${waitSec} s…`);
+        await new Promise(r=>setTimeout(r,waitSec*1000));
+        continue;
+      }
+
+      throw err;
+    }
+  }
+
+  throw lastErr||new Error('No se pudo obtener respuesta de Groq.');
+}
+function json(t){
+  const original=String(t??'').trim();
+  if(!original)throw Error('Groq respondió vacío.');
+
+  let s=original
+    .replace(/^\s*```(?:json)?\s*/i,'')
+    .replace(/\s*```\s*$/i,'')
+    .trim();
+
+  const normalize=(value)=>{
+    if(Array.isArray(value))return value;
+
+    if(value && typeof value==='object'){
+      for(const key of ['scenes','escenas','items','results','data']){
+        if(Array.isArray(value[key]))return value[key];
+      }
+      if(value.narration || value.query || value.queries || value.narracion || value.busqueda)return [value];
+    }
+    return null;
+  };
+
+  const tryParse=(candidate)=>{
+    try{return normalize(JSON.parse(candidate));}
+    catch(_){return null;}
+  };
+
+  // 1) Respuesta JSON pura.
+  let out=tryParse(s);
+  if(out)return out;
+
+  // 2) Extrae un array aunque haya texto antes/después.
+  const a=s.indexOf('['), b=s.lastIndexOf(']');
+  if(a>=0 && b>a){
+    out=tryParse(s.slice(a,b+1));
+    if(out)return out;
+  }
+
+  // 3) Extrae un objeto: {"scenes":[...]}, {"escenas":[...]}, etc.
+  const c=s.indexOf('{'), d=s.lastIndexOf('}');
+  if(c>=0 && d>c){
+    out=tryParse(s.slice(c,d+1));
+    if(out)return out;
+  }
+
+  // 4) Algunos modelos devuelven JSON como string escapado.
+  try{
+    const unwrapped=JSON.parse(s);
+    if(typeof unwrapped==='string'){
+      out=tryParse(unwrapped.trim());
+      if(out)return out;
+    }
+  }catch(_){}
+
+  // 5) Último intento: bloques markdown internos.
+  const blocks=[...s.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)];
+  for(const m of blocks){
+    out=tryParse(m[1].trim());
+    if(out)return out;
+  }
+
+  console.warn('Respuesta Groq no parseable:', original);
+  throw Error('Groq respondió, pero el formato de escenas no se pudo interpretar.');
+}
+
+function jsonDocument(t){
+  const original=String(t??'').trim();
+  if(!original)throw Error('Groq respondió vacío.');
+
+  let s=original
+    .replace(/^\s*```(?:json)?\s*/i,'')
+    .replace(/\s*```\s*$/i,'')
+    .trim();
+
+  const tryParse=(candidate)=>{
+    try{
+      const v=JSON.parse(candidate);
+      if(v && typeof v==='object' && !Array.isArray(v) && Array.isArray(v.scenes))return v;
+    }catch(_){}
+    return null;
+  };
+
+  let out=tryParse(s);
+  if(out)return out;
+
+  const a=s.indexOf('{'), b=s.lastIndexOf('}');
+  if(a>=0 && b>a){
+    out=tryParse(s.slice(a,b+1));
+    if(out)return out;
+  }
+
+  console.warn('Respuesta Groq V5 no parseable:',original);
+  throw Error('Groq respondió, pero no pude leer las escenas IA.');
+}
+
+
+let generatedSceneImages=[];
+
+function base64ToImageBlob(base64,type='image/jpeg'){
+  const clean=String(base64||'').replace(/^data:[^;]+;base64,/,'');
+  const bin=atob(clean);
+  const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  return new Blob([bytes],{type});
+}
+
+function imageProviderLog(text){
+  const log=document.querySelector('#liveLog');
+  if(log){
+    const t=new Date().toLocaleTimeString();
+    const safe=String(text).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+    log.innerHTML+=`<div>${t} — ${safe}</div>`;
+    log.scrollTop=log.scrollHeight;
+  }
+}
+
+
+
+
+
+async function generateAIImage(prompt){
+  // El módulo WebGPU se carga de forma asíncrona. La cola NO debe fallar si Groq
+  // termina antes: esperamos a que el motor publique sus funciones.
+  const waitStart=Date.now();
+  while(typeof window.sdTurboLocalGenerate!=='function'){
+    if(Date.now()-waitStart>120000){
+      throw new Error('SD‑Turbo WebGPU no terminó de cargar en 120 s. Revisa la consola o recarga la página.');
+    }
+    imageProviderLog('⏳ Esperando que SD‑Turbo WebGPU termine de inicializar…');
+    await new Promise(r=>setTimeout(r,500));
+  }
+
+  // Además esperamos explícitamente la descarga/compilación del modelo.
+  if(typeof window.sdTurboLocalInit==='function'){
+    imageProviderLog('🧠 Preparando SD‑Turbo WebGPU antes de generar escenas…');
+    await window.sdTurboLocalInit();
+  }
+
+  imageProviderLog('🖥️ SD‑Turbo WebGPU local: '+String(prompt||'').slice(0,80));
+  const out=await window.sdTurboLocalGenerate(String(prompt||'').trim(), msg=>{
+    imageProviderLog(msg);
+    const box=document.getElementById('sdLocalStatus');
+    if(box)box.textContent=msg;
+  });
+  imageProviderLog('✅ Imagen 512×512 creada localmente con WebGPU.');
+  const box=document.getElementById('sdLocalStatus');
+  if(box)box.textContent='🟢 SD‑Turbo WebGPU listo · imagen local creada';
+  return out;
+}
+
+function clearGeneratedSceneImages(){
+  for(const x of generatedSceneImages){
+    try{if(x?.url)URL.revokeObjectURL(x.url);}catch(_){}
+  }
+  generatedSceneImages=[];
+}
+
+window.documentalResetClipSearch=()=>{
+  clearGeneratedSceneImages();
+};
+
+
+
+function render(s,c,i){
+  let a=document.createElement('article');
+  a.className='scene';
+  a.dataset.narration=s.narration||'';
+  a.dataset.imagePrompt=s.image_prompt||'';
+  if(c?.url)a.dataset.clipUrl=c.url;
+
+  const motionPatterns=[
+    {name:'zoom-in',zoom:'1.12',panX:'0.50',panY:'0.50'},
+    {name:'pan-left-right',zoom:'1.14',panX:'0.18',panY:'0.50'},
+    {name:'zoom-out',zoom:'1.13',panX:'0.50',panY:'0.46'},
+    {name:'pan-right-left',zoom:'1.14',panX:'0.82',panY:'0.50'},
+    {name:'pan-up',zoom:'1.13',panX:'0.50',panY:'0.78'},
+    {name:'diagonal',zoom:'1.15',panX:'0.22',panY:'0.72'}
+  ];
+  const motion=motionPatterns[i%motionPatterns.length];
+  a.dataset.motion=motion.name;
+  a.dataset.zoom=motion.zoom;
+  a.dataset.panX=motion.panX;
+  a.dataset.panY=motion.panY;
+
+  a.innerHTML=`<div class="media">${c?`<img src="${e(c.url)}" alt="Escena IA ${i+1}" style="width:100%;height:100%;object-fit:cover;display:block">`:'<span class="err">Sin imagen IA</span>'}</div>
+  <div class="body">
+    <b>ESCENA ${i+1}</b>
+    <p class="narr">${e(s.narration)}</p>
+    <p class="q">🤖 ${e(s.image_prompt)}</p>
+    <p class="provider">Fuente: SD-Turbo · WebGPU local</p>
+    <p class="match ok">✨ IA · movimiento ${e(a.dataset.motion)}</p>
+    <button class="sec change">↻ Regenerar imagen</button>
+  </div>`;
+
+  const scenesRoot=$('#scenes');
+  if(!scenesRoot)throw Error('No existe el contenedor de escenas.');
+  scenesRoot.appendChild(a);
+
+  const changeBtn=a.querySelector('.change');
+  if(changeBtn)changeBtn.onclick=async()=>{
+    const b=a.querySelector('.change');
+    b.disabled=true;b.textContent='Generando IA...';
+    try{
+      const old=a.dataset.clipUrl||'';
+      const c2=await generateAIImage(a.dataset.imagePrompt);
+      generatedSceneImages.push(c2);
+      a.dataset.clipUrl=c2.url;
+      a.querySelector('.media').innerHTML=`<img src="${e(c2.url)}" alt="Escena IA regenerada" style="width:100%;height:100%;object-fit:cover;display:block">`;
+      a.querySelector('.provider').textContent='Fuente: SD-Turbo · WebGPU local';
+      const match=a.querySelector('.match');
+      if(match){match.className='match ok';match.textContent='✨ Imagen IA regenerada';}
+      if(old){
+        const idx=generatedSceneImages.findIndex(x=>x?.url===old);
+        if(idx>=0){
+          try{URL.revokeObjectURL(generatedSceneImages[idx].url);}catch(_){}
+          generatedSceneImages.splice(idx,1);
+        }
+      }
+    }catch(err){
+      const match=a.querySelector('.match');
+      if(match){match.className='match err';match.textContent='❌ '+(err?.message||err);}
+    }finally{
+      b.disabled=false;b.textContent='↻ Regenerar imagen';
+    }
+  };
+}
+
+function estimateNarrationSeconds(text){
+  const words=String(text||'').trim().split(/\s+/).filter(Boolean).length;
+  // Alexander normally lands around 145-160 Spanish words/minute.
+  return Math.max(20,(words/152)*60);
+}
+
+function automaticSceneCount(script){
+  const selected=String(document.querySelector('#duration')?.value||'auto');
+  const seconds=selected==='auto' ? estimateNarrationSeconds(script) : Number(selected);
+  // V5.5: automatic visual rhythm based on script/narration size.
+  // Target: one new AI image about every 4 seconds.
+  return Math.max(8,Math.min(30,Math.round(seconds/4.0)));
+}
+
+function updateAutomaticSceneCount(){
+  const script=(document.querySelector('#script')?.value||'').trim();
+  const n=automaticSceneCount(script);
+  const hidden=document.querySelector('#sceneCount');
+  const label=document.querySelector('#sceneCountLabel');
+  if(hidden)hidden.value=String(n);
+  if(label)label.textContent=`${n} escenas automáticas — aprox. 1 imagen cada 4 s`;
+  return n;
+}
+
+document.querySelector('#duration')?.addEventListener('change',updateAutomaticSceneCount);
+document.querySelector('#script')?.addEventListener('input',updateAutomaticSceneCount);
+
+async function go(){
+  const script=(document.querySelector('#script')?.value||'').trim();
+  const n=updateAutomaticSceneCount();
+  if(!script)throw Error('El guion está vacío.');
+
+  const title=(document.querySelector('#videoTitle')?.value||'').trim();
+
+  st('Groq está creando escenas y prompts visuales exactos para IA…');
+
+  const prompt=`Convierte este documental en aproximadamente ${n} escenas visuales para un generador de imágenes. Prioriza los cambios naturales de idea y acción; puedes usar unas pocas escenas menos o más si mejora la narración.
+
+TÍTULO:
+${title}
+
+GUION:
+${script}
+
+Devuelve:
+{
+  "visual_identity":"descripción breve y constante del protagonista, apariencia, ambiente y estilo visual",
+  "scenes":[
+    {
+      "narration":"fragmento exacto del guion que corresponde a esta escena",
+      "image_prompt":"prompt visual EN INGLÉS para generar exactamente lo narrado"
+    }
+  ]
+}
+
+REGLAS OBLIGATORIAS:
+- OBJETIVO: alrededor de ${n} escenas. No fuerces divisiones artificiales solo para alcanzar el número exacto.
+- Antes de redactar internamente los image_prompt, piensa la secuencia completa como un director documental: establecimiento → sujeto → acción → detalle → reacción/consecuencia → siguiente acción. Devuelve solamente el JSON solicitado.
+- narration debe cubrir TODO el guion, en orden, sin resumir ni inventar.
+- Como cada imagen permanecerá aproximadamente el mismo tiempo en pantalla, procura que los fragmentos narration tengan una longitud hablada parecida entre sí, SIN cortar una idea importante a la mitad.
+- NO dividas por cantidad de palabras. Corta una escena cuando cambie la idea, acción, sujeto visible, lugar, causa, consecuencia o momento narrativo.
+- Cada escena debe sentirse como un nuevo plano de un documental real y continuar naturalmente la escena anterior.
+- CONTINUIDAD NO SIGNIFICA REPETIR LA MISMA COMPOSICIÓN. Conserva identidad, especie, entorno y lógica narrativa, pero cambia claramente el encuadre y la acción.
+- PROGRESIÓN VISUAL OBLIGATORIA: cada image_prompt debe mostrar el momento concreto narrado en ESA escena y avanzar la historia respecto a la imagen anterior.
+- VARIEDAD DE PLANOS OBLIGATORIA: alterna plano general, plano medio, primer plano, detalle, vista submarina, superficie, vista lateral, vista desde el barco y perspectiva ambiental cuando sean pertinentes.
+- No uses el mismo tipo de plano en dos escenas consecutivas.
+- No repitas sistemáticamente 'orca en primer plano con barco al fondo'. Si aparece un barco, red, pescador, presa, cría, costa u otro elemento mencionado, conviértelo en sujeto visual principal cuando la narración hable de él.
+- VARIEDAD DE ACCIONES: observar, aproximarse, girar, sumergirse, emerger, perseguir, interactuar, enseñar, imitar, reaccionar o alejarse según lo que REALMENTE diga la narración. No inventes acciones ajenas al guion.
+- Cada prompt debe especificar claramente: SUJETO PRINCIPAL + ACCIÓN + ENTORNO + TIPO DE PLANO/ÁNGULO + CONTINUIDAD relevante.
+- Antes de cerrar cada image_prompt, verifica que visualmente NO pueda confundirse con la escena anterior al ver ambas como miniaturas.
+- Evita composiciones genéricas, poses estáticas y prompts casi idénticos.
+- REGLA ANTI-REPETICIÓN ESTRICTA: compara mentalmente cada image_prompt con el inmediatamente anterior. Si comparten el mismo sujeto dominante, ángulo y fondo, reescribe el nuevo prompt con otra perspectiva o protagonista visual.
+- Entre dos escenas consecutivas deben cambiar AL MENOS DOS de estos elementos: sujeto dominante, acción, escala de plano, ángulo de cámara, profundidad, posición de cámara o elemento de fondo.
+- Si la misma acción continúa durante varias escenas, muestra puntos de vista complementarios: exterior/superficie → submarino → detalle → reacción desde barco → plano ambiental, siempre que el guion lo permita.
+- No repitas dos veces seguidas la misma combinación de animales + red + barco.
+- No uses dos primeros planos consecutivos del mismo protagonista.
+- El image_prompt debe describir una COMPOSICIÓN concreta, no solo repetir los sustantivos de la narración.
+- GRAMÁTICA DE CÁMARA OBLIGATORIA: asigna las escenas, en orden, siguiendo este ciclo de tipos de toma y adapta cada una al contenido real del guion:
+  1) plano general ambiental / establishing shot,
+  2) perspectiva humana desde cubierta o nivel de superficie,
+  3) plano submarino amplio,
+  4) plano detalle del objeto/acción clave,
+  5) plano lateral medio del protagonista,
+  6) POV o sobre-el-hombro del observador pertinente,
+  7) cámara submarina mirando hacia la superficie,
+  8) plano general lejano con escala del entorno,
+  9) primer plano expresivo o anatómico pertinente,
+  10) plano cenital/aéreo si la escena lo permite,
+  11) plano bajo o contrapicado desde el agua,
+  12) plano de reacción/consecuencia.
+- Si hay más de 12 escenas, vuelve a empezar el ciclo PERO cambia distancia, lado, altura y sujeto dominante para que no se repita la composición.
+- Si un tipo de toma no tiene sentido para esa narración, sustitúyelo por el tipo más cercano que sí sea físicamente lógico, manteniendo la obligación de diferenciarlo del anterior.
+- El tipo de toma debe escribirse explícitamente dentro de cada image_prompt para que FLUX reciba una instrucción inequívoca de cámara.
+- Mantén al protagonista reconocible entre escenas cuando corresponda, pero no obligues a que aparezca en todas si la narración está enfocada temporalmente en otro sujeto u objeto.
+- PRIORIDAD DE DIRECCIÓN: 1) congruencia con la frase narrada, 2) tipo de toma asignado, 3) continuidad de identidad, 4) estética cinematográfica. La continuidad jamás debe anular el cambio de cámara.
+- Cada image_prompt debe representar físicamente lo que se está narrando EN ESA escena.
+- No uses metáforas visuales.
+- No sustituyas el sujeto por otro animal, objeto, persona o paisaje.
+- Mantén la misma identidad visual del protagonista en todas las escenas.
+- Repite en cada prompt los rasgos importantes del protagonista cuando sea necesario para continuidad.
+- Estilo: photorealistic cinematic documentary photography, realistic anatomy, natural lighting, high detail.
+- Composición vertical 9:16 pensada para video móvil.
+- Sin texto, sin letras, sin logos, sin watermark.
+- Si la narración describe una acción, el prompt debe mostrar esa acción.
+- Si la acción es difícil, muestra al mismo sujeto en el contexto físico más cercano; nunca una metáfora.
+- Congruencia con la narración > variedad.
+`;
+
+  const doc=jsonDocument(await ai(prompt));
+  const arr=doc.scenes;
+  const identity=String(doc.visual_identity||'').trim();
+
+  if(!Array.isArray(arr)||arr.length<1){
+    throw Error('Groq no devolvió escenas utilizables.');
+  }
+
+  // V5.1.1: the requested scene count is a target, not a reason to abort.
+  // Groq may naturally return slightly fewer/more semantic scenes.
+  const minAccept=Math.max(8,n-4);
+  const maxAccept=Math.min(24,n+3);
+
+  if(arr.length<minAccept || arr.length>maxAccept){
+    st(`⚠️ Groq propuso ${arr.length} escenas para un objetivo de ${n}. Se usarán las escenas semánticas disponibles.`,'ok');
+  }else if(arr.length!==n){
+    st(`ℹ️ Objetivo ${n} escenas · Groq creó ${arr.length}. Continuando sin repetir ni inventar escenas.`,'ok');
+  }
+
+  clearGeneratedSceneImages();
+  const scenesEl=document.querySelector('#scenes');
+  if(!scenesEl)throw Error('No existe el contenedor de escenas.');
+  scenesEl.innerHTML='';
+
+  for(let i=0;i<arr.length;i++){
+    const scene=arr[i];
+    const finalPrompt=[
+      scene.image_prompt,
+      identity ? `Maintain this visual identity consistently: ${identity}.` : '',
+      'Photorealistic cinematic documentary still, realistic anatomy, natural lighting, high detail, vertical 9:16 composition, no text, no letters, no logo, no watermark.'
+    ].filter(Boolean).join(' ');
+
+    scene.image_prompt=finalPrompt;
+
+    st(`Generando escena IA ${i+1}/${arr.length}…`);
+    const image=await generateAIImage(finalPrompt);
+    generatedSceneImages.push(image);
+    render(scene,image,i);
+  }
+
+  // V5.6: one dedicated AI cover per documentary.
+  // No extra Groq request: reuse title + visual identity + story context already available.
+  try{
+    if(window.documentalAutoCoverUrl){
+      try{URL.revokeObjectURL(window.documentalAutoCoverUrl);}catch{}
+      window.documentalAutoCoverUrl='';
+    }
+    st('🖼️ Generando portada vertical automática…');
+    const coverContext=arr.slice(0,3).map(x=>x.image_prompt||'').join(' ');
+    const coverPrompt=[
+      'Vertical 9:16 cinematic documentary social media cover.',
+      `Documentary title/context: ${title}.`,
+      identity ? `Keep this visual identity: ${identity}.` : '',
+      `Story visual context: ${coverContext}.`,
+      'Create ONE striking hero composition that summarizes the story.',
+      'Photorealistic, cinematic, dramatic natural lighting, strong depth, premium documentary poster, highly detailed.',
+      'Main subject large and immediately understandable on a phone screen.',
+      'Leave clean darker negative space in the upper third for title graphics.',
+      'NO text, NO letters, NO captions, NO logos, NO watermark, NO collage, NO split screen.'
+    ].filter(Boolean).join(' ');
+    const cover=await generateAIImage(coverPrompt);
+    window.documentalAutoCoverUrl=cover.url;
+    let cp=document.getElementById('autoCoverPreview');
+    if(!cp){
+      cp=document.createElement('section');
+      cp.id='autoCoverPreview';
+      cp.style.cssText='margin:14px 0;padding:12px;border:1px solid #31506f;border-radius:12px;background:#081525';
+      const host=document.querySelector('.grid')?.parentElement||document.body;
+      host.insertBefore(cp,host.firstChild);
+    }
+    cp.innerHTML=`<div style="font-weight:800;margin-bottom:8px">🖼️ PORTADA AUTOMÁTICA INTEGRADA AL RENDER</div><img src="${cover.url}" style="display:block;width:min(270px,100%);aspect-ratio:9/16;object-fit:cover;border-radius:10px;margin:auto"><div style="margin-top:8px;color:#5ef0a5;font-weight:700">✓ Será el primer segundo (30 frames) del MP4 final</div>`;
+    st('✅ Portada vertical IA lista y visible para verificar.','ok');
+  }catch(err){
+    console.warn('Auto cover:',err);
+    window.documentalAutoCoverUrl='';
+    st('⚠️ La portada IA falló; el documental puede continuar sin ella.','ok');
+  }
+
+  st(`✅ V5.6 Pure AI: ${arr.length} escenas + portada automática listas.`,'ok');
+  return arr.length;
+}
+window.documentalAnalyzeScenes=go;
+if($('#go')) $('#go').onclick=()=>go().catch(x=>st('❌ '+x.message,'err'));
+if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas del Atlántico vive un animal que parece desafiar el tiempo. El tiburón de Groenlandia crece lentamente y puede vivir durante siglos. Se desplaza por un mundo oscuro y frío donde pocas criaturas sobreviven. Su extraordinaria longevidad lo convierte en uno de los vertebrados más longevos conocidos.';st('Guion demo colocado.','ok')};
+</script>
+<script>
+(function(){
+  const A=s=>document.querySelector(s);
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  let autoRunning=false;
+
+  function safeFileName(name){
+    let s=String(name||'documental').trim();
+    s=s.replace(/:/g,'：').replace(/[\\\/\*\?"<>\|]/g,'').replace(/\s+/g,' ').trim();
+    s=s.toLocaleLowerCase('es');
+    if(s) s=s.charAt(0).toLocaleUpperCase('es')+s.slice(1);
+    return s||'Documental';
+  }
+  window.documentalSafeFileName=safeFileName;
+
+  function ast(text,cls='mut'){
+    const el=A('#autoStatus');
+    if(el){el.textContent=text;el.className='status '+cls;}
+    log(text);
+  }
+  function abar(p){
+    const el=A('#autoBar');
+    if(el)el.style.width=Math.max(0,Math.min(100,p))+'%';
+  }
+  function log(text){
+    const el=A('#liveLog'); if(!el)return;
+    const t=new Date().toLocaleTimeString();
+    el.innerHTML += `<div>${t} — ${String(text).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</div>`;
+    el.scrollTop=el.scrollHeight;
+  }
+  function step(id,state,text){
+    const el=A('#'+id); if(!el)return;
+    el.classList.remove('active','done','err');
+    if(state)el.classList.add(state);
+    const small=el.querySelector('small'); if(small&&text)small.textContent=text;
+  }
+  function resetSteps(){
+    [['stepTxt','Archivo cargado'],['stepScenes','En espera'],['stepVoice','En espera'],['stepRender','En espera'],['stepDone','En espera']]
+      .forEach(([id,t],i)=>step(id,i===0?'done':'',t));
+    const l=A('#liveLog');if(l)l.innerHTML='';
+    abar(0);
+  }
+
+
+  let wakeLock=null;
+  let keepAwakeRequested=false;
+
+  function wakeStatus(text,cls='mut'){
+    const el=A('#wakeStatus');
+    if(el){el.textContent=text;el.className='status '+cls;}
+  }
+
+  async function requestWakeLock(){
+    keepAwakeRequested=true;
+
+    if(!('wakeLock' in navigator)){
+      wakeStatus('⚠️ Wake Lock no disponible en este navegador. Evita suspender Windows.','err');
+      return false;
+    }
+
+    // Browsers normally require the document to be visible before a screen lock can be requested.
+    if(document.visibilityState!=='visible'){
+      wakeStatus('⚠️ Página en segundo plano. Wake Lock se reactivará al volver a verla.','mut');
+      return false;
+    }
+
+    try{
+      if(wakeLock && !wakeLock.released){
+        wakeStatus('✅ Computadora activa mientras procesa. Puedes apagar solo la pantalla desde Windows, pero no suspender el equipo.','ok');
+        return true;
+      }
+
+      wakeLock=await navigator.wakeLock.request('screen');
+      wakeStatus('✅ Wake Lock activo: evitando suspensión automática durante el proceso.','ok');
+
+      wakeLock.addEventListener('release',()=>{
+        wakeLock=null;
+        if(keepAwakeRequested){
+          wakeStatus('⚠️ Wake Lock pausado. Se intentará reactivar automáticamente.','mut');
+        }else{
+          wakeStatus('💡 Mantener activo: proceso terminado.','mut');
+        }
+      });
+
+      return true;
+    }catch(err){
+      console.warn('[WakeLock]',err);
+      wakeStatus('⚠️ No se pudo activar Wake Lock. Mantén Windows sin suspensión.','err');
+      return false;
+    }
+  }
+
+  async function releaseWakeLock(){
+    keepAwakeRequested=false;
+    const current=wakeLock;
+    wakeLock=null;
+    if(current && !current.released){
+      try{await current.release();}catch(e){console.warn('[WakeLock release]',e);}
+    }
+    wakeStatus('💡 Mantener activo: proceso terminado.','mut');
+  }
+
+  document.addEventListener('visibilitychange',()=>{
+    if(!keepAwakeRequested)return;
+    if(document.visibilityState==='visible'){
+      requestWakeLock();
+    }else{
+      wakeStatus('🟡 Página minimizada/oculta. El render puede continuar, pero Chrome puede reducir recursos. No suspendas la PC.','mut');
+    }
+  });
+
+  window.addEventListener('focus',()=>{
+    if(keepAwakeRequested)requestWakeLock();
+  });
+
+  window.documentalRequestWakeLock=requestWakeLock;
+  window.documentalReleaseWakeLock=releaseWakeLock;
+
+  async function parseTxt(file,{autoStart=false}={}){
+    const text=await file.text();
+    const clean=text.replace(/^\uFEFF/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+    const lines=clean.split('\n');
+    const first=lines.findIndex(x=>x.trim());
+    if(first<0)throw Error(`El archivo ${file.name} está vacío.`);
+
+    const title=lines[first].trim();
+    const script=lines.slice(first+1).join('\n').trim();
+    if(!script)throw Error(`El TXT ${file.name} tiene título, pero no guion después de la primera línea.`);
+
+    A('#videoTitle').value=title;
+    A('#downloadName').value=safeFileName(title);
+    A('#script').value=script;
+    window.documentalVideoTitle=title;
+    window.documentalDownloadName=safeFileName(title);
+
+    // Limpieza entre documentales para no reutilizar escenas o audio del anterior.
+    const scenesBox=A('#scenes'); if(scenesBox)scenesBox.innerHTML='';
+    window.documentalFactoryAudioBlob=null;
+    window.documentalFactoryAudioMeta=null;
+    if(window.documentalAutoCoverUrl){
+      try{URL.revokeObjectURL(window.documentalAutoCoverUrl);}catch{}
+      window.documentalAutoCoverUrl='';
+    }
+
+    resetSteps();
+    step('stepTxt','done','TXT leído');
+    ast(`TXT cargado: ${title}`,'ok');
+
+    const b=A('#autoCreate');if(b)b.disabled=false;
+    if(autoStart)setTimeout(()=>window.documentalAutoCreate?.(),200);
+    return {title,script};
+  }
+
+  let batchRunning=false;
+
+  function qstatus(text,cls='mut'){
+    const el=A('#queueStatus');
+    if(el){el.textContent=text;el.className='status '+cls;}
+  }
+
+  async function processTxtQueue(files){
+    if(batchRunning)return;
+    batchRunning=true;
+    await requestWakeLock();
+    const input=A('#txtFile');
+    const retry=A('#autoCreate');
+    if(input)input.disabled=true;
+    if(retry)retry.disabled=true;
+
+    const results=[];
+    try{
+      qstatus(`Cola preparada: ${files.length} archivo${files.length===1?'':'s'}. Cargando Alexander una sola vez…`,'ok');
+      await window.ensureAlexanderReady();
+      qstatus(`✅ Alexander V listo para toda la cola de ${files.length}.`,'ok');
+
+      for(let i=0;i<files.length;i++){
+        const file=files[i];
+        qstatus(`Procesando ${i+1} de ${files.length}: ${file.name}`);
+        const log=A('#liveLog');
+        if(log){
+          const t=new Date().toLocaleTimeString();
+          log.innerHTML+=`<div><b>${t} — ===== VIDEO ${i+1} DE ${files.length}: ${file.name} =====</b></div>`;
+          log.scrollTop=log.scrollHeight;
+        }
+
+        try{
+          await parseTxt(file,{autoStart:false});
+          const ok=await runCurrentDocument();
+          if(!ok)throw Error('El proceso no terminó correctamente.');
+          results.push({file:file.name,ok:true});
+          qstatus(`✅ ${i+1} de ${files.length} terminado. Preparando el siguiente…`,'ok');
+          await wait(600);
+        }catch(err){
+          console.error(err);
+          const msg=err?.message||String(err);
+          results.push({file:file.name,ok:false,error:msg});
+          ast(`❌ ${file.name}: ${msg}`,'err');
+          qstatus(`⚠️ ${file.name} falló. Continuando con el siguiente…`,'err');
+          await wait(800);
+        }
+      }
+
+      const good=results.filter(x=>x.ok).length;
+      const bad=results.length-good;
+      qstatus(`✅ Cola terminada: ${good} video${good===1?'':'s'} creado${good===1?'':'s'}${bad?` · ${bad} con error`:''}.`,bad?'err':'ok');
+      ast(`Cola finalizada: ${good}/${results.length} videos descargados${bad?` · ${bad} fallaron`:''}.`,bad?'err':'ok');
+    }finally{
+      batchRunning=false;
+      await releaseWakeLock();
+      if(input)input.disabled=false;
+      if(retry)retry.disabled=false;
+      // Permite volver a seleccionar los mismos archivos si se desea repetir.
+      if(input)input.value='';
+    }
+  }
+
+  A('#txtFile')?.addEventListener('change',async e=>{
+    try{
+      const files=[...(e.target.files||[])];
+      if(!files.length)return;
+      if(files.length>48)throw Error('Selecciona máximo 48 archivos TXT por tanda.');
+      const invalid=files.find(f=>!/\.txt$/i.test(f.name) && f.type!=='text/plain');
+      if(invalid)throw Error(`El archivo ${invalid.name} no es un TXT válido.`);
+      await processTxtQueue(files);
+    }catch(err){
+      ast('❌ '+(err?.message||err),'err');
+      qstatus('❌ '+(err?.message||err),'err');
+      step('stepTxt','err','Error');
+      if(e.target)e.target.value='';
+    }
+  });
+
+  async function makeScenes(){
+    step('stepScenes','active','Analizando y buscando clips');
+    ast('1/4 Groq crea escenas y prompts para IA…');
+    abar(10);
+    if(typeof window.documentalAnalyzeScenes!=='function')throw Error('Motor de escenas no disponible.');
+    await window.documentalAnalyzeScenes();
+    const scenes=[...document.querySelectorAll('#scenes .scene')];
+    if(!scenes.length)throw Error('No se generaron escenas.');
+    for(const el of scenes){
+      if(!el.dataset.clipUrl){
+        const v=el.querySelector('video');
+        if(v?.src)el.dataset.clipUrl=v.src;
+      }
+      if(!el.dataset.clipUrl)throw Error('Una escena terminó sin clip.');
+    }
+    step('stepScenes','done',`${scenes.length} escenas listas`);
+    abar(48);
+    return scenes;
+  }
+
+  async function makeVoice(){
+    step('stepVoice','active','Generando narración');
+    ast('2/4 Generando narración con Alexander V…');
+    abar(Math.max(22,parseFloat(A('#autoBar')?.style.width)||22));
+    window.documentalFactoryAudioBlob=null;
+    window.documentalFactoryAudioMeta=null;
+    if(window.documentalAutoCoverUrl){
+      try{URL.revokeObjectURL(window.documentalAutoCoverUrl);}catch{}
+      window.documentalAutoCoverUrl='';
+    }
+    if(typeof window.generateDocumentalVoice!=='function')throw Error('Motor Piper no disponible.');
+    await window.generateDocumentalVoice();
+    if(!window.documentalFactoryAudioBlob)throw Error('Piper terminó sin crear audio.');
+    step('stepVoice','done',`Voz lista${window.documentalFactoryAudioMeta?.seconds?' · '+window.documentalFactoryAudioMeta.seconds+' s':''}`);
+    abar(60);
+    return window.documentalFactoryAudioBlob;
+  }
+
+  async function renderFinal(){
+    step('stepRender','active','Renderizando MP4');
+    ast('3/4 FFmpeg está creando el video final con voz y música…');
+    abar(66);
+    if(typeof window.createDocumentalFinalVideo!=='function')throw Error('Motor FFmpeg no disponible.');
+    const ok=await window.createDocumentalFinalVideo();
+    if(ok!==true)throw Error('El render no confirmó que terminó correctamente.');
+    step('stepRender','done','MP4 terminado');
+    step('stepDone','done',window.documentalDownloadName||'Descargado');
+    abar(100);
+    ast('✅ Video terminado y descarga iniciada.','ok');
+  }
+
+  async function runCurrentDocument(){
+    const script=(A('#script')?.value||'').trim();
+    if(!script)throw Error('Primero sube un TXT.');
+    if(!(A('#groq')?.value||'').trim())throw Error('Falta Groq API.');
+
+    const voicePromise=makeVoice();
+    const scenesPromise=makeScenes();
+    await Promise.all([voicePromise,scenesPromise]);
+
+    ast('Voz y escenas listas. Iniciando render automáticamente…','ok');
+    await wait(200);
+    await renderFinal();
+    return true;
+  }
+
+  async function autoCreateAll(){
+    if(autoRunning || batchRunning)return false;
+    autoRunning=true;
+    await requestWakeLock();
+    const btn=A('#autoCreate'); if(btn)btn.disabled=true;
+
+    try{
+      return await runCurrentDocument();
+    }catch(err){
+      console.error(err);
+      const msg=err?.message||String(err);
+      ast('❌ '+msg,'err');
+      if(A('#stepVoice')?.classList.contains('active'))step('stepVoice','err','Error');
+      if(A('#stepScenes')?.classList.contains('active'))step('stepScenes','err','Error');
+      if(A('#stepRender')?.classList.contains('active'))step('stepRender','err','Error');
+      return false;
+    }finally{
+      autoRunning=false;
+      await releaseWakeLock();
+      if(btn)btn.disabled=false;
+    }
+  }
+
+  window.documentalAutoCreate=autoCreateAll;
+  A('#autoCreate')?.addEventListener('click',autoCreateAll);
+
+  // Keep advanced/manual controls visually out of the way, but never disable them.
+  window.addEventListener('load',()=>{
+    setTimeout(()=>{
+      [...document.querySelectorAll('button')].forEach(b=>{
+        const t=(b.textContent||'').toLowerCase();
+        if((t.includes('generar voz')) || (t.includes('crear y descargar video final'))){
+          b.classList.add('hiddenAuto');
+        }
+      });
+
+      const audio=A('#audio');if(audio)audio.classList.add('hiddenAuto');
+      const aa=A('#audioActions');if(aa)aa.classList.add('hiddenAuto');
+    },300);
+  });
+})();
+</script>
+
+
+
+<script>
+(()=>{
+  const V=id=>document.getElementById(id);
+  const sleepVideo=ms=>new Promise(r=>setTimeout(r,ms));
+  let videoAIRunning=false;
+  let currentVideoFile=null;
+  let currentVideoIndex=-1;
+  let currentVideoFiles=[];
+  let currentVideoObjectUrl=null;
+  let currentVideoPlan=null;
+
+  function vStatus(text,cls='mut'){
+    const el=V('videoAIStatus');
+    if(el){el.textContent=text;el.className='status '+cls;}
+    const log=V('liveLog');
+    if(log){
+      const t=new Date().toLocaleTimeString();
+      log.innerHTML+=`<div>${t} — 🎞️ ${String(text).replace(/</g,'&lt;')}</div>`;
+      log.scrollTop=log.scrollHeight;
+    }
+  }
+  function vBar(p){const el=V('videoAIBar');if(el)el.style.width=Math.max(0,Math.min(100,p))+'%';}
+
+  function queueRow(i,file,status='En espera',cls=''){
+    const root=V('videoAIQueue');
+    let row=root?.querySelector(`[data-index="${i}"]`);
+    if(!row && root){
+      row=document.createElement('div');
+      row.className='videoQueueItem';
+      row.dataset.index=String(i);
+      row.innerHTML=`<div class="num">${i+1}</div><div><b></b><small></small></div><span></span>`;
+      row.querySelector('b').textContent=file.name;
+      root.appendChild(row);
+    }
+    if(row){
+      row.className='videoQueueItem '+cls;
+      row.querySelector('small').textContent=status;
+      row.querySelector('span:last-child').textContent=cls==='ok'?'✅':cls==='err'?'❌':cls==='active'?'⚙️':'⏳';
+    }
+  }
+
+  function switchTab(which){
+    const txt=V('tabTxt');
+    if(txt)txt.style.display='block';
+  }
+
+  async function loadVideoMeta(file){
+    const url=URL.createObjectURL(file);
+    const video=document.createElement('video');
+    video.preload='metadata';
+    video.muted=true;
+    video.playsInline=true;
+    video.src=url;
+    await new Promise((resolve,reject)=>{
+      video.onloadedmetadata=resolve;
+      video.onerror=()=>reject(new Error('No pude leer el video '+file.name));
+    });
+    const meta={
+      url,video,
+      duration:Number(video.duration)||0,
+      width:Number(video.videoWidth)||0,
+      height:Number(video.videoHeight)||0
+    };
+    if(!meta.duration)throw new Error('No pude detectar la duración del video.');
+    return meta;
+  }
+
+  async function seekVideo(video,time){
+    const safe=Math.max(0,Math.min((video.duration||time)-0.05,time));
+    if(Math.abs((video.currentTime||0)-safe)<0.04)return;
+    await new Promise((resolve,reject)=>{
+      const done=()=>{cleanup();resolve();};
+      const fail=()=>{cleanup();reject(new Error('No pude extraer un fotograma del video.'));};
+      const cleanup=()=>{video.removeEventListener('seeked',done);video.removeEventListener('error',fail);};
+      video.addEventListener('seeked',done,{once:true});
+      video.addEventListener('error',fail,{once:true});
+      video.currentTime=safe;
+    });
+  }
+
+  async function extractVisionFrames(meta){
+    const video=meta.video;
+    const duration=Math.max(1,Number(meta.duration)||1);
+
+    // PASS 1: scan the WHOLE video on a lightweight grid.
+    // Short videos are sampled more densely; long videos remain bounded.
+    const scanCount=Math.max(18,Math.min(72,Math.ceil(duration/1.5)));
+    const samples=[];
+
+    function signatureFromCanvas(canvas){
+      // 12x12 luminance signature, enough to detect meaningful visual changes.
+      const sw=12, sh=12;
+      const tiny=document.createElement('canvas');
+      tiny.width=sw; tiny.height=sh;
+      const tctx=tiny.getContext('2d',{willReadFrequently:true});
+      tctx.drawImage(canvas,0,0,sw,sh);
+      const d=tctx.getImageData(0,0,sw,sh).data;
+      const sig=new Float32Array(sw*sh);
+      for(let i=0,j=0;i<d.length;i+=4,j++){
+        sig[j]=(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2])/255;
+      }
+      return sig;
+    }
+
+    function sigDiff(a,b){
+      if(!a||!b||a.length!==b.length)return 1;
+      let sum=0;
+      for(let i=0;i<a.length;i++)sum+=Math.abs(a[i]-b[i]);
+      return sum/a.length;
+    }
+
+    for(let i=0;i<scanCount;i++){
+      const ratio=scanCount===1?0.5:i/(scanCount-1);
+      const time=Math.max(0.08,Math.min(duration-0.08,duration*ratio));
+      vStatus(`Escaneando video completo ${i+1}/${scanCount} · ${time.toFixed(1)} s…`);
+      await seekVideo(video,time);
+
+      const maxW=240;
+      const aspect=(video.videoHeight||1280)/(video.videoWidth||720);
+      const w=Math.min(maxW,video.videoWidth||maxW);
+      const h=Math.max(120,Math.round(w*aspect));
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(video,0,0,w,h);
+
+      samples.push({
+        time,
+        signature:signatureFromCanvas(canvas)
+      });
+    }
+
+    // PASS 2: score scene changes.
+    for(let i=0;i<samples.length;i++){
+      samples[i].change=i===0?1:sigDiff(samples[i-1].signature,samples[i].signature);
+    }
+
+    // Choose a bounded number of representative frames.
+    // We keep chronological coverage AND prioritize strong visual changes.
+    const target=6;
+    const selected=new Set([0,samples.length-1]);
+
+    // Uniform anchors guarantee that no long section of the video is ignored.
+    const uniformCount=4;
+    for(let k=0;k<uniformCount;k++){
+      const idx=Math.round(k*(samples.length-1)/Math.max(1,uniformCount-1));
+      selected.add(idx);
+    }
+
+    // Fill remaining slots with the strongest scene changes.
+    const ranked=samples
+      .map((s,i)=>({i,score:s.change}))
+      .sort((a,b)=>b.score-a.score);
+
+    for(const r of ranked){
+      if(selected.size>=target)break;
+      // Avoid selecting almost-identical neighboring samples unless necessary.
+      const tooClose=[...selected].some(x=>Math.abs(x-r.i)<2);
+      if(!tooClose)selected.add(r.i);
+    }
+    for(const r of ranked){
+      if(selected.size>=target)break;
+      selected.add(r.i);
+    }
+
+    const indices=[...selected].sort((a,b)=>a-b);
+    const frames=[];
+
+    // PASS 3: recapture selected frames at higher quality for Groq Vision.
+    for(let j=0;j<indices.length;j++){
+      const s=samples[indices[j]];
+      vStatus(`Preparando fotograma inteligente ${j+1}/${indices.length} · ${s.time.toFixed(1)} s…`);
+      await seekVideo(video,s.time);
+
+      const maxW=220;
+      const aspect=(video.videoHeight||1280)/(video.videoWidth||720);
+      const w=Math.min(maxW,video.videoWidth||maxW);
+      const h=Math.max(180,Math.round(w*aspect));
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(video,0,0,w,h);
+
+      frames.push({
+        time:s.time,
+        image:canvas.toDataURL('image/jpeg',0.52),
+        change:s.change
+      });
+    }
+
+    vStatus(`✅ Video completo escaneado: ${scanCount} puntos · ${frames.length} momentos clave locales.`);
+    return frames;
+  }
+  function sleepMs(ms){return new Promise(r=>setTimeout(r,ms));}
+
+  function retrySecondsFromGroq(text){
+    const s=String(text||'');
+    let m=s.match(/try again in\s+([0-9.]+)s/i);
+    if(m)return Math.max(2,Math.ceil(Number(m[1])));
+    m=s.match(/retry[-_ ]?after[^0-9]*([0-9.]+)/i);
+    if(m)return Math.max(2,Math.ceil(Number(m[1])));
+    return 60;
+  }
+
+  async function groqFetchWith429Retry(url,options,label,maxRetries=4){
+    let lastText='';
+    for(let attempt=0;attempt<=maxRetries;attempt++){
+      const r=await fetch(url,options);
+      const raw=await r.text();
+      if(r.status!==429){
+        return {response:r,raw};
+      }
+
+      lastText=raw;
+
+      // When maxRetries=0 (used by Free/Economic Vision), return the 429
+      // immediately so the caller can activate the no-wait local fallback.
+      if(maxRetries===0){
+        return {response:r,raw};
+      }
+
+      if(attempt>=maxRetries)break;
+
+      const wait=retrySecondsFromGroq(raw)+2;
+      for(let left=wait;left>0;left--){
+        vStatus(`⏳ Límite temporal de Groq en ${label}. Reintentando en ${left}s…`);
+        await sleepMs(1000);
+      }
+    }
+
+    throw new Error(`${label} 429: ${lastText.slice(0,500)}`);
+  }
+
+  function parseLooseJson(text){
+    const raw=String(text||'').trim();
+    if(!raw)throw new Error('respuesta vacía');
+
+    try{return JSON.parse(raw);}catch(_){}
+
+    const fenced=raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if(fenced){
+      try{return JSON.parse(fenced[1].trim());}catch(_){}
+    }
+
+    const start=raw.indexOf('{');
+    if(start>=0){
+      let depth=0,inStr=false,esc=false;
+      for(let i=start;i<raw.length;i++){
+        const ch=raw[i];
+        if(inStr){
+          if(esc){esc=false;continue;}
+          if(ch==='\\'){esc=true;continue;}
+          if(ch==='"')inStr=false;
+          continue;
+        }
+        if(ch==='"'){inStr=true;continue;}
+        if(ch==='{')depth++;
+        else if(ch==='}'){
+          depth--;
+          if(depth===0){
+            const candidate=raw.slice(start,i+1);
+            try{return JSON.parse(candidate);}catch(_){}
+            break;
+          }
+        }
+      }
+    }
+    throw new Error('JSON inválido');
+  }
+
+  async function buildVisionContactSheet(frames){
+    // 6 local keyframes -> ONE compact image sent to Groq.
+    // This preserves a chronological overview while using only one Vision image/request.
+    const chosen=frames.slice(0,6);
+    const cols=2, rows=Math.ceil(chosen.length/cols);
+    const cellW=240, cellH=230;
+    const canvas=document.createElement('canvas');
+    canvas.width=cols*cellW;
+    canvas.height=rows*cellH;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#111';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    for(let i=0;i<chosen.length;i++){
+      const f=chosen[i];
+      const img=new Image();
+      await new Promise((resolve,reject)=>{
+        img.onload=resolve; img.onerror=reject; img.src=f.image;
+      });
+      const x=(i%cols)*cellW, y=Math.floor(i/cols)*cellH;
+      const labelH=26;
+      const availH=cellH-labelH;
+      const scale=Math.max(cellW/img.width,availH/img.height);
+      const dw=img.width*scale, dh=img.height*scale;
+      const dx=x+(cellW-dw)/2, dy=y+labelH+(availH-dh)/2;
+      ctx.save();
+      ctx.beginPath();ctx.rect(x,y+labelH,cellW,availH);ctx.clip();
+      ctx.drawImage(img,dx,dy,dw,dh);
+      ctx.restore();
+
+      ctx.fillStyle='#111';ctx.fillRect(x,y,cellW,labelH);
+      ctx.fillStyle='#fff';ctx.font='bold 15px sans-serif';
+      ctx.fillText(`${i+1} · ${Number(f.time).toFixed(1)} s`,x+8,y+18);
+    }
+    return {
+      image:canvas.toDataURL('image/jpeg',0.55),
+      frames:chosen
+    };
+  }
+
+
+  function simpleHash(str){
+    let h=2166136261>>>0;
+    for(let i=0;i<str.length;i++){
+      h^=str.charCodeAt(i);
+      h=Math.imul(h,16777619)>>>0;
+    }
+    return h.toString(16).padStart(8,'0');
+  }
+
+  function visionCacheKey(file,meta){
+    const raw=[
+      file?.name||'',
+      Number(file?.size||0),
+      Number(file?.lastModified||0),
+      Number(meta?.duration||0).toFixed(3)
+    ].join('|');
+    return 'documentalVisionAnalysis_v81_'+simpleHash(raw);
+  }
+
+  function isUsableVisionAnalysis(a){
+    const tl=Array.isArray(a?.timeline)?a.timeline:[];
+    if(tl.length<3)return false;
+    const meaningful=tl.filter(x=>{
+      const s=String(x?.visible||x?.action||'').trim();
+      return s && !/momento clave detectado localmente|fotograma verificado del video original/i.test(s);
+    });
+    return meaningful.length>=Math.min(3,tl.length);
+  }
+
+  function loadVisionCache(file,meta){
+    try{
+      const raw=localStorage.getItem(visionCacheKey(file,meta));
+      if(!raw)return null;
+      const a=JSON.parse(raw);
+      return isUsableVisionAnalysis(a)?a:null;
+    }catch(_){return null;}
+  }
+
+  function saveVisionCache(file,meta,analysis){
+    if(!isUsableVisionAnalysis(analysis))return;
+    try{
+      localStorage.setItem(
+        visionCacheKey(file,meta),
+        JSON.stringify({...analysis,_cachedAt:Date.now()})
+      );
+    }catch(_){}
+  }
+
+  async function groqVisionAnalyze(frames,fileName,meta){
+    const key=(V('groq')?.value||'').trim();
+    if(!key)throw new Error('Falta Groq API. Guárdala primero en la pestaña TXT.');
+
+    vStatus('Groq Vision económico: preparando 1 sola imagen resumen…');
+    const sheet=await buildVisionContactSheet(frames);
+    const times=sheet.frames.map((f,i)=>`${i+1}=${Number(f.time).toFixed(1)}s`).join(', ');
+
+    const content=[
+      {
+        type:'text',
+        text:`Esta es UNA hoja de contacto cronológica de un mismo video.
+Cada recuadro está numerado y muestra su segundo real.
+TIEMPOS: ${times}
+ARCHIVO: "${fileName}"
+DURACIÓN: ${meta.duration.toFixed(1)} s
+
+Describe SOLO lo visible. Devuelve exactamente una línea por recuadro:
+FRAME|numero|descripcion visible|accion visible
+Al final, si hace falta:
+UNKNOWN|detalle no confirmado
+
+REGLAS:
+- Español neutro.
+- No inventes diagnósticos, tratamientos, familiares, lugares, fechas ni emociones.
+- Si no conoces el rol de una persona, di "una persona".
+- Máximo ${sheet.frames.length} líneas FRAME.
+- No uses JSON ni markdown.`
+      },
+      {type:'image_url',image_url:{url:sheet.image}}
+    ];
+
+    const req=await groqFetchWith429Retry(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+        body:JSON.stringify({
+          model:'qwen/qwen3.6-27b',
+          messages:[{role:'user',content}],
+          reasoning_effort:'none',
+          temperature:0.1,
+          max_tokens:380
+        })
+      },
+      'Groq Vision económico',
+      0
+    );
+
+    // IMPORTANT for free use: never wait 55 seconds / 12 minutes.
+    // If the free Vision quota is exhausted, continue immediately with local timestamps.
+    if(!req.response.ok){
+      if(req.response.status===429){
+        const err=new Error('Groq Vision agotó la cuota gratuita y este video todavía no tiene un análisis visual guardado. Se omite para evitar crear escenas que no coincidan con la narración.');
+        err.code='VISION_QUOTA_NO_CACHE';
+        throw err;
+      }
+      throw new Error(`Groq Vision ${req.response.status}: ${req.raw.slice(0,500)}`);
+    }
+
+    const data=JSON.parse(req.raw);
+    const txt=String(data?.choices?.[0]?.message?.content||'');
+    const rows=[], unknowns=[];
+    for(const rawLine of txt.split(/\r?\n/)){
+      const line=rawLine.trim();
+      if(/^FRAME\|/i.test(line) && rows.length<sheet.frames.length){
+        const parts=line.split('|');
+        if(parts.length>=4){
+          rows.push({
+            visible:parts[2].trim(),
+            action:parts.slice(3).join('|').trim()
+          });
+        }
+      }else if(/^UNKNOWN\|/i.test(line)){
+        const d=line.replace(/^UNKNOWN\|/i,'').trim();
+        if(d)unknowns.push(d);
+      }
+    }
+
+    const timeline=sheet.frames.map((f,i)=>({
+      frame:i+1,
+      time:Number(f.time)||0, // browser timestamp is authoritative
+      visible:rows[i]?.visible||'Momento clave verificado del video original',
+      action:rows[i]?.action||''
+    }));
+
+    // No extra Groq "summary" call: build a compact summary locally.
+    // This saves another API request/tokens for every video.
+    const descriptions=timeline
+      .map(x=>[x.visible,x.action].filter(Boolean).join('. '))
+      .filter(Boolean);
+    return {
+      subject:timeline[0]?.visible||'Contenido principal del video',
+      environment:'Entorno mostrado en los fotogramas clave',
+      timeline,
+      verified_summary:descriptions.join(' ').slice(0,1800),
+      unknowns:[...new Set(unknowns)]
+    };
+  }
+  function targetSceneCount(seconds){return Math.max(10,Math.min(26,Math.round(seconds/7)));}
+  function targetWords(seconds){return Math.round(seconds*3.0);}
+  function stockRatioFor(targetSeconds,sourceSeconds){
+    // v8.1: 100% original transformed video in Video→Guion IA.
+    // This avoids unrelated stock and is faster to render/download.
+    return 0;
+  }
+
+
+  function normalizeVideoPlanScenes(plan,targetCount){
+    if(!plan || !Array.isArray(plan.scenes))return plan;
+
+    let arr=plan.scenes.filter(Boolean).map((s,i)=>({
+      narration:String(s?.narration||'').trim(),
+      source:String(s?.source||'original').toLowerCase()==='stock'?'stock':'original',
+      queries:Array.isArray(s?.queries)?s.queries.filter(Boolean).map(String).slice(0,5):[]
+    }));
+
+    // Always keep exactly 5 fallback/search queries so the later stock logic is stable.
+    arr=arr.map((s,i)=>{
+      while(s.queries.length<5){
+        const base=s.queries[0]||`documentary subject scene ${i+1}`;
+        s.queries.push(base);
+      }
+      return s;
+    });
+
+    // Too many scenes: trim safely.
+    if(arr.length>targetCount){
+      arr=arr.slice(0,targetCount);
+    }
+
+    // Too few scenes: split the longest narration until we reach the target.
+    while(arr.length<targetCount && arr.length){
+      let idx=0;
+      for(let i=1;i<arr.length;i++){
+        if(arr[i].narration.length>arr[idx].narration.length)idx=i;
+      }
+      const s=arr[idx];
+      const words=s.narration.split(/\s+/).filter(Boolean);
+
+      if(words.length>=8){
+        const mid=Math.max(4,Math.floor(words.length/2));
+        const a={...s,narration:words.slice(0,mid).join(' ')};
+        const b={...s,narration:words.slice(mid).join(' ')};
+        arr.splice(idx,1,a,b);
+      }else{
+        const clone={...s,narration:s.narration};
+        arr.splice(idx+1,0,clone);
+      }
+    }
+
+    // Absolute fallback in the unlikely case the model returned zero usable scenes.
+    if(!arr.length){
+      arr=[{
+        narration:'Observa con atención lo que está ocurriendo.',
+        source:'original',
+        queries:[
+          'documentary subject close up',
+          'documentary subject natural environment',
+          'documentary action detail',
+          'cinematic documentary scene',
+          'vertical documentary footage'
+        ]
+      }];
+      while(arr.length<targetCount)arr.push({...arr[0]});
+    }
+
+    plan.scenes=arr.slice(0,targetCount);
+    return plan;
+  }
+
+  async function groqBuildVideoPlan(analysis,fileName,targetSeconds,style,sourceSeconds,wordsOverride=null){
+    const key=(V('groq')?.value||'').trim();
+    if(!key)throw new Error('Falta Groq API.');
+
+    const scenes=targetSceneCount(targetSeconds);
+    const words=Math.max(80,Math.round(Number(wordsOverride)||targetWords(targetSeconds)));
+    const stockRatio=stockRatioFor(targetSeconds,sourceSeconds);
+    const stockCount=Math.max(0,Math.round(scenes*stockRatio));
+
+    const timeline=Array.isArray(analysis.timeline)?analysis.timeline:[];
+    const verified=JSON.stringify({
+      subject:analysis.subject||'',
+      environment:analysis.environment||'',
+      timeline,
+      verified_summary:analysis.verified_summary||'',
+      unknowns:analysis.unknowns||[]
+    });
+
+    const prompt=`Eres guionista y editor profesional de videos verticales.
+Debes escribir una narración NUEVA pero VISUALMENTE FIEL al material analizado. TODO el título y toda la narración deben estar en ESPAÑOL NEUTRO, aunque el archivo o el análisis estén en inglés.
+
+HECHOS VISUALES VERIFICADOS:
+${verified}
+
+ARCHIVO: ${fileName}
+DURACIÓN ORIGINAL: ${sourceSeconds.toFixed(1)} s
+DURACIÓN FINAL DESEADA: ${targetSeconds} s
+ESTILO: ${style}
+PALABRAS OBJETIVO: ${words} palabras. Mantente entre ${Math.round(words*0.97)} y ${Math.round(words*1.03)} palabras.
+ESCENAS OBJETIVO: ${scenes}
+CLIPS COMPLEMENTARIOS APROX.: ${stockCount}
+
+RESPONDE SOLO con texto estructurado, SIN JSON y SIN markdown, usando exactamente este formato:
+
+TITLE|Título en español
+
+SCENE
+SOURCE|original
+TIME|12.5
+NARRATION|Narración de esta escena en español neutro y en una sola línea.
+QUERY1|english search query
+QUERY2|english search query
+QUERY3|english search query
+QUERY4|english search query
+QUERY5|english search query
+ENDSCENE
+
+Repite el bloque SCENE hasta completar el video.
+
+REGLAS CRÍTICAS:
+- No inventes acontecimientos.
+- Cada escena "original" DEBE corresponder a un elemento de timeline y usar EXACTAMENTE uno de los segundos reales listados en timeline.
+- NO inventes segundos intermedios. TIME debe copiar uno de los valores time de la timeline verificada.
+- sourceTime debe ser un número entre 0 y ${sourceSeconds.toFixed(1)}.
+- Si narras que una pata es atendida, sourceTime debe apuntar a un fotograma donde eso realmente aparece.
+- Si narras que el animal está relajado en casa, sourceTime debe apuntar al momento correspondiente.
+- NO agregues inyecciones, medicamentos, vendas, férulas, dietas, jaulas, snacks, revisiones, fotos familiares, despedidas ni otras acciones si NO aparecen en timeline.
+- Para alargar el video, amplía la narración con observaciones del proceso visible, contexto general no específico y transiciones; NO agregues eventos nuevos.
+- Reparte el texto entre las escenas para alcanzar el objetivo total de palabras. No hagas escenas de una sola frase demasiado corta.
+- Usa "stock" únicamente cuando sea imposible ilustrar esa frase con el video original. Prioriza SIEMPRE el video original sincronizado.
+- Nunca uses stock para fingir que ocurrió una acción que no está verificada.
+- Para todas las escenas genera EXACTAMENTE 5 búsquedas EN INGLÉS.
+- Máximo ${stockCount} escenas pueden ser stock. Si el video original sirve, usa original.
+- No más de 2 escenas stock consecutivas.
+- El título también debe evitar afirmar detalles no verificados.\n- IDIOMA OBLIGATORIO: título y NARRATION siempre en ESPAÑOL NEUTRO. QUERY1 a QUERY5 siempre en INGLÉS.`;
+
+    const scriptReq=await groqFetchWith429Retry(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+        body:JSON.stringify({
+          model:'openai/gpt-oss-20b',
+          messages:[
+            {
+              role:'system',
+              content:'Escribe únicamente en español neutro para título y narración. Devuelve solo el formato TITLE/SCENE indicado por el usuario. No uses JSON ni markdown. Las QUERY deben estar en inglés. Respeta el objetivo total de palabras solo si existe información visual suficiente. PROHIBIDO repetir frases, ideas o eventos para alcanzar la duración. Cada hecho visible se narra una sola vez. No agregues escenas de relleno ni hechos no verificados. Si faltan hechos verificados, entrega un guion más corto antes que repetir o inventar.'
+            },
+            {role:'user',content:prompt}
+          ],
+          temperature:0.16,
+          reasoning_effort:'low',
+          reasoning_format:'hidden',
+          max_tokens:6500
+        })
+      },
+      'Groq guion',
+      4
+    );
+
+    const r=scriptReq.response;
+    const raw=scriptReq.raw;
+    if(!r.ok){
+      let detail=raw.slice(0,500);
+      try{detail=JSON.parse(raw)?.error?.message||detail;}catch(_){}
+      throw new Error(`Groq guion ${r.status}: ${detail}`);
+    }
+
+    const data=JSON.parse(raw);
+    const txt=String(data?.choices?.[0]?.message?.content||'').trim();
+
+    function parseScriptPlan(text){
+      const lines=String(text||'').replace(/\r/g,'').split('\n');
+      let title='';
+      const scenesOut=[];
+      let cur=null;
+
+      const flush=()=>{
+        if(!cur)return;
+        const narration=String(cur.narration||'').trim();
+        if(narration){
+          while(cur.queries.length<5){
+            const base=cur.queries[0]||'documentary animal footage';
+            cur.queries.push(base);
+          }
+          scenesOut.push({
+            narration,
+            source:String(cur.source||'original').toLowerCase()==='stock'?'stock':'original',
+            sourceTime:Number(cur.sourceTime)||0,
+            queries:cur.queries.slice(0,5)
+          });
+        }
+        cur=null;
+      };
+
+      for(const rawLine of lines){
+        const line=rawLine.trim();
+        if(!line)continue;
+
+        if(/^TITLE\|/i.test(line)){
+          title=line.replace(/^TITLE\|/i,'').trim();
+          continue;
+        }
+        if(/^SCENE$/i.test(line)){
+          flush();
+          cur={source:'original',sourceTime:0,narration:'',queries:[]};
+          continue;
+        }
+        if(/^ENDSCENE$/i.test(line)){
+          flush();
+          continue;
+        }
+        if(!cur)continue;
+
+        if(/^SOURCE\|/i.test(line)){
+          cur.source=line.replace(/^SOURCE\|/i,'').trim();
+        }else if(/^TIME\|/i.test(line)){
+          cur.sourceTime=Number(line.replace(/^TIME\|/i,'').trim())||0;
+        }else if(/^NARRATION\|/i.test(line)){
+          cur.narration=line.replace(/^NARRATION\|/i,'').trim();
+        }else if(/^QUERY[1-5]\|/i.test(line)){
+          const q=line.replace(/^QUERY[1-5]\|/i,'').trim();
+          if(q)cur.queries.push(q);
+        }
+      }
+      flush();
+
+      return {title:title||'Documental',scenes:scenesOut};
+    }
+
+    let plan=parseScriptPlan(txt);
+
+    // If the model ignored the requested plain-text structure, normalize it once.
+    if(!Array.isArray(plan.scenes) || !plan.scenes.length){
+      vStatus('Normalizando formato del guion…');
+
+      const normalizeReq=await groqFetchWith429Retry(
+        'https://api.groq.com/openai/v1/chat/completions',
+        {
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+          body:JSON.stringify({
+            model:'openai/gpt-oss-20b',
+            messages:[
+              {
+                role:'system',
+                content:'Convierte el texto a este formato exacto sin JSON ni markdown: TITLE|... seguido de bloques SCENE, SOURCE|original o stock, TIME|número, NARRATION|texto en español neutro, QUERY1..QUERY5 en inglés, ENDSCENE.'
+              },
+              {role:'user',content:txt}
+            ],
+            temperature:0,
+            max_tokens:6500
+          })
+        },
+        'Normalización guion',
+        3
+      );
+
+      if(normalizeReq.response.ok){
+        const nd=JSON.parse(normalizeReq.raw);
+        const nt=String(nd?.choices?.[0]?.message?.content||'').trim();
+        plan=parseScriptPlan(nt);
+      }
+    }
+
+    if(!Array.isArray(plan.scenes) || !plan.scenes.length){
+      throw new Error('Groq no devolvió escenas utilizables para el guion.');
+    }
+
+    // Normalize locally, but preserve verified sourceTime values.
+    if(plan.scenes.length>120)plan.scenes=plan.scenes.slice(0,120);
+
+    const verifiedTimes=timeline
+      .map(x=>Number(x?.time))
+      .filter(Number.isFinite)
+      .sort((a,b)=>a-b);
+
+    const snapVerifiedTime=(value)=>{
+      const wanted=Math.max(0,Math.min(sourceSeconds,Number(value)||0));
+      if(!verifiedTimes.length)return wanted;
+      let best=verifiedTimes[0],dist=Math.abs(best-wanted);
+      for(const t of verifiedTimes){
+        const d=Math.abs(t-wanted);
+        if(d<dist){best=t;dist=d;}
+      }
+      return best;
+    };
+
+    plan.scenes=plan.scenes.map((s,i)=>({
+      narration:String(s?.narration||'').trim(),
+      source:'original',
+      sourceTime:snapVerifiedTime(s?.sourceTime),
+      queries:Array.isArray(s?.queries)?s.queries.filter(Boolean).map(String).slice(0,5):[]
+    }));
+
+    plan.scenes.forEach((s,i)=>{
+      while(s.queries.length<5){
+        const base=s.queries[0]||`documentary animal scene ${i+1}`;
+        s.queries.push(base);
+      }
+    });
+
+    // Normalize to the target scene count WITHOUT throwing away narration.
+    // If there are too many scenes, merge the closest adjacent pair.
+    while(plan.scenes.length>scenes && plan.scenes.length>1){
+      let best=0;
+      let bestScore=Infinity;
+      for(let i=0;i<plan.scenes.length-1;i++){
+        const a=plan.scenes[i], b=plan.scenes[i+1];
+        const score=(a.narration.length+b.narration.length)
+          + (a.source===b.source?0:1000);
+        if(score<bestScore){bestScore=score;best=i;}
+      }
+      const a=plan.scenes[best], b=plan.scenes[best+1];
+      const merged={
+        narration:[a.narration,b.narration].filter(Boolean).join(' ').trim(),
+        source:a.source===b.source?a.source:'original',
+        sourceTime:Math.min(
+          Number.isFinite(Number(a.sourceTime))?Number(a.sourceTime):0,
+          Number.isFinite(Number(b.sourceTime))?Number(b.sourceTime):0
+        ),
+        queries:[...(a.queries||[]),...(b.queries||[])].filter(Boolean).slice(0,5)
+      };
+      while(merged.queries.length<5){
+        merged.queries.push(merged.queries[0]||'documentary animal scene');
+      }
+      plan.scenes.splice(best,2,merged);
+    }
+
+    // If there are too few scenes, split long narration without inventing events.
+    while(plan.scenes.length<scenes && plan.scenes.length){
+      let idx=0;
+      for(let i=1;i<plan.scenes.length;i++){
+        if(plan.scenes[i].narration.length>plan.scenes[idx].narration.length)idx=i;
+      }
+      const s=plan.scenes[idx];
+      const words2=s.narration.split(/\s+/).filter(Boolean);
+      if(words2.length>=8){
+        const mid=Math.max(4,Math.floor(words2.length/2));
+        const a={...s,narration:words2.slice(0,mid).join(' ')};
+        const b={...s,narration:words2.slice(mid).join(' ')};
+        plan.scenes.splice(idx,1,a,b);
+      }else{
+        plan.scenes.splice(idx+1,0,{...s});
+      }
+    }
+
+    plan.scenes=plan.scenes.slice(0,scenes);
+    return plan;
+  }
+  function transformForScene(i){
+    const zooms=[1.04,1.10,1.07,1.14,1.02,1.12,1.06,1.16];
+    const speeds=[0.96,1.04,1.00,1.07,0.94,1.02,1.08,0.98];
+    const pans=[
+      [0.50,0.50],[0.18,0.45],[0.82,0.48],[0.35,0.25],
+      [0.65,0.72],[0.25,0.70],[0.75,0.28],[0.50,0.62]
+    ];
+    const p=pans[i%pans.length];
+    return {zoom:zooms[i%zooms.length],speed:speeds[i%speeds.length],panX:p[0],panY:p[1]};
+  }
+
+  function originalStartForScene(originalIndex,totalOriginalScenes,duration){
+    const usable=Math.max(0,duration-6.2);
+    if(usable<=0)return 0;
+    // Golden-ratio distribution avoids repeatedly starting at the same point.
+    const phase=(originalIndex*0.61803398875 + (originalIndex%3)*0.071)%1;
+    let start=phase*usable;
+    // For the first few original scenes, force broad temporal coverage.
+    if(totalOriginalScenes>1 && originalIndex<Math.min(totalOriginalScenes,5)){
+      start=(originalIndex/Math.max(1,Math.min(totalOriginalScenes,5)-1))*usable;
+    }
+    return Math.max(0,start);
+  }
+
+  async function buildSceneCardsFromVideoPlan(plan,meta){
+    const root=V('scenes');
+    root.innerHTML='';
+    window.documentalResetClipSearch?.();
+
+    const planScenes=plan.scenes||[];
+    const originalScenes=planScenes.filter(s=>(s.source||'original')!=='stock');
+    let originalIndex=0;
+    const sourceTimeUseCount=new Map();
+
+    for(let i=0;i<planScenes.length;i++){
+      const s=planScenes[i]||{};
+      const narration=String(s.narration||'').trim();
+      const isStock=String(s.source||'original').toLowerCase()==='stock';
+      const art=document.createElement('article');
+      art.className='scene';
+      art.dataset.narration=narration;
+      art.dataset.searchAttempt='0';
+
+      let clip=null;
+      let provider='';
+      let search='';
+
+      if(isStock){
+        const qs=Array.isArray(s.queries)?s.queries.filter(Boolean).slice(0,5):[];
+        const sceneData={narration,query:qs[0]||'',queries:qs};
+        clip=await window.documentalClipForScene?.(sceneData,0);
+        if(clip){
+          art.dataset.clipUrl=clip.url;
+          art.dataset.clipKey=clip.clipKey||'';
+
+          // If the external CDN blocks browser fetch/CORS during render,
+          // fall back automatically to the uploaded video instead of aborting the documentary.
+          art.dataset.fallbackUrl=meta.url;
+          art.dataset.fallbackStart=Math.max(
+            0,
+            Math.min(meta.duration-0.2,Number(s.sourceTime)||0)
+          ).toFixed(3);
+
+          provider=clip.provider||'Stock';
+          search=clip.search||qs[0]||'';
+        }else{
+          // Never leave a scene empty: fall back to transformed original.
+          art.dataset.clipUrl=meta.url;
+          provider='Video original transformado (fallback)';
+          const t=transformForScene(i);
+          Object.assign(art.dataset,{zoom:t.zoom,speed:t.speed,panX:t.panX,panY:t.panY});
+          art.dataset.start=Math.max(0,Math.min(meta.duration-0.2,Number(s.sourceTime)||0));
+          originalIndex++;
+        }
+      }else{
+        art.dataset.clipUrl=meta.url;
+        provider='Video original sincronizado';
+        const t=transformForScene(i);
+        Object.assign(art.dataset,{zoom:t.zoom,speed:t.speed,panX:t.panX,panY:t.panY});
+
+        // Use the exact verified sourceTime selected for THIS narration.
+        // Previous versions ignored sourceTime here, causing narration/visual mismatch.
+        const baseTime=Math.max(
+          0,
+          Math.min(Math.max(0,meta.duration-0.20),Number(s.sourceTime)||0)
+        );
+        const key=baseTime.toFixed(1);
+        const used=sourceTimeUseCount.get(key)||0;
+        sourceTimeUseCount.set(key,used+1);
+
+        // If several narration fragments refer to the same verified event,
+        // move within a very small nearby window instead of showing the exact same frame repeatedly.
+        const offsets=[0,0.8,-0.6,1.4,-1.1,2.0];
+        const verifiedStart=Math.max(
+          0,
+          Math.min(Math.max(0,meta.duration-0.20),baseTime+(offsets[used%offsets.length]||0))
+        );
+        art.dataset.start=verifiedStart.toFixed(3);
+        originalIndex++;
+      }
+
+      if(!art.dataset.zoom){
+        const t=transformForScene(i);
+        Object.assign(art.dataset,{zoom:t.zoom,speed:t.speed,panX:t.panX,panY:t.panY});
+      }
+
+      art.innerHTML=`<div class="media">${art.dataset.clipUrl?`<video muted loop controls playsinline src="${art.dataset.clipUrl}"></video>`:'<span class="err">Sin clip</span>'}</div>
+        <div class="body">
+          <b>ESCENA ${i+1}</b>
+          <p class="narr"></p>
+          <p class="q"></p>
+          <p class="provider"></p>
+        </div>`;
+      art.querySelector('.narr').textContent=narration;
+      art.querySelector('.q').textContent=isStock ? ('🔎 '+(search||'clip complementario')) : `✂️ Recorte ${Number(art.dataset.start||0).toFixed(1)} s · zoom ${Number(art.dataset.zoom||1).toFixed(2)}x · velocidad ${Number(art.dataset.speed||1).toFixed(2)}x`;
+      art.querySelector('.provider').textContent='Fuente: '+provider;
+      root.appendChild(art);
+
+      vStatus(`Preparando escenas: ${i+1} de ${planScenes.length}…`);
+      vBar(30+Math.round((i/Math.max(1,planScenes.length))*25));
+    }
+  }
+
+
+
+  function cleanNarrationRepeats(text){
+    let tokens=String(text||'').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);
+    const norm=t=>String(t||'').toLowerCase().normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'').replace(/[^\p{L}\p{N}]+/gu,'');
+
+    // Remove immediately repeated word groups such as:
+    // "brindándole consuelo ... vínculo humano-animal" repeated many times.
+    let changed=true, guard=0;
+    while(changed && guard++<12){
+      changed=false;
+      outer:
+      for(let i=0;i<tokens.length;i++){
+        const maxLen=Math.min(24,Math.floor((tokens.length-i)/2));
+        for(let len=maxLen;len>=3;len--){
+          let same=true;
+          for(let k=0;k<len;k++){
+            if(norm(tokens[i+k])!==norm(tokens[i+len+k])){same=false;break;}
+          }
+          if(same){
+            tokens.splice(i+len,len);
+            changed=true;
+            break outer;
+          }
+        }
+      }
+    }
+
+    let out=tokens.join(' ').replace(/\s+([,.;:!?])/g,'$1');
+
+    // Remove exact repeated sentences, even when they are separated.
+    const pieces=out.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[out];
+    const seen=new Set(), kept=[];
+    for(const piece of pieces){
+      const key=piece.toLowerCase().normalize('NFD')
+        .replace(/[\u0300-\u036f]/g,'')
+        .replace(/[^\p{L}\p{N}\s]/gu,'')
+        .replace(/\s+/g,' ').trim();
+      if(!key || seen.has(key))continue;
+      seen.add(key);
+      kept.push(piece.trim());
+    }
+    return kept.join(' ').replace(/\s+/g,' ').trim();
+  }
+
+  function sanitizePlanNarration(plan){
+    const scenes=Array.isArray(plan?.scenes)?plan.scenes:[];
+    const seenGlobal=new Set();
+    const cleaned=[];
+
+    for(const scene of scenes){
+      let narration=cleanNarrationRepeats(scene.narration||'');
+      if(!narration)continue;
+
+      // Global exact-sentence de-duplication across different scenes.
+      const parts=narration.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[narration];
+      const keep=[];
+      for(const p of parts){
+        const key=p.toLowerCase().normalize('NFD')
+          .replace(/[\u0300-\u036f]/g,'')
+          .replace(/[^\p{L}\p{N}\s]/gu,'')
+          .replace(/\s+/g,' ').trim();
+        if(!key || seenGlobal.has(key))continue;
+        seenGlobal.add(key);
+        keep.push(p.trim());
+      }
+      narration=keep.join(' ').trim();
+      if(narration)cleaned.push({...scene,narration});
+    }
+    return {...plan,scenes:cleaned};
+  }
+
+  function mergePlanForRender(plan,naturalSeconds){
+    const scenes=Array.isArray(plan?.scenes)?plan.scenes:[];
+    if(!scenes.length)return plan;
+
+    // About one visual segment every 6 seconds. Fewer FFmpeg launches = much faster render.
+    const desired=Math.max(10,Math.min(28,Math.round(Number(naturalSeconds||60)/6)));
+    if(scenes.length<=desired)return plan;
+
+    const merged=[];
+    for(let g=0;g<desired;g++){
+      const start=Math.floor(g*scenes.length/desired);
+      const end=Math.floor((g+1)*scenes.length/desired);
+      const group=scenes.slice(start,Math.max(start+1,end));
+      if(!group.length)continue;
+
+      const original=group.find(s=>String(s.source||'').toLowerCase()==='original')||group[0];
+      const queries=[];
+      for(const s of group){
+        for(const q of (Array.isArray(s.queries)?s.queries:[])){
+          const qq=String(q||'').trim();
+          if(qq && !queries.includes(qq))queries.push(qq);
+          if(queries.length>=5)break;
+        }
+        if(queries.length>=5)break;
+      }
+      while(queries.length<5)queries.push(queries[0]||'wildlife documentary footage');
+
+      merged.push({
+        ...original,
+        narration:group.map(s=>String(s.narration||'').trim()).filter(Boolean).join(' '),
+        queries:queries.slice(0,5)
+      });
+    }
+    return {...plan,scenes:merged};
+  }
+
+  function capPlanNarrationWords(plan,targetSeconds){
+    const target=Math.max(1,Math.round(Number(targetSeconds)||60));
+    const ideal=targetWords(target);
+    // Natural Alexander target: ~180 wpm. Allow only a small +4% ceiling.
+    const maxWords=Math.max(90,Math.round(ideal*1.04));
+    const scenes=Array.isArray(plan?.scenes)?plan.scenes:[];
+    let remaining=maxWords;
+    const kept=[];
+
+    for(const scene of scenes){
+      if(remaining<=0)break;
+      const words=String(scene.narration||'').trim().split(/\s+/).filter(Boolean);
+      if(!words.length)continue;
+
+      if(words.length<=remaining){
+        kept.push({...scene,narration:words.join(' ')});
+        remaining-=words.length;
+      }else{
+        let cut=words.slice(0,remaining).join(' ');
+        // Prefer ending at a sentence boundary near the hard limit.
+        const sentenceEnd=Math.max(cut.lastIndexOf('.'),cut.lastIndexOf('!'),cut.lastIndexOf('?'));
+        if(sentenceEnd>cut.length*0.72)cut=cut.slice(0,sentenceEnd+1);
+        if(cut.trim())kept.push({...scene,narration:cut.trim()});
+        remaining=0;
+      }
+    }
+
+    return {...plan,scenes:kept};
+  }
+
+  async function processOneVideo(file,index,total){
+    currentVideoFile=file;
+    currentVideoIndex=index;
+    queueRow(index,file,`Analizando video ${index+1} de ${total}`,'active');
+    vStatus(`Video ${index+1}/${total}: leyendo ${file.name}…`);
+    vBar(3);
+
+    if(currentVideoObjectUrl){
+      try{URL.revokeObjectURL(currentVideoObjectUrl);}catch(e){}
+      currentVideoObjectUrl=null;
+    }
+
+    const meta=await loadVideoMeta(file);
+    currentVideoObjectUrl=meta.url;
+
+    try{
+      vBar(8);
+      let analysis=loadVisionCache(file,meta);
+
+      if(analysis){
+        vStatus('✅ Análisis visual recuperado del caché · 0 tokens de Vision.');
+        vBar(24);
+      }else{
+        const frames=await extractVisionFrames(meta);
+        vBar(16);
+        vStatus('Groq Vision está entendiendo el contenido…');
+        analysis=await groqVisionAnalyze(frames,file.name,meta);
+        saveVisionCache(file,meta,analysis);
+      }
+
+      const timelineText=(analysis.timeline||[]).map(x=>
+        `${Number(x.time||0).toFixed(1)} s — ${x.visible||x.action||''}`
+      ).join('\n');
+      V('videoAIAnalysis').textContent=[
+        `Sujeto: ${analysis.subject||'No determinado'}`,
+        `Entorno: ${analysis.environment||'No determinado'}`,
+        '',
+        'LÍNEA DE TIEMPO VERIFICADA:',
+        timelineText,
+        '',
+        `Resumen: ${analysis.verified_summary||''}`,
+        '',
+        `No confirmado: ${(analysis.unknowns||[]).join(', ')}`
+      ].join('\n');
+      vBar(24);
+
+      const targetSeconds=Number(V('videoTargetDuration')?.value||60);
+      const style=V('videoScriptStyle')?.value||'documental viral';
+
+      // Video mode guarantees the final MP4 duration selected by the user.
+      window.documentalForcedDurationSeconds=targetSeconds;
+      vStatus(`Creando guion de aproximadamente ${targetSeconds} segundos…`);
+
+      let plan=await groqBuildVideoPlan(analysis,file.name,targetSeconds,style,meta.duration);
+      plan=sanitizePlanNarration(plan);
+      plan=capPlanNarrationWords(plan,targetSeconds);
+      currentVideoPlan=plan;
+      const title=String(plan.title||file.name.replace(/\.[^.]+$/,'')).trim();
+      const script=(plan.scenes||[]).map(x=>String(x.narration||'').trim()).filter(Boolean).join(' ').trim();
+      if(!script)throw new Error('El plan de IA llegó sin narración.');
+
+      V('videoTitle').value=title;
+      V('downloadName').value=(window.documentalSafeFileName
+        ? window.documentalSafeFileName(title)
+        : (title||'documental').replace(/:/g,'：').replace(/[<>"/\\|?*\x00-\x1F]/g,'').trim()+'.mp4');
+      V('script').value=script;
+
+      if(V('titleOverlay'))V('titleOverlay').value='yes';
+      if(V('subtitles'))V('subtitles').value='yes';
+
+      window.documentalVideoTitle=title;
+      window.documentalDownloadName=V('downloadName').value;
+
+      if(V('videoAIFinalTitle'))V('videoAIFinalTitle').value=title;
+      if(V('videoAIDownloadName'))V('videoAIDownloadName').value=window.documentalDownloadName;
+      V('videoAIScript').value=script;
+      vBar(38);
+
+      vStatus('Generando narración con Alexander V a velocidad natural…');
+      window.documentalFactoryAudioBlob=null;
+      window.documentalFactoryAudioMeta=null;
+      await window.ensureAlexanderReady?.();
+      await window.generateDocumentalVoice?.();
+      if(!window.documentalFactoryAudioBlob)throw new Error('Alexander terminó sin crear audio.');
+
+      let naturalSeconds=Number(window.documentalFactoryAudioMeta?.seconds||0);
+      if(!naturalSeconds){
+        naturalSeconds=await blobDuration(window.documentalFactoryAudioBlob);
+      }
+      vBar(52);
+
+      const renderPlan=plan;
+      currentVideoPlan=renderPlan;
+      vStatus(`Preparando ${renderPlan.scenes.length} escenas sincronizadas para ${naturalSeconds.toFixed(1)} s…`);
+      await buildSceneCardsFromVideoPlan(renderPlan,meta);
+      vBar(68);
+
+      vStatus(`Renderizando “${title}” · ${renderPlan.scenes.length} escenas sincronizadas · duración natural ${naturalSeconds.toFixed(1)} s…`);
+      const ok=await window.createDocumentalFinalVideo?.();
+      if(ok!==true)throw new Error('FFmpeg no confirmó el render final.');
+
+      vBar(100);
+      vStatus(`✅ ${file.name} terminado y descargado.`,'ok');
+      queueRow(index,file,'Terminado y descargado','ok');
+      await sleepVideo(500);
+      return true;
+    }finally{
+      // The object URL must live until FFmpeg has fetched all original-video scenes.
+      if(meta?.video){try{meta.video.src='';meta.video.load();}catch(e){}}
+      if(currentVideoObjectUrl){
+        try{URL.revokeObjectURL(currentVideoObjectUrl);}catch(e){}
+        currentVideoObjectUrl=null;
+      }
+    }
+  }
+
+  async function processVideoQueue(files){
+    if(videoAIRunning)return;
+    videoAIRunning=true;
+    currentVideoFiles=files;
+    const inp=V('videoFilesAI');
+    const retry=V('videoAIRetry');
+    if(inp)inp.disabled=true;
+    if(retry)retry.disabled=true;
+    V('videoAIQueue').innerHTML='';
+    files.forEach((f,i)=>queueRow(i,f));
+
+    try{
+      await window.documentalRequestWakeLock?.();
+      vStatus(`Cola preparada: ${files.length} video${files.length===1?'':'s'}. Preparando Alexander una sola vez…`);
+      await window.ensureAlexanderReady?.();
+
+      for(let i=0;i<files.length;i++){
+        try{
+          await processOneVideo(files[i],i,files.length);
+        }catch(err){
+          console.error(err);
+          const msg=err?.message||String(err);
+          queueRow(i,files[i],msg,'err');
+          vStatus(`⚠️ ${files[i].name} falló: ${msg}. Continuando…`,'err');
+          await sleepVideo(700);
+        }
+      }
+      const failed=[...V('videoAIQueue').querySelectorAll('.videoQueueItem.err')].length;
+      vStatus(`✅ Cola terminada: ${files.length-failed}/${files.length} videos creados${failed?` · ${failed} con error`:''}.`,failed?'err':'ok');
+    }finally{
+      videoAIRunning=false;
+      await window.documentalReleaseWakeLock?.();
+      if(inp){inp.disabled=false;inp.value='';}
+      if(retry)retry.disabled=currentVideoIndex<0;
+    }
+  }
+
+  V('videoFilesAI')?.addEventListener('change',async e=>{
+    const files=[...(e.target.files||[])];
+    if(!files.length)return;
+    if(files.length>6){
+      vStatus('❌ Selecciona máximo 6 videos por tanda.','err');
+      e.target.value='';
+      return;
+    }
+    switchTab('video');
+    await processVideoQueue(files);
+  });
+
+  V('videoAIRetry')?.addEventListener('click',async()=>{
+    if(videoAIRunning||!currentVideoFile)return;
+    videoAIRunning=true;
+    V('videoAIRetry').disabled=true;
+    try{
+      await window.documentalRequestWakeLock?.();
+      await processOneVideo(currentVideoFile,currentVideoIndex,Math.max(1,currentVideoFiles.length));
+    }catch(err){
+      vStatus('❌ '+(err?.message||err),'err');
+    }finally{
+      videoAIRunning=false;
+      await window.documentalReleaseWakeLock?.();
+      V('videoAIRetry').disabled=false;
+    }
+  });
+})();
+</script>
+
+<script>
+window.addEventListener('DOMContentLoaded',()=>{
+  const required=['txtFile','videoTitle','downloadName','script','duration','sceneCount',
+    'groq','scenes','titleOverlay','subtitles','musicVol',
+    'renderStatus','renderBar','finalPreview','autoCreate','autoStatus','autoBar','queueStatus',
+    'tabTxt'];
+  const missing=required.filter(id=>!document.getElementById(id));
+  if(missing.length){
+    const s=document.getElementById('autoStatus');
+    if(s){s.textContent='❌ Error interno de interfaz: faltan '+missing.join(', ');s.className='status err';}
+    console.error('Documental Factory: elementos faltantes',missing);
+  }else{
+    console.log('Documental Factory: verificación de interfaz OK');
+  }
+});
+</script>
+
+
+
+<script id="sd-turbo-readiness-bridge">
+window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
+  window.__resolveSdTurboReady=resolve;
+  window.__rejectSdTurboReady=reject;
+});
+</script>
+<script type="module" id="sd-turbo-webgpu-local">
+import * as ort from 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.1/dist/ort.webgpu.min.mjs';
+import { AutoTokenizer } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
+
+const BASE='https://huggingface.co/schmuell/sd-turbo-ort-web/resolve/main';
+const SIGMA=14.6146, VAE_SCALE=0.18215;
+let sessions=null, tokenizer=null, loading=null, busy=Promise.resolve();
+
+ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.1/dist/';
+ort.env.wasm.numThreads=1;
+ort.env.wasm.simd=true;
+
+function ui(msg){
+  const e=document.getElementById('sdLocalStatus');
+  if(e)e.textContent=msg;
+  console.log('[SD-Turbo]',msg);
+}
+function randn(){
+  let u=0,v=0;
+  while(u===0)u=Math.random();
+  while(v===0)v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+function noise(shape){
+  let n=shape.reduce((a,b)=>a*b,1), d=new Float32Array(n);
+  for(let i=0;i<n;i++)d[i]=randn()*SIGMA;
+  return d;
+}
+function scaleInput(t){
+  const div=Math.sqrt(SIGMA*SIGMA+1), d=new Float32Array(t.data.length);
+  for(let i=0;i<d.length;i++)d[i]=t.data[i]/div;
+  return new ort.Tensor('float32',d,t.dims);
+}
+function scheduler(out,sample){
+  const d=new Float32Array(out.data.length);
+  for(let i=0;i<d.length;i++){
+    const pred=sample.data[i]-SIGMA*out.data[i];
+    const derivative=(sample.data[i]-pred)/SIGMA;
+    d[i]=(sample.data[i]+derivative*(0-SIGMA))/VAE_SCALE;
+  }
+  return new ort.Tensor('float32',d,out.dims);
+}
+async function cachedBytes(path,notify){
+  const url=BASE+'/'+path;
+  const cache=await caches.open('icecream-sd-turbo-v1');
+  let r=await cache.match(url);
+  if(!r){
+    notify?.('⬇️ Primera vez: descargando '+path+'…');
+    r=await fetch(url,{cache:'no-store'});
+    if(!r.ok)throw new Error('No se pudo descargar '+path+' (HTTP '+r.status+')');
+    await cache.put(url,r.clone());
+  }
+  return await r.arrayBuffer();
+}
+async function init(notify=ui){
+  if(sessions)return sessions;
+  if(loading)return loading;
+  loading=(async()=>{
+    if(!navigator.gpu)throw new Error('Este navegador no tiene WebGPU habilitado.');
+    const adapter=await navigator.gpu.requestAdapter();
+    if(!adapter)throw new Error('No se pudo obtener el adaptador WebGPU.');
+    if(!adapter.features.has('shader-f16'))throw new Error('La GPU/navegador no expone shader-f16.');
+
+    notify('🧠 Cargando SD‑Turbo WebGPU… La primera vez descarga el modelo.');
+    const common={
+      executionProviders:['webgpu'],
+      enableMemPattern:false,
+      enableCpuMemArena:false,
+      extra:{session:{
+        disable_prepacking:'1',
+        use_device_allocator_for_initializers:'1',
+        use_ort_model_bytes_directly:'1',
+        use_ort_model_bytes_for_initializers:'1'
+      }}
+    };
+    const defs={
+      unet:{path:'unet/model.onnx', opt:{freeDimensionOverrides:{batch_size:1,num_channels:4,height:64,width:64,sequence_length:77}}},
+      text:{path:'text_encoder/model.onnx',opt:{freeDimensionOverrides:{batch_size:1}}},
+      vae:{path:'vae_decoder/model.onnx',opt:{freeDimensionOverrides:{batch_size:1,num_channels_latent:4,height_latent:64,width_latent:64}}}
+    };
+    const ub=await cachedBytes(defs.unet.path,notify);
+    const tb=await cachedBytes(defs.text.path,notify);
+    const vb=await cachedBytes(defs.vae.path,notify);
+
+    notify('⚙️ Compilando SD‑Turbo para tu GPU Intel…');
+    const unet=await ort.InferenceSession.create(ub,{...common,...defs.unet.opt});
+    const text=await ort.InferenceSession.create(tb,{...common,...defs.text.opt,
+      preferredOutputLocation:{last_hidden_state:'gpu-buffer'}});
+    const vae=await ort.InferenceSession.create(vb,{...common,...defs.vae.opt});
+    sessions={unet,text,vae};
+    notify('🟢 SD‑Turbo WebGPU listo · 512×512 local');
+    try{window.__resolveSdTurboReady?.(sessions);}catch(_){}
+    return sessions;
+  })().catch(e=>{loading=null;throw e});
+  return loading;
+}
+async function ensureTokenizer(notify){
+  if(tokenizer)return tokenizer;
+  notify?.('🔤 Cargando tokenizer local del navegador…');
+  tokenizer=await AutoTokenizer.from_pretrained('Xenova/clip-vit-base-patch16');
+  tokenizer.pad_token_id=0;
+  return tokenizer;
+}
+async function tensorToBlob(t){
+  let pix=t.data;
+  const H=t.dims[2], W=t.dims[3];
+  const rgba=new Uint8ClampedArray(W*H*4);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const p=y*W+x, o=p*4;
+    for(let c=0;c<3;c++){
+      let v=pix[c*H*W+p]/2+0.5;
+      v=Math.max(0,Math.min(1,v));
+      rgba[o+c]=Math.round(v*255);
+    }
+    rgba[o+3]=255;
+  }
+  const canvas=document.createElement('canvas');
+  canvas.width=W; canvas.height=H;
+  canvas.getContext('2d').putImageData(new ImageData(rgba,W,H),0,0);
+  const blob=await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('No se pudo convertir la imagen.')),'image/jpeg',0.94));
+  return blob;
+}
+async function generate(prompt,notify=ui){
+  await init(notify);
+  const tok=await ensureTokenizer(notify);
+  notify('🎨 SD‑Turbo generando imagen 512×512 con WebGPU…');
+  const enc=await tok(prompt,{padding:true,max_length:77,truncation:true,return_tensor:false});
+  const ids=enc.input_ids;
+  const {last_hidden_state}=await sessions.text.run({
+    input_ids:new ort.Tensor('int32',ids,[1,ids.length])
+  });
+  const shape=[1,4,64,64];
+  const latent=new ort.Tensor('float32',noise(shape),shape);
+  const latentInput=scaleInput(latent);
+  const {out_sample}=await sessions.unet.run({
+    sample:latentInput,
+    timestep:new ort.Tensor('int64',[999n],[1]),
+    encoder_hidden_states:last_hidden_state
+  });
+  const decodedLatent=scheduler(out_sample,latent);
+  const {sample}=await sessions.vae.run({latent_sample:decodedLatent});
+  const blob=await tensorToBlob(sample);
+  try{last_hidden_state.dispose?.();}catch{}
+  try{out_sample.dispose?.();}catch{}
+  try{sample.dispose?.();}catch{}
+  return {blob,url:URL.createObjectURL(blob),provider:'SD‑Turbo WebGPU local'};
+}
+window.sdTurboLocalGenerate=(prompt,notify)=>{
+  const job=busy.then(()=>generate(prompt,notify));
+  busy=job.catch(()=>{});
+  return job;
+};
+window.sdTurboLocalInit=()=>init(ui);
+window.addEventListener('load',()=>{
+  setTimeout(()=>init(ui).catch(e=>ui('❌ SD‑Turbo: '+(e?.message||e))),1200);
+});
+</script>
+
+
+<script id="engine-status-v10-7-2">
+(()=>{
+ const set=(id,state,detail,pct)=>{
+   const el=document.getElementById(id); if(!el)return;
+   el.classList.remove('loading','ready','err'); el.classList.add(state);
+   const sm=el.querySelector('small'); if(sm)sm.textContent=detail;
+   let n=Number.isFinite(Number(pct))?Math.max(0,Math.min(100,Math.round(Number(pct)))):(state==='ready'?100:0);
+   const pe=el.querySelector('.enginePct'); if(pe)pe.textContent=n+'%';
+   const bar=el.querySelector('.engineTrack i'); if(bar)bar.style.width=n+'%';
+ };
+ window.documentalSetEngineState=set;
+
+ // Image readiness: use the actual SD-Turbo init promise/function.
+ async function imageCheck(){
+   try{
+     set('engineImage','loading','Cargando modelo…',5);
+     let waited=0;
+     while(typeof window.sdTurboLocalInit!=='function' && waited<120000){
+       await new Promise(r=>setTimeout(r,300)); waited+=300; set('engineImage','loading','Cargando módulo WebGPU…',Math.min(15,5+waited/8000));
+     }
+     if(typeof window.sdTurboLocalInit!=='function')throw Error('Módulo no cargó');
+     set('engineImage','loading','Descargando / compilando SD‑Turbo…',25);
+     await window.sdTurboLocalInit();
+     set('engineImage','ready','Listo · WebGPU local',100);
+   }catch(e){ set('engineImage','err','Error al cargar',0); }
+ }
+
+ // FFmpeg: reuse Factory's own loader.
+ async function ffCheck(){
+   set('engineFfmpeg','loading','Cargando…',5);
+   let n=0;
+   while(n<120000){
+     const rs=(document.getElementById('renderStatus')?.textContent||'');
+     const body=(document.body?.innerText||'');
+     if(/FFmpeg listo/i.test(rs) || /FFmpeg listo/i.test(body)){
+       set('engineFfmpeg','ready','Listo · 720×1280 / 30 FPS',100);
+       return;
+     }
+     await new Promise(r=>setTimeout(r,350)); n+=350; set('engineFfmpeg','loading','Cargando FFmpeg.wasm…',Math.min(95,5+n/1300));
+   }
+   set('engineFfmpeg','err','No respondió',0);
+ }
+
+ // Alexander is already preloaded by Factory. Watch its own visible log/state,
+ // and also mark ready once the exposed generation function is available.
+ async function voiceCheck(){
+   set('engineVoice','loading','Cargando Alexander V…',5);
+   let n=0;
+   while(n<120000){
+     const body=(document.body?.innerText||'');
+     if(/Alexander V ya está precargado|Alexander V.*lista|voz española lista/i.test(body) ||
+        typeof window.generateDocumentalVoice==='function'){
+       set('engineVoice','ready','Listo · Alexander V',100);
+       return;
+     }
+     await new Promise(r=>setTimeout(r,400)); n+=400; set('engineVoice','loading','Cargando Alexander V…',Math.min(95,5+n/1300));
+   }
+   set('engineVoice','err','No respondió',0);
+ }
+
+ window.addEventListener('load',()=>{
+   setTimeout(()=>voiceCheck(),300);
+   setTimeout(()=>imageCheck(),500);
+   setTimeout(()=>ffCheck(),700);
+ });
+})();
+</script>
+
+
+</body></html>
+
+<style>
+#sdLocalStatus{display:none!important}
+</style>
 
 
 
