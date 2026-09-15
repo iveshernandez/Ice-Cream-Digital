@@ -366,6 +366,38 @@ window.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 
+
+<style id="v11-full-width-scenes">
+/* Render final y escenas generadas ocupan todo el ancho disponible */
+#generatedScenesSection{
+  width:100% !important;
+  max-width:none !important;
+  grid-column:1 / -1 !important;
+  box-sizing:border-box !important;
+}
+#generatedScenesSection .scenes,
+#scenes{
+  width:100% !important;
+  max-width:none !important;
+  box-sizing:border-box !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+}
+
+/* En el layout principal, cualquier bloque marcado full-width cruza ambas columnas */
+.grid > #generatedScenesSection{
+  grid-column:1 / -1 !important;
+}
+@media(max-width:1050px){
+  #generatedScenesSection .scenes,#scenes{grid-template-columns:repeat(3,minmax(0,1fr)) !important;}
+}
+@media(max-width:800px){
+  #generatedScenesSection .scenes,#scenes{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+}
+@media(max-width:520px){
+  #generatedScenesSection .scenes,#scenes{grid-template-columns:1fr !important;}
+}
+</style>
+
 </head><body>
 
 <div id="icFactoryHeader">
@@ -474,14 +506,11 @@ window.addEventListener('DOMContentLoaded',()=>{
 <audio id="audio" controls style="width:100%;margin-top:10px;display:none"></audio>
 <div id="audioActions" class="actions"></div>
 <div id="renderRightSlot"><section class="card">
-<div id="generatedScenesSection" class="card" style="margin-top:12px">
-  <h2>4. Escenas generadas</h2>
-  <div id="scenes" class="scenes"></div>
-</div>
+
 <div class="renderbox" style="margin-top:0">
 <h2 style="margin-top:0">5. Render final</h2>
 <div class="row">
-  <div><label>Título en video</label><div class="inputLike">Visible solo durante los primeros 5 segundos</div><input id="titleOverlay" type="hidden" value="yes"></div>
+  <div><label>Título en video</label><div class="inputLike">Visible durante todo el video</div><input id="titleOverlay" type="hidden" value="yes"></div>
   <div><label>Subtítulos</label><select id="subtitles"><option value="yes" selected>Activados</option><option value="no">Desactivados</option></select></div>
 </div>
 <div class="row">
@@ -496,6 +525,11 @@ window.addEventListener('DOMContentLoaded',()=>{
 </div>
 </section></div>
 </section></div>
+<div id="generatedScenesSection" class="card" style="margin-top:12px">
+  <h2>4. Escenas generadas</h2>
+  <div id="scenes" class="scenes"></div>
+</div>
+
 
 
 
@@ -1883,36 +1917,7 @@ async function createFinalVideo(){
     rs('5/5 Uniendo bloques · 0% de esta etapa…');
     rb(78);
 
-    // V5.6: put the AI cover in the first 1.00 s (30 frames at 30 FPS).
-    // The title is rendered by our own overlay, so FLUX never has to spell text.
-    let coverSegmentName='';
-    if(window.documentalAutoCoverUrl){
-      try{
-        rs('5/5 Preparando portada automática…');
-        const coverResp=await fetch(window.documentalAutoCoverUrl);
-        if(!coverResp.ok)throw new Error('No pude leer la portada IA.');
-        const coverBlob=await coverResp.blob();
-        const coverInput='auto_cover.jpg';
-        coverSegmentName='auto_cover.mp4';
-        await ffmpeg.writeFile(coverInput,new Uint8Array(await coverBlob.arrayBuffer()));
-
-        const coverArgs=['-loop','1','-framerate','30','-i',coverInput];
-        if(sharedTitleFile){
-          coverArgs.push('-i',sharedTitleFile,
-            '-filter_complex',"[0:v]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280[bg];[bg][1:v]overlay=0:0:format=yuv420p[v]",
-            '-map','[v]');
-        }else{
-          coverArgs.push('-vf','scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,format=yuv420p');
-        }
-        coverArgs.push('-an','-t','1.00','-c:v','libx264','-preset','ultrafast','-crf','22','-r','30','-g','30','-keyint_min','1','-sc_threshold','0','-pix_fmt','yuv420p','-movflags','+faststart',coverSegmentName);
-        await ffmpeg.exec(coverArgs);
-      }catch(err){
-        console.warn('No se pudo insertar portada:',err);
-        coverSegmentName='';
-      }
-    }
-
-    const concatVideoNames=coverSegmentName?[coverSegmentName,...chunkNames]:chunkNames;
+    const concatVideoNames=chunkNames;
     const concat=concatVideoNames.map(n=>`file '${n}'`).join('\n');
     await ffmpeg.writeFile('concat.txt',new TextEncoder().encode(concat));
     await ffmpeg.exec([
@@ -1994,7 +1999,7 @@ async function createFinalVideo(){
     rb(100);
     rs(`✅ Video terminado: ${total.toFixed(1)} s naturales, 720×1280, 30 FPS, título, subtítulos, voz nivelada y música documental al 30%. Descarga iniciada. Liberando memoria…`, 'ok');
 
-    await clean(ffmpeg,[...partNames,...chunkNames,...sourceFilesToClean,sharedTitleFile,'auto_cover.jpg',coverSegmentName,'concat.txt','joined.mp4','voice.wav','voice_target.wav',musicInfo.name,'mixed_browser.wav','documental_final.mp4'].filter(Boolean));
+    await clean(ffmpeg,[...partNames,...chunkNames,...sourceFilesToClean,sharedTitleFile,'concat.txt','joined.mp4','voice.wav','voice_target.wav',musicInfo.name,'mixed_browser.wav','documental_final.mp4'].filter(Boolean));
     return true;
   }catch(err){
     window.documentalFfmpegProgressCtx=null;
@@ -2565,45 +2570,7 @@ REGLAS OBLIGATORIAS:
     render(scene,image,i);
   }
 
-  // V5.6: one dedicated AI cover per documentary.
-  // No extra Groq request: reuse title + visual identity + story context already available.
-  try{
-    if(window.documentalAutoCoverUrl){
-      try{URL.revokeObjectURL(window.documentalAutoCoverUrl);}catch{}
-      window.documentalAutoCoverUrl='';
-    }
-    st('🖼️ Generando portada vertical automática…');
-    const coverContext=arr.slice(0,3).map(x=>x.image_prompt||'').join(' ');
-    const coverPrompt=[
-      'Vertical 9:16 cinematic documentary social media cover.',
-      `Documentary title/context: ${title}.`,
-      identity ? `Keep this visual identity: ${identity}.` : '',
-      `Story visual context: ${coverContext}.`,
-      'Create ONE striking hero composition that summarizes the story.',
-      'Photorealistic, cinematic, dramatic natural lighting, strong depth, premium documentary poster, highly detailed.',
-      'Main subject large and immediately understandable on a phone screen.',
-      'Leave clean darker negative space in the upper third for title graphics.',
-      'NO text, NO letters, NO captions, NO logos, NO watermark, NO collage, NO split screen.'
-    ].filter(Boolean).join(' ');
-    const cover=await generateAIImage(coverPrompt);
-    window.documentalAutoCoverUrl=cover.url;
-    let cp=document.getElementById('autoCoverPreview');
-    if(!cp){
-      cp=document.createElement('section');
-      cp.id='autoCoverPreview';
-      cp.style.cssText='margin:14px 0;padding:12px;border:1px solid #31506f;border-radius:12px;background:#081525';
-      const host=document.querySelector('.grid')?.parentElement||document.body;
-      host.insertBefore(cp,host.firstChild);
-    }
-    cp.innerHTML=`<div style="font-weight:800;margin-bottom:8px">🖼️ PORTADA AUTOMÁTICA INTEGRADA AL RENDER</div><img src="${cover.url}" style="display:block;width:min(270px,100%);aspect-ratio:9/16;object-fit:cover;border-radius:10px;margin:auto"><div style="margin-top:8px;color:#5ef0a5;font-weight:700">✓ Será el primer segundo (30 frames) del MP4 final</div>`;
-    st('✅ Portada vertical IA lista y visible para verificar.','ok');
-  }catch(err){
-    console.warn('Auto cover:',err);
-    window.documentalAutoCoverUrl='';
-    st('⚠️ La portada IA falló; el documental puede continuar sin ella.','ok');
-  }
-
-  st(`✅ V5.6 Pure AI: ${arr.length} escenas + portada automática listas.`,'ok');
+  st(`✅ ${arr.length} escenas IA listas.`,'ok');
   return arr.length;
 }
 window.documentalAnalyzeScenes=go;
@@ -2754,10 +2721,6 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     const scenesBox=A('#scenes'); if(scenesBox)scenesBox.innerHTML='';
     window.documentalFactoryAudioBlob=null;
     window.documentalFactoryAudioMeta=null;
-    if(window.documentalAutoCoverUrl){
-      try{URL.revokeObjectURL(window.documentalAutoCoverUrl);}catch{}
-      window.documentalAutoCoverUrl='';
-    }
 
     resetSteps();
     step('stepTxt','done','TXT leído');
@@ -2876,10 +2839,6 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     abar(Math.max(22,parseFloat(A('#autoBar')?.style.width)||22));
     window.documentalFactoryAudioBlob=null;
     window.documentalFactoryAudioMeta=null;
-    if(window.documentalAutoCoverUrl){
-      try{URL.revokeObjectURL(window.documentalAutoCoverUrl);}catch{}
-      window.documentalAutoCoverUrl='';
-    }
     if(typeof window.generateDocumentalVoice!=='function')throw Error('Motor Piper no disponible.');
     await window.generateDocumentalVoice();
     if(!window.documentalFactoryAudioBlob)throw Error('Piper terminó sin crear audio.');
@@ -4587,4 +4546,5 @@ window.addEventListener('load',()=>{
   <div id="sdActivityCurrent" style="font-size:12px;font-weight:800">Esperando inicio…</div>
   <pre id="sdActivityLog" style="margin:8px 0 0;max-height:145px;overflow:auto;white-space:pre-wrap;font-size:11px;line-height:1.35;background:#030912;border:1px solid #1c3048;border-radius:8px;padding:8px">Esperando SD‑Turbo…</pre>
 </div>
+
 >
