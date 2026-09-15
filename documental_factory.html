@@ -227,6 +227,27 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 label[for="cfAccount"],label[for="cfToken"],label[for="pollinations"]{display:none!important}
 .sdLocalBox{margin:8px 0;padding:9px 11px;border:1px solid #285d48;border-radius:9px;background:#0c1d17;color:#9ef0c8;font-size:10px;font-weight:800}
 </style>
+
+<style id="v10-7-2-clean-api-status">
+/* Solo Groq permanece visible en Tus APIs */
+#cfAccount,#cfToken,#pollinations,
+label[for="cfAccount"],label[for="cfToken"],label[for="pollinations"],
+#testCloudflare,
+button[onclick*="Cloudflare"],button[onclick*="cloudflare"],
+.apiHelp[href*="cloudflare"],.apiHelp[href*="pollinations"]{display:none!important}
+
+/* Indicadores de motores */
+.enginePanel{margin:10px 0 4px;padding:10px;border:1px solid #263d59;border-radius:11px;background:#0b1727}
+.enginePanelTitle{font-size:11px;font-weight:900;margin-bottom:8px}
+.engineGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.engineState{display:flex;align-items:center;gap:7px;padding:8px;border:1px solid #2b3c55;border-radius:9px;background:#101e31;font-size:9px;font-weight:800}
+.engineDot{width:9px;height:9px;border-radius:50%;background:#7d8795;box-shadow:0 0 0 2px #ffffff10;flex:0 0 auto}
+.engineState.loading .engineDot{background:#f2bd4b;box-shadow:0 0 8px #f2bd4b}
+.engineState.ready .engineDot{background:#38d878;box-shadow:0 0 8px #38d878}
+.engineState.err .engineDot{background:#ff6262;box-shadow:0 0 8px #ff6262}
+.engineText small{display:block;color:#8fa2ba;font-size:8px;margin-top:2px;font-weight:600}
+@media(max-width:650px){.engineGrid{grid-template-columns:1fr}}
+</style>
 </head><body>
 
 <div id="icFactoryHeader">
@@ -243,7 +264,7 @@ label[for="cfAccount"],label[for="cfToken"],label[for="pollinations"]{display:no
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.7.0 · SD-Turbo WebGPU Local</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div><div class="sdLocalBox" id="sdLocalStatus">🟢 Imágenes: SD‑Turbo 512×512 · ONNX Runtime Web · WebGPU local · sin Pollinations/Cloudflare</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.7.2 · Clean APIs + Engine Status</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div><div class="sdLocalBox" id="sdLocalStatus">🟢 Imágenes: SD‑Turbo 512×512 · ONNX Runtime Web · WebGPU local · sin Pollinations/Cloudflare</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -307,6 +328,15 @@ label[for="cfAccount"],label[for="cfToken"],label[for="pollinations"]{display:no
 </section>
 
 <section class="card"><h2>2. Tus APIs</h2>
+<div class="enginePanel" id="enginePanel">
+  <div class="enginePanelTitle">Estado de motores</div>
+  <div class="engineGrid">
+    <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V<small>Inicializando…</small></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · SD‑Turbo WebGPU<small>Inicializando…</small></span></div>
+    <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm<small>Inicializando…</small></span></div>
+  </div>
+</div>
+
 <label>Groq API</label>
 <div class="api"><input id="groq" type="password" autocomplete="off"><a class="apiHelp" href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">🔗 Obtener API</a></div>
 
@@ -315,7 +345,7 @@ label[for="cfAccount"],label[for="cfToken"],label[for="pollinations"]{display:no
 
 <label>Cloudflare Workers AI API Token</label>
 <div class="api"><input id="cfToken" type="password" autocomplete="off" placeholder="Token Workers AI del usuario"><a class="apiHelp" href="https://dash.cloudflare.com/?to=/:account/ai/workers-ai" target="_blank" rel="noopener noreferrer">🔗 Obtener Token</a></div>
-<div class="tiny" style="margin-top:5px">En Cloudflare entra a Workers AI → Use REST API. Ahí puedes copiar el Account ID y crear el Workers AI API Token.</div>
+<div class="tiny" style="margin-top:5px"></div>
 
 <label>Pollinations API (respaldo)</label>
 <div class="api"><input id="pollinations" type="password" autocomplete="off" placeholder="Clave propia de Pollinations"><a class="apiHelp" href="https://enter.pollinations.ai" target="_blank" rel="noopener noreferrer">🔗 Obtener API</a></div>
@@ -326,7 +356,7 @@ label[for="cfAccount"],label[for="cfToken"],label[for="pollinations"]{display:no
 </div>
 <div class="actions"><button class="sec" id="save">Guardar APIs</button><button class="danger" id="erase">Eliminar</button><button class="sec" id="testCloudflare">Probar Cloudflare</button></div>
 <div id="apiSavedStatus" class="tiny" style="margin-top:8px"></div>
-<p class="tiny">Cada usuario usa sus propias credenciales. Cloudflare es el motor principal; si llega al límite o falla, Pollinations se usa automáticamente como respaldo. No se usa la cuenta Cloudflare del creador del programa.</p>
+<p class="tiny"></p>
 <hr style="border:0;border-top:1px solid var(--l);margin:18px 0">
 <h2>3. Voz — español latino</h2>
 <p class="tiny">Voz principal fija: Alexander V.</p>
@@ -2216,9 +2246,23 @@ async function generatePollinationsImage(prompt){
 }
 
 async function generateAIImage(prompt){
-  if(typeof window.sdTurboLocalGenerate!=='function'){
-    throw new Error('SD‑Turbo WebGPU todavía está inicializando. Recarga la página si este mensaje persiste.');
+  // El módulo WebGPU se carga de forma asíncrona. La cola NO debe fallar si Groq
+  // termina antes: esperamos a que el motor publique sus funciones.
+  const waitStart=Date.now();
+  while(typeof window.sdTurboLocalGenerate!=='function'){
+    if(Date.now()-waitStart>120000){
+      throw new Error('SD‑Turbo WebGPU no terminó de cargar en 120 s. Revisa la consola o recarga la página.');
+    }
+    imageProviderLog('⏳ Esperando que SD‑Turbo WebGPU termine de inicializar…');
+    await new Promise(r=>setTimeout(r,500));
   }
+
+  // Además esperamos explícitamente la descarga/compilación del modelo.
+  if(typeof window.sdTurboLocalInit==='function'){
+    imageProviderLog('🧠 Preparando SD‑Turbo WebGPU antes de generar escenas…');
+    await window.sdTurboLocalInit();
+  }
+
   imageProviderLog('🖥️ SD‑Turbo WebGPU local: '+String(prompt||'').slice(0,80));
   const out=await window.sdTurboLocalGenerate(String(prompt||'').trim(), msg=>{
     imageProviderLog(msg);
@@ -4115,6 +4159,13 @@ window.addEventListener('DOMContentLoaded',()=>{
 </script>
 
 
+
+<script id="sd-turbo-readiness-bridge">
+window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
+  window.__resolveSdTurboReady=resolve;
+  window.__rejectSdTurboReady=reject;
+});
+</script>
 <script type="module" id="sd-turbo-webgpu-local">
 import * as ort from 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.1/dist/ort.webgpu.min.mjs';
 import { AutoTokenizer } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
@@ -4206,6 +4257,7 @@ async function init(notify=ui){
     const vae=await ort.InferenceSession.create(vb,{...common,...defs.vae.opt});
     sessions={unet,text,vae};
     notify('🟢 SD‑Turbo WebGPU listo · 512×512 local');
+    try{window.__resolveSdTurboReady?.(sessions);}catch(_){}
     return sessions;
   })().catch(e=>{loading=null;throw e});
   return loading;
@@ -4270,6 +4322,71 @@ window.sdTurboLocalInit=()=>init(ui);
 window.addEventListener('load',()=>{
   setTimeout(()=>init(ui).catch(e=>ui('❌ SD‑Turbo: '+(e?.message||e))),1200);
 });
+</script>
+
+
+<script id="engine-status-v10-7-2">
+(()=>{
+ const set=(id,state,detail)=>{
+   const el=document.getElementById(id); if(!el)return;
+   el.classList.remove('loading','ready','err'); el.classList.add(state);
+   const sm=el.querySelector('small'); if(sm)sm.textContent=detail;
+ };
+ window.documentalSetEngineState=set;
+
+ // Image readiness: use the actual SD-Turbo init promise/function.
+ async function imageCheck(){
+   try{
+     set('engineImage','loading','Cargando modelo…');
+     let waited=0;
+     while(typeof window.sdTurboLocalInit!=='function' && waited<120000){
+       await new Promise(r=>setTimeout(r,300)); waited+=300;
+     }
+     if(typeof window.sdTurboLocalInit!=='function')throw Error('Módulo no cargó');
+     await window.sdTurboLocalInit();
+     set('engineImage','ready','Listo · WebGPU local');
+   }catch(e){ set('engineImage','err','Error al cargar'); }
+ }
+
+ // FFmpeg: reuse Factory's own loader.
+ async function ffCheck(){
+   try{
+     set('engineFfmpeg','loading','Cargando…');
+     if(typeof window.loadFFmpeg==='function') await window.loadFFmpeg();
+     else{
+       let n=0; while(typeof window.loadFFmpeg!=='function' && n<60000){
+         await new Promise(r=>setTimeout(r,300)); n+=300;
+       }
+       if(typeof window.loadFFmpeg!=='function')throw Error('Motor no disponible');
+       await window.loadFFmpeg();
+     }
+     set('engineFfmpeg','ready','Listo · 720×1280 / 30 FPS');
+   }catch(e){ set('engineFfmpeg','err','Error al cargar'); }
+ }
+
+ // Alexander is already preloaded by Factory. Watch its own visible log/state,
+ // and also mark ready once the exposed generation function is available.
+ async function voiceCheck(){
+   set('engineVoice','loading','Cargando Alexander V…');
+   let n=0;
+   while(n<120000){
+     const body=(document.body?.innerText||'');
+     if(/Alexander V ya está precargado|Alexander V.*lista|voz española lista/i.test(body) ||
+        typeof window.generateDocumentalVoice==='function'){
+       set('engineVoice','ready','Listo · Alexander V');
+       return;
+     }
+     await new Promise(r=>setTimeout(r,400)); n+=400;
+   }
+   set('engineVoice','err','No respondió');
+ }
+
+ window.addEventListener('load',()=>{
+   setTimeout(()=>voiceCheck(),300);
+   setTimeout(()=>imageCheck(),500);
+   setTimeout(()=>ffCheck(),700);
+ });
+})();
 </script>
 
 </body></html>
