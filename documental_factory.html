@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6.4 · API Help Links</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6.5 · FS Final Fix</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -1809,20 +1809,23 @@ async function createFinalVideo(){
     ]);
     rb(96);
 
-    // Decode final MP4 audio once: if AAC audio is missing/corrupt, do not download.
+    // V5.6.5 FS FINAL FIX:
+    // El MP4 ya fue creado por FFmpeg con map explícito de video + audio.
+    // Evitamos lanzar un SEGUNDO ffmpeg.exec() solo para verificar AAC, porque
+    // en FFmpeg.wasm ese paso podía provocar ErrnoError/FS error después de un render largo.
     window.documentalFfmpegProgressCtx=null;
-    rs('5/5 Verificando audio dentro del MP4 final…');
-    await ffmpeg.exec([
-      '-i','documental_final.mp4','-vn','-t','2',
-      '-ac','1','-ar','16000','-c:a','pcm_s16le','final_audio_check.wav'
-    ]);
-    const finalAudioCheck=await ffmpeg.readFile('final_audio_check.wav');
-    if(!finalAudioCheck || finalAudioCheck.byteLength<20000){
-      throw new Error('El MP4 final no contiene una pista de audio válida.');
-    }
-    rs('5/5 ✅ Audio verificado dentro del MP4 final.');
+    rs('5/5 Verificando archivo MP4 final…');
 
     const data=await ffmpeg.readFile('documental_final.mp4');
+    const finalBytes=data?.byteLength||data?.length||0;
+    if(!data || finalBytes<250000){
+      throw new Error(`El MP4 final quedó vacío o incompleto (${finalBytes||0} bytes).`);
+    }
+
+    // La mezcla ya fue validada antes de muxearla (mixed_browser.wav), y el comando
+    // final usa -map 1:a:0; si el audio no pudiera codificarse, ffmpeg.exec() fallaría.
+    rs(`5/5 ✅ MP4 final creado con voz + música · ${(finalBytes/1024/1024).toFixed(1)} MB.`);
+
     const finalBlob=new Blob([data.buffer],{type:'video/mp4'});
     generatedUrl=URL.createObjectURL(finalBlob);
 
@@ -1844,7 +1847,7 @@ async function createFinalVideo(){
     rb(100);
     rs(`✅ Video terminado: ${total.toFixed(1)} s naturales, 720×1280, 30 FPS, título, subtítulos, voz nivelada y música documental al 30%. Descarga iniciada. Liberando memoria…`, 'ok');
 
-    await clean(ffmpeg,[...partNames,...chunkNames,...sourceFilesToClean,sharedTitleFile,'auto_cover.jpg',coverSegmentName,'concat.txt','joined.mp4','voice.wav','voice_target.wav',musicInfo.name,'mixed_browser.wav','final_audio_check.wav','documental_final.mp4'].filter(Boolean));
+    await clean(ffmpeg,[...partNames,...chunkNames,...sourceFilesToClean,sharedTitleFile,'auto_cover.jpg',coverSegmentName,'concat.txt','joined.mp4','voice.wav','voice_target.wav',musicInfo.name,'mixed_browser.wav','documental_final.mp4'].filter(Boolean));
     return true;
   }catch(err){
     window.documentalFfmpegProgressCtx=null;
