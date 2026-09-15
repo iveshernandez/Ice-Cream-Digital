@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.5 · V5.5 Timed Scenes</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.5.1 · V5.5.1 Exact Scene Mapping</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.5 Timed Scenes: el número de escenas se calcula por tamaño del guion y TODAS las imágenes cambian a ritmo uniforme (~4 s), usando cada escena generada una vez.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.5.1 Exact Scene Mapping: cada tarjeta IA conserva un archivo FFmpeg único; elimina colisiones del precargado paralelo y mantiene el cambio uniforme (~4 s).</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -1516,8 +1516,12 @@ async function createFinalVideo(){
     // by dozens of scenes. Previous versions fetched + copied the full source once PER scene.
     const sourceFileCache=new Map();
     const sourceFilesToClean=[];
+    // V5.5.1: unique monotonic ID reserved BEFORE any await.
+    // Never derive concurrent FFmpeg filenames from array.length.
+    let sourceCacheSeq=0;
 
     async function getCachedSourceFile(url,fallbackUrl=null){
+      const reservedCacheId=sourceCacheSeq++;
       const primary=String(url||'');
       if(sourceFileCache.has(primary))return sourceFileCache.get(primary);
 
@@ -1538,7 +1542,9 @@ async function createFinalVideo(){
 
       const mime=(blob?.type||'').toLowerCase();
       const ext=mime.includes('webm')?'webm':(mime.includes('image/')?'jpg':'mp4');
-      const name=`src_cache_${sourceFilesToClean.length}.${ext}`;
+      // Each scene source gets a collision-proof filename even when 3 preload
+      // workers finish their network requests at the same time.
+      const name=`src_cache_${reservedCacheId}.${ext}`;
       await ffmpeg.writeFile(name,new Uint8Array(await blob.arrayBuffer()));
       const info={name,usedFallback,finalUrl};
       sourceFileCache.set(finalUrl,info);
