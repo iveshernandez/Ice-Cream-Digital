@@ -221,6 +221,12 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 .scene .match.ok{color:#7ef0a9}
 .scene .match.err{color:#ff9696}
 .apiHelp{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;text-decoration:none;background:#233552;color:white;border-radius:8px;padding:8px 10px;font-size:10px;font-weight:bold}.apiHelp:hover{filter:brightness(1.12)}</style>
+
+<style id="sd-turbo-local-ui">
+#cfAccount,#cfToken,#pollinations,
+label[for="cfAccount"],label[for="cfToken"],label[for="pollinations"]{display:none!important}
+.sdLocalBox{margin:8px 0;padding:9px 11px;border:1px solid #285d48;border-radius:9px;background:#0c1d17;color:#9ef0c8;font-size:10px;font-weight:800}
+</style>
 </head><body>
 
 <div id="icFactoryHeader">
@@ -237,7 +243,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6.6 · 512 Blur + Motion</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div><div style="margin:7px 0 2px;padding:7px 10px;border:1px solid #31506f;border-radius:8px;background:#0d1b2b;color:#9fd5ff;font-size:10px;font-weight:700">🎬 Modo visual 512: imagen central sin deformar + fondo desenfocado 9:16 + movimiento Ken Burns en todas las escenas.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.7.0 · SD-Turbo WebGPU Local</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div><div class="sdLocalBox" id="sdLocalStatus">🟢 Imágenes: SD‑Turbo 512×512 · ONNX Runtime Web · WebGPU local · sin Pollinations/Cloudflare</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -1702,9 +1708,7 @@ async function createFinalVideo(){
 
       const fadeIn=i===0?'':`fade=t=in:st=0:d=${fadeDur.toFixed(3)},`;
       const fadeOut=i===sceneEls.length-1?'':`fade=t=out:st=${fadeOutStart.toFixed(3)}:d=${fadeDur.toFixed(3)},`;
-      // V10.6.6: composición 512x512 -> 720x1280 sin deformar.
-      // La misma imagen llena el fondo desenfocado y permanece nítida al centro.
-      // Después aplicamos Ken Burns a TODA la composición para que ninguna escena quede estática.
+      // Still image -> full moving scene. d must equal the number of output frames.
       const composeAndMove=`split=2[sharp][blur];`+
         `[blur]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,gblur=sigma=28:steps=2,eq=brightness=-0.10:saturation=0.82[bg];`+
         `[sharp]scale=720:720:force_original_aspect_ratio=decrease[fg];`+
@@ -1722,8 +1726,6 @@ async function createFinalVideo(){
 
       // AI scenes are still images. Loop the image at 30 fps for the whole scene.
       const args=['-loop','1','-framerate','30','-i',cachedInput,...overlayInputs,'-t',dur];
-      // Siempre usamos filter_complex porque el fondo difuso y la imagen central
-      // salen de dos ramas de la misma imagen.
       args.push('-filter_complex',filters.join(';'),'-map',`[${prev}]`);
       args.push('-an','-c:v','libx264','-preset','ultrafast','-crf','23','-pix_fmt','yuv420p','-movflags','+faststart',output);
 
@@ -2214,34 +2216,19 @@ async function generatePollinationsImage(prompt){
 }
 
 async function generateAIImage(prompt){
-  let cloudflareErr=null;
-  try{
-    const out=await generateCloudflareImage(prompt);
-    imageProviderLog('☁️ Imagen generada con Cloudflare del usuario.');
-    return out;
-  }catch(err){
-    cloudflareErr=err;
-    const msg=String(err?.message||err);
-    if(msg!=='CLOUDFLARE_NOT_CONFIGURED'){
-      imageProviderLog(`⚠️ Cloudflare no disponible (${msg}). Probando Pollinations…`);
-    }else{
-      imageProviderLog('ℹ️ Cloudflare personal no configurado. Probando Pollinations…');
-    }
+  if(typeof window.sdTurboLocalGenerate!=='function'){
+    throw new Error('SD‑Turbo WebGPU todavía está inicializando. Recarga la página si este mensaje persiste.');
   }
-
-  try{
-    const out=await generatePollinationsImage(prompt);
-    imageProviderLog('🌸 Imagen generada con Pollinations de respaldo.');
-    return out;
-  }catch(err){
-    const pmsg=String(err?.message||err);
-    if(pmsg==='POLLINATIONS_NOT_CONFIGURED'){
-      const cmsg=String(cloudflareErr?.message||cloudflareErr||'Cloudflare no configurado');
-      throw new Error(`IA de imágenes: Cloudflare no pudo generar (${cmsg}) y falta Pollinations de respaldo.`);
-    }
-    const cmsg=String(cloudflareErr?.message||cloudflareErr||'Cloudflare no configurado');
-    throw new Error(`IA de imágenes: Cloudflare falló (${cmsg}) y Pollinations también falló (${pmsg}).`);
-  }
+  imageProviderLog('🖥️ SD‑Turbo WebGPU local: '+String(prompt||'').slice(0,80));
+  const out=await window.sdTurboLocalGenerate(String(prompt||'').trim(), msg=>{
+    imageProviderLog(msg);
+    const box=document.getElementById('sdLocalStatus');
+    if(box)box.textContent=msg;
+  });
+  imageProviderLog('✅ Imagen 512×512 creada localmente con WebGPU.');
+  const box=document.getElementById('sdLocalStatus');
+  if(box)box.textContent='🟢 SD‑Turbo WebGPU listo · imagen local creada';
+  return out;
 }
 
 function clearGeneratedSceneImages(){
@@ -2283,7 +2270,7 @@ function render(s,c,i){
     <b>ESCENA ${i+1}</b>
     <p class="narr">${e(s.narration)}</p>
     <p class="q">🤖 ${e(s.image_prompt)}</p>
-    <p class="provider">Fuente: Cloudflare Workers AI · FLUX</p>
+    <p class="provider">Fuente: SD-Turbo · WebGPU local</p>
     <p class="match ok">✨ IA · movimiento ${e(a.dataset.motion)}</p>
     <button class="sec change">↻ Regenerar imagen</button>
   </div>`;
@@ -2302,7 +2289,7 @@ function render(s,c,i){
       generatedSceneImages.push(c2);
       a.dataset.clipUrl=c2.url;
       a.querySelector('.media').innerHTML=`<img src="${e(c2.url)}" alt="Escena IA regenerada" style="width:100%;height:100%;object-fit:cover;display:block">`;
-      a.querySelector('.provider').textContent='Fuente: Cloudflare Workers AI · FLUX';
+      a.querySelector('.provider').textContent='Fuente: SD-Turbo · WebGPU local';
       const match=a.querySelector('.match');
       if(match){match.className='match ok';match.textContent='✨ Imagen IA regenerada';}
       if(old){
@@ -2801,9 +2788,6 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     const script=(A('#script')?.value||'').trim();
     if(!script)throw Error('Primero sube un TXT.');
     if(!(A('#groq')?.value||'').trim())throw Error('Falta Groq API.');
-    const hasCloudflare=(A('#cfAccount')?.value||'').trim() && (A('#cfToken')?.value||'').trim();
-    const hasPollinations=(A('#pollinations')?.value||'').trim();
-    if(!hasCloudflare && !hasPollinations)throw Error('Configura Cloudflare Workers AI o Pollinations para generar imágenes.');
 
     const voicePromise=makeVoice();
     const scenesPromise=makeScenes();
@@ -4127,6 +4111,164 @@ window.addEventListener('DOMContentLoaded',()=>{
   }else{
     console.log('Documental Factory: verificación de interfaz OK');
   }
+});
+</script>
+
+
+<script type="module" id="sd-turbo-webgpu-local">
+import * as ort from 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.1/dist/ort.webgpu.min.mjs';
+import { AutoTokenizer } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
+
+const BASE='https://huggingface.co/schmuell/sd-turbo-ort-web/resolve/main';
+const SIGMA=14.6146, VAE_SCALE=0.18215;
+let sessions=null, tokenizer=null, loading=null, busy=Promise.resolve();
+
+ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.1/dist/';
+ort.env.wasm.numThreads=1;
+ort.env.wasm.simd=true;
+
+function ui(msg){
+  const e=document.getElementById('sdLocalStatus');
+  if(e)e.textContent=msg;
+  console.log('[SD-Turbo]',msg);
+}
+function randn(){
+  let u=0,v=0;
+  while(u===0)u=Math.random();
+  while(v===0)v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+function noise(shape){
+  let n=shape.reduce((a,b)=>a*b,1), d=new Float32Array(n);
+  for(let i=0;i<n;i++)d[i]=randn()*SIGMA;
+  return d;
+}
+function scaleInput(t){
+  const div=Math.sqrt(SIGMA*SIGMA+1), d=new Float32Array(t.data.length);
+  for(let i=0;i<d.length;i++)d[i]=t.data[i]/div;
+  return new ort.Tensor('float32',d,t.dims);
+}
+function scheduler(out,sample){
+  const d=new Float32Array(out.data.length);
+  for(let i=0;i<d.length;i++){
+    const pred=sample.data[i]-SIGMA*out.data[i];
+    const derivative=(sample.data[i]-pred)/SIGMA;
+    d[i]=(sample.data[i]+derivative*(0-SIGMA))/VAE_SCALE;
+  }
+  return new ort.Tensor('float32',d,out.dims);
+}
+async function cachedBytes(path,notify){
+  const url=BASE+'/'+path;
+  const cache=await caches.open('icecream-sd-turbo-v1');
+  let r=await cache.match(url);
+  if(!r){
+    notify?.('⬇️ Primera vez: descargando '+path+'…');
+    r=await fetch(url,{cache:'no-store'});
+    if(!r.ok)throw new Error('No se pudo descargar '+path+' (HTTP '+r.status+')');
+    await cache.put(url,r.clone());
+  }
+  return await r.arrayBuffer();
+}
+async function init(notify=ui){
+  if(sessions)return sessions;
+  if(loading)return loading;
+  loading=(async()=>{
+    if(!navigator.gpu)throw new Error('Este navegador no tiene WebGPU habilitado.');
+    const adapter=await navigator.gpu.requestAdapter();
+    if(!adapter)throw new Error('No se pudo obtener el adaptador WebGPU.');
+    if(!adapter.features.has('shader-f16'))throw new Error('La GPU/navegador no expone shader-f16.');
+
+    notify('🧠 Cargando SD‑Turbo WebGPU… La primera vez descarga el modelo.');
+    const common={
+      executionProviders:['webgpu'],
+      enableMemPattern:false,
+      enableCpuMemArena:false,
+      extra:{session:{
+        disable_prepacking:'1',
+        use_device_allocator_for_initializers:'1',
+        use_ort_model_bytes_directly:'1',
+        use_ort_model_bytes_for_initializers:'1'
+      }}
+    };
+    const defs={
+      unet:{path:'unet/model.onnx', opt:{freeDimensionOverrides:{batch_size:1,num_channels:4,height:64,width:64,sequence_length:77}}},
+      text:{path:'text_encoder/model.onnx',opt:{freeDimensionOverrides:{batch_size:1}}},
+      vae:{path:'vae_decoder/model.onnx',opt:{freeDimensionOverrides:{batch_size:1,num_channels_latent:4,height_latent:64,width_latent:64}}}
+    };
+    const ub=await cachedBytes(defs.unet.path,notify);
+    const tb=await cachedBytes(defs.text.path,notify);
+    const vb=await cachedBytes(defs.vae.path,notify);
+
+    notify('⚙️ Compilando SD‑Turbo para tu GPU Intel…');
+    const unet=await ort.InferenceSession.create(ub,{...common,...defs.unet.opt});
+    const text=await ort.InferenceSession.create(tb,{...common,...defs.text.opt,
+      preferredOutputLocation:{last_hidden_state:'gpu-buffer'}});
+    const vae=await ort.InferenceSession.create(vb,{...common,...defs.vae.opt});
+    sessions={unet,text,vae};
+    notify('🟢 SD‑Turbo WebGPU listo · 512×512 local');
+    return sessions;
+  })().catch(e=>{loading=null;throw e});
+  return loading;
+}
+async function ensureTokenizer(notify){
+  if(tokenizer)return tokenizer;
+  notify?.('🔤 Cargando tokenizer local del navegador…');
+  tokenizer=await AutoTokenizer.from_pretrained('Xenova/clip-vit-base-patch16');
+  tokenizer.pad_token_id=0;
+  return tokenizer;
+}
+async function tensorToBlob(t){
+  let pix=t.data;
+  const H=t.dims[2], W=t.dims[3];
+  const rgba=new Uint8ClampedArray(W*H*4);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const p=y*W+x, o=p*4;
+    for(let c=0;c<3;c++){
+      let v=pix[c*H*W+p]/2+0.5;
+      v=Math.max(0,Math.min(1,v));
+      rgba[o+c]=Math.round(v*255);
+    }
+    rgba[o+3]=255;
+  }
+  const canvas=document.createElement('canvas');
+  canvas.width=W; canvas.height=H;
+  canvas.getContext('2d').putImageData(new ImageData(rgba,W,H),0,0);
+  const blob=await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('No se pudo convertir la imagen.')),'image/jpeg',0.94));
+  return blob;
+}
+async function generate(prompt,notify=ui){
+  await init(notify);
+  const tok=await ensureTokenizer(notify);
+  notify('🎨 SD‑Turbo generando imagen 512×512 con WebGPU…');
+  const enc=await tok(prompt,{padding:true,max_length:77,truncation:true,return_tensor:false});
+  const ids=enc.input_ids;
+  const {last_hidden_state}=await sessions.text.run({
+    input_ids:new ort.Tensor('int32',ids,[1,ids.length])
+  });
+  const shape=[1,4,64,64];
+  const latent=new ort.Tensor('float32',noise(shape),shape);
+  const latentInput=scaleInput(latent);
+  const {out_sample}=await sessions.unet.run({
+    sample:latentInput,
+    timestep:new ort.Tensor('int64',[999n],[1]),
+    encoder_hidden_states:last_hidden_state
+  });
+  const decodedLatent=scheduler(out_sample,latent);
+  const {sample}=await sessions.vae.run({latent_sample:decodedLatent});
+  const blob=await tensorToBlob(sample);
+  try{last_hidden_state.dispose?.();}catch{}
+  try{out_sample.dispose?.();}catch{}
+  try{sample.dispose?.();}catch{}
+  return {blob,url:URL.createObjectURL(blob),provider:'SD‑Turbo WebGPU local'};
+}
+window.sdTurboLocalGenerate=(prompt,notify)=>{
+  const job=busy.then(()=>generate(prompt,notify));
+  busy=job.catch(()=>{});
+  return job;
+};
+window.sdTurboLocalInit=()=>init(ui);
+window.addEventListener('load',()=>{
+  setTimeout(()=>init(ui).catch(e=>ui('❌ SD‑Turbo: '+(e?.message||e))),1200);
 });
 </script>
 
