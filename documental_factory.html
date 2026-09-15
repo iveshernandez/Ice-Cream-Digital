@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6.5 · FS Final Fix</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6.6 · 512 Blur + Motion</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div><div style="margin:7px 0 2px;padding:7px 10px;border:1px solid #31506f;border-radius:8px;background:#0d1b2b;color:#9fd5ff;font-size:10px;font-weight:700">🎬 Modo visual 512: imagen central sin deformar + fondo desenfocado 9:16 + movimiento Ken Burns en todas las escenas.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -1702,9 +1702,17 @@ async function createFinalVideo(){
 
       const fadeIn=i===0?'':`fade=t=in:st=0:d=${fadeDur.toFixed(3)},`;
       const fadeOut=i===sceneEls.length-1?'':`fade=t=out:st=${fadeOutStart.toFixed(3)}:d=${fadeDur.toFixed(3)},`;
-      // Still image -> full moving scene. d must equal the number of output frames.
-      const baseVideoFilter=`scale=900:1600:force_original_aspect_ratio=increase,crop=900:1600,zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=${frames}:s=720x1280:fps=30,trim=duration=${durNum.toFixed(3)},setpts=PTS-STARTPTS,${fadeIn}${fadeOut}format=yuv420p`;
-      const filters=[`[0:v]${baseVideoFilter}[v0]`];
+      // V10.6.6: composición 512x512 -> 720x1280 sin deformar.
+      // La misma imagen llena el fondo desenfocado y permanece nítida al centro.
+      // Después aplicamos Ken Burns a TODA la composición para que ninguna escena quede estática.
+      const composeAndMove=`split=2[sharp][blur];`+
+        `[blur]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,gblur=sigma=28:steps=2,eq=brightness=-0.10:saturation=0.82[bg];`+
+        `[sharp]scale=720:720:force_original_aspect_ratio=decrease[fg];`+
+        `[bg][fg]overlay=(W-w)/2:(H-h)/2:format=auto,`+
+        `scale=900:1600:force_original_aspect_ratio=increase,crop=900:1600,`+
+        `zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=${frames}:s=720x1280:fps=30,`+
+        `trim=duration=${durNum.toFixed(3)},setpts=PTS-STARTPTS,${fadeIn}${fadeOut}format=yuv420p`;
+      const filters=[`[0:v]${composeAndMove}[v0]`];
       let prev='v0';
       overlaySpecs.forEach((o,k)=>{
         const next='v'+(k+1);
@@ -1714,11 +1722,9 @@ async function createFinalVideo(){
 
       // AI scenes are still images. Loop the image at 30 fps for the whole scene.
       const args=['-loop','1','-framerate','30','-i',cachedInput,...overlayInputs,'-t',dur];
-      if(overlaySpecs.length){
-        args.push('-filter_complex',filters.join(';'),'-map',`[${prev}]`);
-      }else{
-        args.push('-vf',baseVideoFilter);
-      }
+      // Siempre usamos filter_complex porque el fondo difuso y la imagen central
+      // salen de dos ramas de la misma imagen.
+      args.push('-filter_complex',filters.join(';'),'-map',`[${prev}]`);
       args.push('-an','-c:v','libx264','-preset','ultrafast','-crf','23','-pix_fmt','yuv420p','-movflags','+faststart',output);
 
       await ffmpeg.exec(args);
