@@ -328,12 +328,6 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 <label>Groq API</label>
 <div class="api"><input id="groq" type="password" autocomplete="off"><a class="apiHelp" href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">🔗 Obtener API</a></div>
 
-<div class="api"></div>
-
-<div class="api"></div>
-<div class="tiny" style="margin-top:5px"></div>
-
-<div class="api"></div>
 <div class="actions">
 <button class="sec show" data-id="groq">Mostrar Groq</button>
 </div>
@@ -1903,24 +1897,64 @@ window.addEventListener('load',()=>{
 <script>
 const voicePresetEl=$('#voicePreset');
 if(voicePresetEl){
-  voicePresetEl.value=localStorage.getItem('df_voicePreset')||'original';
-  voicePresetEl.addEventListener('change',()=>localStorage.setItem('df_voicePreset',voicePresetEl.value));
+  voicePresetEl.value='es_ES-sharvard-medium:0';
 }
+
 const groqEl=$('#groq');
-if(groqEl && groqEl.value.trim()){
-  setTimeout(()=>{const s=$('#apiSavedStatus'); if(s)s.textContent='✅ APIs personales cargadas desde este navegador.';},0);
+const apiSavedStatus=$('#apiSavedStatus');
+
+function setGroqSavedStatus(text,ok=true){
+  if(!apiSavedStatus)return;
+  apiSavedStatus.textContent=text;
+  apiSavedStatus.style.color=ok?'#66ef9d':'#ff8b8b';
 }
-document.querySelectorAll('.show').forEach(b=>b.onclick=()=>{let i=$('#'+b.dataset.id);i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'Mostrar':'Ocultar'});
-if($('#save')) $('#save').onclick=()=>{keys.forEach(k=>{const el=$('#'+k);if(!el)return;let v=(el.value||'').trim();v?localStorage.setItem('df_'+k,v):localStorage.removeItem('df_'+k)});st('APIs guardadas en este dispositivo.','ok')};
-if($('#erase')) $('#erase').onclick=()=>{keys.forEach(k=>{localStorage.removeItem('df_'+k);const el=$('#'+k);if(el)el.value=''});st('APIs eliminadas.')};
-  const status=$('#apiSavedStatus');
+
+// GROQ ONLY: load once from this browser.
+try{
+  const savedGroq=localStorage.getItem('df_groq')||'';
+  if(groqEl && savedGroq){
+    groqEl.value=savedGroq;
+    setGroqSavedStatus('✅ Groq API cargada desde este navegador.');
+  }else{
+    setGroqSavedStatus('Groq API aún no guardada.',false);
+  }
+}catch(err){
+  setGroqSavedStatus('No se pudo leer el almacenamiento del navegador.',false);
+}
+
+// Show/hide Groq only.
+document.querySelectorAll('.show[data-id="groq"]').forEach(b=>{
+  b.onclick=()=>{
+    if(!groqEl)return;
+    groqEl.type=groqEl.type==='password'?'text':'password';
+    b.textContent=groqEl.type==='password'?'Mostrar Groq':'Ocultar Groq';
+  };
+});
+
+// Save Groq only.
+const saveGroqBtn=$('#save');
+if(saveGroqBtn) saveGroqBtn.onclick=()=>{
+  const value=(groqEl?.value||'').trim();
+  if(!value){
+    setGroqSavedStatus('❌ Escribe primero tu Groq API.',false);
+    return;
+  }
   try{
-    const r=await fetch(endpoint,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({prompt:'simple blue sphere on dark background',steps:1})});
-    const j=await r.json().catch(()=>null);
-    if(!r.ok||j?.success===false)throw new Error(j?.errors?.[0]?.message||`HTTP ${r.status}`);
+    localStorage.setItem('df_groq',value);
+    setGroqSavedStatus('✅ Groq API guardada en este navegador.');
   }catch(err){
+    setGroqSavedStatus('❌ No se pudo guardar Groq en este navegador.',false);
   }
 };
+
+// Delete Groq only.
+const eraseGroqBtn=$('#erase');
+if(eraseGroqBtn) eraseGroqBtn.onclick=()=>{
+  try{localStorage.removeItem('df_groq');}catch(_){}
+  if(groqEl)groqEl.value='';
+  setGroqSavedStatus('Groq API eliminada.',false);
+};
+
 function st(t,c='mut'){const el=$('#status')||$('#autoStatus');if(el){el.textContent=t;el.className='status '+c}}function e(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 async function ai(prompt){
   const key=(document.querySelector('#groq')?.value||'').trim();
@@ -2056,7 +2090,7 @@ function json(t){
     if(Array.isArray(value))return value;
 
     if(value && typeof value==='object'){
-      for(const key of ['scenes','escenas','items','results','data']){
+      for(const key of ['escenas','items','results','data']){
         if(Array.isArray(value[key]))return value[key];
       }
       if(value.narration || value.query || value.queries || value.narracion || value.busqueda)return [value];
@@ -4061,7 +4095,7 @@ REGLAS CRÍTICAS:
 <script>
 window.addEventListener('DOMContentLoaded',()=>{
   const required=['txtFile','videoTitle','downloadName','script','duration','sceneCount',
-    'groq','scenes','titleOverlay','subtitles','musicVol',
+    'groq','titleOverlay','subtitles','musicVol',
     'renderStatus','renderBar','finalPreview','autoCreate','autoStatus','autoBar','queueStatus',
     'tabTxt'];
   const missing=required.filter(id=>!document.getElementById(id));
