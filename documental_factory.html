@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.4 · V5.4 Shot Director</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.5 · V5.5 Timed Scenes</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.4 Shot Director: cada escena recibe una gramática de cámara obligatoria para forzar composiciones distintas en FLUX, sin aumentar imágenes ni llamadas a Groq.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.5 Timed Scenes: el número de escenas se calcula por tamaño del guion y TODAS las imágenes cambian a ritmo uniforme (~4 s), usando cada escena generada una vez.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -1166,28 +1166,18 @@ async function blobDuration(blob){
 }
 
 function sceneDurations(total,sceneEls){
-  const weights=sceneEls.map(el=>{
-    const txt=el.querySelector('.narr')?.textContent||'';
-    return Math.max(1,txt.trim().split(/\s+/).filter(Boolean).length);
-  });
-  const sum=weights.reduce((a,b)=>a+b,0)||sceneEls.length;
-  let ds=weights.map(w=>total*w/sum);
+  // V5.5 TIMED SCENES:
+  // Every generated scene is shown once and for the same amount of time.
+  // Example: 68 s / 16 scenes = one new image every ~4.25 s.
+  // This avoids a long narration fragment keeping one image on screen for 10–15 s.
+  const count=Math.max(1,sceneEls.length);
+  const each=total/count;
+  const ds=new Array(count).fill(each);
 
-  // Prevent visually jarring micro-scenes.
-  const min=1.2;
-  for(let pass=0;pass<2;pass++){
-    let deficit=0;
-    ds=ds.map(x=>{if(x<min){deficit+=min-x;return min;}return x;});
-    if(deficit>0){
-      const adjustable=ds.map((x,i)=>x>min?i:-1).filter(i=>i>=0);
-      const pool=adjustable.reduce((s,i)=>s+(ds[i]-min),0);
-      if(pool>deficit){
-        adjustable.forEach(i=>{ds[i]-=deficit*((ds[i]-min)/pool);});
-      }
-    }
-  }
-  const cur=ds.reduce((a,b)=>a+b,0);
-  if(cur>0) ds[ds.length-1]+=total-cur;
+  // Correct floating-point remainder on the final scene so the visual track
+  // ends at exactly Alexander's natural narration duration.
+  const used=each*count;
+  ds[count-1]+=total-used;
   return ds;
 }
 
@@ -2178,9 +2168,9 @@ function estimateNarrationSeconds(text){
 function automaticSceneCount(script){
   const selected=String(document.querySelector('#duration')?.value||'auto');
   const seconds=selected==='auto' ? estimateNarrationSeconds(script) : Number(selected);
-  // V5.1 Dynamic AI: visual change about every 4.5 seconds.
-  // For ~60–70 s this normally creates 13–16 semantic scenes.
-  return Math.max(10,Math.min(24,Math.round(seconds/4.5)));
+  // V5.5: automatic visual rhythm based on script/narration size.
+  // Target: one new AI image about every 4 seconds.
+  return Math.max(8,Math.min(30,Math.round(seconds/4.0)));
 }
 
 function updateAutomaticSceneCount(){
@@ -2189,7 +2179,7 @@ function updateAutomaticSceneCount(){
   const hidden=document.querySelector('#sceneCount');
   const label=document.querySelector('#sceneCountLabel');
   if(hidden)hidden.value=String(n);
-  if(label)label.textContent=`${n} escenas — aprox. 1 cada 4–5 s`;
+  if(label)label.textContent=`${n} escenas automáticas — aprox. 1 imagen cada 4 s`;
   return n;
 }
 
@@ -2228,6 +2218,7 @@ REGLAS OBLIGATORIAS:
 - OBJETIVO: alrededor de ${n} escenas. No fuerces divisiones artificiales solo para alcanzar el número exacto.
 - Antes de redactar internamente los image_prompt, piensa la secuencia completa como un director documental: establecimiento → sujeto → acción → detalle → reacción/consecuencia → siguiente acción. Devuelve solamente el JSON solicitado.
 - narration debe cubrir TODO el guion, en orden, sin resumir ni inventar.
+- Como cada imagen permanecerá aproximadamente el mismo tiempo en pantalla, procura que los fragmentos narration tengan una longitud hablada parecida entre sí, SIN cortar una idea importante a la mitad.
 - NO dividas por cantidad de palabras. Corta una escena cuando cambie la idea, acción, sujeto visible, lugar, causa, consecuencia o momento narrativo.
 - Cada escena debe sentirse como un nuevo plano de un documental real y continuar naturalmente la escena anterior.
 - CONTINUIDAD NO SIGNIFICA REPETIR LA MISMA COMPOSICIÓN. Conserva identidad, especie, entorno y lógica narrativa, pero cambia claramente el encuadre y la acción.
