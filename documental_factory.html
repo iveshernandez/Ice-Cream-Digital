@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.3 · V5.3 Anti-Repeat Director</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.4 · V5.4 Shot Director</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.3 Anti-Repeat Director: cada escena debe diferenciarse visualmente de la anterior en al menos dos elementos; título limitado a la primera escena y máximo 5 s.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.4 Shot Director: cada escena recibe una gramática de cámara obligatoria para forzar composiciones distintas en FLUX, sin aumentar imágenes ni llamadas a Groq.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -2245,7 +2245,24 @@ REGLAS OBLIGATORIAS:
 - No repitas dos veces seguidas la misma combinación de animales + red + barco.
 - No uses dos primeros planos consecutivos del mismo protagonista.
 - El image_prompt debe describir una COMPOSICIÓN concreta, no solo repetir los sustantivos de la narración.
+- GRAMÁTICA DE CÁMARA OBLIGATORIA: asigna las escenas, en orden, siguiendo este ciclo de tipos de toma y adapta cada una al contenido real del guion:
+  1) plano general ambiental / establishing shot,
+  2) perspectiva humana desde cubierta o nivel de superficie,
+  3) plano submarino amplio,
+  4) plano detalle del objeto/acción clave,
+  5) plano lateral medio del protagonista,
+  6) POV o sobre-el-hombro del observador pertinente,
+  7) cámara submarina mirando hacia la superficie,
+  8) plano general lejano con escala del entorno,
+  9) primer plano expresivo o anatómico pertinente,
+  10) plano cenital/aéreo si la escena lo permite,
+  11) plano bajo o contrapicado desde el agua,
+  12) plano de reacción/consecuencia.
+- Si hay más de 12 escenas, vuelve a empezar el ciclo PERO cambia distancia, lado, altura y sujeto dominante para que no se repita la composición.
+- Si un tipo de toma no tiene sentido para esa narración, sustitúyelo por el tipo más cercano que sí sea físicamente lógico, manteniendo la obligación de diferenciarlo del anterior.
+- El tipo de toma debe escribirse explícitamente dentro de cada image_prompt para que FLUX reciba una instrucción inequívoca de cámara.
 - Mantén al protagonista reconocible entre escenas cuando corresponda, pero no obligues a que aparezca en todas si la narración está enfocada temporalmente en otro sujeto u objeto.
+- PRIORIDAD DE DIRECCIÓN: 1) congruencia con la frase narrada, 2) tipo de toma asignado, 3) continuidad de identidad, 4) estética cinematográfica. La continuidad jamás debe anular el cambio de cámara.
 - Cada image_prompt debe representar físicamente lo que se está narrando EN ESA escena.
 - No uses metáforas visuales.
 - No sustituyas el sujeto por otro animal, objeto, persona o paisaje.
