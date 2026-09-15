@@ -2346,7 +2346,7 @@ function render(s,c,i){
 
   a.innerHTML=`<div class="media">${c?`<img src="${e(c.url)}" alt="Escena IA ${i+1}" style="width:100%;height:100%;object-fit:cover;display:block">`:'<span class="err">Sin imagen IA</span>'}</div>
   <div class="body">
-    <b>ESCENA ${i+1}</b>
+    <b>ESCENA ${i+1} · NARRACIÓN ↔ IMAGEN</b>
     <p class="narr">${e(s.narration)}</p>
     <p class="q">🤖 ${e(s.image_prompt)}</p>
     <p class="provider">Fuente: SD-Turbo · WebGPU local</p>
@@ -2509,6 +2509,20 @@ REGLAS OBLIGATORIAS:
 - Si la narración describe una acción, el prompt debe mostrar esa acción.
 - Si la acción es difícil, muestra al mismo sujeto en el contexto físico más cercano; nunca una metáfora.
 - Congruencia con la narración > variedad.
+
+
+REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
+- Cada escena debe corresponder ÚNICAMENTE al fragmento de narración asignado a esa escena.
+- narration debe conservar el fragmento concreto del guion que esa imagen representa; no resumas todo el documental.
+- image_prompt debe representar literalmente lo que ocurre en narration.
+- Cada image_prompt debe especificar: SUJETO principal + ACCIÓN visible + OBJETO relevante + LUGAR/ENTORNO + CONTEXTO visual.
+- Si la narración menciona una pieza, animal, persona, vehículo, herramienta, alimento u objeto concreto, ese elemento debe ser claramente protagonista de la imagen.
+- Si describe una causa, muestra físicamente esa causa. Si describe una solución, muestra físicamente la acción de solución.
+- No uses imágenes metafóricas, abstractas, decorativas, paisajes de relleno ni conceptos genéricos.
+- No inventes otro animal, objeto, lugar o acción diferente a lo narrado.
+- Mantén continuidad de especie, vehículo, entorno y personajes entre escenas consecutivas cuando corresponda.
+- Los prompts de imagen deben estar en inglés, ser fotorealistas y describir una sola toma cinematográfica concreta.
+- Termina cada image_prompt con: photorealistic documentary photography, realistic anatomy and proportions, natural lighting, no text, no logo, no watermark.
 `;
 
   let doc;
@@ -2528,11 +2542,18 @@ REGLAS OBLIGATORIAS:
       const usable=chunks.map(x=>x.join(' ').trim()).filter(Boolean);
       doc={visual_identity:'',scenes:usable.map(narr=>({
         narration:narr,
-        image_prompt:`Photorealistic cinematic documentary scene showing exactly this event: ${narr}. Realistic anatomy, natural environment, documentary photography, dynamic camera angle, high detail, no text, no logo, no watermark.`
+        image_prompt:`Literal documentary photograph of the exact event described here: "${narr}". The main subject, visible action, relevant object and physical environment must all match this narration exactly. Do not use metaphorical or generic imagery. Photorealistic documentary photography, realistic anatomy and proportions, natural lighting, no text, no logo, no watermark.`
       }))};
     }
   }
-  const arr=doc.scenes;
+  const arr=doc.scenes.map((scene,i)=>{
+    const narration=String(scene.narration||'').trim();
+    let imagePrompt=String(scene.image_prompt||'').trim();
+    if(imagePrompt.length<45){
+      imagePrompt=`Literal documentary photograph showing exactly this narration: "${narration}". Main subject performing the narrated action with the relevant object in the correct physical environment. Photorealistic documentary photography, realistic anatomy and proportions, natural lighting, no text, no logo, no watermark.`;
+    }
+    return {...scene,narration,image_prompt:imagePrompt};
+  });
   const identity=String(doc.visual_identity||'').trim();
 
   if(!Array.isArray(arr)||arr.length<1){
@@ -3836,7 +3857,7 @@ REGLAS CRÍTICAS:
 
       art.innerHTML=`<div class="media">${art.dataset.clipUrl?`<video muted loop controls playsinline src="${art.dataset.clipUrl}"></video>`:'<span class="err">Sin clip</span>'}</div>
         <div class="body">
-          <b>ESCENA ${i+1}</b>
+          <b>ESCENA ${i+1} · NARRACIÓN ↔ IMAGEN</b>
           <p class="narr"></p>
           <p class="q"></p>
           <p class="provider"></p>
