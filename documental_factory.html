@@ -474,6 +474,10 @@ window.addEventListener('DOMContentLoaded',()=>{
 <audio id="audio" controls style="width:100%;margin-top:10px;display:none"></audio>
 <div id="audioActions" class="actions"></div>
 <div id="renderRightSlot"><section class="card">
+<div id="generatedScenesSection" class="card" style="margin-top:12px">
+  <h2>4. Escenas generadas</h2>
+  <div id="scenes" class="scenes"></div>
+</div>
 <div class="renderbox" style="margin-top:0">
 <h2 style="margin-top:0">5. Render final</h2>
 <div class="row">
@@ -2345,8 +2349,7 @@ function render(s,c,i){
     <button class="sec change">↻ Regenerar imagen</button>
   </div>`;
 
-  const scenesRoot=$('#scenes');
-  if(!scenesRoot)throw Error('No existe el contenedor de escenas.');
+  const scenesRoot=ensureScenesContainer();
   scenesRoot.appendChild(a);
 
   const changeBtn=a.querySelector('.change');
@@ -2404,6 +2407,23 @@ function updateAutomaticSceneCount(){
 
 document.querySelector('#duration')?.addEventListener('change',updateAutomaticSceneCount);
 document.querySelector('#script')?.addEventListener('input',updateAutomaticSceneCount);
+
+
+function ensureScenesContainer(){
+  let root=document.getElementById('scenes');
+  if(root)return root;
+  const host=document.querySelector('#generatedScenesSection') ||
+             document.querySelector('.w') ||
+             document.querySelector('main') ||
+             document.body;
+  const section=document.createElement('div');
+  section.id='generatedScenesSection';
+  section.className='card';
+  section.style.marginTop='12px';
+  section.innerHTML='<h2>4. Escenas generadas</h2><div id="scenes" class="scenes"></div>';
+  host.appendChild(section);
+  return document.getElementById('scenes');
+}
 
 async function go(){
   const script=(document.querySelector('#script')?.value||'').trim();
@@ -2526,8 +2546,7 @@ REGLAS OBLIGATORIAS:
   }
 
   clearGeneratedSceneImages();
-  const scenesEl=document.querySelector('#scenes');
-  if(!scenesEl)throw Error('No existe el contenedor de escenas.');
+  const scenesEl=ensureScenesContainer();
   scenesEl.innerHTML='';
 
   for(let i=0;i<arr.length;i++){
