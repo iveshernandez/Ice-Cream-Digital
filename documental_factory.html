@@ -2024,6 +2024,7 @@ window.addEventListener('load',()=>{
 </script>
 
 <script>
+const $=s=>document.querySelector(s);
 const voicePresetEl=$('#voicePreset');
 if(voicePresetEl){
   voicePresetEl.value='es_ES-sharvard-medium:0';
@@ -2622,6 +2623,11 @@ REGLAS OBLIGATORIAS:
   return arr.length;
 }
 window.documentalAnalyzeScenes=go;
+console.log('[Factory] Motor de escenas Groq registrado:', typeof window.documentalAnalyzeScenes==='function');
+if($('#liveLog')){
+  const t=new Date().toLocaleTimeString();
+  $('#liveLog').innerHTML+=`<div>${t} — ✅ Motor de escenas Groq registrado.</div>`;
+}
 if($('#go')) $('#go').onclick=()=>go().catch(x=>st('❌ '+x.message,'err'));
 if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas del Atlántico vive un animal que parece desafiar el tiempo. El tiburón de Groenlandia crece lentamente y puede vivir durante siglos. Se desplaza por un mundo oscuro y frío donde pocas criaturas sobreviven. Su extraordinaria longevidad lo convierte en uno de los vertebrados más longevos conocidos.';st('Guion demo colocado.','ok')};
 </script>
@@ -2861,7 +2867,10 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     step('stepScenes','active','Analizando y buscando clips');
     ast('1/4 Groq crea escenas y prompts para IA…');
     abar(10);
-    if(typeof window.documentalAnalyzeScenes!=='function')throw Error('Motor de escenas no disponible.');
+    if(typeof window.documentalAnalyzeScenes!=='function')
+      throw Error('Motor de escenas Groq no quedó registrado.');
+    if(typeof window.sdTurboLocalGenerate!=='function' || window.__sdTurboVerifiedReady!==true)
+      throw Error('SD‑Turbo todavía no está realmente listo para crear imágenes. Espera a que marque 100% verificado.');
     await window.documentalAnalyzeScenes();
     const scenes=[...document.querySelectorAll('#scenes .scene')];
     if(!scenes.length)throw Error('No se generaron escenas.');
@@ -4380,7 +4389,9 @@ async function init(notify=ui){
     notify('92% · Text Encoder compilado · compilando VAE…');
     const vae=await ort.InferenceSession.create(vb,{...common,...defs.vae.opt});
     sessions={unet,text,vae};
-    notify('🟢 SD‑Turbo WebGPU listo · 512×512 local');
+    window.__sdTurboVerifiedReady=!!(sessions.unet&&sessions.text&&sessions.vae);
+    if(!window.__sdTurboVerifiedReady)throw new Error('SD‑Turbo: faltan sesiones UNet/Text Encoder/VAE.');
+    notify('🟢 SD‑Turbo WebGPU listo · UNet + Text Encoder + VAE verificados');
     try{window.__resolveSdTurboReady?.(sessions);}catch(_){}
     return sessions;
   })().catch(e=>{loading=null;throw e});
@@ -4518,7 +4529,12 @@ window.addEventListener('load',()=>{
      }finally{
        clearInterval(watcher);
      }
-     set('engineImage','ready','Listo · WebGPU local',100); window.sdActivity?.('100% · SD‑Turbo listo · WebGPU local',100);
+     if(typeof window.sdTurboLocalGenerate!=='function')
+       throw Error('SD‑Turbo cargó, pero el generador de imágenes no quedó conectado.');
+     if(window.__sdTurboVerifiedReady!==true)
+       throw Error('SD‑Turbo no verificó UNet + Text Encoder + VAE.');
+     set('engineImage','ready','Listo · UNet + Text Encoder + VAE',100);
+     window.sdActivity?.('100% · SD‑Turbo REALMENTE listo · generador + UNet + Text Encoder + VAE verificados',100);
    }catch(e){
      const detail=(e?.message||String(e)||'Error desconocido').slice(0,180);
      console.error('[SD-Turbo diagnóstico]',e); window.sdActivity?.('❌ '+detail,0);
