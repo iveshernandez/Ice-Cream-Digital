@@ -4246,7 +4246,7 @@ window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
   window.__rejectSdTurboReady=reject;
 });
 </script>
-<script type="module" id="sd-turbo-webgpu-local">
+<script type="text/plain" id="sd-turbo-module-source">
 
 let ort=null, AutoTokenizer=null;
 async function loadSdRuntime(notify){
@@ -4435,6 +4435,40 @@ window.addEventListener('load',()=>{
   setTimeout(()=>init(ui).catch(e=>ui('❌ SD‑Turbo: '+(e?.message||e))),1200);
 });
 </script>
+<script id="sd-turbo-bootstrap-v10-7-12">
+(function(){
+  let bootPromise=null;
+  window.sdTurboLocalInit=async function(){
+    if(window.__sdRealInit) return window.__sdRealInit();
+    if(!bootPromise){
+      bootPromise=(async()=>{
+        window.sdActivity?.('2% · Iniciando motor SD‑Turbo…',2);
+        const src=document.getElementById('sd-turbo-module-source')?.textContent||'';
+        if(!src) throw new Error('BOOTSTRAP: código SD‑Turbo no encontrado.');
+        const blob=new Blob([src],{type:'text/javascript'});
+        const url=URL.createObjectURL(blob);
+        try{
+          window.sdActivity?.('4% · Ejecutando módulo SD‑Turbo…',4);
+          await import(url);
+        }catch(e){
+          throw new Error('MÓDULO SD‑TURBO: '+(e?.message||e));
+        }finally{
+          URL.revokeObjectURL(url);
+        }
+        if(typeof window.__sdRealInit!=='function'){
+          // The module historically publishes sdTurboLocalInit itself. Capture that if present.
+          const current=window.sdTurboLocalInit;
+          if(current && current!==bootstrapInit) window.__sdRealInit=current;
+        }
+        if(typeof window.__sdRealInit!=='function') throw new Error('MÓDULO: inició pero no publicó el motor real.');
+        return window.__sdRealInit();
+      })();
+    }
+    return bootPromise;
+  };
+  const bootstrapInit=window.sdTurboLocalInit;
+})();
+</script>
 
 
 <script id="engine-status-v10-7-2">
@@ -4453,12 +4487,8 @@ window.addEventListener('load',()=>{
  async function imageCheck(){
    try{
      set('engineImage','loading','Cargando módulo WebGPU…',1); window.sdActivity?.('1% · Cargando módulo WebGPU…',1);
-     let waited=0;
-     while(typeof window.sdTurboLocalInit!=='function' && waited<120000){
-       await new Promise(r=>setTimeout(r,300)); waited+=300;
-       set('engineImage','loading','Cargando módulo WebGPU…',Math.min(9,1+waited/15000));
-     }
-     if(typeof window.sdTurboLocalInit!=='function')throw Error('MÓDULO JS: SD‑Turbo no pudo iniciar. Revisa importación ONNX/Transformers.');
+     if(typeof window.sdTurboLocalInit!=='function')throw Error('BOOTSTRAP: función SD‑Turbo no disponible.');
+     window.sdActivity?.('2% · Bootstrap SD‑Turbo listo.',2);
 
      const statusBox=document.getElementById('sdLocalStatus');
      let lastText='';
