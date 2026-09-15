@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.1.1 · V5.1.1 Flexible Semantic Scenes</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.1.2 · V5.1.2 Full Duration Render Fix</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.1.1 Dynamic AI: el número de escenas es un objetivo flexible; Groq corta por cambios naturales de idea/acción sin abortar por pequeñas diferencias. Cámara dinámica, transiciones y título 5 s.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.1.2 Dynamic AI: corrige el MP4 ultracorto; cada imagen IA ahora genera todos sus frames a 30 FPS durante la duración real de la escena.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -1690,7 +1690,8 @@ async function createFinalVideo(){
 
       const fadeIn=i===0?'':`fade=t=in:st=0:d=${fadeDur.toFixed(3)},`;
       const fadeOut=i===sceneEls.length-1?'':`fade=t=out:st=${fadeOutStart.toFixed(3)}:d=${fadeDur.toFixed(3)},`;
-      const baseVideoFilter=`scale=900:1600:force_original_aspect_ratio=increase,crop=900:1600,zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=1:s=720x1280:fps=30,${fadeIn}${fadeOut}format=yuv420p`;
+      // Still image -> full moving scene. d must equal the number of output frames.
+      const baseVideoFilter=`scale=900:1600:force_original_aspect_ratio=increase,crop=900:1600,zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=${frames}:s=720x1280:fps=30,trim=duration=${durNum.toFixed(3)},setpts=PTS-STARTPTS,${fadeIn}${fadeOut}format=yuv420p`;
       const filters=[`[0:v]${baseVideoFilter}[v0]`];
       let prev='v0';
       overlaySpecs.forEach((o,k)=>{
@@ -1699,9 +1700,8 @@ async function createFinalVideo(){
         prev=next;
       });
 
-      const args=['-stream_loop','-1'];
-      if(startOffset>0)args.push('-ss',startOffset.toFixed(3));
-      args.push('-i',cachedInput,...overlayInputs,'-t',dur);
+      // AI scenes are still images. Loop the image at 30 fps for the whole scene.
+      const args=['-loop','1','-framerate','30','-i',cachedInput,...overlayInputs,'-t',dur];
       if(overlaySpecs.length){
         args.push('-filter_complex',filters.join(';'),'-map',`[${prev}]`);
       }else{
