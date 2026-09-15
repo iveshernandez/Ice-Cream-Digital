@@ -1882,10 +1882,10 @@ async function createFinalVideo(){
       const fadeIn=i===0?'':`fade=t=in:st=0:d=${fadeDur.toFixed(3)},`;
       const fadeOut=i===sceneEls.length-1?'':`fade=t=out:st=${fadeOutStart.toFixed(3)}:d=${fadeDur.toFixed(3)},`;
       // Still image -> full moving scene. d must equal the number of output frames.
-      const composeAndMove=`split=2[sharp][blur];`+
-        `[blur]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,gblur=sigma=28:steps=2,eq=brightness=-0.10:saturation=0.82[bg];`+
-        `[sharp]scale=720:720:force_original_aspect_ratio=decrease[fg];`+
-        `[bg][fg]overlay=(W-w)/2:(H-h)/2:format=auto,`+
+      const composeAndMove=`split=2[fgsrc][bgsrc];`+
+        `[bgsrc]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,gblur=sigma=24:steps=2,eq=brightness=-0.06:saturation=0.92[bg];`+
+        `[fgsrc]scale=720:720:force_original_aspect_ratio=decrease[fg];`+
+        `[bg][fg]overlay=x=(W-w)/2:y=(H-h)/2:format=auto,`+
         `scale=900:1600:force_original_aspect_ratio=increase,crop=900:1600,`+
         `zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=${frames}:s=720x1280:fps=30,`+
         `trim=duration=${durNum.toFixed(3)},setpts=PTS-STARTPTS,${fadeIn}${fadeOut}format=yuv420p`;
