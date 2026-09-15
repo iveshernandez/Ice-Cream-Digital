@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.2 · V5.2 Visual Director</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.3 · V5.3 Anti-Repeat Director</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -336,7 +336,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.2 Visual Director: continuidad sin repetición. Groq dirige cada escena con sujeto, acción y plano diferentes, manteniendo el render dinámico a 30 FPS.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.3 Anti-Repeat Director: cada escena debe diferenciarse visualmente de la anterior en al menos dos elementos; título limitado a la primera escena y máximo 5 s.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -1639,12 +1639,11 @@ async function createFinalVideo(){
       const overlayFiles=[];
       const overlaySpecs=[];
 
-      // V5.1: strong title only during the first 5 seconds of the whole video.
-      const elapsedBefore=durations.slice(0,i).reduce((a,b)=>a+b,0);
-      const titleRemaining=Math.max(0,5-elapsedBefore);
-      if(sharedTitleFile && titleRemaining>0){
+      // V5.3: title is allowed ONLY in scene 0 and for a maximum of 5 seconds.
+      // This prevents it from reappearing/accumulating after segment concatenation.
+      if(sharedTitleFile && i===0){
         overlayInputs.push('-i',sharedTitleFile);
-        overlaySpecs.push({fileIndex:1,start:0,end:Math.min(durNum,titleRemaining)});
+        overlaySpecs.push({fileIndex:1,start:0,end:Math.min(5,durNum)});
       }
 
       if(R('#subtitles')?.value!=='no'){
@@ -2238,7 +2237,14 @@ REGLAS OBLIGATORIAS:
 - No repitas sistemáticamente 'orca en primer plano con barco al fondo'. Si aparece un barco, red, pescador, presa, cría, costa u otro elemento mencionado, conviértelo en sujeto visual principal cuando la narración hable de él.
 - VARIEDAD DE ACCIONES: observar, aproximarse, girar, sumergirse, emerger, perseguir, interactuar, enseñar, imitar, reaccionar o alejarse según lo que REALMENTE diga la narración. No inventes acciones ajenas al guion.
 - Cada prompt debe especificar claramente: SUJETO PRINCIPAL + ACCIÓN + ENTORNO + TIPO DE PLANO/ÁNGULO + CONTINUIDAD relevante.
+- Antes de cerrar cada image_prompt, verifica que visualmente NO pueda confundirse con la escena anterior al ver ambas como miniaturas.
 - Evita composiciones genéricas, poses estáticas y prompts casi idénticos.
+- REGLA ANTI-REPETICIÓN ESTRICTA: compara mentalmente cada image_prompt con el inmediatamente anterior. Si comparten el mismo sujeto dominante, ángulo y fondo, reescribe el nuevo prompt con otra perspectiva o protagonista visual.
+- Entre dos escenas consecutivas deben cambiar AL MENOS DOS de estos elementos: sujeto dominante, acción, escala de plano, ángulo de cámara, profundidad, posición de cámara o elemento de fondo.
+- Si la misma acción continúa durante varias escenas, muestra puntos de vista complementarios: exterior/superficie → submarino → detalle → reacción desde barco → plano ambiental, siempre que el guion lo permita.
+- No repitas dos veces seguidas la misma combinación de animales + red + barco.
+- No uses dos primeros planos consecutivos del mismo protagonista.
+- El image_prompt debe describir una COMPOSICIÓN concreta, no solo repetir los sustantivos de la narración.
 - Mantén al protagonista reconocible entre escenas cuando corresponda, pero no obligues a que aparezca en todas si la narración está enfocada temporalmente en otro sujeto u objeto.
 - Cada image_prompt debe representar físicamente lo que se está narrando EN ESA escena.
 - No uses metáforas visuales.
