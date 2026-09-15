@@ -237,6 +237,58 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 .engineText small{display:block;color:#8fa2ba;font-size:8px;margin-top:2px;font-weight:600}
 @media(max-width:650px){.engineGrid{grid-template-columns:1fr}}
 </style>
+
+<script id="groq-controls-core">
+(function(){
+  const KEY='df_groq';
+  function q(id){return document.getElementById(id)}
+  function msg(t,ok){
+    const x=q('apiSavedStatus');
+    if(x){
+      x.textContent=t;
+      x.style.display='block';
+      x.style.marginTop='8px';
+      x.style.fontWeight='900';
+      x.style.color=ok?'#55ef91':'#ff7777';
+    }
+  }
+  window.dfSaveGroq=function(){
+    const input=q('groq');
+    const v=(input?.value||'').trim();
+    if(!v){msg('❌ Escribe primero tu Groq API.',false);return false}
+    try{
+      localStorage.setItem(KEY,v);
+      const check=localStorage.getItem(KEY);
+      if(check!==v)throw new Error('No se pudo verificar el guardado');
+      msg('✅ Groq API guardada correctamente.',true);
+    }catch(e){msg('❌ Error guardando Groq: '+(e?.message||e),false)}
+    return false;
+  };
+  window.dfEraseGroq=function(){
+    try{localStorage.removeItem(KEY)}catch(e){}
+    const input=q('groq'); if(input)input.value='';
+    msg('Groq API eliminada.',false);
+    return false;
+  };
+  window.dfShowGroq=function(){
+    const input=q('groq'); const b=q('showGroqBtn');
+    if(!input)return false;
+    input.type=input.type==='password'?'text':'password';
+    if(b)b.textContent=input.type==='password'?'Mostrar Groq':'Ocultar Groq';
+    return false;
+  };
+  window.addEventListener('DOMContentLoaded',function(){
+    const input=q('groq');
+    if(!input)return;
+    try{
+      const v=localStorage.getItem(KEY)||'';
+      if(v){input.value=v;msg('✅ Groq API cargada y lista.',true)}
+      else msg('Groq API aún no guardada.',false);
+    }catch(e){msg('❌ Almacenamiento local bloqueado.',false)}
+  });
+})();
+</script>
+
 </head><body>
 
 <div id="icFactoryHeader">
@@ -329,9 +381,9 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 <div class="api"><input id="groq" type="password" autocomplete="off"><a class="apiHelp" href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">🔗 Obtener API</a></div>
 
 <div class="actions">
-<button class="sec show" data-id="groq">Mostrar Groq</button>
+<button type="button" class="sec" id="showGroqBtn" onclick="return window.dfShowGroq()">Mostrar Groq</button>
 </div>
-<div class="actions"><button class="sec" id="save">Guardar APIs</button><button class="danger" id="erase">Eliminar</button></div>
+<div class="actions"><button type="button" class="sec" id="save" onclick="return window.dfSaveGroq()">Guardar Groq</button><button type="button" class="danger" id="erase" onclick="return window.dfEraseGroq()">Eliminar</button></div>
 <div id="apiSavedStatus" class="tiny" style="margin-top:8px"></div>
 <p class="tiny"></p>
 <hr style="border:0;border-top:1px solid var(--l);margin:18px 0">
@@ -4343,6 +4395,7 @@ window.addEventListener('load',()=>{
  });
 })();
 </script>
+
 
 
 </body></html>
