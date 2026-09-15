@@ -2025,6 +2025,33 @@ window.addEventListener('load',()=>{
 
 <script>
 const $=s=>document.querySelector(s);
+
+function extractGroqJson(raw){
+  let t=String(raw||'').trim()
+    .replace(/^```(?:json)?\s*/i,'')
+    .replace(/\s*```$/,'')
+    .trim();
+  let a=t.indexOf('['), o=t.indexOf('{'), st=-1, op='', cl='';
+  if(a>=0 && (o<0 || a<o)){st=a;op='[';cl=']';}
+  else if(o>=0){st=o;op='{';cl='}';}
+  if(st<0) throw new Error('Groq no devolvió JSON reconocible.');
+  let d=0, str=false, esc=false, en=-1;
+  for(let i=st;i<t.length;i++){
+    const c=t[i];
+    if(str){
+      if(esc) esc=false;
+      else if(c==='\\') esc=true;
+      else if(c==='"') str=false;
+      continue;
+    }
+    if(c==='"'){str=true;continue;}
+    if(c===op)d++;
+    else if(c===cl){d--;if(d===0){en=i+1;break;}}
+  }
+  if(en<0) throw new Error('Groq devolvió JSON incompleto.');
+  return JSON.parse(t.slice(st,en));
+}
+
 const voicePresetEl=$('#voicePreset');
 if(voicePresetEl){
   voicePresetEl.value='es_ES-sharvard-medium:0';
@@ -2450,30 +2477,6 @@ document.querySelector('#duration')?.addEventListener('change',updateAutomaticSc
 document.querySelector('#script')?.addEventListener('input',updateAutomaticSceneCount);
 
 
-function extractGroqJson(raw){
-  let text=String(raw||'').trim();
-  text=text.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
-  const firstObj=text.indexOf('{'), firstArr=text.indexOf('[');
-  let start=-1, open='', close='';
-  if(firstArr>=0 && (firstObj<0 || firstArr<firstObj)){start=firstArr;open='[';close=']';}
-  else if(firstObj>=0){start=firstObj;open='{';close='}';}
-  if(start<0)throw new Error('Groq no devolvió JSON reconocible.');
-  let depth=0,inStr=false,esc=false,end=-1;
-  for(let i=start;i<text.length;i++){
-    const ch=text[i];
-    if(inStr){
-      if(esc)esc=false;
-      else if(ch==='\\')esc=true;
-      else if(ch==='"')inStr=false;
-      continue;
-    }
-    if(ch==='"'){inStr=true;continue;}
-    if(ch===open)depth++;
-    else if(ch===close){depth--;if(depth===0){end=i+1;break;}}
-  }
-  if(end<0)throw new Error('Groq devolvió JSON incompleto.');
-  return JSON.parse(text.slice(start,end));
-}
 
 async function go(){
   const script=(document.querySelector('#script')?.value||'').trim();
@@ -2637,7 +2640,10 @@ REGLAS OBLIGATORIAS:
   st(`✅ V5.6 Pure AI: ${arr.length} escenas + portada automática listas.`,'ok');
   return arr.length;
 }
-window.documentalAnalyzeScenes=go;
+window.documentalAnalyzeScenes=async function(script,title,count,log){
+  return await go(script,title,count,log);
+};
+window.__sceneEngineReady=true;
 console.log('[Factory] Motor de escenas Groq registrado:', typeof window.documentalAnalyzeScenes==='function');
 if($('#liveLog')){
   const t=new Date().toLocaleTimeString();
@@ -2882,8 +2888,8 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     step('stepScenes','active','Analizando y buscando clips');
     ast('1/4 Groq crea escenas y prompts para IA…');
     abar(10);
-    if(typeof window.documentalAnalyzeScenes!=='function')
-      throw Error('Motor de escenas Groq no quedó registrado.');
+    if(window.__sceneEngineReady!==true || typeof window.documentalAnalyzeScenes!=='function')
+      throw Error('Motor Groq no inicializó. Recarga la página; no se enviará el TXT hasta que esté listo.');
     if(typeof window.sdTurboLocalGenerate!=='function' || window.__sdTurboVerifiedReady!==true)
       throw Error('SD‑Turbo todavía no está realmente listo para crear imágenes. Espera a que marque 100% verificado.');
     await window.documentalAnalyzeScenes();
@@ -4601,6 +4607,21 @@ window.addEventListener('load',()=>{
 </script>
 
 
+
+
+<script id="scene-engine-watch-v10-8-2">
+window.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(()=>{
+    const ok=window.__sceneEngineReady===true && typeof window.documentalAnalyzeScenes==='function';
+    const log=document.getElementById('liveLog');
+    if(log){
+      const d=document.createElement('div');
+      d.textContent=new Date().toLocaleTimeString()+(ok?' — ✅ Motor Groq de escenas listo.':' — ❌ Motor Groq de escenas NO inicializó.');
+      log.appendChild(d); log.scrollTop=log.scrollHeight;
+    }
+  },500);
+});
+</script>
 
 </body></html>
 
