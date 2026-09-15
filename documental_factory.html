@@ -2112,17 +2112,6 @@ async function ai(prompt){
       },
       {role:'user',content:prompt}
     ],
-    response_format:{
-      type:'json_schema',
-      json_schema:{
-        name:'documentary_ai_scenes',
-        strict:true,
-        schema:{
-          type:'object',
-          properties:{
-            visual_identity:{
-              type:'string'
-            },
             scenes:{
               type:'array',
               items:{
@@ -2459,6 +2448,32 @@ function updateAutomaticSceneCount(){
 
 document.querySelector('#duration')?.addEventListener('change',updateAutomaticSceneCount);
 document.querySelector('#script')?.addEventListener('input',updateAutomaticSceneCount);
+
+
+function extractGroqJson(raw){
+  let text=String(raw||'').trim();
+  text=text.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+  const firstObj=text.indexOf('{'), firstArr=text.indexOf('[');
+  let start=-1, open='', close='';
+  if(firstArr>=0 && (firstObj<0 || firstArr<firstObj)){start=firstArr;open='[';close=']';}
+  else if(firstObj>=0){start=firstObj;open='{';close='}';}
+  if(start<0)throw new Error('Groq no devolvió JSON reconocible.');
+  let depth=0,inStr=false,esc=false,end=-1;
+  for(let i=start;i<text.length;i++){
+    const ch=text[i];
+    if(inStr){
+      if(esc)esc=false;
+      else if(ch==='\\')esc=true;
+      else if(ch==='"')inStr=false;
+      continue;
+    }
+    if(ch==='"'){inStr=true;continue;}
+    if(ch===open)depth++;
+    else if(ch===close){depth--;if(depth===0){end=i+1;break;}}
+  }
+  if(end<0)throw new Error('Groq devolvió JSON incompleto.');
+  return JSON.parse(text.slice(start,end));
+}
 
 async function go(){
   const script=(document.querySelector('#script')?.value||'').trim();
