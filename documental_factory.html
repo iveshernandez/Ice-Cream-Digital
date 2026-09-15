@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6.2 · V5.6.2 Cover Integrated</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6.3 · User APIs + Pollinations</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -300,10 +300,14 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   <div class="progress"><div id="autoBar"></div></div>
 </section>
 
-<section class="card"><h2>2. Tus APIs</h2><label>Groq API</label><div class="api"><input id="groq" type="password"><button class="sec show" data-id="groq">Mostrar</button></div>
-<label>Pexels API</label><div class="api"><input id="pexels" type="password"><button class="sec show" data-id="pexels">Mostrar</button></div>
-<label>Pixabay API (opcional)</label><div class="api"><input id="pixabay" type="password"><button class="sec show" data-id="pixabay">Mostrar</button></div>
-<div class="actions"><button class="sec" id="save">Guardar APIs</button><button class="danger" id="erase">Eliminar</button></div><div id="apiSavedStatus" class="tiny" style="margin-top:8px"></div><p class="tiny">Las claves se guardan solo en localStorage de este navegador. Cada usuario usa sus propias APIs.</p>
+<section class="card"><h2>2. Tus APIs</h2>
+<label>Groq API</label><div class="api"><input id="groq" type="password" autocomplete="off"><button class="sec show" data-id="groq">Mostrar</button></div>
+<label>Cloudflare Account ID</label><div class="api"><input id="cfAccount" type="text" autocomplete="off" placeholder="Account ID de tu propia cuenta Cloudflare"><button class="sec" id="testCloudflare">Probar</button></div>
+<label>Cloudflare Workers AI API Token</label><div class="api"><input id="cfToken" type="password" autocomplete="off" placeholder="Token Workers AI del usuario"><button class="sec show" data-id="cfToken">Mostrar</button></div>
+<label>Pollinations API (respaldo)</label><div class="api"><input id="pollinations" type="password" autocomplete="off" placeholder="Clave propia de Pollinations"><button class="sec show" data-id="pollinations">Mostrar</button></div>
+<div class="actions"><button class="sec" id="save">Guardar APIs</button><button class="danger" id="erase">Eliminar</button></div>
+<div id="apiSavedStatus" class="tiny" style="margin-top:8px"></div>
+<p class="tiny">Cada usuario usa sus propias credenciales. Cloudflare es el motor principal; si llega al límite o falla, Pollinations se usa automáticamente como respaldo. No se usa la cuenta Cloudflare del creador del programa.</p>
 <hr style="border:0;border-top:1px solid var(--l);margin:18px 0">
 <h2>3. Voz — español latino</h2>
 <p class="tiny">Voz principal fija: Alexander V.</p>
@@ -336,7 +340,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 
 
 
-<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.6.1 Visible Auto Cover: muestra la portada exacta antes del render y la inserta como los primeros 1.00 s del MP4; conserva Exact Scene Mapping.</div><div id="scenes" class="scenes"></div>
+<section class="card"><h2>4. Escenas encontradas</h2><div class="mut tiny">V5.6.3 User APIs + Pollinations: muestra la portada exacta antes del render y la inserta como los primeros 1.00 s del MP4; conserva Exact Scene Mapping.</div><div id="scenes" class="scenes"></div>
 </section></div>
 </div>
 
@@ -1861,7 +1865,7 @@ window.addEventListener('load',()=>{
 </script>
 
 <script>
-const $=s=>document.querySelector(s),keys=['groq','pexels','pixabay'];keys.forEach(k=>{const el=$('#'+k);if(el)el.value=localStorage.getItem('df_'+k)||''});
+const $=s=>document.querySelector(s),keys=['groq','cfAccount','cfToken','pollinations'];keys.forEach(k=>{const el=$('#'+k);if(el)el.value=localStorage.getItem('df_'+k)||''});
 const voicePresetEl=$('#voicePreset');
 if(voicePresetEl){
   voicePresetEl.value=localStorage.getItem('df_voicePreset')||'original';
@@ -1869,11 +1873,27 @@ if(voicePresetEl){
 }
 const groqEl=$('#groq');
 if(groqEl && groqEl.value.trim()){
-  setTimeout(()=>{const s=$('#apiSavedStatus'); if(s)s.textContent='✅ Groq API cargada desde este navegador.';},0);
+  setTimeout(()=>{const s=$('#apiSavedStatus'); if(s)s.textContent='✅ APIs personales cargadas desde este navegador.';},0);
 }
 document.querySelectorAll('.show').forEach(b=>b.onclick=()=>{let i=$('#'+b.dataset.id);i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'Mostrar':'Ocultar'});
 if($('#save')) $('#save').onclick=()=>{keys.forEach(k=>{const el=$('#'+k);if(!el)return;let v=(el.value||'').trim();v?localStorage.setItem('df_'+k,v):localStorage.removeItem('df_'+k)});st('APIs guardadas en este dispositivo.','ok')};
 if($('#erase')) $('#erase').onclick=()=>{keys.forEach(k=>{localStorage.removeItem('df_'+k);const el=$('#'+k);if(el)el.value=''});st('APIs eliminadas.')};
+if($('#testCloudflare')) $('#testCloudflare').onclick=async()=>{
+  const account=($('#cfAccount')?.value||'').trim();
+  const token=($('#cfToken')?.value||'').trim();
+  const status=$('#apiSavedStatus');
+  if(!account||!token){if(status)status.textContent='⚠️ Escribe Account ID y API Token de Cloudflare.';return;}
+  if(status)status.textContent='Probando Cloudflare Workers AI…';
+  try{
+    const endpoint=`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(account)}/ai/run/@cf/black-forest-labs/flux-1-schnell`;
+    const r=await fetch(endpoint,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({prompt:'simple blue sphere on dark background',steps:1})});
+    const j=await r.json().catch(()=>null);
+    if(!r.ok||j?.success===false)throw new Error(j?.errors?.[0]?.message||`HTTP ${r.status}`);
+    if(status)status.textContent='✅ Cloudflare personal funciona. Las imágenes consumirán la cuenta de este usuario.';
+  }catch(err){
+    if(status)status.textContent='❌ Cloudflare: '+(err?.message||err);
+  }
+};
 function st(t,c='mut'){const el=$('#status')||$('#autoStatus');if(el){el.textContent=t;el.className='status '+c}}function e(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 async function ai(prompt){
   const key=(document.querySelector('#groq')?.value||'').trim();
@@ -2090,32 +2110,116 @@ function jsonDocument(t){
   throw Error('Groq respondió, pero no pude leer las escenas IA.');
 }
 
-const AI_IMAGE_WORKER='https://icecream-ai-images.iveshernandez1997.workers.dev';
+const CLOUDFLARE_IMAGE_MODEL='@cf/black-forest-labs/flux-1-schnell';
+const POLLINATIONS_IMAGE_MODEL='flux';
 
 let generatedSceneImages=[];
 
-async function generateAIImage(prompt){
-  const r=await fetch(AI_IMAGE_WORKER,{
+function base64ToImageBlob(base64,type='image/jpeg'){
+  const clean=String(base64||'').replace(/^data:[^;]+;base64,/,'');
+  const bin=atob(clean);
+  const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  return new Blob([bytes],{type});
+}
+
+function imageProviderLog(text){
+  const log=document.querySelector('#liveLog');
+  if(log){
+    const t=new Date().toLocaleTimeString();
+    const safe=String(text).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+    log.innerHTML+=`<div>${t} — ${safe}</div>`;
+    log.scrollTop=log.scrollHeight;
+  }
+}
+
+async function generateCloudflareImage(prompt){
+  const account=(document.querySelector('#cfAccount')?.value||'').trim();
+  const token=(document.querySelector('#cfToken')?.value||'').trim();
+  if(!account || !token)throw new Error('CLOUDFLARE_NOT_CONFIGURED');
+
+  const endpoint=`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(account)}/ai/run/${CLOUDFLARE_IMAGE_MODEL}`;
+  const r=await fetch(endpoint,{
     method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({prompt:String(prompt||'').trim()})
+    headers:{
+      'Authorization':`Bearer ${token}`,
+      'Content-Type':'application/json'
+    },
+    body:JSON.stringify({prompt:String(prompt||'').trim(),steps:4})
   });
 
-  if(!r.ok){
-    let msg=`HTTP ${r.status}`;
-    try{
-      const j=await r.json();
-      msg=j?.message||j?.error||msg;
-    }catch(_){}
-    throw Error(`IA de imágenes: ${msg}`);
+  let j=null;
+  try{j=await r.json();}catch(_){}
+  if(!r.ok || j?.success===false){
+    const detail=j?.errors?.map(x=>x?.message||x?.code).filter(Boolean).join(' · ')
+      || j?.message || `HTTP ${r.status}`;
+    const err=new Error(detail);
+    err.status=r.status;
+    err.provider='cloudflare';
+    throw err;
   }
 
-  const type=(r.headers.get('content-type')||'').toLowerCase();
-  if(!type.startsWith('image/'))throw Error('El Worker de IA no devolvió una imagen.');
+  const b64=j?.result?.image || j?.image;
+  if(!b64)throw new Error('Cloudflare respondió, pero no devolvió la imagen.');
+  const blob=base64ToImageBlob(b64,'image/jpeg');
+  return {blob,url:URL.createObjectURL(blob),provider:'Cloudflare FLUX'};
+}
 
+async function generatePollinationsImage(prompt){
+  const key=(document.querySelector('#pollinations')?.value||'').trim();
+  if(!key)throw new Error('POLLINATIONS_NOT_CONFIGURED');
+
+  const url=`https://gen.pollinations.ai/image/${encodeURIComponent(String(prompt||'').trim())}?model=${encodeURIComponent(POLLINATIONS_IMAGE_MODEL)}`;
+  const r=await fetch(url,{
+    method:'GET',
+    headers:{'Authorization':`Bearer ${key}`},
+    cache:'no-store'
+  });
+  if(!r.ok){
+    let detail=`HTTP ${r.status}`;
+    try{
+      const j=await r.json();
+      detail=j?.message||j?.error||detail;
+    }catch(_){}
+    const err=new Error(detail);
+    err.status=r.status;
+    err.provider='pollinations';
+    throw err;
+  }
   const blob=await r.blob();
-  if(!blob.size)throw Error('La IA devolvió una imagen vacía.');
-  return {blob,url:URL.createObjectURL(blob)};
+  if(!blob.size)throw new Error('Pollinations devolvió una imagen vacía.');
+  return {blob,url:URL.createObjectURL(blob),provider:'Pollinations'};
+}
+
+async function generateAIImage(prompt){
+  let cloudflareErr=null;
+  try{
+    const out=await generateCloudflareImage(prompt);
+    imageProviderLog('☁️ Imagen generada con Cloudflare del usuario.');
+    return out;
+  }catch(err){
+    cloudflareErr=err;
+    const msg=String(err?.message||err);
+    if(msg!=='CLOUDFLARE_NOT_CONFIGURED'){
+      imageProviderLog(`⚠️ Cloudflare no disponible (${msg}). Probando Pollinations…`);
+    }else{
+      imageProviderLog('ℹ️ Cloudflare personal no configurado. Probando Pollinations…');
+    }
+  }
+
+  try{
+    const out=await generatePollinationsImage(prompt);
+    imageProviderLog('🌸 Imagen generada con Pollinations de respaldo.');
+    return out;
+  }catch(err){
+    const pmsg=String(err?.message||err);
+    if(pmsg==='POLLINATIONS_NOT_CONFIGURED'){
+      const cmsg=String(cloudflareErr?.message||cloudflareErr||'Cloudflare no configurado');
+      throw new Error(`IA de imágenes: Cloudflare no pudo generar (${cmsg}) y falta Pollinations de respaldo.`);
+    }
+    const cmsg=String(cloudflareErr?.message||cloudflareErr||'Cloudflare no configurado');
+    throw new Error(`IA de imágenes: Cloudflare falló (${cmsg}) y Pollinations también falló (${pmsg}).`);
+  }
 }
 
 function clearGeneratedSceneImages(){
@@ -2675,7 +2779,9 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     const script=(A('#script')?.value||'').trim();
     if(!script)throw Error('Primero sube un TXT.');
     if(!(A('#groq')?.value||'').trim())throw Error('Falta Groq API.');
-    if(!(A('#pexels')?.value||'').trim() && !(A('#pixabay')?.value||'').trim())throw Error('Falta Pexels o Pixabay API.');
+    const hasCloudflare=(A('#cfAccount')?.value||'').trim() && (A('#cfToken')?.value||'').trim();
+    const hasPollinations=(A('#pollinations')?.value||'').trim();
+    if(!hasCloudflare && !hasPollinations)throw Error('Configura Cloudflare Workers AI o Pollinations para generar imágenes.');
 
     const voicePromise=makeVoice();
     const scenesPromise=makeScenes();
@@ -3988,7 +4094,7 @@ REGLAS CRÍTICAS:
 <script>
 window.addEventListener('DOMContentLoaded',()=>{
   const required=['txtFile','videoTitle','downloadName','script','duration','sceneCount',
-    'groq','pexels','pixabay','scenes','titleOverlay','subtitles','musicVol',
+    'groq','cfAccount','cfToken','pollinations','scenes','titleOverlay','subtitles','musicVol',
     'renderStatus','renderBar','finalPreview','autoCreate','autoStatus','autoBar','queueStatus',
     'tabTxt'];
   const missing=required.filter(id=>!document.getElementById(id));
