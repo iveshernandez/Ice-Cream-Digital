@@ -220,7 +220,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 .scene .match{font-size:9px;font-weight:800;margin-top:4px}
 .scene .match.ok{color:#7ef0a9}
 .scene .match.err{color:#ff9696}
-</style>
+.apiHelp{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;text-decoration:none;background:#233552;color:white;border-radius:8px;padding:8px 10px;font-size:10px;font-weight:bold}.apiHelp:hover{filter:brightness(1.12)}</style>
 </head><body>
 
 <div id="icFactoryHeader">
@@ -237,7 +237,7 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
   </div>
 </div>
 
-<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6.3 · User APIs + Pollinations</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
+<div style="position:fixed;bottom:6px;right:8px;z-index:9999;font-size:10px;opacity:.45">Build: Documental Factory v10.6.4 · API Help Links</div><div class="w"><h1>Documental Factory</h1><div class="mut">Crea documentales automáticamente desde archivos .TXT.</div>
 <div id="tabTxt">
 <div class="grid">
 <section class="card">
@@ -301,11 +301,24 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 </section>
 
 <section class="card"><h2>2. Tus APIs</h2>
-<label>Groq API</label><div class="api"><input id="groq" type="password" autocomplete="off"><button class="sec show" data-id="groq">Mostrar</button></div>
-<label>Cloudflare Account ID</label><div class="api"><input id="cfAccount" type="text" autocomplete="off" placeholder="Account ID de tu propia cuenta Cloudflare"><button class="sec" id="testCloudflare">Probar</button></div>
-<label>Cloudflare Workers AI API Token</label><div class="api"><input id="cfToken" type="password" autocomplete="off" placeholder="Token Workers AI del usuario"><button class="sec show" data-id="cfToken">Mostrar</button></div>
-<label>Pollinations API (respaldo)</label><div class="api"><input id="pollinations" type="password" autocomplete="off" placeholder="Clave propia de Pollinations"><button class="sec show" data-id="pollinations">Mostrar</button></div>
-<div class="actions"><button class="sec" id="save">Guardar APIs</button><button class="danger" id="erase">Eliminar</button></div>
+<label>Groq API</label>
+<div class="api"><input id="groq" type="password" autocomplete="off"><a class="apiHelp" href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">🔗 Obtener API</a></div>
+
+<label>Cloudflare Account ID</label>
+<div class="api"><input id="cfAccount" type="text" autocomplete="off" placeholder="Account ID de tu propia cuenta Cloudflare"><a class="apiHelp" href="https://dash.cloudflare.com/?to=/:account/ai/workers-ai" target="_blank" rel="noopener noreferrer">🔗 Obtener ID</a></div>
+
+<label>Cloudflare Workers AI API Token</label>
+<div class="api"><input id="cfToken" type="password" autocomplete="off" placeholder="Token Workers AI del usuario"><a class="apiHelp" href="https://dash.cloudflare.com/?to=/:account/ai/workers-ai" target="_blank" rel="noopener noreferrer">🔗 Obtener Token</a></div>
+<div class="tiny" style="margin-top:5px">En Cloudflare entra a Workers AI → Use REST API. Ahí puedes copiar el Account ID y crear el Workers AI API Token.</div>
+
+<label>Pollinations API (respaldo)</label>
+<div class="api"><input id="pollinations" type="password" autocomplete="off" placeholder="Clave propia de Pollinations"><a class="apiHelp" href="https://enter.pollinations.ai" target="_blank" rel="noopener noreferrer">🔗 Obtener API</a></div>
+<div class="actions">
+<button class="sec show" data-id="groq">Mostrar Groq</button>
+<button class="sec show" data-id="cfToken">Mostrar Cloudflare</button>
+<button class="sec show" data-id="pollinations">Mostrar Pollinations</button>
+</div>
+<div class="actions"><button class="sec" id="save">Guardar APIs</button><button class="danger" id="erase">Eliminar</button><button class="sec" id="testCloudflare">Probar Cloudflare</button></div>
 <div id="apiSavedStatus" class="tiny" style="margin-top:8px"></div>
 <p class="tiny">Cada usuario usa sus propias credenciales. Cloudflare es el motor principal; si llega al límite o falla, Pollinations se usa automáticamente como respaldo. No se usa la cuenta Cloudflare del creador del programa.</p>
 <hr style="border:0;border-top:1px solid var(--l);margin:18px 0">
