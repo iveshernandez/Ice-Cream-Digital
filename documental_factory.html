@@ -289,6 +289,33 @@ body > div[style*="position:fixed"][style*="bottom:6px"]{
 })();
 </script>
 
+
+<script id="sd-module-error-capture">
+window.addEventListener('error',function(e){
+  const text=(e?.message||'Error JavaScript').slice(0,170);
+  if(/module|import|onnx|transformers|script/i.test(text)){
+    const el=document.getElementById('engineImage');
+    if(el){
+      el.classList.remove('loading','ready');el.classList.add('err');
+      const p=el.querySelector('.enginePct');if(p)p.textContent='0%';
+      const sm=el.querySelector('small');if(sm){sm.textContent=text;sm.title=text;}
+      const bar=el.querySelector('.engineTrack i');if(bar)bar.style.width='0%';
+    }
+  }
+},true);
+window.addEventListener('unhandledrejection',function(e){
+  const text=(e?.reason?.message||String(e?.reason||'Promise rechazada')).slice(0,170);
+  if(/onnx|tokenizer|transformers|webgpu|import|module/i.test(text)){
+    const el=document.getElementById('engineImage');
+    if(el){
+      el.classList.remove('loading','ready');el.classList.add('err');
+      const p=el.querySelector('.enginePct');if(p)p.textContent='0%';
+      const sm=el.querySelector('small');if(sm){sm.textContent=text;sm.title=text;}
+    }
+  }
+});
+</script>
+
 </head><body>
 
 <div id="icFactoryHeader">
@@ -4170,16 +4197,30 @@ window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
 });
 </script>
 <script type="module" id="sd-turbo-webgpu-local">
-import * as ort from 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.1/dist/ort.webgpu.min.mjs';
-import { AutoTokenizer } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
 
+let ort=null, AutoTokenizer=null;
+async function loadSdRuntime(notify){
+  notify?.('2% · Cargando ONNX Runtime WebGPU…');
+  try{
+    const mod=await import('https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/+esm');
+    ort=mod.default||mod;
+  }catch(e){
+    throw new Error('ONNX RUNTIME: '+(e?.message||e));
+  }
+  notify?.('6% · ONNX Runtime listo · cargando tokenizer…');
+  try{
+    const tr=await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm');
+    AutoTokenizer=tr.AutoTokenizer;
+    if(!AutoTokenizer)throw new Error('AutoTokenizer no exportado');
+  }catch(e){
+    throw new Error('TOKENIZER: '+(e?.message||e));
+  }
+  notify?.('9% · Runtime y tokenizer listos.');
+}
 const BASE='https://huggingface.co/schmuell/sd-turbo-ort-web/resolve/main';
 const SIGMA=14.6146, VAE_SCALE=0.18215;
 let sessions=null, tokenizer=null, loading=null, busy=Promise.resolve();
 
-ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.1/dist/';
-ort.env.wasm.numThreads=1;
-ort.env.wasm.simd=true;
 
 function ui(msg){
   const e=document.getElementById('sdLocalStatus');
@@ -4231,7 +4272,15 @@ async function init(notify=ui){
   if(sessions)return sessions;
   if(loading)return loading;
   loading=(async()=>{
-    notify('5% · Comprobando WebGPU…');
+    if(!ort || !AutoTokenizer) await loadSdRuntime(notify);
+    try{
+      if(ort?.env?.wasm){
+        ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
+        ort.env.wasm.numThreads=1;
+        ort.env.wasm.simd=true;
+      }
+    }catch(_){}
+    notify('10% · Comprobando WebGPU…');
     if(!navigator.gpu)throw new Error('WEBGPU: navigator.gpu no está disponible.');
     const adapter=await navigator.gpu.requestAdapter();
     if(!adapter)throw new Error('WEBGPU: no se pudo obtener el adaptador GPU.');
@@ -4359,7 +4408,7 @@ window.addEventListener('load',()=>{
        await new Promise(r=>setTimeout(r,300)); waited+=300;
        set('engineImage','loading','Cargando módulo WebGPU…',Math.min(9,1+waited/15000));
      }
-     if(typeof window.sdTurboLocalInit!=='function')throw Error('MÓDULO: sdTurboLocalInit no apareció.');
+     if(typeof window.sdTurboLocalInit!=='function')throw Error('MÓDULO JS: SD‑Turbo no pudo iniciar. Revisa importación ONNX/Transformers.');
 
      const statusBox=document.getElementById('sdLocalStatus');
      let lastText='';
