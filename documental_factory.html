@@ -2286,19 +2286,19 @@ async function generateAIImage(prompt){
   const waitStart=Date.now();
   while(typeof window.sdTurboLocalGenerate!=='function'){
     if(Date.now()-waitStart>120000){
-      throw new Error('SD‑Turbo WebGPU no terminó de cargar en 120 s. Revisa la consola o recarga la página.');
+      throw new Error('Typhoon SD15 WebGPU no terminó de cargar en 120 s. Revisa la consola o recarga la página.');
     }
-    imageProviderLog('⏳ Esperando que SD‑Turbo WebGPU termine de inicializar…');
+    imageProviderLog('⏳ Esperando que Typhoon SD15 WebGPU termine de inicializar…');
     await new Promise(r=>setTimeout(r,500));
   }
 
   // Además esperamos explícitamente la descarga/compilación del modelo.
   if(typeof window.sdTurboLocalInit==='function'){
-    imageProviderLog('🧠 Preparando SD‑Turbo WebGPU antes de generar escenas…');
+    imageProviderLog('🧠 Preparando Typhoon SD15 WebGPU antes de generar escenas…');
     await window.sdTurboLocalInit();
   }
 
-  imageProviderLog('🖥️ SD‑Turbo WebGPU local: '+String(prompt||'').slice(0,80));
+  imageProviderLog('🖥️ Typhoon SD15 WebGPU local: '+String(prompt||'').slice(0,80));
   const out=await window.sdTurboLocalGenerate(String(prompt||'').trim(), msg=>{
     imageProviderLog(msg);
     const box=document.getElementById('sdLocalStatus');
@@ -2306,7 +2306,7 @@ async function generateAIImage(prompt){
   });
   imageProviderLog('✅ Imagen 512×512 creada localmente con WebGPU.');
   const box=document.getElementById('sdLocalStatus');
-  if(box)box.textContent='🟢 SD‑Turbo WebGPU listo · imagen local creada';
+  if(box)box.textContent='🟢 Typhoon SD15 WebGPU listo · imagen local creada';
   return out;
 }
 
@@ -4275,6 +4275,37 @@ function randomNormal(n){
   for(let i=0;i<n;i++)a[i]=randn();
   return a;
 }
+
+function float32ToFloat16Bits(src){
+  const out=new Uint16Array(src.length);
+  const f32=new Float32Array(1);
+  const u32=new Uint32Array(f32.buffer);
+  for(let i=0;i<src.length;i++){
+    f32[0]=src[i];
+    const x=u32[0];
+    const sign=(x>>>16)&0x8000;
+    let mantissa=x&0x7fffff;
+    let exp=(x>>>23)&0xff;
+    if(exp===0xff){
+      out[i]=sign | (mantissa ? 0x7e00 : 0x7c00);
+      continue;
+    }
+    exp=exp-127+15;
+    if(exp>=0x1f){ out[i]=sign|0x7c00; continue; }
+    if(exp<=0){
+      if(exp<-10){ out[i]=sign; continue; }
+      mantissa=(mantissa|0x800000)>>(1-exp);
+      out[i]=sign|((mantissa+0x1000)>>13);
+      continue;
+    }
+    out[i]=sign|(exp<<10)|((mantissa+0x1000)>>13);
+  }
+  return out;
+}
+function tensorF16(data,dims){
+  return new ort.Tensor('float16',float32ToFloat16Bits(data),dims);
+}
+
 function concatFloat(a,b){
   const o=new Float32Array(a.length+b.length); o.set(a,0); o.set(b,a.length); return o;
 }
@@ -4414,6 +4445,21 @@ function scaleLatentBatch(lat,sigma){
   for(let i=0;i<lat.length;i++)one[i]=lat[i]/div;
   return repeatBatch4(one);
 }
+
+function float16BitsToFloat32(src){
+  const out=new Float32Array(src.length);
+  for(let i=0;i<src.length;i++){
+    const h=src[i], s=(h&0x8000)?-1:1, e=(h>>10)&0x1f, f=h&0x3ff;
+    if(e===0) out[i]=s*Math.pow(2,-14)*(f/1024);
+    else if(e===31) out[i]=f?NaN:s*Infinity;
+    else out[i]=s*Math.pow(2,e-15)*(1+f/1024);
+  }
+  return out;
+}
+function tensorDataF32(t){
+  return t?.type==='float16' || t?.data instanceof Uint16Array ? float16BitsToFloat32(t.data) : t.data;
+}
+
 function cfgNoise(pred, n, scale){
   const out=new Float32Array(n);
   for(let i=0;i<n;i++){
@@ -4438,7 +4484,7 @@ function eulerAncestralStep(lat,eps,sigma,sigmaNext){
   return out;
 }
 async function tensorToBlob(t){
-  const pix=t.data,H=t.dims[2],W=t.dims[3],rgba=new Uint8ClampedArray(W*H*4);
+  const pix=tensorDataF32(t),H=t.dims[2],W=t.dims[3],rgba=new Uint8ClampedArray(W*H*4);
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
     const p=y*W+x,o=p*4;
     for(let c=0;c<3;c++){
@@ -4475,13 +4521,19 @@ async function generate(prompt,notify=ui){
 
     const batch=scaleLatentBatch(lat,sigmas[s]);
     const feeds={
-      sample:new ort.Tensor('float32',batch,[2,4,64,64]),
-      timestep:new ort.Tensor('float32',Float32Array.of(timesteps[s]),[1]),
-      encoder_hidden_states:embeds
+      sample:tensorF16(batch,[2,4,64,64]),
+      timestep:(()=>{
+        const meta=sessions.unet.inputMetadata?.find?.(m=>m.name==='timestep') || sessions.unet.inputMetadata?.timestep;
+        const typ=meta?.type || 'tensor(float)';
+        if(String(typ).includes('int64')) return new ort.Tensor('int64',BigInt64Array.of(BigInt(Math.round(timesteps[s]))),[1]);
+        if(String(typ).includes('float16')) return tensorF16(Float32Array.of(timesteps[s]),[1]);
+        return new ort.Tensor('float32',Float32Array.of(timesteps[s]),[1]);
+      })(),
+      encoder_hidden_states:tensorF16(embeds.data,[2,77,768])
     };
     const r=await sessions.unet.run(feeds);
     const pred=r.out_sample || r[Object.keys(r)[0]];
-    const eps=cfgNoise(pred.data,N,CFG);
+    const eps=cfgNoise(tensorDataF32(pred),N,CFG);
     lat=eulerAncestralStep(lat,eps,sigmas[s],sigmas[s+1]);
     try{pred.dispose?.();}catch(_){}
     await new Promise(requestAnimationFrame);
@@ -4490,7 +4542,7 @@ async function generate(prompt,notify=ui){
   notify('🖼️ Typhoon · decodificando imagen…'); activity('94% · Typhoon · VAE decoder…',94);
   const scaled=new Float32Array(N);
   for(let i=0;i<N;i++)scaled[i]=lat[i]/VAE_SCALE;
-  const vr=await sessions.vae.run({latent_sample:new ort.Tensor('float32',scaled,[1,4,64,64])});
+  const vr=await sessions.vae.run({latent_sample:tensorF16(scaled,[1,4,64,64])});
   const image=vr.sample || vr[Object.keys(vr)[0]];
   const blob=await tensorToBlob(image);
 
@@ -4648,7 +4700,7 @@ window.addEventListener('load',()=>{
 </style
 <div id="sdActivityPanel" style="margin-top:10px;border:1px solid #29425f;border-radius:10px;background:#07111e;padding:10px 12px;">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px">
-    <b>Actividad · SD‑Turbo WebGPU</b>
+    <b>Actividad · Typhoon SD15 WebGPU</b>
     <span id="sdActivityPct" style="font-weight:900">0%</span>
   </div>
   <div style="height:7px;background:#142337;border-radius:999px;overflow:hidden;margin-bottom:7px">
