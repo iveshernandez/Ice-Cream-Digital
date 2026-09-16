@@ -481,7 +481,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Pixazo · FLUX Schnell <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Pixazo · FLUX Schnell · 4X <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -2562,23 +2562,50 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
   const scenesEl=ensureScenesContainer();
   scenesEl.innerHTML='';
 
+  // V2 4X: prepare every final prompt first, then generate up to 4 images simultaneously.
   for(let i=0;i<arr.length;i++){
     const scene=arr[i];
-    const finalPrompt=[
+    scene.image_prompt=[
       scene.image_prompt,
       identity ? `Maintain this visual identity consistently: ${identity}.` : '',
       'Photorealistic cinematic documentary still, realistic anatomy, natural lighting, high detail, vertical 9:16 composition, no text, no letters, no logo, no watermark.'
     ].filter(Boolean).join(' ');
-
-    scene.image_prompt=finalPrompt;
-
-    st(`Generando escena IA ${i+1}/${arr.length}…`);
-    const image=await generateAIImage(finalPrompt);
-    generatedSceneImages.push(image);
-    render(scene,image,i);
   }
 
-  st(`✅ ${arr.length} escenas IA listas.`,'ok');
+  const images=new Array(arr.length);
+  let nextIndex=0;
+  let completed=0;
+  const concurrency=Math.min(4,arr.length);
+
+  st(`⚡ Pixazo 4X: generando ${arr.length} escenas con hasta ${concurrency} imágenes simultáneas…`);
+
+  async function imageWorker(workerId){
+    while(true){
+      const i=nextIndex++;
+      if(i>=arr.length)return;
+      const scene=arr[i];
+      imageProviderLog(`🚀 Lote 4X · escena ${i+1}/${arr.length} iniciada · canal ${workerId}`);
+      try{
+        const image=await generateAIImage(scene.image_prompt);
+        images[i]=image;
+        generatedSceneImages.push(image);
+        completed++;
+        st(`⚡ Pixazo 4X · ${completed}/${arr.length} imágenes terminadas · ${Math.min(concurrency,arr.length-completed)} activas…`);
+      }catch(err){
+        imageProviderLog(`❌ Escena ${i+1}: ${err?.message||err}`);
+        throw err;
+      }
+    }
+  }
+
+  await Promise.all(Array.from({length:concurrency},(_,i)=>imageWorker(i+1)));
+
+  // Render cards in narration order even if remote images finished out of order.
+  for(let i=0;i<arr.length;i++){
+    render(arr[i],images[i],i);
+  }
+
+  st(`✅ ${arr.length} escenas IA listas · Pixazo 4X.`,'ok');
   return arr.length;
 }
 window.documentalAnalyzeScenes=go;
@@ -4215,7 +4242,7 @@ window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
 */
 const PIXAZO_URL='https://gateway.pixazo.ai/flux-1-schnell/v1/getData';
 let pixazoReady=false;
-let pixazoBusy=Promise.resolve();
+const PIXAZO_CONCURRENCY=4;
 
 function ui(msg){
   const el=document.getElementById('sdLocalStatus');
@@ -4331,11 +4358,7 @@ async function generate(prompt,notify=ui){
   return {...result,provider:'Pixazo · FLUX.1 Schnell',model:'FLUX.1 Schnell'};
 }
 
-window.sdTurboLocalGenerate=(prompt,notify)=>{
-  const job=pixazoBusy.then(()=>generate(prompt,notify));
-  pixazoBusy=job.catch(()=>{});
-  return job;
-};
+window.sdTurboLocalGenerate=(prompt,notify)=>generate(prompt,notify);
 window.sdTurboLocalInit=()=>init(ui);
 window.__sdRealInit=window.sdTurboLocalInit;
 
@@ -4479,7 +4502,7 @@ window.addEventListener('load',()=>{
 
 
 <div id="pixazoKeyPanel" style="position:fixed;right:14px;bottom:14px;z-index:9999;background:#111827;border:1px solid #374151;border-radius:12px;padding:10px 12px;box-shadow:0 8px 24px #0008;font:12px system-ui;color:#e5e7eb;max-width:330px">
-  <div style="font-weight:700;margin-bottom:6px">Pixazo · FLUX Schnell</div>
+  <div style="font-weight:700;margin-bottom:6px">Pixazo · FLUX Schnell · 4X</div>
   <div style="display:flex;gap:6px">
     <input id="pixazoKeyInput" type="password" placeholder="API Key gratuita" style="min-width:180px;flex:1;background:#030712;color:#fff;border:1px solid #4b5563;border-radius:7px;padding:7px">
     <button id="pixazoKeySave" type="button" style="border:0;border-radius:7px;padding:7px 10px;cursor:pointer">Guardar</button>
