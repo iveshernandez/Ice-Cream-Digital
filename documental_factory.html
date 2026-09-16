@@ -4254,10 +4254,9 @@ async function init(notify=ui){
 
     if(!mod?.SDPipeline) throw new Error('El módulo SDXL no exportó SDPipeline.');
 
-    pipeline=new mod.SDPipeline({
-      model:'sdxl-turbo',
-      provider:'webgpu'
-    });
+    // Esta librería recibe el nombre del modelo como primer argumento.
+    // Pasarle un objeto hacía que internamente leyera "[object Object]".
+    pipeline=new mod.SDPipeline('sdxl-turbo','webgpu');
 
     notify('20% · Descargando/cargando SDXL‑Turbo por primera vez…');
     window.sdActivity?.('20% · Preparando SDXL‑Turbo. La primera carga puede tardar…',20);
