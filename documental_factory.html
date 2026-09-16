@@ -2583,14 +2583,14 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
       const i=nextIndex++;
       if(i>=arr.length)return;
       const scene=arr[i];
-      imageProviderLog(`🚀 Lote 4X · escena ${i+1}/${arr.length} iniciada · canal ${workerId}`);
+      imageProviderLog(`🚀 Lote 6X · escena ${i+1}/${arr.length} iniciada · canal ${workerId}`);
       let image=null;
       let lastErr=null;
-      for(let attempt=0;attempt<=PIXAZO_MAX_RETRIES;attempt++){
+      for(let attempt=0;attempt<=2;attempt++){
         try{
           if(attempt>0){
-            imageProviderLog(`🔁 Escena ${i+1}/${arr.length} · reintento ${attempt}/${PIXAZO_MAX_RETRIES}`);
-            st(`🔁 Escena ${i+1} lenta o fallida · reintento ${attempt}/${PIXAZO_MAX_RETRIES}…`);
+            imageProviderLog(`🔁 Escena ${i+1}/${arr.length} · reintento ${attempt}/2`);
+            st(`🔁 Escena ${i+1} lenta o fallida · reintento ${attempt}/2…`);
           }
           image=await generateAIImage(scene.image_prompt);
           break;
@@ -2598,12 +2598,12 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
           lastErr=err;
           const timedOut=err?.name==='AbortError' || /abort|timeout|tiempo/i.test(String(err?.message||err));
           imageProviderLog(`${timedOut?'⏱️':'⚠️'} Escena ${i+1} · intento ${attempt+1} falló: ${err?.message||err}`);
-          if(attempt>=PIXAZO_MAX_RETRIES)break;
+          if(attempt>=2)break;
           await new Promise(r=>setTimeout(r,700+attempt*600));
         }
       }
       if(!image){
-        throw new Error(`Escena ${i+1} falló después de ${PIXAZO_MAX_RETRIES+1} intentos: ${lastErr?.message||lastErr}`);
+        throw new Error(`Escena ${i+1} falló después de ${3} intentos: ${lastErr?.message||lastErr}`);
       }
       images[i]=image;
       generatedSceneImages.push(image);
@@ -4257,7 +4257,9 @@ window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
 */
 const PIXAZO_URL='https://gateway.pixazo.ai/flux-1-schnell/v1/getData';
 const PIXAZO_TIMEOUT_MS=60000;
+window.PIXAZO_TIMEOUT_MS=60000;
 const PIXAZO_MAX_RETRIES=2;
+window.PIXAZO_MAX_RETRIES=2;
 
 async function fetchWithTimeout(url,options={},timeoutMs=PIXAZO_TIMEOUT_MS){
   const controller=new AbortController();
