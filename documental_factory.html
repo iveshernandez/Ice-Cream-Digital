@@ -481,7 +481,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Typhoon SD15 V3 · WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Typhoon SD15 V4 · WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -4304,11 +4304,64 @@ function float32ToFloat16Bits(src){
 }
 function tensorF16(data,dims){
   if(typeof Float16Array==='undefined'){
-    throw new Error('Este navegador no expone Float16Array nativo. Actualiza Chrome/Edge a una versión reciente con WebGPU.');
+    throw new Error('FP16: Float16Array nativo no está disponible en este navegador.');
   }
-  const f16=new Float16Array(data.length);
-  for(let i=0;i<data.length;i++) f16[i]=Number(data[i]);
-  return new ort.Tensor('float16',f16,dims);
+  const a=new Float16Array(data.length);
+  for(let i=0;i<data.length;i++) a[i]=Number(data[i]);
+  return new ort.Tensor('float16',a,dims);
+}
+
+function normalizeOrtType(meta){
+  let t=meta?.type || meta?.tensorType || meta?.dataType || '';
+  t=String(t).toLowerCase();
+  if(t.includes('float16')) return 'float16';
+  if(t.includes('float')) return 'float32';
+  if(t.includes('int64')) return 'int64';
+  if(t.includes('int32')) return 'int32';
+  return '';
+}
+
+function getInputMeta(session,name){
+  const md=session?.inputMetadata;
+  if(!md) return null;
+  if(Array.isArray(md)){
+    return md.find(x=>x?.name===name) || null;
+  }
+  return md[name] || null;
+}
+
+function tensorForInput(session,name,data,dims,preferred='float32'){
+  const detected=normalizeOrtType(getInputMeta(session,name));
+  const type=detected || preferred;
+
+  if(type==='float16') return tensorF16(data,dims);
+  if(type==='float32'){
+    const a=data instanceof Float32Array ? data : Float32Array.from(data,Number);
+    return new ort.Tensor('float32',a,dims);
+  }
+  if(type==='int64'){
+    const a=new BigInt64Array(data.length);
+    for(let i=0;i<data.length;i++) a[i]=BigInt(Math.round(Number(data[i])));
+    return new ort.Tensor('int64',a,dims);
+  }
+  if(type==='int32'){
+    const a=new Int32Array(data.length);
+    for(let i=0;i<data.length;i++) a[i]=Math.round(Number(data[i]));
+    return new ort.Tensor('int32',a,dims);
+  }
+  throw new Error(`Tipo ONNX no soportado para ${name}: ${type}`);
+}
+
+function dumpSessionInputs(session,label){
+  try{
+    const names=session.inputNames || [];
+    const parts=names.map(n=>{
+      const m=getInputMeta(session,n);
+      return `${n}=${normalizeOrtType(m)||String(m?.type||'?')}`;
+    });
+    console.log(`[${label}] inputs:`,parts.join(', '));
+    return parts.join(', ');
+  }catch(e){ return ''; }
 }
 
 function concatFloat(a,b){
@@ -4416,8 +4469,12 @@ async function init(notify=ui){
     );
 
     sessions={unet,text,vae};
+    const unetInputs=dumpSessionInputs(unet,'Typhoon UNet');
+    const vaeInputs=dumpSessionInputs(vae,'Typhoon VAE');
+    notify('🔎 UNet: '+unetInputs);
+    notify('🔎 VAE: '+vaeInputs);
     window.__sdTurboVerifiedReady=true;
-    notify('🟢 Typhoon SD15 V3 WebGPU listo · 20 pasos · CFG 7');
+    notify('🟢 Typhoon SD15 V4 WebGPU listo · 20 pasos · CFG 7');
     activity('100% · Typhoon SD15 V2 listo',100);
     try{window.__resolveSdTurboReady?.(sessions);}catch(_){}
     return sessions;
@@ -4442,11 +4499,11 @@ async function encode(text,notify){
   if(Array.isArray(ids[0]))ids=ids[0];
   if(ids.length<77)ids=ids.concat(new Array(77-ids.length).fill(0));
   if(ids.length>77)ids=ids.slice(0,77);
-  const out=await sessions.text.run({input_ids:new ort.Tensor('int32',Int32Array.from(ids),[1,77])});
+  const out=await sessions.text.run({input_ids:tensorForInput(sessions.text,'input_ids',ids,[1,77],'int32')});
   return out.last_hidden_state || out[Object.keys(out)[0]];
 }
 function combineEmbeddings(uncond,cond){
-  return new ort.Tensor('float32',concatFloat(uncond.data,cond.data),[2,77,768]);
+  return concatFloat(tensorDataF32(uncond),tensorDataF32(cond));
 }
 function scaleLatentBatch(lat,sigma){
   const div=Math.sqrt(sigma*sigma+1), one=new Float32Array(lat.length);
@@ -4534,15 +4591,9 @@ async function generate(prompt,notify=ui){
 
     const batch=scaleLatentBatch(lat,sigmas[s]);
     const feeds={
-      sample:tensorF16(batch,[2,4,64,64]),
-      timestep:(()=>{
-        const meta=sessions.unet.inputMetadata?.find?.(m=>m.name==='timestep') || sessions.unet.inputMetadata?.timestep;
-        const typ=meta?.type || 'tensor(float)';
-        if(String(typ).includes('int64')) return new ort.Tensor('int64',BigInt64Array.of(BigInt(Math.round(timesteps[s]))),[1]);
-        if(String(typ).includes('float16')) return tensorF16(Float32Array.of(timesteps[s]),[1]);
-        return new ort.Tensor('float32',Float32Array.of(timesteps[s]),[1]);
-      })(),
-      encoder_hidden_states:tensorF16(embeds.data,[2,77,768])
+      sample:tensorForInput(sessions.unet,'sample',batch,[2,4,64,64],'float16'),
+      timestep:tensorForInput(sessions.unet,'timestep',Float32Array.of(timesteps[s]),[1],'float32'),
+      encoder_hidden_states:tensorForInput(sessions.unet,'encoder_hidden_states',embeds,[2,77,768],'float16')
     };
     const r=await sessions.unet.run(feeds);
     const pred=r.out_sample || r[Object.keys(r)[0]];
@@ -4555,11 +4606,11 @@ async function generate(prompt,notify=ui){
   notify('🖼️ Typhoon · decodificando imagen…'); activity('94% · Typhoon · VAE decoder…',94);
   const scaled=new Float32Array(N);
   for(let i=0;i<N;i++)scaled[i]=lat[i]/VAE_SCALE;
-  const vr=await sessions.vae.run({latent_sample:tensorF16(scaled,[1,4,64,64])});
+  const vr=await sessions.vae.run({latent_sample:tensorForInput(sessions.vae,'latent_sample',scaled,[1,4,64,64],'float16')});
   const image=vr.sample || vr[Object.keys(vr)[0]];
   const blob=await tensorToBlob(image);
 
-  try{positive.dispose?.();negative.dispose?.();embeds.dispose?.();image.dispose?.();}catch(_){}
+  try{positive.dispose?.();negative.dispose?.();image.dispose?.();}catch(_){}
   notify('🟢 Imagen Typhoon SD15 creada · 512×512');
   return {blob,url:URL.createObjectURL(blob),provider:'Typhoon SD15 V2 · ONNX WebGPU · 20 pasos'};
 }
