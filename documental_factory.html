@@ -481,7 +481,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · SD‑Turbo WebGPU · modo calidad <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · SD‑Turbo WebGPU · Director Visual V2 <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -2117,7 +2117,28 @@ async function ai(prompt){
         body:JSON.stringify({
           model:'openai/gpt-oss-20b',
           messages:[
-            {role:'system',content:'Eres director visual de documentales. Devuelve SOLO JSON válido, sin markdown, sin explicación y sin texto fuera del JSON.'},
+            {role:'system',content:'Eres director visual de documentales. 
+VISUAL DIRECTOR RULES — IMPORTANT:
+You are not merely choosing keywords. Design each scene so a viewer can understand the exact narrated idea without reading subtitles.
+
+For every scene:
+- Show the concrete ACTION or EFFECT described by that narration, not merely the topic/object.
+- Keep the principal recurring object/person visually consistent when the narration refers to the same one.
+- Vary the CAMERA and COMPOSITION across consecutive scenes: wide shot, medium shot, close-up, macro/detail, low angle, top-down, side view, over-the-shoulder, before/after or comparison when useful.
+- Do not repeat essentially the same image in adjacent scenes.
+- Prefer visually demonstrable cause/effect. Example: if narration says a broom leaves a dust line, SHOW the broom moving and a visible line of dust remaining behind it.
+- If narration discusses deformation/wear, SHOW the deformation clearly in close-up.
+- If narration explains particles/static/dirt, SHOW the relevant particles or residue at a useful scale.
+- Use people only when their action helps explain the narration. Avoid decorative people.
+- Do not invent unrelated objects or locations just for variety.
+- Maintain continuity of important attributes: object type, material, main color, person age/clothing/hair when recurring.
+- Each image prompt must describe: SUBJECT + ACTION + ENVIRONMENT + VISIBLE RESULT/DETAIL + CAMERA/FRAMING.
+- Use concrete nouns and visible verbs. Avoid abstract phrases such as "concept of", "symbolizing", "representing", "idea of".
+- Prompts should be concise and imageable, approximately 35–70 words.
+- The scene prompt itself must contain all visual continuity details needed by the image generator.
+- Variety must come from what is being explained and from camera language, not from changing the main object randomly.
+
+Devuelve SOLO JSON válido, sin markdown, sin explicación y sin texto fuera del JSON.'},
             {role:'user',content:prompt}
           ],
           reasoning_effort:'low',
@@ -2281,33 +2302,35 @@ function imageProviderLog(text){
 
 
 
+
+const DOCUMENTAL_SHOT_ROTATION = [
+  "wide establishing shot with the full action visible",
+  "medium side view focused on the action",
+  "close-up showing the visible result",
+  "low-angle detail at floor or object level",
+  "top-down explanatory view",
+  "macro detail of the relevant surface or mechanism",
+  "three-quarter view showing cause and effect",
+  "before-and-after style composition when appropriate"
+];
+window.documentalShotForScene = function(index){
+  const i = Math.max(0, Number(index)||0);
+  return DOCUMENTAL_SHOT_ROTATION[i % DOCUMENTAL_SHOT_ROTATION.length];
+};
+
 function enhanceLocalImagePrompt(prompt){
   const raw = String(prompt || '').trim();
-
-  // Keep the scene's principal subject first so the model gives it priority.
-  // SD-Turbo is weak at hands/crowds; documentary framing reduces those failures.
+  // Keep the planner's concrete scene first. Only add compact quality constraints.
   const quality = [
-    "documentary photograph",
-    "photorealistic",
-    "single clear main subject",
-    "physically coherent scene",
+    "photorealistic documentary photography",
+    "physically coherent objects",
     "realistic proportions",
-    "natural face",
-    "anatomically correct body",
-    "hands relaxed or outside the frame",
     "natural lighting",
-    "realistic materials and textures",
-    "sharp focus",
-    "cinematic composition",
+    "clear visual action",
     "no text",
     "no watermark",
-    "no logo",
-    "no duplicated person",
-    "no extra limbs",
-    "no deformed hands",
-    "no distorted face"
+    "no logo"
   ].join(", ");
-
   return raw ? `${raw}, ${quality}` : quality;
 }
 
@@ -2380,7 +2403,7 @@ function render(s,c,i){
     <b>ESCENA ${i+1} · NARRACIÓN ↔ IMAGEN</b>
     <p class="narr">${e(s.narration)}</p>
     <p class="q">🤖 ${e(s.image_prompt)}</p>
-    <p class="provider">Fuente: SD-Turbo · WebGPU local · modo calidad</p>
+    <p class="provider">Fuente: SD-Turbo · WebGPU local · Director Visual V2</p>
     <p class="match ok">✨ IA · movimiento ${e(a.dataset.motion)}</p>
     <button class="sec change">↻ Regenerar imagen</button>
   </div>`;
@@ -2398,7 +2421,7 @@ function render(s,c,i){
       generatedSceneImages.push(c2);
       a.dataset.clipUrl=c2.url;
       a.querySelector('.media').innerHTML=`<img src="${e(c2.url)}" alt="Escena IA regenerada" style="width:100%;height:100%;object-fit:cover;display:block">`;
-      a.querySelector('.provider').textContent='Fuente: SD-Turbo · WebGPU local · modo calidad';
+      a.querySelector('.provider').textContent='Fuente: SD-Turbo · WebGPU local · Director Visual V2';
       const match=a.querySelector('.match');
       if(match){match.className='match ok';match.textContent='✨ Imagen IA regenerada';}
       if(old){
