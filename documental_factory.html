@@ -481,7 +481,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Typhoon SD15 V2 · WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Typhoon SD15 V3 · WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -4303,7 +4303,12 @@ function float32ToFloat16Bits(src){
   return out;
 }
 function tensorF16(data,dims){
-  return new ort.Tensor('float16',float32ToFloat16Bits(data),dims);
+  if(typeof Float16Array==='undefined'){
+    throw new Error('Este navegador no expone Float16Array nativo. Actualiza Chrome/Edge a una versión reciente con WebGPU.');
+  }
+  const f16=new Float16Array(data.length);
+  for(let i=0;i<data.length;i++) f16[i]=Number(data[i]);
+  return new ort.Tensor('float16',f16,dims);
 }
 
 function concatFloat(a,b){
@@ -4371,6 +4376,9 @@ async function init(notify=ui){
     const adapter=await navigator.gpu.requestAdapter();
     if(!adapter)throw new Error('WEBGPU: no se pudo obtener adaptador GPU.');
     if(!adapter.features.has('shader-f16'))throw new Error('WEBGPU: shader-f16 no está disponible.');
+    if(typeof Float16Array==='undefined'){
+      throw new Error('FP16: Float16Array nativo no está disponible en este navegador. Actualiza Chrome/Edge.');
+    }
 
     const common={
       executionProviders:['webgpu'],
@@ -4409,7 +4417,7 @@ async function init(notify=ui){
 
     sessions={unet,text,vae};
     window.__sdTurboVerifiedReady=true;
-    notify('🟢 Typhoon SD15 V2 WebGPU listo · 20 pasos · CFG 7');
+    notify('🟢 Typhoon SD15 V3 WebGPU listo · 20 pasos · CFG 7');
     activity('100% · Typhoon SD15 V2 listo',100);
     try{window.__resolveSdTurboReady?.(sessions);}catch(_){}
     return sessions;
@@ -4457,7 +4465,12 @@ function float16BitsToFloat32(src){
   return out;
 }
 function tensorDataF32(t){
-  return t?.type==='float16' || t?.data instanceof Uint16Array ? float16BitsToFloat32(t.data) : t.data;
+  if(!t?.data) return t?.data;
+  if(typeof Float16Array!=='undefined' && t.data instanceof Float16Array){
+    return Float32Array.from(t.data, Number);
+  }
+  if(t.data instanceof Uint16Array) return float16BitsToFloat32(t.data);
+  return t.data;
 }
 
 function cfgNoise(pred, n, scale){
