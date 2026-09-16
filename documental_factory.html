@@ -481,7 +481,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Typhoon SD15 V5 · WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Typhoon SD15 V6 · WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -4228,7 +4228,7 @@ window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
 let ort=null, AutoTokenizer=null;
 const BASE='https://huggingface.co/subpixel/Typhoon-SD15-V2-onnx/resolve/main';
 const VAE_SCALE=0.18215;
-const STEPS=20;
+const STEPS=8;
 const CFG=7.0;
 let sessions=null, tokenizer=null, loading=null, busy=Promise.resolve();
 
@@ -4474,7 +4474,7 @@ async function init(notify=ui){
     notify('🔎 UNet: '+unetInputs);
     notify('🔎 VAE: '+vaeInputs);
     window.__sdTurboVerifiedReady=true;
-    notify('🟢 Typhoon SD15 V5 WebGPU listo · 20 pasos · CFG 7');
+    notify('🟢 Typhoon SD15 V6 WebGPU listo · 20 pasos · CFG 7');
     activity('100% · Typhoon SD15 V2 listo',100);
     try{window.__resolveSdTurboReady?.(sessions);}catch(_){}
     return sessions;
