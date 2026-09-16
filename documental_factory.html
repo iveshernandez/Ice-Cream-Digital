@@ -481,7 +481,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Typhoon SD15 V4 · WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Typhoon SD15 V5 · WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -4474,7 +4474,7 @@ async function init(notify=ui){
     notify('🔎 UNet: '+unetInputs);
     notify('🔎 VAE: '+vaeInputs);
     window.__sdTurboVerifiedReady=true;
-    notify('🟢 Typhoon SD15 V4 WebGPU listo · 20 pasos · CFG 7');
+    notify('🟢 Typhoon SD15 V5 WebGPU listo · 20 pasos · CFG 7');
     activity('100% · Typhoon SD15 V2 listo',100);
     try{window.__resolveSdTurboReady?.(sessions);}catch(_){}
     return sessions;
@@ -4591,10 +4591,18 @@ async function generate(prompt,notify=ui){
 
     const batch=scaleLatentBatch(lat,sigmas[s]);
     const feeds={
-      sample:tensorForInput(sessions.unet,'sample',batch,[2,4,64,64],'float16'),
-      timestep:tensorForInput(sessions.unet,'timestep',Float32Array.of(timesteps[s]),[1],'float32'),
-      encoder_hidden_states:tensorForInput(sessions.unet,'encoder_hidden_states',embeds,[2,77,768],'float16')
+      // Typhoon-SD15-V2 ONNX UNet is exported in FP16.
+      sample:tensorF16(batch,[2,4,64,64]),
+      timestep:tensorF16(Float32Array.of(timesteps[s]),[1]),
+      encoder_hidden_states:tensorF16(embeds,[2,77,768])
     };
+    if(s===0){
+      console.log('[Typhoon FP16 check]',
+        'sample=',feeds.sample.type,feeds.sample.data?.constructor?.name,
+        'timestep=',feeds.timestep.type,feeds.timestep.data?.constructor?.name,
+        'embeddings=',feeds.encoder_hidden_states.type,feeds.encoder_hidden_states.data?.constructor?.name);
+      notify(`🔎 FP16: sample=${feeds.sample.type} · timestep=${feeds.timestep.type} · embeddings=${feeds.encoder_hidden_states.type}`);
+    }
     const r=await sessions.unet.run(feeds);
     const pred=r.out_sample || r[Object.keys(r)[0]];
     const eps=cfgNoise(tensorDataF32(pred),N,CFG);
@@ -4606,7 +4614,7 @@ async function generate(prompt,notify=ui){
   notify('🖼️ Typhoon · decodificando imagen…'); activity('94% · Typhoon · VAE decoder…',94);
   const scaled=new Float32Array(N);
   for(let i=0;i<N;i++)scaled[i]=lat[i]/VAE_SCALE;
-  const vr=await sessions.vae.run({latent_sample:tensorForInput(sessions.vae,'latent_sample',scaled,[1,4,64,64],'float16')});
+  const vr=await sessions.vae.run({latent_sample:tensorF16(scaled,[1,4,64,64])});
   const image=vr.sample || vr[Object.keys(vr)[0]];
   const blob=await tensorToBlob(image);
 
