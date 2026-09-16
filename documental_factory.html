@@ -481,7 +481,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · SD‑Turbo WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · SDXL‑Turbo WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -2286,27 +2286,27 @@ async function generateAIImage(prompt){
   const waitStart=Date.now();
   while(typeof window.sdTurboLocalGenerate!=='function'){
     if(Date.now()-waitStart>120000){
-      throw new Error('SD‑Turbo WebGPU no terminó de cargar en 120 s. Revisa la consola o recarga la página.');
+      throw new Error('SDXL‑Turbo WebGPU no terminó de cargar en 120 s. Revisa la consola o recarga la página.');
     }
-    imageProviderLog('⏳ Esperando que SD‑Turbo WebGPU termine de inicializar…');
+    imageProviderLog('⏳ Esperando que SDXL‑Turbo WebGPU termine de inicializar…');
     await new Promise(r=>setTimeout(r,500));
   }
 
   // Además esperamos explícitamente la descarga/compilación del modelo.
   if(typeof window.sdTurboLocalInit==='function'){
-    imageProviderLog('🧠 Preparando SD‑Turbo WebGPU antes de generar escenas…');
+    imageProviderLog('🧠 Preparando SDXL‑Turbo WebGPU antes de generar escenas…');
     await window.sdTurboLocalInit();
   }
 
-  imageProviderLog('🖥️ SD‑Turbo WebGPU local: '+String(prompt||'').slice(0,80));
+  imageProviderLog('🖥️ SDXL‑Turbo WebGPU local: '+String(prompt||'').slice(0,80));
   const out=await window.sdTurboLocalGenerate(String(prompt||'').trim(), msg=>{
     imageProviderLog(msg);
     const box=document.getElementById('sdLocalStatus');
     if(box)box.textContent=msg;
   });
-  imageProviderLog('✅ Imagen 512×512 creada localmente con WebGPU.');
+  imageProviderLog('✅ Imagen 512×512 creada localmente con SDXL‑Turbo WebGPU.');
   const box=document.getElementById('sdLocalStatus');
-  if(box)box.textContent='🟢 SD‑Turbo WebGPU listo · imagen local creada';
+  if(box)box.textContent='🟢 SDXL‑Turbo WebGPU listo · imagen local creada';
   return out;
 }
 
@@ -2349,7 +2349,7 @@ function render(s,c,i){
     <b>ESCENA ${i+1} · NARRACIÓN ↔ IMAGEN</b>
     <p class="narr">${e(s.narration)}</p>
     <p class="q">🤖 ${e(s.image_prompt)}</p>
-    <p class="provider">Fuente: SD-Turbo · WebGPU local</p>
+    <p class="provider">Fuente: SDXL‑Turbo · WebGPU local</p>
     <p class="match ok">✨ IA · movimiento ${e(a.dataset.motion)}</p>
     <button class="sec change">↻ Regenerar imagen</button>
   </div>`;
@@ -2367,7 +2367,7 @@ function render(s,c,i){
       generatedSceneImages.push(c2);
       a.dataset.clipUrl=c2.url;
       a.querySelector('.media').innerHTML=`<img src="${e(c2.url)}" alt="Escena IA regenerada" style="width:100%;height:100%;object-fit:cover;display:block">`;
-      a.querySelector('.provider').textContent='Fuente: SD-Turbo · WebGPU local';
+      a.querySelector('.provider').textContent='Fuente: SDXL‑Turbo · WebGPU local';
       const match=a.querySelector('.match');
       if(match){match.className='match ok';match.textContent='✨ Imagen IA regenerada';}
       if(old){
@@ -4220,206 +4220,152 @@ window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
 });
 </script>
 <script type="text/plain" id="sd-turbo-module-source">
-
-let ort=null, AutoTokenizer=null;
-async function loadSdRuntime(notify){
-  notify?.('2% · Cargando ONNX Runtime WebGPU…');
-  try{
-    window.sdActivity?.('3% · Cargando build oficial ONNX WebGPU…',3);
-    if(!window.ort){
-      await new Promise((resolve,reject)=>{
-        const sc=document.createElement('script');
-        sc.src='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.webgpu.min.js';
-        sc.onload=resolve;
-        sc.onerror=()=>reject(new Error('No se pudo descargar ort.webgpu.min.js'));
-        document.head.appendChild(sc);
-      });
-    }
-    ort=window.ort;
-    if(!ort?.InferenceSession)throw new Error('El build WebGPU cargó pero ORT no quedó disponible.');
-    window.sdActivity?.('6% · ONNX Runtime WebGPU registrado.',6);
-  }catch(e){
-    throw new Error('ONNX RUNTIME: '+(e?.message||e));
-  }
-  notify?.('6% · ONNX Runtime listo · cargando tokenizer…');
-  try{
-    const tr=await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm');
-    AutoTokenizer=tr.AutoTokenizer;
-    if(!AutoTokenizer)throw new Error('AutoTokenizer no exportado');
-  }catch(e){
-    throw new Error('TOKENIZER: '+(e?.message||e));
-  }
-  notify?.('9% · Runtime y tokenizer listos.');
-}
-const BASE='https://huggingface.co/schmuell/sd-turbo-ort-web/resolve/main';
-const SIGMA=14.6146, VAE_SCALE=0.18215;
-let sessions=null, tokenizer=null, loading=null, busy=Promise.resolve();
-
+let pipeline=null, loading=null, busy=Promise.resolve();
 
 function ui(msg){
   const e=document.getElementById('sdLocalStatus');
   if(e)e.textContent=msg;
-  console.log('[SD-Turbo]',msg);
+  console.log('[SDXL-Turbo]',msg);
 }
-function randn(){
-  let u=0,v=0;
-  while(u===0)u=Math.random();
-  while(v===0)v=Math.random();
-  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
-}
-function noise(shape){
-  let n=shape.reduce((a,b)=>a*b,1), d=new Float32Array(n);
-  for(let i=0;i<n;i++)d[i]=randn()*SIGMA;
-  return d;
-}
-function scaleInput(t){
-  const div=Math.sqrt(SIGMA*SIGMA+1), d=new Float32Array(t.data.length);
-  for(let i=0;i<d.length;i++)d[i]=t.data[i]/div;
-  return new ort.Tensor('float32',d,t.dims);
-}
-function scheduler(out,sample){
-  const d=new Float32Array(out.data.length);
-  for(let i=0;i<d.length;i++){
-    const pred=sample.data[i]-SIGMA*out.data[i];
-    const derivative=(sample.data[i]-pred)/SIGMA;
-    d[i]=(sample.data[i]+derivative*(0-SIGMA))/VAE_SCALE;
-  }
-  return new ort.Tensor('float32',d,out.dims);
-}
-async function cachedBytes(path,notify){
-  const url=BASE+'/'+path;
-  const cache=await caches.open('icecream-sd-turbo-v1');
-  let r=await cache.match(url);
-  if(!r){
-    notify?.('⬇️ Primera vez: descargando '+path+'…');
-    try{
-      r=await fetch(url,{cache:'no-store'});
-    }catch(e){
-      throw new Error('DESCARGA '+path+': '+(e?.message||e));
-    }
-    if(!r.ok)throw new Error('DESCARGA '+path+': HTTP '+r.status);
-    await cache.put(url,r.clone());
-  }
-  return await r.arrayBuffer();
-}
+
 async function init(notify=ui){
-  if(sessions)return sessions;
+  if(pipeline)return pipeline;
   if(loading)return loading;
+
   loading=(async()=>{
-    if(!ort || !AutoTokenizer) await loadSdRuntime(notify);
-    try{
-      if(ort?.env?.wasm){
-        ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
-        ort.env.wasm.numThreads=1;
-        ort.env.wasm.simd=true;
-      }
-    }catch(_){}
-    notify('10% · Comprobando WebGPU…');
-    window.sdActivity?.('10% · ORT WebGPU cargado · comprobando GPU Intel…',10);
-    if(!navigator.gpu)throw new Error('WEBGPU: navigator.gpu no está disponible.');
+    notify('5% · Comprobando WebGPU…');
+    window.sdActivity?.('5% · Comprobando WebGPU para SDXL‑Turbo…',5);
+
+    if(!navigator.gpu) throw new Error('WEBGPU: navigator.gpu no está disponible.');
+
     const adapter=await navigator.gpu.requestAdapter();
-    if(!adapter)throw new Error('WEBGPU: no se pudo obtener el adaptador GPU.');
-    if(!adapter.features.has('shader-f16'))throw new Error('WEBGPU: shader-f16 no está disponible.');
+    if(!adapter) throw new Error('WEBGPU: no se pudo obtener el adaptador GPU.');
 
-    notify('10% · WebGPU correcto · preparando archivos SD‑Turbo…');
-    const common={
-      executionProviders:['webgpu'],
-      enableMemPattern:false,
-      enableCpuMemArena:false,
-      extra:{session:{
-        disable_prepacking:'1',
-        use_device_allocator_for_initializers:'1',
-        use_ort_model_bytes_directly:'1',
-        use_ort_model_bytes_for_initializers:'1'
-      }}
-    };
-    const defs={
-      unet:{path:'unet/model.onnx', opt:{freeDimensionOverrides:{batch_size:1,num_channels:4,height:64,width:64,sequence_length:77}}},
-      text:{path:'text_encoder/model.onnx',opt:{freeDimensionOverrides:{batch_size:1}}},
-      vae:{path:'vae_decoder/model.onnx',opt:{freeDimensionOverrides:{batch_size:1,num_channels_latent:4,height_latent:64,width_latent:64}}}
-    };
-    notify('15% · Cargando UNet…');
-    const ub=await cachedBytes(defs.unet.path,notify);
-    notify('35% · UNet listo · cargando Text Encoder…');
-    const tb=await cachedBytes(defs.text.path,notify);
-    notify('55% · Text Encoder listo · cargando VAE…');
-    const vb=await cachedBytes(defs.vae.path,notify);
+    notify('12% · Cargando motor SDXL‑Turbo…');
+    window.sdActivity?.('12% · Importando pipeline WebGPU…',12);
 
-    notify('70% · Archivos listos · compilando UNet en WebGPU…');
-    const unet=await ort.InferenceSession.create(ub,{...common,...defs.unet.opt});
-    notify('82% · UNet compilado · compilando Text Encoder…');
-    const text=await ort.InferenceSession.create(tb,{...common,...defs.text.opt,
-      preferredOutputLocation:{last_hidden_state:'gpu-buffer'}});
-    notify('92% · Text Encoder compilado · compilando VAE…');
-    const vae=await ort.InferenceSession.create(vb,{...common,...defs.vae.opt});
-    sessions={unet,text,vae};
-    window.__sdTurboVerifiedReady=!!(sessions.unet&&sessions.text&&sessions.vae);
-    if(!window.__sdTurboVerifiedReady)throw new Error('SD‑Turbo: faltan sesiones UNet/Text Encoder/VAE.');
-    notify('🟢 SD‑Turbo WebGPU listo · UNet + Text Encoder + VAE verificados');
-    try{window.__resolveSdTurboReady?.(sessions);}catch(_){}
-    return sessions;
-  })().catch(e=>{loading=null;throw e});
+    const SD_BASE='https://decentralized-intelligence.com/scribbler-webnn/';
+    let mod;
+    try{
+      mod=await import(SD_BASE+'sd.js');
+    }catch(e){
+      throw new Error('No se pudo cargar el pipeline SDXL‑Turbo: '+(e?.message||e));
+    }
+
+    if(!mod?.SDPipeline) throw new Error('El módulo SDXL no exportó SDPipeline.');
+
+    pipeline=new mod.SDPipeline({
+      model:'sdxl-turbo',
+      provider:'webgpu'
+    });
+
+    notify('20% · Descargando/cargando SDXL‑Turbo por primera vez…');
+    window.sdActivity?.('20% · Preparando SDXL‑Turbo. La primera carga puede tardar…',20);
+
+    await pipeline.load({
+      onProgress:(p)=>{
+        let n=Number(p);
+        if(n<=1)n*=100;
+        if(!Number.isFinite(n))n=20;
+        n=Math.max(20,Math.min(95,Math.round(n)));
+        notify(n+'% · Cargando SDXL‑Turbo…');
+        window.sdActivity?.(n+'% · Cargando SDXL‑Turbo…',n);
+      }
+    });
+
+    window.__sdTurboVerifiedReady=true;
+    notify('🟢 SDXL‑Turbo WebGPU listo');
+    window.sdActivity?.('100% · SDXL‑Turbo WebGPU listo',100);
+    try{window.__resolveSdTurboReady?.(pipeline);}catch(_){}
+    return pipeline;
+  })().catch(e=>{
+    loading=null;
+    pipeline=null;
+    window.__sdTurboVerifiedReady=false;
+    throw e;
+  });
+
   return loading;
 }
-async function ensureTokenizer(notify){
-  if(tokenizer)return tokenizer;
-  notify?.('🔤 Cargando tokenizer local del navegador…');
-  tokenizer=await AutoTokenizer.from_pretrained('Xenova/clip-vit-base-patch16');
-  tokenizer.pad_token_id=0;
-  return tokenizer;
+
+async function canvasToBlob(canvas){
+  return await new Promise((resolve,reject)=>{
+    canvas.toBlob(
+      b=>b?resolve(b):reject(new Error('No se pudo convertir la imagen generada.')),
+      'image/jpeg',
+      0.95
+    );
+  });
 }
-async function tensorToBlob(t){
-  let pix=t.data;
-  const H=t.dims[2], W=t.dims[3];
-  const rgba=new Uint8ClampedArray(W*H*4);
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-    const p=y*W+x, o=p*4;
-    for(let c=0;c<3;c++){
-      let v=pix[c*H*W+p]/2+0.5;
-      v=Math.max(0,Math.min(1,v));
-      rgba[o+c]=Math.round(v*255);
-    }
-    rgba[o+3]=255;
-  }
-  const canvas=document.createElement('canvas');
-  canvas.width=W; canvas.height=H;
-  canvas.getContext('2d').putImageData(new ImageData(rgba,W,H),0,0);
-  const blob=await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('No se pudo convertir la imagen.')),'image/jpeg',0.94));
-  return blob;
+
+function improvePrompt(prompt){
+  const p=String(prompt||'').trim();
+  return [
+    p,
+    'photorealistic documentary photography',
+    'natural human anatomy',
+    'realistic hands with five fingers',
+    'symmetrical eyes',
+    'accurate face',
+    'correct body proportions',
+    'coherent objects',
+    'natural lighting',
+    'high detail',
+    'no text, no watermark, no logo'
+  ].filter(Boolean).join(', ');
 }
+
 async function generate(prompt,notify=ui){
-  await init(notify);
-  const tok=await ensureTokenizer(notify);
-  notify('🎨 SD‑Turbo generando imagen 512×512 con WebGPU…');
-  const enc=await tok(prompt,{padding:true,max_length:77,truncation:true,return_tensor:false});
-  const ids=enc.input_ids;
-  const {last_hidden_state}=await sessions.text.run({
-    input_ids:new ort.Tensor('int32',ids,[1,ids.length])
-  });
-  const shape=[1,4,64,64];
-  const latent=new ort.Tensor('float32',noise(shape),shape);
-  const latentInput=scaleInput(latent);
-  const {out_sample}=await sessions.unet.run({
-    sample:latentInput,
-    timestep:new ort.Tensor('int64',[999n],[1]),
-    encoder_hidden_states:last_hidden_state
-  });
-  const decodedLatent=scheduler(out_sample,latent);
-  const {sample}=await sessions.vae.run({latent_sample:decodedLatent});
-  const blob=await tensorToBlob(sample);
-  try{last_hidden_state.dispose?.();}catch{}
-  try{out_sample.dispose?.();}catch{}
-  try{sample.dispose?.();}catch{}
-  return {blob,url:URL.createObjectURL(blob),provider:'SD‑Turbo WebGPU local'};
+  const pipe=await init(notify);
+  const finalPrompt=improvePrompt(prompt);
+
+  notify('🎨 SDXL‑Turbo generando imagen 512×512 con WebGPU…');
+  window.sdActivity?.('🎨 Generando imagen con SDXL‑Turbo…',100);
+
+  let result;
+  try{
+    result=await pipe.generate({
+      prompt:finalPrompt,
+      steps:4,
+      width:512,
+      height:512
+    });
+  }catch(e){
+    // Algunas versiones del pipeline sólo aceptan prompt + steps.
+    result=await pipe.generate({
+      prompt:finalPrompt,
+      steps:4
+    });
+  }
+
+  const canvas=document.createElement('canvas');
+  canvas.width=512;
+  canvas.height=512;
+
+  try{
+    await pipe.draw(result,canvas);
+  }catch(e){
+    throw new Error('SDXL‑Turbo generó datos pero no pudo dibujar la imagen: '+(e?.message||e));
+  }
+
+  const blob=await canvasToBlob(canvas);
+  return {
+    blob,
+    url:URL.createObjectURL(blob),
+    provider:'SDXL‑Turbo WebGPU local'
+  };
 }
+
 window.sdTurboLocalGenerate=(prompt,notify)=>{
   const job=busy.then(()=>generate(prompt,notify));
   busy=job.catch(()=>{});
   return job;
 };
+
 window.sdTurboLocalInit=()=>init(ui);
+
 window.addEventListener('load',()=>{
-  setTimeout(()=>init(ui).catch(e=>ui('❌ SD‑Turbo: '+(e?.message||e))),1200);
+  setTimeout(()=>init(ui).catch(e=>ui('❌ SDXL‑Turbo: '+(e?.message||e))),1200);
 });
 </script>
 <script id="sd-turbo-bootstrap-v10-7-12">
@@ -4429,13 +4375,13 @@ window.addEventListener('load',()=>{
     if(window.__sdRealInit) return window.__sdRealInit();
     if(!bootPromise){
       bootPromise=(async()=>{
-        window.sdActivity?.('2% · Iniciando motor SD‑Turbo…',2);
+        window.sdActivity?.('2% · Iniciando motor SDXL‑Turbo…',2);
         const src=document.getElementById('sd-turbo-module-source')?.textContent||'';
-        if(!src) throw new Error('BOOTSTRAP: código SD‑Turbo no encontrado.');
+        if(!src) throw new Error('BOOTSTRAP: código SDXL‑Turbo no encontrado.');
         const blob=new Blob([src],{type:'text/javascript'});
         const url=URL.createObjectURL(blob);
         try{
-          window.sdActivity?.('4% · Ejecutando módulo SD‑Turbo…',4);
+          window.sdActivity?.('4% · Ejecutando módulo SDXL‑Turbo…',4);
           await import(url);
         }catch(e){
           throw new Error('MÓDULO SD‑TURBO: '+(e?.message||e));
@@ -4474,8 +4420,8 @@ window.addEventListener('load',()=>{
  async function imageCheck(){
    try{
      set('engineImage','loading','Cargando módulo WebGPU…',1); window.sdActivity?.('1% · Cargando módulo WebGPU…',1);
-     if(typeof window.sdTurboLocalInit!=='function')throw Error('BOOTSTRAP: función SD‑Turbo no disponible.');
-     window.sdActivity?.('2% · Bootstrap SD‑Turbo listo.',2);
+     if(typeof window.sdTurboLocalInit!=='function')throw Error('BOOTSTRAP: función SDXL‑Turbo no disponible.');
+     window.sdActivity?.('2% · Bootstrap SDXL‑Turbo listo.',2);
 
      const statusBox=document.getElementById('sdLocalStatus');
      let lastText='';
@@ -4494,14 +4440,14 @@ window.addEventListener('load',()=>{
        clearInterval(watcher);
      }
      if(typeof window.sdTurboLocalGenerate!=='function')
-       throw Error('SD‑Turbo cargó, pero el generador de imágenes no quedó conectado.');
+       throw Error('SDXL‑Turbo cargó, pero el generador de imágenes no quedó conectado.');
      if(window.__sdTurboVerifiedReady!==true)
-       throw Error('SD‑Turbo no verificó UNet + Text Encoder + VAE.');
-     set('engineImage','ready','Listo · UNet + Text Encoder + VAE',100);
-     window.sdActivity?.('100% · SD‑Turbo REALMENTE listo · generador + UNet + Text Encoder + VAE verificados',100);
+       throw Error('SDXL‑Turbo no terminó de verificar el pipeline WebGPU.');
+     set('engineImage','ready','Listo · SDXL‑Turbo WebGPU',100);
+     window.sdActivity?.('100% · SDXL‑Turbo listo · pipeline WebGPU verificado',100);
    }catch(e){
      const detail=(e?.message||String(e)||'Error desconocido').slice(0,180);
-     console.error('[SD-Turbo diagnóstico]',e); window.sdActivity?.('❌ '+detail,0);
+     console.error('[SDXL-Turbo diagnóstico]',e); window.sdActivity?.('❌ '+detail,0);
      set('engineImage','err',detail,0);
      const box=document.getElementById('sdLocalStatus');
      if(box)box.textContent='❌ '+detail;
@@ -4558,14 +4504,14 @@ window.addEventListener('load',()=>{
 </style
 <div id="sdActivityPanel" style="margin-top:10px;border:1px solid #29425f;border-radius:10px;background:#07111e;padding:10px 12px;">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px">
-    <b>Actividad · SD‑Turbo WebGPU</b>
+    <b>Actividad · SDXL‑Turbo WebGPU</b>
     <span id="sdActivityPct" style="font-weight:900">0%</span>
   </div>
   <div style="height:7px;background:#142337;border-radius:999px;overflow:hidden;margin-bottom:7px">
     <i id="sdActivityBar" style="display:block;height:100%;width:0%;background:currentColor"></i>
   </div>
   <div id="sdActivityCurrent" style="font-size:12px;font-weight:800">Esperando inicio…</div>
-  <pre id="sdActivityLog" style="margin:8px 0 0;max-height:145px;overflow:auto;white-space:pre-wrap;font-size:11px;line-height:1.35;background:#030912;border:1px solid #1c3048;border-radius:8px;padding:8px">Esperando SD‑Turbo…</pre>
+  <pre id="sdActivityLog" style="margin:8px 0 0;max-height:145px;overflow:auto;white-space:pre-wrap;font-size:11px;line-height:1.35;background:#030912;border:1px solid #1c3048;border-radius:8px;padding:8px">Esperando SDXL‑Turbo…</pre>
 </div>
 
 >
