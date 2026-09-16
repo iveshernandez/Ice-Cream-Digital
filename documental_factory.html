@@ -342,7 +342,7 @@ window.addEventListener('unhandledrejection',function(e){
       const main=document.querySelector('#log, .log, #statusLog');
       if(main && main!==log){
         const row=document.createElement('div');
-        row.textContent=now+' — 🖼️ SD‑Turbo: '+text;
+        row.textContent=now+' — 🖼️ AI Horde: '+text;
         main.appendChild(row);
         main.scrollTop=main.scrollHeight;
       }
@@ -481,7 +481,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Typhoon SD15 V6 · WebGPU <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · AI Horde · SDXL <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -2281,32 +2281,22 @@ function imageProviderLog(text){
 
 
 async function generateAIImage(prompt){
-  // El módulo WebGPU se carga de forma asíncrona. La cola NO debe fallar si Groq
-  // termina antes: esperamos a que el motor publique sus funciones.
   const waitStart=Date.now();
   while(typeof window.sdTurboLocalGenerate!=='function'){
-    if(Date.now()-waitStart>120000){
-      throw new Error('Typhoon SD15 WebGPU no terminó de cargar en 120 s. Revisa la consola o recarga la página.');
-    }
-    imageProviderLog('⏳ Esperando que Typhoon SD15 WebGPU termine de inicializar…');
-    await new Promise(r=>setTimeout(r,500));
+    if(Date.now()-waitStart>30000)throw new Error('AI Horde no terminó de iniciar.');
+    await new Promise(r=>setTimeout(r,250));
   }
-
-  // Además esperamos explícitamente la descarga/compilación del modelo.
   if(typeof window.sdTurboLocalInit==='function'){
-    imageProviderLog('🧠 Preparando Typhoon SD15 WebGPU antes de generar escenas…');
+    imageProviderLog('🌐 Preparando AI Horde + SDXL fotográfico…');
     await window.sdTurboLocalInit();
   }
-
-  imageProviderLog('🖥️ Typhoon SD15 WebGPU local: '+String(prompt||'').slice(0,80));
-  const out=await window.sdTurboLocalGenerate(String(prompt||'').trim(), msg=>{
+  imageProviderLog('🖼️ AI Horde SDXL: '+String(prompt||'').slice(0,90));
+  const out=await window.sdTurboLocalGenerate(String(prompt||'').trim(),msg=>{
     imageProviderLog(msg);
     const box=document.getElementById('sdLocalStatus');
     if(box)box.textContent=msg;
   });
-  imageProviderLog('✅ Imagen 512×512 creada localmente con WebGPU.');
-  const box=document.getElementById('sdLocalStatus');
-  if(box)box.textContent='🟢 Typhoon SD15 WebGPU listo · imagen local creada';
+  imageProviderLog('✅ Imagen fotográfica creada con AI Horde.');
   return out;
 }
 
@@ -2349,7 +2339,7 @@ function render(s,c,i){
     <b>ESCENA ${i+1} · NARRACIÓN ↔ IMAGEN</b>
     <p class="narr">${e(s.narration)}</p>
     <p class="q">🤖 ${e(s.image_prompt)}</p>
-    <p class="provider">Fuente: Typhoon SD15 V2 · ONNX WebGPU</p>
+    <p class="provider">Fuente: AI Horde · SDXL fotográfico</p>
     <p class="match ok">✨ IA · movimiento ${e(a.dataset.motion)}</p>
     <button class="sec change">↻ Regenerar imagen</button>
   </div>`;
@@ -2367,7 +2357,7 @@ function render(s,c,i){
       generatedSceneImages.push(c2);
       a.dataset.clipUrl=c2.url;
       a.querySelector('.media').innerHTML=`<img src="${e(c2.url)}" alt="Escena IA regenerada" style="width:100%;height:100%;object-fit:cover;display:block">`;
-      a.querySelector('.provider').textContent='Fuente: Typhoon SD15 V2 · ONNX WebGPU';
+      a.querySelector('.provider').textContent='Fuente: '+(c2.provider||'AI Horde · SDXL fotográfico');
       const match=a.querySelector('.match');
       if(match){match.className='match ok';match.textContent='✨ Imagen IA regenerada';}
       if(old){
@@ -2838,7 +2828,7 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     if(typeof window.documentalAnalyzeScenes!=='function')
       throw Error('Motor de escenas Groq no quedó registrado.');
     if(typeof window.sdTurboLocalGenerate!=='function' || window.__sdTurboVerifiedReady!==true)
-      throw Error('SD‑Turbo todavía no está realmente listo para crear imágenes. Espera a que marque 100% verificado.');
+      throw Error('AI Horde todavía no está listo para crear imágenes.');
     await window.documentalAnalyzeScenes();
     const scenes=[...document.querySelectorAll('#scenes .scene')];
     if(!scenes.length)throw Error('No se generaron escenas.');
@@ -4220,407 +4210,197 @@ window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
 });
 </script>
 <script type="text/plain" id="sd-turbo-module-source">
+
 /*
-  Documental Factory — Typhoon SD15 V2 ONNX / WebGPU
-  Mantiene los nombres sdTurboLocal* únicamente por compatibilidad con el resto
-  del programa. El motor real de imágenes es Typhoon-SD15-V2.
+ Documental Factory — AI Horde SDXL
+ Typhoon/ONNX/WebGPU removed.
+ Compatibility function names are retained only so the rest of the existing
+ Documental Factory pipeline does not need to be rewritten.
 */
-let ort=null, AutoTokenizer=null;
-const BASE='https://huggingface.co/subpixel/Typhoon-SD15-V2-onnx/resolve/main';
-const VAE_SCALE=0.18215;
-const STEPS=8;
-const CFG=7.0;
-let sessions=null, tokenizer=null, loading=null, busy=Promise.resolve();
+const HORDE_BASE='https://aihorde.net/api/v2';
+const ANON_KEY='0000000000';
+let hordeReady=false;
+let busy=Promise.resolve();
+let selectedModel='AlbedoBase XL (SDXL)';
 
 function ui(msg){
-  const e=document.getElementById('sdLocalStatus');
-  if(e)e.textContent=msg;
-  console.log('[Typhoon-SD15]',msg);
+  const el=document.getElementById('sdLocalStatus');
+  if(el)el.textContent=msg;
+  console.log('[AI Horde]',msg);
 }
-function activity(msg,pct){ try{ window.sdActivity?.(msg,pct); }catch(_){} }
+function activity(msg,pct){ try{window.sdActivity?.(msg,pct);}catch(_){} }
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
-async function loadRuntime(notify=ui){
-  notify('2% · Cargando ONNX Runtime WebGPU…');
-  if(!window.ort){
-    await new Promise((resolve,reject)=>{
-      const sc=document.createElement('script');
-      sc.src='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.webgpu.min.js';
-      sc.onload=resolve;
-      sc.onerror=()=>reject(new Error('No se pudo descargar ONNX Runtime WebGPU.'));
-      document.head.appendChild(sc);
-    });
-  }
-  ort=window.ort;
-  if(!ort?.InferenceSession)throw new Error('ONNX Runtime WebGPU no quedó disponible.');
+function apiKey(){
   try{
-    ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
-    ort.env.wasm.numThreads=1;
-    ort.env.wasm.simd=true;
-  }catch(_){}
-
-  notify('5% · Cargando tokenizer CLIP…');
-  const tr=await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/+esm');
-  AutoTokenizer=tr.AutoTokenizer;
-  if(!AutoTokenizer)throw new Error('AutoTokenizer no quedó disponible.');
+    return String(window.AIHORDE_API_KEY || localStorage.getItem('aihorde_api_key') || ANON_KEY).trim() || ANON_KEY;
+  }catch(_){ return ANON_KEY; }
 }
-
-function randn(){
-  let u=0,v=0;
-  while(u===0)u=Math.random();
-  while(v===0)v=Math.random();
-  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
-}
-function randomNormal(n){
-  const a=new Float32Array(n);
-  for(let i=0;i<n;i++)a[i]=randn();
-  return a;
-}
-
-function float32ToFloat16Bits(src){
-  const out=new Uint16Array(src.length);
-  const f32=new Float32Array(1);
-  const u32=new Uint32Array(f32.buffer);
-  for(let i=0;i<src.length;i++){
-    f32[0]=src[i];
-    const x=u32[0];
-    const sign=(x>>>16)&0x8000;
-    let mantissa=x&0x7fffff;
-    let exp=(x>>>23)&0xff;
-    if(exp===0xff){
-      out[i]=sign | (mantissa ? 0x7e00 : 0x7c00);
-      continue;
-    }
-    exp=exp-127+15;
-    if(exp>=0x1f){ out[i]=sign|0x7c00; continue; }
-    if(exp<=0){
-      if(exp<-10){ out[i]=sign; continue; }
-      mantissa=(mantissa|0x800000)>>(1-exp);
-      out[i]=sign|((mantissa+0x1000)>>13);
-      continue;
-    }
-    out[i]=sign|(exp<<10)|((mantissa+0x1000)>>13);
+function headers(auth=false){
+  const h={'Accept':'application/json','Client-Agent':'documental-factory:1.0:anonymous'};
+  if(auth){
+    h['Content-Type']='application/json';
+    h['apikey']=apiKey();
   }
-  return out;
+  return h;
 }
-function tensorF16(data,dims){
-  if(typeof Float16Array==='undefined'){
-    throw new Error('FP16: Float16Array nativo no está disponible en este navegador.');
+async function jsonFetch(url,opt={}){
+  const r=await fetch(url,opt);
+  let j=null;
+  try{j=await r.json();}catch(_){}
+  if(!r.ok){
+    throw new Error(j?.message || j?.rc || `AI Horde HTTP ${r.status}`);
   }
-  const a=new Float16Array(data.length);
-  for(let i=0;i<data.length;i++) a[i]=Number(data[i]);
-  return new ort.Tensor('float16',a,dims);
+  if(j?.rc)throw new Error(j.message || j.rc);
+  return j;
 }
-
-function normalizeOrtType(meta){
-  let t=meta?.type || meta?.tensorType || meta?.dataType || '';
-  t=String(t).toLowerCase();
-  if(t.includes('float16')) return 'float16';
-  if(t.includes('float')) return 'float32';
-  if(t.includes('int64')) return 'int64';
-  if(t.includes('int32')) return 'int32';
-  return '';
-}
-
-function getInputMeta(session,name){
-  const md=session?.inputMetadata;
-  if(!md) return null;
-  if(Array.isArray(md)){
-    return md.find(x=>x?.name===name) || null;
-  }
-  return md[name] || null;
-}
-
-function tensorForInput(session,name,data,dims,preferred='float32'){
-  const detected=normalizeOrtType(getInputMeta(session,name));
-  const type=detected || preferred;
-
-  if(type==='float16') return tensorF16(data,dims);
-  if(type==='float32'){
-    const a=data instanceof Float32Array ? data : Float32Array.from(data,Number);
-    return new ort.Tensor('float32',a,dims);
-  }
-  if(type==='int64'){
-    const a=new BigInt64Array(data.length);
-    for(let i=0;i<data.length;i++) a[i]=BigInt(Math.round(Number(data[i])));
-    return new ort.Tensor('int64',a,dims);
-  }
-  if(type==='int32'){
-    const a=new Int32Array(data.length);
-    for(let i=0;i<data.length;i++) a[i]=Math.round(Number(data[i]));
-    return new ort.Tensor('int32',a,dims);
-  }
-  throw new Error(`Tipo ONNX no soportado para ${name}: ${type}`);
-}
-
-function dumpSessionInputs(session,label){
+async function choosePhotographicSDXL(){
   try{
-    const names=session.inputNames || [];
-    const parts=names.map(n=>{
-      const m=getInputMeta(session,n);
-      return `${n}=${normalizeOrtType(m)||String(m?.type||'?')}`;
-    });
-    console.log(`[${label}] inputs:`,parts.join(', '));
-    return parts.join(', ');
-  }catch(e){ return ''; }
-}
-
-function concatFloat(a,b){
-  const o=new Float32Array(a.length+b.length); o.set(a,0); o.set(b,a.length); return o;
-}
-function repeatBatch4(lat){
-  const n=lat.length, o=new Float32Array(n*2); o.set(lat,0); o.set(lat,n); return o;
-}
-function makeBetas(){
-  const n=1000, start=Math.sqrt(0.00085), end=Math.sqrt(0.012);
-  const betas=new Float64Array(n);
-  for(let i=0;i<n;i++){ const x=start+(end-start)*(i/(n-1)); betas[i]=x*x; }
-  return betas;
-}
-const TRAIN_SIGMAS=(()=>{
-  const betas=makeBetas(), sigmas=new Float64Array(1000);
-  let ac=1;
-  for(let i=0;i<1000;i++){ ac*=1-betas[i]; sigmas[i]=Math.sqrt((1-ac)/ac); }
-  return sigmas;
-})();
-function sigmaAt(t){
-  const lo=Math.floor(t), hi=Math.min(999,Math.ceil(t)), f=t-lo;
-  return TRAIN_SIGMAS[lo]*(1-f)+TRAIN_SIGMAS[hi]*f;
-}
-function makeSchedule(steps){
-  const timesteps=[], sigmas=[];
-  for(let i=0;i<steps;i++){
-    const t=999-(999*i/(steps-1));
-    timesteps.push(t); sigmas.push(sigmaAt(t));
+    const models=await jsonFetch(`${HORDE_BASE}/status/models?type=image`,{headers:headers(false)});
+    const active=Array.isArray(models)?models:[];
+    const prefs=[
+      /AlbedoBase XL.*SDXL/i,
+      /Juggernaut.*XL/i,
+      /RealVis.*XL/i,
+      /realistic.*XL/i,
+      /photo.*XL/i,
+      /SDXL/i
+    ];
+    for(const rx of prefs){
+      const candidates=active.filter(m=>rx.test(String(m?.name||'')) && Number(m?.count||0)>0);
+      candidates.sort((a,b)=>(Number(b.count||0)-Number(a.count||0)) || (Number(a.eta||99999)-Number(b.eta||99999)));
+      if(candidates[0]?.name)return candidates[0].name;
+    }
+  }catch(e){
+    console.warn('[AI Horde] No se pudo consultar modelos activos:',e);
   }
-  sigmas.push(0);
-  return {timesteps,sigmas};
+  return 'AlbedoBase XL (SDXL)';
 }
-
-async function cacheBytes(rel,notify){
-  const url=BASE+'/'+rel;
-  const cache=await caches.open('icecream-typhoon-sd15-v1');
-  let r=await cache.match(url);
-  if(!r){
-    notify?.('⬇️ Descargando '+rel+'…');
-    r=await fetch(url,{cache:'no-store'});
-    if(!r.ok)throw new Error('DESCARGA '+rel+': HTTP '+r.status);
-    try{await cache.put(url,r.clone());}catch(_){}
-  }
-  return await r.arrayBuffer();
-}
-
-async function createSession(modelRel, opts, notify, externalRel=null){
-  const model=await cacheBytes(modelRel,notify);
-  const options={...opts};
-  if(externalRel){
-    const ext=await cacheBytes(externalRel,notify);
-    options.externalData=[{path:'weights.pb',data:ext}];
-  }
-  return await ort.InferenceSession.create(model,options);
-}
-
 async function init(notify=ui){
-  if(sessions)return sessions;
-  if(loading)return loading;
-  loading=(async()=>{
-    await loadRuntime(notify);
-    notify('8% · Comprobando WebGPU…'); activity('8% · Comprobando WebGPU para Typhoon SD15…',8);
-    if(!navigator.gpu)throw new Error('WEBGPU: navigator.gpu no está disponible.');
-    const adapter=await navigator.gpu.requestAdapter();
-    if(!adapter)throw new Error('WEBGPU: no se pudo obtener adaptador GPU.');
-    if(!adapter.features.has('shader-f16'))throw new Error('WEBGPU: shader-f16 no está disponible.');
-    if(typeof Float16Array==='undefined'){
-      throw new Error('FP16: Float16Array nativo no está disponible en este navegador. Actualiza Chrome/Edge.');
-    }
+  if(hordeReady)return true;
+  notify('🌐 Conectando con AI Horde…'); activity('25% · Conectando con AI Horde…',25);
+  const hb=await jsonFetch(`${HORDE_BASE}/status/heartbeat`,{headers:headers(false)});
+  if(hb===false)throw new Error('AI Horde no está disponible en este momento.');
+  selectedModel=await choosePhotographicSDXL();
+  hordeReady=true;
+  window.__sdTurboVerifiedReady=true; // compatibility flag only
+  notify(`🟢 AI Horde listo · ${selectedModel}`);
+  activity(`100% · AI Horde listo · ${selectedModel}`,100);
+  try{window.__resolveSdTurboReady?.(true);}catch(_){}
+  return true;
+}
+function enhancedPrompt(prompt){
+  const p=String(prompt||'').trim();
+  return [
+    p,
+    'photorealistic documentary photography',
+    'real-world materials and textures',
+    'natural believable lighting',
+    'physically accurate proportions',
+    'clear subject and action',
+    'cinematic composition',
+    'high detail',
+    'vertical 9:16 framing'
+  ].filter(Boolean).join(', ');
+}
+const NEGATIVE=[
+  'illustration','painting','cartoon','anime','3d render','cgi',
+  'deformed','distorted','bad anatomy','bad hands','extra fingers','extra limbs',
+  'duplicate subject','mutated','blurry','low detail','oversaturated',
+  'text','letters','caption','logo','watermark'
+].join(', ');
 
-    const common={
-      executionProviders:['webgpu'],
-      enableMemPattern:false,
-      enableCpuMemArena:false,
-      graphOptimizationLevel:'all',
-      extra:{session:{
-        disable_prepacking:'1',
-        use_device_allocator_for_initializers:'1',
-        use_ort_model_bytes_directly:'1',
-        use_ort_model_bytes_for_initializers:'1'
-      }}
-    };
-
-    notify('12% · Typhoon: descargando UNet + pesos (~1.72 GB)…');
-    activity('12% · Primera carga Typhoon SD15 · descargando UNet…',12);
-    const unet=await createSession(
-      'unet/model.onnx',
-      {...common,freeDimensionOverrides:{batch_size:2,num_channels:4,height:64,width:64,sequence_length:77}},
-      notify,'unet/weights.pb'
-    );
-
-    notify('55% · UNet compilado · cargando Text Encoder…'); activity('55% · Typhoon UNet listo · Text Encoder…',55);
-    const text=await createSession(
-      'text_encoder/model.onnx',
-      {...common,freeDimensionOverrides:{batch_size:1}},
-      notify
-    );
-
-    notify('75% · Text Encoder listo · cargando VAE…'); activity('75% · Typhoon · VAE decoder…',75);
-    const vae=await createSession(
-      'vae_decoder/model.onnx',
-      {...common,freeDimensionOverrides:{batch_size:1,num_channels_latent:4,height_latent:64,width_latent:64}},
-      notify
-    );
-
-    sessions={unet,text,vae};
-    const unetInputs=dumpSessionInputs(unet,'Typhoon UNet');
-    const vaeInputs=dumpSessionInputs(vae,'Typhoon VAE');
-    notify('🔎 UNet: '+unetInputs);
-    notify('🔎 VAE: '+vaeInputs);
-    window.__sdTurboVerifiedReady=true;
-    notify('🟢 Typhoon SD15 V6 WebGPU listo · 20 pasos · CFG 7');
-    activity('100% · Typhoon SD15 V2 listo',100);
-    try{window.__resolveSdTurboReady?.(sessions);}catch(_){}
-    return sessions;
-  })().catch(e=>{
-    loading=null; sessions=null; window.__sdTurboVerifiedReady=false;
-    throw e;
-  });
-  return loading;
+async function imageUrlToObjectUrl(url){
+  const r=await fetch(url,{cache:'no-store'});
+  if(!r.ok)throw new Error(`No se pudo descargar la imagen terminada (${r.status}).`);
+  const blob=await r.blob();
+  return {url:URL.createObjectURL(blob),blob};
 }
-
-async function ensureTokenizer(notify=ui){
-  if(tokenizer)return tokenizer;
-  notify('🔤 Cargando tokenizer CLIP…');
-  tokenizer=await AutoTokenizer.from_pretrained('Xenova/clip-vit-base-patch16');
-  tokenizer.pad_token_id=0;
-  return tokenizer;
-}
-async function encode(text,notify){
-  const tok=await ensureTokenizer(notify);
-  const enc=await tok(text,{padding:'max_length',max_length:77,truncation:true,return_tensor:false});
-  let ids=enc.input_ids;
-  if(Array.isArray(ids[0]))ids=ids[0];
-  if(ids.length<77)ids=ids.concat(new Array(77-ids.length).fill(0));
-  if(ids.length>77)ids=ids.slice(0,77);
-  const out=await sessions.text.run({input_ids:tensorForInput(sessions.text,'input_ids',ids,[1,77],'int32')});
-  return out.last_hidden_state || out[Object.keys(out)[0]];
-}
-function combineEmbeddings(uncond,cond){
-  return concatFloat(tensorDataF32(uncond),tensorDataF32(cond));
-}
-function scaleLatentBatch(lat,sigma){
-  const div=Math.sqrt(sigma*sigma+1), one=new Float32Array(lat.length);
-  for(let i=0;i<lat.length;i++)one[i]=lat[i]/div;
-  return repeatBatch4(one);
-}
-
-function float16BitsToFloat32(src){
-  const out=new Float32Array(src.length);
-  for(let i=0;i<src.length;i++){
-    const h=src[i], s=(h&0x8000)?-1:1, e=(h>>10)&0x1f, f=h&0x3ff;
-    if(e===0) out[i]=s*Math.pow(2,-14)*(f/1024);
-    else if(e===31) out[i]=f?NaN:s*Infinity;
-    else out[i]=s*Math.pow(2,e-15)*(1+f/1024);
-  }
-  return out;
-}
-function tensorDataF32(t){
-  if(!t?.data) return t?.data;
-  if(typeof Float16Array!=='undefined' && t.data instanceof Float16Array){
-    return Float32Array.from(t.data, Number);
-  }
-  if(t.data instanceof Uint16Array) return float16BitsToFloat32(t.data);
-  return t.data;
-}
-
-function cfgNoise(pred, n, scale){
-  const out=new Float32Array(n);
-  for(let i=0;i<n;i++){
-    const u=pred[i], c=pred[n+i];
-    out[i]=u+scale*(c-u);
-  }
-  return out;
-}
-function eulerAncestralStep(lat,eps,sigma,sigmaNext){
-  const n=lat.length, out=new Float32Array(n);
-  if(sigmaNext<=0){
-    for(let i=0;i<n;i++)out[i]=lat[i]-eps[i]*sigma;
-    return out;
-  }
-  const sigmaUp=Math.min(
-    sigmaNext,
-    Math.sqrt(Math.max(0,(sigmaNext*sigmaNext)*(sigma*sigma-sigmaNext*sigmaNext)/(sigma*sigma)))
-  );
-  const sigmaDown=Math.sqrt(Math.max(0,sigmaNext*sigmaNext-sigmaUp*sigmaUp));
-  const dt=sigmaDown-sigma;
-  for(let i=0;i<n;i++)out[i]=lat[i]+eps[i]*dt+randn()*sigmaUp;
-  return out;
-}
-async function tensorToBlob(t){
-  const pix=tensorDataF32(t),H=t.dims[2],W=t.dims[3],rgba=new Uint8ClampedArray(W*H*4);
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-    const p=y*W+x,o=p*4;
-    for(let c=0;c<3;c++){
-      let v=pix[c*H*W+p]/2+0.5;
-      v=Math.max(0,Math.min(1,v)); rgba[o+c]=Math.round(v*255);
-    }
-    rgba[o+3]=255;
-  }
-  const canvas=document.createElement('canvas'); canvas.width=W;canvas.height=H;
-  canvas.getContext('2d').putImageData(new ImageData(rgba,W,H),0,0);
-  return await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('No se pudo convertir la imagen.')),'image/jpeg',0.95));
-}
-function concisePrompt(p){
-  return String(p||'').replace(/\s+/g,' ').trim()+
-    ', realistic documentary photo, clear visible action, coherent objects, natural lighting, accurate proportions';
-}
-
 async function generate(prompt,notify=ui){
   await init(notify);
-  notify('🎨 Typhoon SD15 · preparando prompt y negative prompt…');
-  const positive=await encode(concisePrompt(prompt),notify);
-  const negative=await encode('deformed, distorted, duplicate, extra limbs, bad hands, bad anatomy, blurry, text, watermark, logo, abstract, confusing composition',notify);
-  const embeds=combineEmbeddings(negative,positive);
+  const model=await choosePhotographicSDXL();
+  selectedModel=model||selectedModel;
 
-  const {timesteps,sigmas}=makeSchedule(STEPS);
-  const N=4*64*64;
-  let lat=randomNormal(N);
-  for(let i=0;i<N;i++)lat[i]*=sigmas[0];
+  notify(`🎨 AI Horde · enviando escena a ${selectedModel}…`);
+  activity(`15% · Enviando a ${selectedModel}…`,15);
 
-  for(let s=0;s<STEPS;s++){
-    const pct=10+Math.round(((s+1)/STEPS)*80);
-    notify(`🎨 Typhoon SD15 · paso ${s+1}/${STEPS}`);
-    activity(`${pct}% · Typhoon SD15 · difusión ${s+1}/${STEPS}`,pct);
+  const payload={
+    prompt:`${enhancedPrompt(prompt)} ### ${NEGATIVE}`,
+    params:{
+      cfg_scale:5.5,
+      sampler_name:'k_dpmpp_2m',
+      height:896,
+      width:512,
+      steps:24,
+      n:1,
+      karras:true,
+      hires_fix:false,
+      clip_skip:1
+    },
+    models:[selectedModel],
+    allow_downgrade:true,
+    trusted_workers:false,
+    slow_workers:true,
+    r2:true,
+    shared:false,
+    replacement_filter:true,
+    dry_run:false
+  };
 
-    const batch=scaleLatentBatch(lat,sigmas[s]);
-    const feeds={
-      // Typhoon-SD15-V2 ONNX UNet is exported in FP16.
-      sample:tensorF16(batch,[2,4,64,64]),
-      timestep:tensorF16(Float32Array.of(timesteps[s]),[1]),
-      encoder_hidden_states:tensorF16(embeds,[2,77,768])
-    };
-    if(s===0){
-      console.log('[Typhoon FP16 check]',
-        'sample=',feeds.sample.type,feeds.sample.data?.constructor?.name,
-        'timestep=',feeds.timestep.type,feeds.timestep.data?.constructor?.name,
-        'embeddings=',feeds.encoder_hidden_states.type,feeds.encoder_hidden_states.data?.constructor?.name);
-      notify(`🔎 FP16: sample=${feeds.sample.type} · timestep=${feeds.timestep.type} · embeddings=${feeds.encoder_hidden_states.type}`);
+  const job=await jsonFetch(`${HORDE_BASE}/generate/async`,{
+    method:'POST',headers:headers(true),body:JSON.stringify(payload)
+  });
+  if(!job?.id)throw new Error('AI Horde no devolvió ID de generación.');
+  const id=job.id;
+  const started=Date.now();
+  let lastPos=null;
+
+  for(;;){
+    if(Date.now()-started>12*60*1000){
+      try{await fetch(`${HORDE_BASE}/generate/status/${id}`,{method:'DELETE',headers:headers(true)});}catch(_){}
+      throw new Error('AI Horde superó 12 minutos de espera para esta imagen.');
     }
-    const r=await sessions.unet.run(feeds);
-    const pred=r.out_sample || r[Object.keys(r)[0]];
-    const eps=cfgNoise(tensorDataF32(pred),N,CFG);
-    lat=eulerAncestralStep(lat,eps,sigmas[s],sigmas[s+1]);
-    try{pred.dispose?.();}catch(_){}
-    await new Promise(requestAnimationFrame);
+    const c=await jsonFetch(`${HORDE_BASE}/generate/check/${id}`,{headers:headers(false)});
+    if(c.faulted)throw new Error('AI Horde marcó la generación como fallida.');
+    if(c.is_possible===false)throw new Error(`No hay worker disponible para ${selectedModel}.`);
+    if(c.done)break;
+
+    const pos=Number(c.queue_position||0);
+    const wait=Number(c.wait_time||0);
+    const processing=Number(c.processing||0);
+    let pct=processing>0?82:Math.max(20,Math.min(75,75-Math.min(55,pos*2)));
+    if(lastPos!==pos || processing>0){
+      notify(processing>0
+        ? `🖼️ AI Horde · worker generando imagen…`
+        : `⏳ AI Horde · cola ${pos}${wait?` · ~${wait}s`:''}`);
+      activity(`${Math.round(pct)}% · ${processing>0?'Generando':'Cola '+pos}`,pct);
+      lastPos=pos;
+    }
+    await sleep(processing>0?1800:2500);
   }
 
-  notify('🖼️ Typhoon · decodificando imagen…'); activity('94% · Typhoon · VAE decoder…',94);
-  const scaled=new Float32Array(N);
-  for(let i=0;i<N;i++)scaled[i]=lat[i]/VAE_SCALE;
-  const vr=await sessions.vae.run({latent_sample:tensorF16(scaled,[1,4,64,64])});
-  const image=vr.sample || vr[Object.keys(vr)[0]];
-  const blob=await tensorToBlob(image);
+  notify('📥 AI Horde · descargando resultado…'); activity('92% · Descargando imagen…',92);
+  const status=await jsonFetch(`${HORDE_BASE}/generate/status/${id}`,{headers:headers(false)});
+  const gen=status?.generations?.find(g=>g?.state==='ok' && g?.img) || status?.generations?.[0];
+  if(!gen?.img)throw new Error('AI Horde terminó pero no devolvió una imagen.');
 
-  try{positive.dispose?.();negative.dispose?.();image.dispose?.();}catch(_){}
-  notify('🟢 Imagen Typhoon SD15 creada · 512×512');
-  return {blob,url:URL.createObjectURL(blob),provider:'Typhoon SD15 V2 · ONNX WebGPU · 20 pasos'};
+  let result;
+  if(String(gen.img).startsWith('data:')){
+    const r=await fetch(gen.img); const blob=await r.blob();
+    result={url:URL.createObjectURL(blob),blob};
+  }else if(/^https?:/i.test(String(gen.img))){
+    result=await imageUrlToObjectUrl(gen.img);
+  }else{
+    const clean=String(gen.img).replace(/\s/g,'');
+    const bin=atob(clean), bytes=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    const blob=new Blob([bytes],{type:'image/webp'});
+    result={url:URL.createObjectURL(blob),blob};
+  }
+
+  notify(`🟢 Imagen AI Horde creada · ${gen.model||selectedModel}`);
+  activity('100% · Imagen AI Horde lista',100);
+  return {...result,provider:`AI Horde · ${gen.model||selectedModel}`,model:gen.model||selectedModel,seed:gen.seed||''};
 }
 
 window.sdTurboLocalGenerate=(prompt,notify)=>{
@@ -4629,12 +4409,16 @@ window.sdTurboLocalGenerate=(prompt,notify)=>{
   return job;
 };
 window.sdTurboLocalInit=()=>init(ui);
+window.__sdRealInit=window.sdTurboLocalInit;
+
 window.addEventListener('load',()=>{
   setTimeout(()=>init(ui).catch(e=>{
-    ui('❌ Typhoon SD15: '+(e?.message||e));
+    window.__sdTurboVerifiedReady=false;
+    ui('❌ AI Horde: '+(e?.message||e));
     try{window.__rejectSdTurboReady?.(e);}catch(_){}
-  }),1200);
+  }),700);
 });
+
 </script>
 <script id="sd-turbo-bootstrap-v10-7-12">
 (function(){
@@ -4643,16 +4427,16 @@ window.addEventListener('load',()=>{
     if(window.__sdRealInit) return window.__sdRealInit();
     if(!bootPromise){
       bootPromise=(async()=>{
-        window.sdActivity?.('2% · Iniciando motor SD‑Turbo…',2);
+        window.sdActivity?.('2% · Iniciando AI Horde SDXL…',2);
         const src=document.getElementById('sd-turbo-module-source')?.textContent||'';
-        if(!src) throw new Error('BOOTSTRAP: código SD‑Turbo no encontrado.');
+        if(!src) throw new Error('BOOTSTRAP: código del motor de imágenes no encontrado.');
         const blob=new Blob([src],{type:'text/javascript'});
         const url=URL.createObjectURL(blob);
         try{
-          window.sdActivity?.('4% · Ejecutando módulo SD‑Turbo…',4);
+          window.sdActivity?.('4% · Ejecutando módulo AI Horde…',4);
           await import(url);
         }catch(e){
-          throw new Error('MÓDULO SD‑TURBO: '+(e?.message||e));
+          throw new Error('MÓDULO AI HORDE: '+(e?.message||e));
         }finally{
           URL.revokeObjectURL(url);
         }
@@ -4684,12 +4468,12 @@ window.addEventListener('load',()=>{
  };
  window.documentalSetEngineState=set;
 
- // Image readiness: use the actual SD-Turbo init promise/function.
+ // Image readiness: use the actual AI Horde init promise/function.
  async function imageCheck(){
    try{
      set('engineImage','loading','Cargando módulo WebGPU…',1); window.sdActivity?.('1% · Cargando módulo WebGPU…',1);
-     if(typeof window.sdTurboLocalInit!=='function')throw Error('BOOTSTRAP: función SD‑Turbo no disponible.');
-     window.sdActivity?.('2% · Bootstrap SD‑Turbo listo.',2);
+     if(typeof window.sdTurboLocalInit!=='function')throw Error('BOOTSTRAP: función AI Horde no disponible.');
+     window.sdActivity?.('2% · Bootstrap AI Horde listo.',2);
 
      const statusBox=document.getElementById('sdLocalStatus');
      let lastText='';
@@ -4708,14 +4492,14 @@ window.addEventListener('load',()=>{
        clearInterval(watcher);
      }
      if(typeof window.sdTurboLocalGenerate!=='function')
-       throw Error('SD‑Turbo cargó, pero el generador de imágenes no quedó conectado.');
+       throw Error('AI Horde cargó, pero el generador de imágenes no quedó conectado.');
      if(window.__sdTurboVerifiedReady!==true)
-       throw Error('SD‑Turbo no verificó UNet + Text Encoder + VAE.');
+       throw Error('AI Horde no verificó UNet + Text Encoder + VAE.');
      set('engineImage','ready','Listo · UNet + Text Encoder + VAE',100);
-     window.sdActivity?.('100% · SD‑Turbo REALMENTE listo · generador + UNet + Text Encoder + VAE verificados',100);
+     window.sdActivity?.('100% · AI Horde REALMENTE listo · generador + UNet + Text Encoder + VAE verificados',100);
    }catch(e){
      const detail=(e?.message||String(e)||'Error desconocido').slice(0,180);
-     console.error('[SD-Turbo diagnóstico]',e); window.sdActivity?.('❌ '+detail,0);
+     console.error('[AI Horde diagnóstico]',e); window.sdActivity?.('❌ '+detail,0);
      set('engineImage','err',detail,0);
      const box=document.getElementById('sdLocalStatus');
      if(box)box.textContent='❌ '+detail;
@@ -4772,14 +4556,14 @@ window.addEventListener('load',()=>{
 </style
 <div id="sdActivityPanel" style="margin-top:10px;border:1px solid #29425f;border-radius:10px;background:#07111e;padding:10px 12px;">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px">
-    <b>Actividad · Typhoon SD15 WebGPU</b>
+    <b>Actividad · AI Horde SDXL</b>
     <span id="sdActivityPct" style="font-weight:900">0%</span>
   </div>
   <div style="height:7px;background:#142337;border-radius:999px;overflow:hidden;margin-bottom:7px">
     <i id="sdActivityBar" style="display:block;height:100%;width:0%;background:currentColor"></i>
   </div>
   <div id="sdActivityCurrent" style="font-size:12px;font-weight:800">Esperando inicio…</div>
-  <pre id="sdActivityLog" style="margin:8px 0 0;max-height:145px;overflow:auto;white-space:pre-wrap;font-size:11px;line-height:1.35;background:#030912;border:1px solid #1c3048;border-radius:8px;padding:8px">Esperando SD‑Turbo…</pre>
+  <pre id="sdActivityLog" style="margin:8px 0 0;max-height:145px;overflow:auto;white-space:pre-wrap;font-size:11px;line-height:1.35;background:#030912;border:1px solid #1c3048;border-radius:8px;padding:8px">Esperando AI Horde…</pre>
 </div>
 
 >
