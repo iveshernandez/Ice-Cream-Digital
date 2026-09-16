@@ -480,7 +480,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Pixazo · FLUX Schnell · 6X · TIMEOUT 60s · SIN BLUR <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Pixazo · FLUX Schnell · 6X · TIMEOUT 45s · SIN BLUR <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -4256,8 +4256,8 @@ window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
  Existing sdTurboLocal* names are retained ONLY for compatibility with the app.
 */
 const PIXAZO_URL='https://gateway.pixazo.ai/flux-1-schnell/v1/getData';
-const PIXAZO_TIMEOUT_MS=60000;
-window.PIXAZO_TIMEOUT_MS=60000;
+const PIXAZO_TIMEOUT_MS=45000;
+window.PIXAZO_TIMEOUT_MS=45000;
 const PIXAZO_MAX_RETRIES=2;
 window.PIXAZO_MAX_RETRIES=2;
 
@@ -4532,7 +4532,7 @@ window.addEventListener('load',()=>{
 
 
 <div id="pixazoKeyPanel" style="position:fixed;right:14px;bottom:14px;z-index:9999;background:#111827;border:1px solid #374151;border-radius:12px;padding:10px 12px;box-shadow:0 8px 24px #0008;font:12px system-ui;color:#e5e7eb;max-width:330px">
-  <div style="font-weight:700;margin-bottom:6px">Pixazo · FLUX Schnell · 6X · TIMEOUT 60s · SIN BLUR</div>
+  <div style="font-weight:700;margin-bottom:6px">Pixazo · FLUX Schnell · 6X · TIMEOUT 45s · SIN BLUR</div>
   <div style="display:flex;gap:6px">
     <input id="pixazoKeyInput" type="password" placeholder="API Key gratuita" style="min-width:180px;flex:1;background:#030712;color:#fff;border:1px solid #4b5563;border-radius:7px;padding:7px">
     <button id="pixazoKeySave" type="button" style="border:0;border-radius:7px;padding:7px 10px;cursor:pointer">Guardar</button>
