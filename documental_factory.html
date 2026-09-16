@@ -2574,7 +2574,7 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
   const images=new Array(arr.length);
   let nextIndex=0;
   let completed=0;
-  const concurrency=Math.min(PIXAZO_CONCURRENCY,arr.length);
+  const concurrency=Math.min(6,arr.length);
 
   st(`⚡ Pixazo 6X: generando ${arr.length} escenas con hasta ${concurrency} imágenes simultáneas…`);
 
@@ -4270,6 +4270,7 @@ async function fetchWithTimeout(url,options={},timeoutMs=PIXAZO_TIMEOUT_MS){
 }
 let pixazoReady=false;
 const PIXAZO_CONCURRENCY=6;
+window.PIXAZO_CONCURRENCY=6;
 
 function ui(msg){
   const el=document.getElementById('sdLocalStatus');
