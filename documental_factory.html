@@ -481,7 +481,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · SD‑Turbo WebGPU · Director Visual V2 <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · SD‑Turbo WebGPU · Director Visual V3 <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -2033,6 +2033,8 @@ window.addEventListener('load',()=>{
 </script>
 
 <script>
+const DOCUMENTAL_VISUAL_DIRECTOR_RULES = 'VISUAL DIRECTOR RULES:\nDesign each scene so the image visibly demonstrates the exact narration.\nShow the concrete action/effect, not merely the object/topic.\nKeep recurring main objects/persons visually consistent.\nVary consecutive camera framing: wide, medium, close-up, macro, low angle, top-down, side view, cause/effect, before/after when useful.\nDo not repeat essentially the same image in adjacent scenes.\nEach image prompt should specify SUBJECT + ACTION + ENVIRONMENT + VISIBLE RESULT/DETAIL + CAMERA/FRAMING.\nUse concrete visible nouns and verbs; avoid abstract symbolism.\nUse people only when their action helps explain the narration.\nDo not invent unrelated objects or locations just for variety.\nMaintain object type, material and main color; maintain person age/clothing/hair when recurring.\nPrompts should be concise, concrete and directly imageable.';
+
 const $=s=>document.querySelector(s);
 const voicePresetEl=$('#voicePreset');
 if(voicePresetEl){
@@ -2117,28 +2119,7 @@ async function ai(prompt){
         body:JSON.stringify({
           model:'openai/gpt-oss-20b',
           messages:[
-            {role:'system',content:'Eres director visual de documentales. 
-VISUAL DIRECTOR RULES — IMPORTANT:
-You are not merely choosing keywords. Design each scene so a viewer can understand the exact narrated idea without reading subtitles.
-
-For every scene:
-- Show the concrete ACTION or EFFECT described by that narration, not merely the topic/object.
-- Keep the principal recurring object/person visually consistent when the narration refers to the same one.
-- Vary the CAMERA and COMPOSITION across consecutive scenes: wide shot, medium shot, close-up, macro/detail, low angle, top-down, side view, over-the-shoulder, before/after or comparison when useful.
-- Do not repeat essentially the same image in adjacent scenes.
-- Prefer visually demonstrable cause/effect. Example: if narration says a broom leaves a dust line, SHOW the broom moving and a visible line of dust remaining behind it.
-- If narration discusses deformation/wear, SHOW the deformation clearly in close-up.
-- If narration explains particles/static/dirt, SHOW the relevant particles or residue at a useful scale.
-- Use people only when their action helps explain the narration. Avoid decorative people.
-- Do not invent unrelated objects or locations just for variety.
-- Maintain continuity of important attributes: object type, material, main color, person age/clothing/hair when recurring.
-- Each image prompt must describe: SUBJECT + ACTION + ENVIRONMENT + VISIBLE RESULT/DETAIL + CAMERA/FRAMING.
-- Use concrete nouns and visible verbs. Avoid abstract phrases such as "concept of", "symbolizing", "representing", "idea of".
-- Prompts should be concise and imageable, approximately 35–70 words.
-- The scene prompt itself must contain all visual continuity details needed by the image generator.
-- Variety must come from what is being explained and from camera language, not from changing the main object randomly.
-
-Devuelve SOLO JSON válido, sin markdown, sin explicación y sin texto fuera del JSON.'},
+            {role:'system',content:'Eres director visual de documentales. Devuelve SOLO JSON válido, sin markdown, sin explicación y sin texto fuera del JSON.'},
             {role:'user',content:prompt}
           ],
           reasoning_effort:'low',
@@ -2302,36 +2283,9 @@ function imageProviderLog(text){
 
 
 
-
-const DOCUMENTAL_SHOT_ROTATION = [
-  "wide establishing shot with the full action visible",
-  "medium side view focused on the action",
-  "close-up showing the visible result",
-  "low-angle detail at floor or object level",
-  "top-down explanatory view",
-  "macro detail of the relevant surface or mechanism",
-  "three-quarter view showing cause and effect",
-  "before-and-after style composition when appropriate"
-];
-window.documentalShotForScene = function(index){
-  const i = Math.max(0, Number(index)||0);
-  return DOCUMENTAL_SHOT_ROTATION[i % DOCUMENTAL_SHOT_ROTATION.length];
-};
-
 function enhanceLocalImagePrompt(prompt){
-  const raw = String(prompt || '').trim();
-  // Keep the planner's concrete scene first. Only add compact quality constraints.
-  const quality = [
-    "photorealistic documentary photography",
-    "physically coherent objects",
-    "realistic proportions",
-    "natural lighting",
-    "clear visual action",
-    "no text",
-    "no watermark",
-    "no logo"
-  ].join(", ");
-  return raw ? `${raw}, ${quality}` : quality;
+  const raw=String(prompt||'').trim();
+  return raw + ", photorealistic documentary photography, clear visible action, physically coherent objects, realistic proportions, natural lighting, no text, no watermark, no logo";
 }
 
 async function generateAIImage(prompt){
@@ -2403,7 +2357,7 @@ function render(s,c,i){
     <b>ESCENA ${i+1} · NARRACIÓN ↔ IMAGEN</b>
     <p class="narr">${e(s.narration)}</p>
     <p class="q">🤖 ${e(s.image_prompt)}</p>
-    <p class="provider">Fuente: SD-Turbo · WebGPU local · Director Visual V2</p>
+    <p class="provider">Fuente: SD-Turbo · WebGPU local</p>
     <p class="match ok">✨ IA · movimiento ${e(a.dataset.motion)}</p>
     <button class="sec change">↻ Regenerar imagen</button>
   </div>`;
@@ -2421,7 +2375,7 @@ function render(s,c,i){
       generatedSceneImages.push(c2);
       a.dataset.clipUrl=c2.url;
       a.querySelector('.media').innerHTML=`<img src="${e(c2.url)}" alt="Escena IA regenerada" style="width:100%;height:100%;object-fit:cover;display:block">`;
-      a.querySelector('.provider').textContent='Fuente: SD-Turbo · WebGPU local · Director Visual V2';
+      a.querySelector('.provider').textContent='Fuente: SD-Turbo · WebGPU local';
       const match=a.querySelector('.match');
       if(match){match.className='match ok';match.textContent='✨ Imagen IA regenerada';}
       if(old){
@@ -4306,8 +4260,6 @@ async function loadSdRuntime(notify){
   notify?.('9% · Runtime y tokenizer listos.');
 }
 const BASE='https://huggingface.co/schmuell/sd-turbo-ort-web/resolve/main';
-// DOCUMENTAL FACTORY QUALITY MODE: arquitectura ligera y estable para WebGPU.
-// Se conserva el modelo que ya compila en este equipo y se mejora la composición desde el prompt.
 const SIGMA=14.6146, VAE_SCALE=0.18215;
 let sessions=null, tokenizer=null, loading=null, busy=Promise.resolve();
 
