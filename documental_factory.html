@@ -462,6 +462,12 @@ window.addEventListener('DOMContentLoaded',()=>{
         <input id="vibesImages" type="file" accept="image/png,image/jpeg,image/webp" multiple>
         <div class="actions"><button type="button" class="pri" id="continueVibesRender">🎬 Continuar con Alexander + Render</button></div>
         <div id="vibesStatus" class="status mut">Sube el personaje y un TXT. La Factory preparará las escenas para Vibes.</div>
+        <div style="margin-top:8px;padding:8px;border:1px solid #314662;border-radius:8px;background:#07111e">
+          <b style="font-size:10px">🌉 IceCream Vibes Bridge</b>
+          <div id="vibesBridgeStatus" class="tiny" style="margin-top:4px">Buscando puente…</div>
+          <div class="actions"><button type="button" class="sec" id="testVibesBridge">Probar puente</button><button type="button" class="sec" id="openVibesBridge">Abrir Vibes</button></div>
+          <div class="tiny">Con el puente instalado: imagen del personaje → imagen por escena → animación → clips → Alexander V → render final.</div>
+        </div>
       </div>
       </div>
     </div>
@@ -2699,15 +2705,17 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
     ].filter(Boolean).join(' ');
   }
 
-  // VIBES MODE: with a master character, prepare prompts and wait for imported Vibes images.
+  // VIBES AUTO MODE: generate image + animate each scene through IceCream Vibes Bridge.
   if(dfCharacterDataURL && window.dfUseVibesCharacter!==false){
     window.dfUseVibesCharacter=true;
     window.dfVibesScenes=arr;
     window.dfVibesPromptText=arr.map((x,i)=>`SCENE ${i+1}\n${x.image_prompt}`).join('\n\n');
     for(let i=0;i<arr.length;i++) render(arr[i],null,i);
     const vs=document.getElementById('vibesStatus');
-    if(vs){vs.textContent=`✅ ${arr.length} prompts listos para Vibes. Genera 1 imagen por prompt y luego impórtalas aquí.`;vs.className='status ok';}
-    st(`✨ Vibes: ${arr.length} prompts listos. Esperando importar las imágenes generadas.`,'ok');
+    if(vs){vs.textContent=`🌉 ${arr.length} escenas listas. Vibes automático generará imagen + animación.`;vs.className='status ok';}
+    if(typeof window.dfRunVibesAutomatic!=='function') throw new Error('IceCream Vibes Auto no cargó.');
+    await window.dfRunVibesAutomatic(arr);
+    st(`✅ ${arr.length} escenas animadas con Vibes listas.`,'ok');
     return arr.length;
   }
 
@@ -4795,6 +4803,44 @@ window.addEventListener('load',()=>{
   });
 })();
 </script>
+
+<script id="icecream-vibes-auto-v3">
+(function(){
+  const $=s=>document.querySelector(s), sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  let bridgeReady=false, pending=new Map(), seq=0;
+  function bs(t,ok=false){const e=$('#vibesBridgeStatus');if(e){e.textContent=t;e.style.color=ok?'#7ef0a9':'#91a4bd';}}
+  function send(type,payload={}){const id='dfv_'+Date.now()+'_'+(++seq); return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(id);reject(new Error('El puente Vibes no respondió.'));},180000);pending.set(id,{resolve,reject,timer});window.postMessage({source:'ICECREAM_FACTORY',id,type,payload},'*');});}
+  window.addEventListener('message',ev=>{const m=ev.data;if(!m||m.source!=='ICECREAM_BRIDGE')return;if(m.type==='READY'){bridgeReady=true;bs('✅ Puente instalado y activo.',true);return;}const p=pending.get(m.id);if(!p)return;clearTimeout(p.timer);pending.delete(m.id);m.ok?p.resolve(m.data):p.reject(new Error(m.error||'Error en Vibes Bridge'));});
+  async function ping(){try{await send('PING');bridgeReady=true;bs('✅ Puente instalado y activo.',true);return true}catch(e){bridgeReady=false;bs('⚠️ Instala/activa IceCream Vibes Bridge y abre Vibes.ai.');return false}}
+  $('#testVibesBridge')?.addEventListener('click',ping);$('#openVibesBridge')?.addEventListener('click',()=>window.open('https://www.vibes.ai/','_blank'));
+  setTimeout(ping,1000);
+  function dataURLtoBlobURL(dataURL){const [h,b]=dataURL.split(',');const mime=(h.match(/data:([^;]+)/)||[])[1]||'image/png';const bin=atob(b),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return URL.createObjectURL(new Blob([u],{type:mime}));}
+  window.dfRunVibesAutomatic=async function(scenes){
+    if(!await ping()) throw new Error('IceCream Vibes Bridge no está conectado.');
+    if(!window.dfGetCharacterDataURL?.() && !window.dfCharacterDataURL) throw new Error('Falta la imagen maestra del personaje.');
+    const ref=window.dfGetCharacterDataURL?.()||window.dfCharacterDataURL;
+    const results=[]; window.dfVibesWaiting=false;
+    for(let i=0;i<scenes.length;i++){
+      const sc=scenes[i]; bs(`🎨 Escena ${i+1}/${scenes.length}: generando imagen…`);
+      const img=await send('GENERATE_IMAGE',{referenceDataURL:ref,prompt:sc.image_prompt,scene:i+1});
+      bs(`🎞️ Escena ${i+1}/${scenes.length}: animando…`);
+      const motion=`Animate this exact image naturally for a documentary shot. Preserve the exact same character, face, clothes, colors and environment. Subtle body movement, natural camera motion, cinematic depth, no morphing, no new objects, no text, no logo.`;
+      const vid=await send('ANIMATE_IMAGE',{imageDataURL:img.dataURL,prompt:motion,scene:i+1});
+      const url=dataURLtoBlobURL(vid.dataURL);results.push({url,blob:await (await fetch(url)).blob(),provider:'Vibes.ai animated clip',kind:'video'});
+      bs(`✅ Escena ${i+1}/${scenes.length} lista.`,true);
+    }
+    // Replace scene cards with videos in exact order
+    const cards=[...document.querySelectorAll('#scenes .scene')];
+    results.forEach((r,i)=>{const c=cards[i];if(!c)return;c.dataset.clipUrl=r.url;c.dataset.clipKind='video';const media=c.querySelector('.media');if(media)media.innerHTML=`<video src="${r.url}" muted loop playsinline controls style="width:100%;height:100%;object-fit:cover"></video>`;const p=c.querySelector('.provider');if(p)p.textContent='Fuente: Vibes.ai · clip animado';});
+    window.dfVibesAnimatedClips=results; window.generatedSceneImages=results;
+    bs(`✅ ${results.length} clips animados listos. Continuando con Alexander V…`,true);
+    return results;
+  };
+  // Expose character reference to bridge automation without changing original private variable semantics.
+  window.dfGetCharacterDataURL=()=>{try{return document.getElementById('characterPreview')?.src||''}catch(_){return ''}};
+})();
+</script>
+
 </body></html>
 
 <style>
