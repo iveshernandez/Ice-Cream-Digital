@@ -450,19 +450,18 @@ window.addEventListener('DOMContentLoaded',()=>{
         <div id="characterStatus" class="status mut">Esperando imagen…</div>
         <textarea id="characterIdentity" rows="5" placeholder="La descripción fija del personaje aparecerá aquí" style="min-height:92px!important"></textarea>
         <div class="actions"><button type="button" class="sec" id="reanalyzeCharacter">🔎 Analizar personaje</button><button type="button" class="danger" id="clearCharacter">Quitar</button></div>
-      <div style="margin-top:9px;padding:9px;border:1px solid #314662;border-radius:9px;background:#091523">
-        <b style="font-size:10px">🤗 Hugging Face · IP-Adapter</b>
-        <div class="tiny" style="margin-top:4px">La imagen subida se enviará físicamente al Space como referencia en CADA escena.</div>
-        <label>Space ID</label>
-        <input id="hfSpaceId" value="TU_USUARIO/documental-character-ipadapter" placeholder="usuario/documental-character-ipadapter">
-        <label>HF Token (opcional si el Space es público)</label>
-        <input id="hfToken" type="password" autocomplete="off" placeholder="hf_...">
-        <div class="row">
-          <div><label>Fidelidad personaje</label><input id="hfIpScale" type="number" min="0.1" max="1.5" step="0.05" value="0.85"></div>
-          <div><label>Pasos</label><input id="hfSteps" type="number" min="10" max="50" step="1" value="28"></div>
+      <div id="vibesPanel" style="margin-top:9px;padding:9px;border:1px solid #314662;border-radius:9px;background:#091523">
+        <b style="font-size:10px">✨ Vibes.ai · personaje de referencia</b>
+        <div class="tiny" style="margin-top:4px">Modo sin extensión: Documental Factory prepara todos los prompts para Vibes y luego importa las imágenes generadas en el mismo orden. El navegador no puede controlar directamente otra web sin una API oficial o un puente.</div>
+        <div class="actions">
+          <button type="button" class="sec" id="openVibes">Abrir Vibes.ai</button>
+          <button type="button" class="sec" id="copyVibesPrompts">Copiar prompts</button>
+          <button type="button" class="sec" id="downloadVibesPrompts">Descargar TXT de prompts</button>
         </div>
-        <div class="actions"><button type="button" class="sec" id="saveHFConfig">Guardar HF</button><button type="button" class="sec" id="testHFConfig">Probar conexión</button></div>
-        <div id="hfStatus" class="status mut">Configura tu Space de Hugging Face.</div>
+        <label>Importar imágenes generadas por Vibes</label>
+        <input id="vibesImages" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+        <div class="actions"><button type="button" class="pri" id="continueVibesRender">🎬 Continuar con Alexander + Render</button></div>
+        <div id="vibesStatus" class="status mut">Sube el personaje y un TXT. La Factory preparará las escenas para Vibes.</div>
       </div>
       </div>
     </div>
@@ -508,7 +507,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · HF IP-Adapter con personaje / Pixazo sin personaje <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Vibes con personaje / Pixazo sin personaje <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -2351,11 +2350,8 @@ async function dfGenerateHFReferenceImage(prompt){
 }
 
 async function generateAIImage(prompt){
-  if(dfCharacterDataURL){
-    imageProviderLog('🤗 Hugging Face IP-Adapter: usando imagen maestra real…');
-    const out=await dfGenerateHFReferenceImage(prompt);
-    imageProviderLog('✅ Imagen consistente creada con Hugging Face IP-Adapter.');
-    return out;
+  if(dfCharacterDataURL && window.dfUseVibesCharacter){
+    throw new Error('VIBES_IMPORT_REQUIRED');
   }
   const waitStart=Date.now();
   while(typeof window.sdTurboLocalGenerate!=='function'){
@@ -2501,12 +2497,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('reanalyzeCharacter')?.addEventListener('click',()=>dfAnalyzeCharacter().catch(e=>dfCharacterStatus('❌ '+(e?.message||e),'err')));
   document.getElementById('clearCharacter')?.addEventListener('click',()=>{dfCharacterDataURL='';dfCharacterIdentity='';if(input)input.value='';if(img)img.removeAttribute('src');if(box)box.value='';if(wrap)wrap.style.display='none';});
   box?.addEventListener('input',()=>{dfCharacterIdentity=box.value.trim();});
-  const sid=document.getElementById('hfSpaceId'),tok=document.getElementById('hfToken');
-  if(sid && localStorage.getItem('df_hf_space'))sid.value=localStorage.getItem('df_hf_space');
-  if(tok && localStorage.getItem('df_hf_token'))tok.value=localStorage.getItem('df_hf_token');
-  document.getElementById('saveHFConfig')?.addEventListener('click',()=>{
-    const c=dfHFConfig();localStorage.setItem('df_hf_space',c.space);localStorage.setItem('df_hf_token',c.token);dfHFStatus('✅ Configuración HF guardada.','ok');
-  });
   document.getElementById('testHFConfig')?.addEventListener('click',async()=>{
     try{const c=await dfHFClient();const api=await c.view_api();dfHFStatus(api?'✅ Space conectado y API detectada.':'✅ Space conectado.','ok');}
     catch(e){dfHFStatus('❌ '+(e?.message||e),'err');}
@@ -2707,6 +2697,18 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
       dfCharacterIdentity ? `MASTER CHARACTER LOCK: ${dfCharacterIdentity}. The protagonist must be the SAME exact character in every scene: identical face/head, hair/fur, eyes, outfit, accessories, colors, body proportions and art style. Change only pose, expression, action, camera and environment as required by the narration.` : (identity ? `Maintain this visual identity consistently: ${identity}.` : ''),
       dfCharacterIdentity ? 'Preserve the reference character art style exactly, vertical 9:16 composition, no text, no letters, no logo, no watermark.' : 'Photorealistic cinematic documentary still, realistic anatomy, natural lighting, high detail, vertical 9:16 composition, no text, no letters, no logo, no watermark.'
     ].filter(Boolean).join(' ');
+  }
+
+  // VIBES MODE: with a master character, prepare prompts and wait for imported Vibes images.
+  if(dfCharacterDataURL && window.dfUseVibesCharacter!==false){
+    window.dfUseVibesCharacter=true;
+    window.dfVibesScenes=arr;
+    window.dfVibesPromptText=arr.map((x,i)=>`SCENE ${i+1}\n${x.image_prompt}`).join('\n\n');
+    for(let i=0;i<arr.length;i++) render(arr[i],null,i);
+    const vs=document.getElementById('vibesStatus');
+    if(vs){vs.textContent=`✅ ${arr.length} prompts listos para Vibes. Genera 1 imagen por prompt y luego impórtalas aquí.`;vs.className='status ok';}
+    st(`✨ Vibes: ${arr.length} prompts listos. Esperando importar las imágenes generadas.`,'ok');
+    return arr.length;
   }
 
   const images=new Array(arr.length);
@@ -3028,7 +3030,7 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     abar(10);
     if(typeof window.documentalAnalyzeScenes!=='function')
       throw Error('Motor de escenas Groq no quedó registrado.');
-    if(typeof window.sdTurboLocalGenerate!=='function' || window.__sdTurboVerifiedReady!==true)
+    if(!window.dfUseVibesCharacter && (typeof window.sdTurboLocalGenerate!=='function' || window.__sdTurboVerifiedReady!==true))
       throw Error('Pixazo FLUX Schnell todavía no está listo para crear imágenes.');
     await window.documentalAnalyzeScenes();
     const scenes=[...document.querySelectorAll('#scenes .scene')];
@@ -3038,6 +3040,7 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
         const v=el.querySelector('video');
         if(v?.src)el.dataset.clipUrl=v.src;
       }
+      if(!el.dataset.clipUrl && window.dfUseVibesCharacter)throw Error('Vibes: prompts listos. Genera las imágenes, impórtalas en el panel del personaje y pulsa “Continuar con Alexander + Render”.');
       if(!el.dataset.clipUrl)throw Error('Una escena terminó sin clip.');
     }
     step('stepScenes','done',`${scenes.length} escenas listas`);
@@ -4714,6 +4717,53 @@ window.addEventListener('load',()=>{
 })();
 </script>
 
+
+<script id="vibes-integrated-workflow">
+(function(){
+  window.dfUseVibesCharacter=true;
+  const $=s=>document.querySelector(s);
+  function status(t,ok=false){const e=$('#vibesStatus');if(e){e.textContent=t;e.className='status '+(ok?'ok':'mut');}}
+  function prompts(){return String(window.dfVibesPromptText||'').trim();}
+  $('#openVibes')?.addEventListener('click',()=>window.open('https://www.vibes.ai/','_blank','noopener'));
+  $('#copyVibesPrompts')?.addEventListener('click',async()=>{
+    const t=prompts(); if(!t)return status('Primero genera las escenas desde el TXT.');
+    try{await navigator.clipboard.writeText(t);status('✅ Prompts copiados. Pégalos en Vibes.',true);}catch(e){status('No pude copiar automáticamente. Usa Descargar TXT.');}
+  });
+  $('#downloadVibesPrompts')?.addEventListener('click',()=>{
+    const t=prompts(); if(!t)return status('Primero genera las escenas desde el TXT.');
+    const blob=new Blob([t],{type:'text/plain;charset=utf-8'});const u=URL.createObjectURL(blob);const a=document.createElement('a');
+    a.href=u;a.download=((document.querySelector('#videoTitle')?.value||'documental')+' - prompts Vibes.txt').replace(/[\/:*?"<>|]/g,'');a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+    status('✅ TXT de prompts descargado.',true);
+  });
+  $('#vibesImages')?.addEventListener('change',async e=>{
+    const files=[...(e.target.files||[])].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
+    const scenes=[...document.querySelectorAll('#scenes .scene')];
+    if(!scenes.length)return status('Primero genera las escenas/prompts.');
+    if(files.length!==scenes.length)return status(`Necesito ${scenes.length} imágenes y seleccionaste ${files.length}.`);
+    for(let i=0;i<scenes.length;i++){
+      const url=URL.createObjectURL(files[i]); const el=scenes[i]; el.dataset.clipUrl=url;
+      const media=el.querySelector('.media'); if(media)media.innerHTML=`<img src="${url}" alt="Vibes ${i+1}" style="width:100%;height:100%;object-fit:cover;display:block">`;
+      const p=el.querySelector('.provider'); if(p)p.textContent='Fuente: Vibes.ai · personaje de referencia';
+      const m=el.querySelector('.match'); if(m){m.className='match ok';m.textContent='✨ Imagen Vibes importada';}
+    }
+    status(`✅ ${files.length} imágenes Vibes importadas y asignadas en orden.`,true);
+  });
+  $('#continueVibesRender')?.addEventListener('click',async()=>{
+    try{
+      const scenes=[...document.querySelectorAll('#scenes .scene')];
+      if(!scenes.length||scenes.some(x=>!x.dataset.clipUrl))throw new Error('Primero importa todas las imágenes de Vibes.');
+      status('🎙️ Generando Alexander V…');
+      if(typeof window.generateDocumentalVoice!=='function')throw new Error('Alexander V no está disponible.');
+      await window.generateDocumentalVoice();
+      status('🎬 Renderizando video final…');
+      if(typeof window.createDocumentalFinalVideo!=='function')throw new Error('FFmpeg no está disponible.');
+      const ok=await window.createDocumentalFinalVideo();
+      if(ok!==true)throw new Error('El render no confirmó que terminó.');
+      status('✅ Video terminado y descarga iniciada.',true);
+    }catch(err){status('❌ '+(err?.message||err));}
+  });
+})();
+</script>
 </body></html>
 
 <style>
