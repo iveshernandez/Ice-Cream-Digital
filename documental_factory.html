@@ -440,6 +440,20 @@ window.addEventListener('DOMContentLoaded',()=>{
   <label>Guion detectado</label>
   <textarea id="script" rows="10" placeholder="Aquí aparecerá el contenido del .txt después de la primera línea"></textarea>
 
+  <div class="card" style="margin-top:10px;background:#0a1424">
+    <h2 style="margin:0 0 6px">🧍 Personaje consistente</h2>
+    <p class="tiny">Sube UNA imagen maestra. Groq Vision analizará sus rasgos, ropa, colores y estilo; esa identidad se repetirá automáticamente en todos los prompts de escena.</p>
+    <input id="characterRef" type="file" accept="image/png,image/jpeg,image/webp">
+    <div id="characterPreviewWrap" style="display:none;margin-top:8px;grid-template-columns:90px 1fr;gap:10px;align-items:start">
+      <img id="characterPreview" style="width:90px;aspect-ratio:9/16;object-fit:cover;border-radius:9px;border:1px solid var(--l);background:#000">
+      <div>
+        <div id="characterStatus" class="status mut">Esperando imagen…</div>
+        <textarea id="characterIdentity" rows="5" placeholder="La descripción fija del personaje aparecerá aquí" style="min-height:92px!important"></textarea>
+        <div class="actions"><button type="button" class="sec" id="reanalyzeCharacter">🔎 Analizar personaje</button><button type="button" class="danger" id="clearCharacter">Quitar</button></div>
+      </div>
+    </div>
+  </div>
+
   <div class="row">
     <div>
       <label>Duración del documental</label>
@@ -2378,6 +2392,54 @@ function estimateNarrationSeconds(text){
   return Math.max(20,(words/152)*60);
 }
 
+// ===== PERSONAJE CONSISTENTE DESDE IMAGEN DE REFERENCIA =====
+let dfCharacterDataURL='';
+let dfCharacterIdentity='';
+window.dfGetCharacterIdentity=()=>dfCharacterIdentity;
+
+function dfCharacterStatus(t,c='mut'){
+  const el=document.getElementById('characterStatus');
+  if(el){el.textContent=t;el.className='status '+c;}
+}
+
+function dfReadAsDataURL(file){
+  return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result||''));r.onerror=()=>reject(r.error||new Error('No se pudo leer la imagen'));r.readAsDataURL(file);});
+}
+
+async function dfAnalyzeCharacter(){
+  if(!dfCharacterDataURL)throw new Error('Primero sube una imagen del personaje.');
+  const key=(document.querySelector('#groq')?.value||localStorage.getItem('df_groq')||'').trim();
+  if(!key)throw new Error('Falta Groq API para analizar el personaje.');
+  dfCharacterStatus('🔎 Analizando personaje con Groq Vision…');
+  const content=[
+    {type:'text',text:`Analiza SOLO el personaje principal visible en esta imagen y crea una ficha visual reutilizable para mantenerlo consistente en muchas imágenes generadas. Describe en INGLÉS, en un solo párrafo muy preciso: tipo de personaje/especie, edad visual aproximada si aplica, forma de cara/cabeza, piel/pelaje, ojos, cabello, rasgos distintivos, proporciones corporales, ropa exacta, calzado, accesorios, colores dominantes y estilo gráfico/render. No describas el fondo. No inventes nombre. Termina con: same exact character design, same face, same outfit, same colors, same proportions, same art style.`},
+    {type:'image_url',image_url:{url:dfCharacterDataURL}}
+  ];
+  const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'qwen/qwen3.6-27b',messages:[{role:'user',content}],reasoning_effort:'none',temperature:0.05,max_tokens:500})});
+  const raw=await res.text(); let data={}; try{data=JSON.parse(raw)}catch(_){}
+  if(!res.ok)throw new Error(data?.error?.message||`Groq Vision HTTP ${res.status}`);
+  const desc=String(data?.choices?.[0]?.message?.content||'').trim();
+  if(!desc)throw new Error('Groq Vision no devolvió la descripción del personaje.');
+  dfCharacterIdentity=desc;
+  const box=document.getElementById('characterIdentity'); if(box)box.value=desc;
+  dfCharacterStatus('✅ Personaje analizado. Se fijará en todas las escenas.','ok');
+  return desc;
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const input=document.getElementById('characterRef');
+  const wrap=document.getElementById('characterPreviewWrap');
+  const img=document.getElementById('characterPreview');
+  const box=document.getElementById('characterIdentity');
+  input?.addEventListener('change',async()=>{
+    const f=input.files?.[0]; if(!f)return;
+    try{dfCharacterDataURL=await dfReadAsDataURL(f);if(img)img.src=dfCharacterDataURL;if(wrap)wrap.style.display='grid';dfCharacterIdentity='';if(box)box.value='';await dfAnalyzeCharacter();}catch(e){dfCharacterStatus('❌ '+(e?.message||e),'err');}
+  });
+  document.getElementById('reanalyzeCharacter')?.addEventListener('click',()=>dfAnalyzeCharacter().catch(e=>dfCharacterStatus('❌ '+(e?.message||e),'err')));
+  document.getElementById('clearCharacter')?.addEventListener('click',()=>{dfCharacterDataURL='';dfCharacterIdentity='';if(input)input.value='';if(img)img.removeAttribute('src');if(box)box.value='';if(wrap)wrap.style.display='none';});
+  box?.addEventListener('input',()=>{dfCharacterIdentity=box.value.trim();});
+});
+
 function automaticSceneCount(script){
   const selected=String(document.querySelector('#duration')?.value||'auto');
   const seconds=selected==='auto' ? estimateNarrationSeconds(script) : Number(selected);
@@ -2432,6 +2494,9 @@ ${title}
 
 GUION:
 ${script}
+
+PERSONAJE MAESTRO (si existe, DEBE aparecer con esta identidad exacta en todas las escenas donde haya protagonista):
+${dfCharacterIdentity || 'No se cargó personaje maestro; usa continuidad visual normal.'}
 
 Devuelve:
 {
@@ -2489,7 +2554,7 @@ REGLAS OBLIGATORIAS:
 - No sustituyas el sujeto por otro animal, objeto, persona o paisaje.
 - Mantén la misma identidad visual del protagonista en todas las escenas.
 - Repite en cada prompt los rasgos importantes del protagonista cuando sea necesario para continuidad.
-- Estilo: photorealistic cinematic documentary photography, realistic anatomy, natural lighting, high detail.
+- Si hay PERSONAJE MAESTRO, conserva exactamente su estilo gráfico/render de la referencia; NO lo conviertas a fotografía si es cartoon/3D/ilustración. Si no hay personaje maestro, usa estilo documental cinematográfico realista.
 - Composición vertical 9:16 pensada para video móvil.
 - Sin texto, sin letras, sin logos, sin watermark.
 - Si la narración describe una acción, el prompt debe mostrar esa acción.
@@ -2566,8 +2631,8 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
     const scene=arr[i];
     scene.image_prompt=[
       scene.image_prompt,
-      identity ? `Maintain this visual identity consistently: ${identity}.` : '',
-      'Photorealistic cinematic documentary still, realistic anatomy, natural lighting, high detail, vertical 9:16 composition, no text, no letters, no logo, no watermark.'
+      dfCharacterIdentity ? `MASTER CHARACTER LOCK: ${dfCharacterIdentity}. The protagonist must be the SAME exact character in every scene: identical face/head, hair/fur, eyes, outfit, accessories, colors, body proportions and art style. Change only pose, expression, action, camera and environment as required by the narration.` : (identity ? `Maintain this visual identity consistently: ${identity}.` : ''),
+      dfCharacterIdentity ? 'Preserve the reference character art style exactly, vertical 9:16 composition, no text, no letters, no logo, no watermark.' : 'Photorealistic cinematic documentary still, realistic anatomy, natural lighting, high detail, vertical 9:16 composition, no text, no letters, no logo, no watermark.'
     ].filter(Boolean).join(' ');
   }
 
@@ -4336,16 +4401,17 @@ async function init(notify=ui){
 
 function documentaryPrompt(prompt){
   let p=String(prompt||'').trim();
-  const suffix=[
-    'photorealistic documentary photograph',
-    'realistic natural textures',
-    'physically accurate objects and anatomy',
+  const hasCharacter=!!String(window.dfGetCharacterIdentity?.()||'').trim();
+  const suffix=hasCharacter ? [
+    'same exact recurring protagonist character design',
+    'identical face and outfit across scenes',
+    'preserve the master character art style',
     'clear subject performing the described action',
-    'natural cinematic lighting',
-    'real camera photography',
     'high detail',
-    'vertical composition for 9:16 documentary video',
-    'no text, no watermark, no logo, no illustration, no cartoon, no CGI'
+    'vertical composition for 9:16 video',
+    'no text, no watermark, no logo'
+  ].join(', ') : [
+    'photorealistic documentary photograph','realistic natural textures','physically accurate objects and anatomy','clear subject performing the described action','natural cinematic lighting','real camera photography','high detail','vertical composition for 9:16 documentary video','no text, no watermark, no logo, no illustration, no cartoon, no CGI'
   ].join(', ');
   p=(p+', '+suffix).slice(0,2048);
   return p;
