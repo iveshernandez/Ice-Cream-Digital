@@ -464,7 +464,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         <div id="vibesStatus" class="status mut">Sube el personaje y un TXT. La Factory preparará las escenas para Vibes.</div>
         <div style="margin-top:8px;padding:8px;border:1px solid #314662;border-radius:8px;background:#07111e">
           <b style="font-size:10px">🌉 IceCream Vibes Bridge</b>
-          <div id="vibesBridgeStatus" class="tiny" style="margin-top:4px">Buscando puente…</div>
+          <div id="vibesBridgeStatus" class="tiny" style="margin-top:4px">Buscando IceCream Vibes Bridge v0.2…</div>
           <div class="actions"><button type="button" class="sec" id="testVibesBridge">Probar puente</button><button type="button" class="sec" id="openVibesBridge">Abrir Vibes</button></div>
           <div class="tiny">Con el puente instalado: imagen del personaje → imagen por escena → animación → clips → Alexander V → render final.</div>
         </div>
@@ -4804,16 +4804,16 @@ window.addEventListener('load',()=>{
 })();
 </script>
 
-<script id="icecream-vibes-auto-v3">
+<script id="icecream-vibes-auto-v3-1">
 (function(){
   const $=s=>document.querySelector(s), sleep=ms=>new Promise(r=>setTimeout(r,ms));
   let bridgeReady=false, pending=new Map(), seq=0;
   function bs(t,ok=false){const e=$('#vibesBridgeStatus');if(e){e.textContent=t;e.style.color=ok?'#7ef0a9':'#91a4bd';}}
-  function send(type,payload={}){const id='dfv_'+Date.now()+'_'+(++seq); return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(id);reject(new Error('El puente Vibes no respondió.'));},180000);pending.set(id,{resolve,reject,timer});window.postMessage({source:'ICECREAM_FACTORY',id,type,payload},'*');});}
-  window.addEventListener('message',ev=>{const m=ev.data;if(!m||m.source!=='ICECREAM_BRIDGE')return;if(m.type==='READY'){bridgeReady=true;bs('✅ Puente instalado y activo.',true);return;}const p=pending.get(m.id);if(!p)return;clearTimeout(p.timer);pending.delete(m.id);m.ok?p.resolve(m.data):p.reject(new Error(m.error||'Error en Vibes Bridge'));});
-  async function ping(){try{await send('PING');bridgeReady=true;bs('✅ Puente instalado y activo.',true);return true}catch(e){bridgeReady=false;bs('⚠️ Instala/activa IceCream Vibes Bridge y abre Vibes.ai.');return false}}
+  function send(type,payload={}){const id='dfv_'+Date.now()+'_'+(++seq); const timeout=type==='PING'?5000:420000; return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(id);reject(new Error(type==='PING'?'No detecté IceCream Vibes Bridge v0.2 en esta página.':'El puente Vibes no respondió.'));},timeout);pending.set(id,{resolve,reject,timer});window.postMessage({source:'ICECREAM_FACTORY',id,type,payload},'*');});}
+  window.addEventListener('message',ev=>{const m=ev.data;if(!m||m.source!=='ICECREAM_BRIDGE')return;if(m.type==='READY'){bridgeReady=true;bs('🟢 IceCream Vibes Bridge conectado'+(m.version?' · v'+m.version:''),true);return;}const p=pending.get(m.id);if(!p)return;clearTimeout(p.timer);pending.delete(m.id);m.ok?p.resolve(m.data):p.reject(new Error(m.error||'Error en Vibes Bridge'));});
+  async function ping(){try{const r=await send('PING');bridgeReady=true;bs('🟢 IceCream Vibes Bridge conectado'+(r?.version?' · v'+r.version:''),true);return true}catch(e){bridgeReady=false;const local=location.protocol==='file:'?' Si abriste la Factory como archivo local, activa “Permitir acceso a URLs de archivo” en Detalles de la extensión.':'';bs('🔴 Puente no detectado.'+local);return false}}
   $('#testVibesBridge')?.addEventListener('click',ping);$('#openVibesBridge')?.addEventListener('click',()=>window.open('https://www.vibes.ai/','_blank'));
-  setTimeout(ping,1000);
+  setTimeout(ping,500);setTimeout(ping,2500);
   function dataURLtoBlobURL(dataURL){const [h,b]=dataURL.split(',');const mime=(h.match(/data:([^;]+)/)||[])[1]||'image/png';const bin=atob(b),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return URL.createObjectURL(new Blob([u],{type:mime}));}
   window.dfRunVibesAutomatic=async function(scenes){
     if(!await ping()) throw new Error('IceCream Vibes Bridge no está conectado.');
