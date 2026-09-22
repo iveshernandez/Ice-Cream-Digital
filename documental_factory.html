@@ -450,6 +450,20 @@ window.addEventListener('DOMContentLoaded',()=>{
         <div id="characterStatus" class="status mut">Esperando imagen…</div>
         <textarea id="characterIdentity" rows="5" placeholder="La descripción fija del personaje aparecerá aquí" style="min-height:92px!important"></textarea>
         <div class="actions"><button type="button" class="sec" id="reanalyzeCharacter">🔎 Analizar personaje</button><button type="button" class="danger" id="clearCharacter">Quitar</button></div>
+      <div style="margin-top:9px;padding:9px;border:1px solid #314662;border-radius:9px;background:#091523">
+        <b style="font-size:10px">🤗 Hugging Face · IP-Adapter</b>
+        <div class="tiny" style="margin-top:4px">La imagen subida se enviará físicamente al Space como referencia en CADA escena.</div>
+        <label>Space ID</label>
+        <input id="hfSpaceId" value="TU_USUARIO/documental-character-ipadapter" placeholder="usuario/documental-character-ipadapter">
+        <label>HF Token (opcional si el Space es público)</label>
+        <input id="hfToken" type="password" autocomplete="off" placeholder="hf_...">
+        <div class="row">
+          <div><label>Fidelidad personaje</label><input id="hfIpScale" type="number" min="0.1" max="1.5" step="0.05" value="0.85"></div>
+          <div><label>Pasos</label><input id="hfSteps" type="number" min="10" max="50" step="1" value="28"></div>
+        </div>
+        <div class="actions"><button type="button" class="sec" id="saveHFConfig">Guardar HF</button><button type="button" class="sec" id="testHFConfig">Probar conexión</button></div>
+        <div id="hfStatus" class="status mut">Configura tu Space de Hugging Face.</div>
+      </div>
       </div>
     </div>
   </div>
@@ -494,7 +508,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Pixazo · FLUX Schnell · 6X · TIMEOUT 60s + RECUPERACIÓN · SIN BLUR <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · HF IP-Adapter con personaje / Pixazo sin personaje <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -2293,7 +2307,56 @@ function imageProviderLog(text){
 
 
 
+let dfGradioClientModule=null;
+async function dfLoadGradioClient(){
+  if(dfGradioClientModule)return dfGradioClientModule;
+  dfGradioClientModule=await import('https://cdn.jsdelivr.net/npm/@gradio/client/+esm');
+  return dfGradioClientModule;
+}
+function dfHFStatus(t,c='mut'){const el=document.getElementById('hfStatus');if(el){el.textContent=t;el.className='status '+c;}}
+function dfHFConfig(){
+  return {
+    space:(document.getElementById('hfSpaceId')?.value||localStorage.getItem('df_hf_space')||'').trim(),
+    token:(document.getElementById('hfToken')?.value||localStorage.getItem('df_hf_token')||'').trim(),
+    scale:Number(document.getElementById('hfIpScale')?.value||0.85),
+    steps:Number(document.getElementById('hfSteps')?.value||28)
+  };
+}
+async function dfHFClient(){
+  const cfg=dfHFConfig();
+  if(!cfg.space || cfg.space.startsWith('TU_USUARIO/'))throw new Error('Escribe el Space ID que crearás en Hugging Face.');
+  const {Client}=await dfLoadGradioClient();
+  dfHFStatus('Conectando con '+cfg.space+'…');
+  return await Client.connect(cfg.space,cfg.token?{hf_token:cfg.token}:undefined);
+}
+async function dfGenerateHFReferenceImage(prompt){
+  if(!dfCharacterDataURL)throw new Error('No hay imagen maestra del personaje.');
+  const cfg=dfHFConfig();
+  const client=await dfHFClient();
+  const refBlob=await (await fetch(dfCharacterDataURL)).blob();
+  const result=await client.predict('/generate',[
+    refBlob, String(prompt||''),
+    'different character, changed clothes, changed colors, changed face, duplicate character, extra limbs, malformed hands, text, logo, watermark, low quality, blurry',
+    768, 1344, cfg.scale, 7.0, cfg.steps
+  ]);
+  const data=result?.data?.[0];
+  let url='';
+  if(typeof data==='string')url=data;
+  else url=data?.url||data?.path||'';
+  if(!url)throw new Error('Hugging Face no devolvió una imagen.');
+  const resp=await fetch(url);
+  if(!resp.ok)throw new Error('No pude descargar la imagen generada desde Hugging Face.');
+  const blob=await resp.blob();
+  return {blob,url:URL.createObjectURL(blob),provider:'Hugging Face IP-Adapter'};
+}
+
 async function generateAIImage(prompt){
+  if(dfCharacterDataURL){
+    imageProviderLog('🤗 Hugging Face IP-Adapter: usando imagen maestra real…');
+    const out=await dfGenerateHFReferenceImage(prompt);
+    imageProviderLog('✅ Imagen consistente creada con Hugging Face IP-Adapter.');
+    return out;
+  }
   const waitStart=Date.now();
   while(typeof window.sdTurboLocalGenerate!=='function'){
     if(Date.now()-waitStart>15000)throw new Error('Pixazo FLUX Schnell no terminó de iniciar.');
@@ -2415,7 +2478,7 @@ async function dfAnalyzeCharacter(){
     {type:'text',text:`Analiza SOLO el personaje principal visible en esta imagen y crea una ficha visual reutilizable para mantenerlo consistente en muchas imágenes generadas. Describe en INGLÉS, en un solo párrafo muy preciso: tipo de personaje/especie, edad visual aproximada si aplica, forma de cara/cabeza, piel/pelaje, ojos, cabello, rasgos distintivos, proporciones corporales, ropa exacta, calzado, accesorios, colores dominantes y estilo gráfico/render. No describas el fondo. No inventes nombre. Termina con: same exact character design, same face, same outfit, same colors, same proportions, same art style.`},
     {type:'image_url',image_url:{url:dfCharacterDataURL}}
   ];
-  const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'qwen/qwen3.6-27b',messages:[{role:'user',content}],reasoning_effort:'none',temperature:0.05,max_tokens:500})});
+  const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'qwen/qwen3.8-27b',messages:[{role:'user',content}],reasoning_effort:'none',temperature:0.05,max_tokens:500})});
   const raw=await res.text(); let data={}; try{data=JSON.parse(raw)}catch(_){}
   if(!res.ok)throw new Error(data?.error?.message||`Groq Vision HTTP ${res.status}`);
   const desc=String(data?.choices?.[0]?.message?.content||'').trim();
@@ -2438,6 +2501,16 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('reanalyzeCharacter')?.addEventListener('click',()=>dfAnalyzeCharacter().catch(e=>dfCharacterStatus('❌ '+(e?.message||e),'err')));
   document.getElementById('clearCharacter')?.addEventListener('click',()=>{dfCharacterDataURL='';dfCharacterIdentity='';if(input)input.value='';if(img)img.removeAttribute('src');if(box)box.value='';if(wrap)wrap.style.display='none';});
   box?.addEventListener('input',()=>{dfCharacterIdentity=box.value.trim();});
+  const sid=document.getElementById('hfSpaceId'),tok=document.getElementById('hfToken');
+  if(sid && localStorage.getItem('df_hf_space'))sid.value=localStorage.getItem('df_hf_space');
+  if(tok && localStorage.getItem('df_hf_token'))tok.value=localStorage.getItem('df_hf_token');
+  document.getElementById('saveHFConfig')?.addEventListener('click',()=>{
+    const c=dfHFConfig();localStorage.setItem('df_hf_space',c.space);localStorage.setItem('df_hf_token',c.token);dfHFStatus('✅ Configuración HF guardada.','ok');
+  });
+  document.getElementById('testHFConfig')?.addEventListener('click',async()=>{
+    try{const c=await dfHFClient();const api=await c.view_api();dfHFStatus(api?'✅ Space conectado y API detectada.':'✅ Space conectado.','ok');}
+    catch(e){dfHFStatus('❌ '+(e?.message||e),'err');}
+  });
 });
 
 function automaticSceneCount(script){
@@ -3454,7 +3527,7 @@ REGLAS:
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
         body:JSON.stringify({
-          model:'qwen/qwen3.6-27b',
+          model:'qwen/qwen3.8-27b',
           messages:[{role:'user',content}],
           reasoning_effort:'none',
           temperature:0.1,
