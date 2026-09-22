@@ -2980,6 +2980,12 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
         try{
           await parseTxt(file,{autoStart:false});
           const ok=await runCurrentDocument();
+          if(ok?.pausedForVibes){
+            results.push({file:file.name,ok:null,paused:true});
+            qstatus(`⏸️ ${file.name}: prompts listos. Esperando imágenes de Vibes.`,'ok');
+            ast(`⏸️ Cola pausada correctamente en Vibes. Importa las imágenes y pulsa “Continuar con Alexander + Render”.`,'ok');
+            break;
+          }
           if(!ok)throw Error('El proceso no terminó correctamente.');
           results.push({file:file.name,ok:true});
           qstatus(`✅ ${i+1} de ${files.length} terminado. Preparando el siguiente…`,'ok');
@@ -2994,10 +3000,16 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
         }
       }
 
-      const good=results.filter(x=>x.ok).length;
-      const bad=results.length-good;
-      qstatus(`✅ Cola terminada: ${good} video${good===1?'':'s'} creado${good===1?'':'s'}${bad?` · ${bad} con error`:''}.`,bad?'err':'ok');
-      ast(`Cola finalizada: ${good}/${results.length} videos descargados${bad?` · ${bad} fallaron`:''}.`,bad?'err':'ok');
+      const good=results.filter(x=>x.ok===true).length;
+      const paused=results.filter(x=>x.paused).length;
+      const bad=results.filter(x=>x.ok===false).length;
+      if(paused){
+        qstatus(`⏸️ Cola en espera de Vibes: ${paused} documental pendiente de imágenes.`, 'ok');
+        ast(`Vibes listo: ${good} descargados · ${paused} esperando imágenes · ${bad} fallaron.`,bad?'err':'ok');
+      }else{
+        qstatus(`✅ Cola terminada: ${good} video${good===1?'':'s'} creado${good===1?'':'s'}${bad?` · ${bad} con error`:''}.`,bad?'err':'ok');
+        ast(`Cola finalizada: ${good}/${results.length} videos descargados${bad?` · ${bad} fallaron`:''}.`,bad?'err':'ok');
+      }
     }finally{
       batchRunning=false;
       await releaseWakeLock();
@@ -3040,8 +3052,19 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
         const v=el.querySelector('video');
         if(v?.src)el.dataset.clipUrl=v.src;
       }
-      if(!el.dataset.clipUrl && window.dfUseVibesCharacter)throw Error('Vibes: prompts listos. Genera las imágenes, impórtalas en el panel del personaje y pulsa “Continuar con Alexander + Render”.');
+      if(!el.dataset.clipUrl && window.dfUseVibesCharacter){
+        // Vibes is a manual/external generation stage, not an error.
+        // Mark the document as paused and let the caller stop cleanly.
+        window.dfVibesWaiting=true;
+        continue;
+      }
       if(!el.dataset.clipUrl)throw Error('Una escena terminó sin clip.');
+    }
+    if(window.dfUseVibesCharacter && window.dfVibesWaiting){
+      step('stepScenes','active',`${scenes.length} prompts listos · esperando Vibes`);
+      abar(35);
+      ast(`⏸️ Vibes: ${scenes.length} prompts listos. Genera e importa las imágenes para continuar.`,'ok');
+      return {pausedForVibes:true,scenes};
     }
     step('stepScenes','done',`${scenes.length} escenas listas`);
     abar(48);
@@ -3080,7 +3103,12 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     if(!script)throw Error('Primero sube un TXT.');
     if(!(A('#groq')?.value||'').trim())throw Error('Falta Groq API.');
 
-    await makeScenes();
+    window.dfVibesWaiting=false;
+    const sceneResult=await makeScenes();
+    if(sceneResult?.pausedForVibes){
+      ast('⏸️ Proceso pausado correctamente: esperando imágenes de Vibes. No es un error.','ok');
+      return {pausedForVibes:true};
+    }
     ast('Escenas listas. Ahora generando Alexander V…','ok');
     await makeVoice();
 
@@ -4746,7 +4774,10 @@ window.addEventListener('load',()=>{
       const p=el.querySelector('.provider'); if(p)p.textContent='Fuente: Vibes.ai · personaje de referencia';
       const m=el.querySelector('.match'); if(m){m.className='match ok';m.textContent='✨ Imagen Vibes importada';}
     }
-    status(`✅ ${files.length} imágenes Vibes importadas y asignadas en orden.`,true);
+    window.dfVibesWaiting=false;
+    const stepScenes=document.getElementById('stepScenes');
+    if(stepScenes){stepScenes.classList.remove('active','err');stepScenes.classList.add('done');const sm=stepScenes.querySelector('small');if(sm)sm.textContent=`${files.length} imágenes Vibes listas`;}
+    status(`✅ ${files.length} imágenes Vibes importadas y asignadas en orden. Ya puedes continuar con Alexander + Render.`,true);
   });
   $('#continueVibesRender')?.addEventListener('click',async()=>{
     try{
