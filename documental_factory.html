@@ -36,7 +36,15 @@ textarea{min-height:240px;resize:vertical}.pill{display:inline-block;padding:5px
 <div id="summary" class="mut" style="margin-top:10px">Esperando clips…</div><div id="clips"></div>
 </div>
 
-<div class="card"><h2>2. Generación automática</h2>
+<div class="card">
+<h2>2. Groq API</h2>
+<div class="grid">
+  <div><label>Groq API Key</label><input id="groqVisible" type="password" placeholder="gsk_..." autocomplete="off"></div>
+  <div><label>&nbsp;</label><button id="saveGroqVisible" class="secondary">💾 Guardar API</button></div>
+</div>
+<div id="groqVisibleStatus" class="mut" style="margin-top:10px">La API se guarda únicamente en este navegador.</div>
+</div>
+<div class="card"><h2>3. Generación automática</h2>
 <div id="queue" class="status">Carga una carpeta en cada uno de los 4 espacios. Luego pulsa GENERAR TODO y se procesarán en orden: 1 → 2 → 3 → 4.</div>
 <div class="row" style="margin-top:14px"><button id="generateOnly">🚀 GENERAR TODO</button><button id="clearQueue" class="danger">🗑 Vaciar cola</button></div>
 </div>
@@ -73,6 +81,28 @@ textarea{min-height:240px;resize:vertical}.pill{display:inline-block;padding:5px
 <script>
 const $=s=>document.querySelector(s), log=t=>{$('#log').textContent+=`\n${new Date().toLocaleTimeString()} — ${t}`;$('#log').scrollTop=999999};
 let clips=[];
+
+const groqVisible=document.querySelector('#groqVisible');
+const hiddenGroq=document.querySelector('#key');
+const savedGroq=localStorage.getItem('story_groq_key')||localStorage.getItem('groq_api_key')||'';
+if(groqVisible)groqVisible.value=savedGroq;
+if(hiddenGroq)hiddenGroq.value=savedGroq;
+function syncGroq(){
+ const v=(groqVisible?.value||'').trim();
+ if(hiddenGroq)hiddenGroq.value=v;
+ return v;
+}
+groqVisible?.addEventListener('input',syncGroq);
+document.querySelector('#saveGroqVisible')?.addEventListener('click',()=>{
+ const v=syncGroq();
+ if(!v){document.querySelector('#groqVisibleStatus').textContent='❌ Escribe primero tu Groq API Key.';return}
+ localStorage.setItem('story_groq_key',v);
+ localStorage.setItem('groq_api_key',v);
+ document.querySelector('#groqVisibleStatus').textContent='✅ Groq API guardada en este navegador.';
+ log('✅ Groq API guardada.');
+});
+if(savedGroq && document.querySelector('#groqVisibleStatus'))document.querySelector('#groqVisibleStatus').textContent='✅ Groq API recuperada del navegador.';
+
 $('#key').value=localStorage.getItem('story_groq_key')||'';
 $('#saveKey').onclick=()=>{localStorage.setItem('story_groq_key',$('#key').value.trim());log('Groq API Key guardada localmente.')};
 let jobs=[];
@@ -220,7 +250,7 @@ async function analyzeJob(){
 async function runBatch(){
  if(batchRunning)return;
  if(!jobs.length){L('❌ Selecciona primero la carpeta raíz.');return}
- if(!Q('#key').value.trim()){L('❌ Falta Groq API Key.');return}
+ syncGroq();if(!Q('#key').value.trim()){L('❌ Falta Groq API Key. Escríbela arriba y pulsa Guardar API.');return}
  batchRunning=true;Q('#generateOnly').disabled=true;
  try{
   for(let i=0;i<jobs.length;i++){
