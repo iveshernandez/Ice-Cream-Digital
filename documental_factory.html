@@ -450,24 +450,19 @@ window.addEventListener('DOMContentLoaded',()=>{
         <div id="characterStatus" class="status mut">Esperando imagen…</div>
         <textarea id="characterIdentity" rows="5" placeholder="La descripción fija del personaje aparecerá aquí" style="min-height:92px!important"></textarea>
         <div class="actions"><button type="button" class="sec" id="reanalyzeCharacter">🔎 Analizar personaje</button><button type="button" class="danger" id="clearCharacter">Quitar</button></div>
-      <div id="vibesPanel" class="hiddenAuto" style="display:none">
-        <b style="font-size:10px">✨ Vibes.ai · personaje de referencia</b>
-        <div class="tiny" style="margin-top:4px">Modo sin extensión: Documental Factory prepara todos los prompts para Vibes y luego importa las imágenes generadas en el mismo orden. El navegador no puede controlar directamente otra web sin una API oficial o un puente.</div>
-        <div class="actions">
-          <button type="button" class="sec" id="openVibes">Abrir Vibes.ai</button>
-          <button type="button" class="sec" id="copyVibesPrompts">Copiar prompts</button>
-          <button type="button" class="sec" id="downloadVibesPrompts">Descargar TXT de prompts</button>
+      <div style="margin-top:9px;padding:9px;border:1px solid #314662;border-radius:9px;background:#091523">
+        <b style="font-size:10px">🤗 Hugging Face · IP-Adapter</b>
+        <div class="tiny" style="margin-top:4px">La imagen subida se enviará físicamente al Space como referencia en CADA escena.</div>
+        <label>Space ID</label>
+        <input id="hfSpaceId" value="TU_USUARIO/documental-character-ipadapter" placeholder="usuario/documental-character-ipadapter">
+        <label>HF Token (opcional si el Space es público)</label>
+        <input id="hfToken" type="password" autocomplete="off" placeholder="hf_...">
+        <div class="row">
+          <div><label>Fidelidad personaje</label><input id="hfIpScale" type="number" min="0.1" max="1.5" step="0.05" value="0.85"></div>
+          <div><label>Pasos</label><input id="hfSteps" type="number" min="10" max="50" step="1" value="28"></div>
         </div>
-        <label>Importar imágenes generadas por Vibes</label>
-        <input id="vibesImages" type="file" accept="image/png,image/jpeg,image/webp" multiple>
-        <div class="actions"><button type="button" class="pri" id="continueVibesRender">🎬 Continuar con Alexander + Render</button></div>
-        <div id="vibesStatus" class="status mut">Sube el personaje y un TXT. La Factory preparará las escenas para Vibes.</div>
-        <div style="margin-top:8px;padding:8px;border:1px solid #314662;border-radius:8px;background:#07111e">
-          <b style="font-size:10px">🌉 IceCream Vibes Bridge</b>
-          <div id="vibesBridgeStatus" class="tiny" style="margin-top:4px">Buscando IceCream Vibes Bridge v0.2…</div>
-          <div class="actions"><button type="button" class="sec" id="testVibesBridge">Probar puente</button><button type="button" class="sec" id="openVibesBridge">Abrir Vibes</button></div>
-          <div class="tiny">Con el puente instalado: imagen del personaje → imagen por escena → animación → clips → Alexander V → render final.</div>
-        </div>
+        <div class="actions"><button type="button" class="sec" id="saveHFConfig">Guardar HF</button><button type="button" class="sec" id="testHFConfig">Probar conexión</button></div>
+        <div id="hfStatus" class="status mut">Configura tu Space de Hugging Face.</div>
       </div>
       </div>
     </div>
@@ -513,7 +508,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Pixazo + animación 2.5D automática <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · HF IP-Adapter con personaje / Pixazo sin personaje <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -1888,7 +1883,7 @@ async function createFinalVideo(){
       const fadeDur=Math.min(0.35,Math.max(0.18,durNum*0.08));
       const fadeOutStart=Math.max(0,durNum-fadeDur);
 
-      // Advanced Ken Burns: every scene gets a different camera movement.
+      // Clean Ken Burns: every scene gets a different camera movement on a single full-screen image.
       // First fill a safe oversized vertical canvas, then animate crop/zoom at 30 fps.
       let zExpr="min(zoom+0.00055,1.12)";
       let xExpr="iw/2-(iw/zoom/2)";
@@ -1914,11 +1909,8 @@ async function createFinalVideo(){
       const fadeIn=i===0?'':`fade=t=in:st=0:d=${fadeDur.toFixed(3)},`;
       const fadeOut=i===sceneEls.length-1?'':`fade=t=out:st=${fadeOutStart.toFixed(3)}:d=${fadeDur.toFixed(3)},`;
       // Still image -> full moving scene. d must equal the number of output frames.
-      const composeAndMove=`split=2[fgsrc][bgsrc];`+
-        `[bgsrc]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,eq=brightness=-0.06:saturation=0.92[bg];`+
-        `[fgsrc]scale=720:720:force_original_aspect_ratio=decrease[fg];`+
-        `[bg][fg]overlay=x=(W-w)/2:y=(H-h)/2:format=auto,`+
-        `scale=900:1600:force_original_aspect_ratio=increase,crop=900:1600,`+
+      // Clean 2.5D / Ken Burns: ONE full-screen image only. No duplicated foreground card.
+      const composeAndMove=`scale=900:1600:force_original_aspect_ratio=increase,crop=900:1600,`+
         `zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=${frames}:s=720x1280:fps=30,`+
         `trim=duration=${durNum.toFixed(3)},setpts=PTS-STARTPTS,${fadeIn}${fadeOut}format=yuv420p`;
       const filters=[`[0:v]${composeAndMove}[v0]`];
@@ -2356,7 +2348,12 @@ async function dfGenerateHFReferenceImage(prompt){
 }
 
 async function generateAIImage(prompt){
-  if(dfCharacterDataURL && window.dfUseVibesCharacter){ window.dfUseVibesCharacter=false; }
+  if(dfCharacterDataURL){
+    imageProviderLog('🤗 Hugging Face IP-Adapter: usando imagen maestra real…');
+    const out=await dfGenerateHFReferenceImage(prompt);
+    imageProviderLog('✅ Imagen consistente creada con Hugging Face IP-Adapter.');
+    return out;
+  }
   const waitStart=Date.now();
   while(typeof window.sdTurboLocalGenerate!=='function'){
     if(Date.now()-waitStart>15000)throw new Error('Pixazo FLUX Schnell no terminó de iniciar.');
@@ -2390,6 +2387,7 @@ function render(s,c,i){
   let a=document.createElement('article');
   a.className='scene';
   a.dataset.narration=s.narration||'';
+  a.dataset.sceneIndex=String(i);
   a.dataset.imagePrompt=s.image_prompt||'';
   if(c?.url)a.dataset.clipUrl=c.url;
 
@@ -2501,6 +2499,12 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('reanalyzeCharacter')?.addEventListener('click',()=>dfAnalyzeCharacter().catch(e=>dfCharacterStatus('❌ '+(e?.message||e),'err')));
   document.getElementById('clearCharacter')?.addEventListener('click',()=>{dfCharacterDataURL='';dfCharacterIdentity='';if(input)input.value='';if(img)img.removeAttribute('src');if(box)box.value='';if(wrap)wrap.style.display='none';});
   box?.addEventListener('input',()=>{dfCharacterIdentity=box.value.trim();});
+  const sid=document.getElementById('hfSpaceId'),tok=document.getElementById('hfToken');
+  if(sid && localStorage.getItem('df_hf_space'))sid.value=localStorage.getItem('df_hf_space');
+  if(tok && localStorage.getItem('df_hf_token'))tok.value=localStorage.getItem('df_hf_token');
+  document.getElementById('saveHFConfig')?.addEventListener('click',()=>{
+    const c=dfHFConfig();localStorage.setItem('df_hf_space',c.space);localStorage.setItem('df_hf_token',c.token);dfHFStatus('✅ Configuración HF guardada.','ok');
+  });
   document.getElementById('testHFConfig')?.addEventListener('click',async()=>{
     try{const c=await dfHFClient();const api=await c.view_api();dfHFStatus(api?'✅ Space conectado y API detectada.':'✅ Space conectado.','ok');}
     catch(e){dfHFStatus('❌ '+(e?.message||e),'err');}
@@ -2703,19 +2707,26 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
     ].filter(Boolean).join(' ');
   }
 
-  // VIBES AUTO MODE: generate image + animate each scene through IceCream Vibes Bridge.
-  if(false && dfCharacterDataURL && window.dfUseVibesCharacter!==false){
-    window.dfUseVibesCharacter=true;
-    window.dfVibesScenes=arr;
-    window.dfVibesPromptText=arr.map((x,i)=>`SCENE ${i+1}\n${x.image_prompt}`).join('\n\n');
-    for(let i=0;i<arr.length;i++) render(arr[i],null,i);
-    const vs=document.getElementById('vibesStatus');
-    if(vs){vs.textContent=`🌉 ${arr.length} escenas listas. Vibes automático generará imagen + animación.`;vs.className='status ok';}
-    if(typeof window.dfRunVibesAutomatic!=='function') throw new Error('IceCream Vibes Auto no cargó.');
-    await window.dfRunVibesAutomatic(arr);
-    st(`✅ ${arr.length} escenas animadas con Vibes listas.`,'ok');
-    return arr.length;
+  // Create ALL scene cards immediately so the complete storyboard is visible while images generate.
+  for(let i=0;i<arr.length;i++) render(arr[i],null,i);
+
+  function showSceneImage(i,image,statusText='✨ Imagen IA lista'){
+    const card=scenesEl.querySelector(`.scene[data-scene-index="${i}"]`);
+    if(!card || !image?.url)return;
+    card.dataset.clipUrl=image.url;
+    const media=card.querySelector('.media');
+    if(media) media.innerHTML=`<img src="${e(image.url)}" alt="Escena IA ${i+1}" style="width:100%;height:100%;object-fit:cover;display:block">`;
+    const provider=card.querySelector('.provider');
+    if(provider) provider.textContent='Fuente: '+(image.provider||'Pixazo · FLUX.1 Schnell');
+    const match=card.querySelector('.match');
+    if(match){match.className='match ok';match.textContent=statusText+' · movimiento '+(card.dataset.motion||'2.5D');}
   }
+
+  // Mark every card as queued before launching the six workers.
+  scenesEl.querySelectorAll('.scene').forEach((card,idx)=>{
+    const match=card.querySelector('.match');
+    if(match){match.className='match';match.textContent=`⏳ Escena ${idx+1} en cola · Pixazo 6X`;}
+  });
 
   const images=new Array(arr.length);
   let nextIndex=0;
@@ -2756,6 +2767,7 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
         images[i]=image;
         generatedSceneImages.push(image);
         completed++;
+        showSceneImage(i,image,'✅ Imagen lista');
         st(`⚡ Pixazo 6X · ${completed}/${arr.length} imágenes terminadas · ${arr.length-completed} pendientes…`);
       }catch(err){
         recoveryQueue.push({i,err});
@@ -2768,26 +2780,34 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
   await Promise.all(Array.from({length:concurrency},(_,i)=>imageWorker(i+1)));
 
   if(recoveryQueue.length){
-    imageProviderLog(`🛟 Recuperación final · ${recoveryQueue.length} escena(s) pendientes.`);
-    st(`🛟 Recuperando ${recoveryQueue.length} escena(s) sin perder el video…`);
-    for(const item of recoveryQueue){
-      const i=item.i;
-      try{
-        const image=await tryScene(i,3,true);
-        images[i]=image;
-        generatedSceneImages.push(image);
-        completed++;
-        imageProviderLog(`✅ Escena ${i+1} recuperada correctamente.`);
-        st(`🛟 Recuperación · ${completed}/${arr.length} imágenes listas…`);
-      }catch(err){
-        throw new Error(`Escena ${i+1} no pudo generarse después de 6 intentos totales: ${err?.message||err}`);
+    imageProviderLog(`🛟 Recuperación paralela 6X · ${recoveryQueue.length} escena(s) pendientes.`);
+    st(`🛟 Recuperación 6X · ${recoveryQueue.length} escena(s) pendientes…`);
+    let recoveryNext=0;
+    let fatal=null;
+    async function recoveryWorker(workerId){
+      while(!fatal){
+        const pos=recoveryNext++;
+        if(pos>=recoveryQueue.length)return;
+        const i=recoveryQueue[pos].i;
+        const card=scenesEl.querySelector(`.scene[data-scene-index="${i}"]`);
+        const match=card?.querySelector('.match');
+        if(match){match.className='match';match.textContent=`🛟 Recuperando · canal ${workerId}`;}
+        try{
+          const image=await tryScene(i,3,true);
+          images[i]=image;
+          generatedSceneImages.push(image);
+          completed++;
+          showSceneImage(i,image,'🛟 Recuperada');
+          imageProviderLog(`✅ Escena ${i+1} recuperada correctamente · canal ${workerId}.`);
+          st(`🛟 Recuperación 6X · ${completed}/${arr.length} imágenes listas…`);
+        }catch(err){
+          fatal=new Error(`Escena ${i+1} no pudo generarse después de 6 intentos totales: ${err?.message||err}`);
+          return;
+        }
       }
     }
-  }
-
-  // Render cards in narration order even if remote images finished out of order.
-  for(let i=0;i<arr.length;i++){
-    render(arr[i],images[i],i);
+    await Promise.all(Array.from({length:Math.min(6,recoveryQueue.length)},(_,i)=>recoveryWorker(i+1)));
+    if(fatal)throw fatal;
   }
 
   st(`✅ ${arr.length} escenas IA listas · Pixazo 6X.`,'ok');
@@ -2986,12 +3006,6 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
         try{
           await parseTxt(file,{autoStart:false});
           const ok=await runCurrentDocument();
-          if(ok?.pausedForVibes){
-            results.push({file:file.name,ok:null,paused:true});
-            qstatus(`⏸️ ${file.name}: prompts listos. Esperando imágenes de Vibes.`,'ok');
-            ast(`⏸️ Cola pausada correctamente en Vibes. Importa las imágenes y pulsa “Continuar con Alexander + Render”.`,'ok');
-            break;
-          }
           if(!ok)throw Error('El proceso no terminó correctamente.');
           results.push({file:file.name,ok:true});
           qstatus(`✅ ${i+1} de ${files.length} terminado. Preparando el siguiente…`,'ok');
@@ -3006,16 +3020,10 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
         }
       }
 
-      const good=results.filter(x=>x.ok===true).length;
-      const paused=results.filter(x=>x.paused).length;
-      const bad=results.filter(x=>x.ok===false).length;
-      if(paused){
-        qstatus(`⏸️ Cola en espera de Vibes: ${paused} documental pendiente de imágenes.`, 'ok');
-        ast(`Vibes listo: ${good} descargados · ${paused} esperando imágenes · ${bad} fallaron.`,bad?'err':'ok');
-      }else{
-        qstatus(`✅ Cola terminada: ${good} video${good===1?'':'s'} creado${good===1?'':'s'}${bad?` · ${bad} con error`:''}.`,bad?'err':'ok');
-        ast(`Cola finalizada: ${good}/${results.length} videos descargados${bad?` · ${bad} fallaron`:''}.`,bad?'err':'ok');
-      }
+      const good=results.filter(x=>x.ok).length;
+      const bad=results.length-good;
+      qstatus(`✅ Cola terminada: ${good} video${good===1?'':'s'} creado${good===1?'':'s'}${bad?` · ${bad} con error`:''}.`,bad?'err':'ok');
+      ast(`Cola finalizada: ${good}/${results.length} videos descargados${bad?` · ${bad} fallaron`:''}.`,bad?'err':'ok');
     }finally{
       batchRunning=false;
       await releaseWakeLock();
@@ -3048,7 +3056,7 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     abar(10);
     if(typeof window.documentalAnalyzeScenes!=='function')
       throw Error('Motor de escenas Groq no quedó registrado.');
-    if(!window.dfUseVibesCharacter && (typeof window.sdTurboLocalGenerate!=='function' || window.__sdTurboVerifiedReady!==true))
+    if(typeof window.sdTurboLocalGenerate!=='function' || window.__sdTurboVerifiedReady!==true)
       throw Error('Pixazo FLUX Schnell todavía no está listo para crear imágenes.');
     await window.documentalAnalyzeScenes();
     const scenes=[...document.querySelectorAll('#scenes .scene')];
@@ -3058,19 +3066,7 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
         const v=el.querySelector('video');
         if(v?.src)el.dataset.clipUrl=v.src;
       }
-      if(!el.dataset.clipUrl && window.dfUseVibesCharacter){
-        // Vibes is a manual/external generation stage, not an error.
-        // Mark the document as paused and let the caller stop cleanly.
-        window.dfVibesWaiting=true;
-        continue;
-      }
       if(!el.dataset.clipUrl)throw Error('Una escena terminó sin clip.');
-    }
-    if(window.dfUseVibesCharacter && window.dfVibesWaiting){
-      step('stepScenes','active',`${scenes.length} prompts listos · esperando Vibes`);
-      abar(35);
-      ast(`⏸️ Vibes: ${scenes.length} prompts listos. Genera e importa las imágenes para continuar.`,'ok');
-      return {pausedForVibes:true,scenes};
     }
     step('stepScenes','done',`${scenes.length} escenas listas`);
     abar(48);
@@ -3109,12 +3105,7 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     if(!script)throw Error('Primero sube un TXT.');
     if(!(A('#groq')?.value||'').trim())throw Error('Falta Groq API.');
 
-    window.dfVibesWaiting=false;
-    const sceneResult=await makeScenes();
-    if(sceneResult?.pausedForVibes){
-      ast('⏸️ Proceso pausado correctamente: esperando imágenes de Vibes. No es un error.','ok');
-      return {pausedForVibes:true};
-    }
+    await makeScenes();
     ast('Escenas listas. Ahora generando Alexander V…','ok');
     await makeVoice();
 
@@ -4732,7 +4723,7 @@ window.addEventListener('load',()=>{
 
 
 <div id="pixazoKeyPanel" style="position:fixed;right:14px;bottom:14px;z-index:9999;background:#111827;border:1px solid #374151;border-radius:12px;padding:10px 12px;box-shadow:0 8px 24px #0008;font:12px system-ui;color:#e5e7eb;max-width:330px">
-  <div style="font-weight:700;margin-bottom:6px">Pixazo · FLUX Schnell · 6X · TIMEOUT 60s + RECUPERACIÓN · SIN BLUR</div>
+  <div style="font-weight:700;margin-bottom:6px">Pixazo · FLUX Schnell · 6X · STORYBOARD EN VIVO · RECUPERACIÓN 6X · 2.5D LIMPIO</div>
   <div style="display:flex;gap:6px">
     <input id="pixazoKeyInput" type="password" placeholder="API Key gratuita" style="min-width:180px;flex:1;background:#030712;color:#fff;border:1px solid #4b5563;border-radius:7px;padding:7px">
     <button id="pixazoKeySave" type="button" style="border:0;border-radius:7px;padding:7px 10px;cursor:pointer">Guardar</button>
@@ -4751,111 +4742,6 @@ window.addEventListener('load',()=>{
 })();
 </script>
 
-
-<script id="vibes-integrated-workflow">
-(function(){
-  window.dfUseVibesCharacter=false;
-  const $=s=>document.querySelector(s);
-  function status(t,ok=false){const e=$('#vibesStatus');if(e){e.textContent=t;e.className='status '+(ok?'ok':'mut');}}
-  function prompts(){return String(window.dfVibesPromptText||'').trim();}
-  $('#openVibes')?.addEventListener('click',()=>window.open('https://www.vibes.ai/','_blank','noopener'));
-  $('#copyVibesPrompts')?.addEventListener('click',async()=>{
-    const t=prompts(); if(!t)return status('Primero genera las escenas desde el TXT.');
-    try{await navigator.clipboard.writeText(t);status('✅ Prompts copiados. Pégalos en Vibes.',true);}catch(e){status('No pude copiar automáticamente. Usa Descargar TXT.');}
-  });
-  $('#downloadVibesPrompts')?.addEventListener('click',()=>{
-    const t=prompts(); if(!t)return status('Primero genera las escenas desde el TXT.');
-    const blob=new Blob([t],{type:'text/plain;charset=utf-8'});const u=URL.createObjectURL(blob);const a=document.createElement('a');
-    a.href=u;a.download=((document.querySelector('#videoTitle')?.value||'documental')+' - prompts Vibes.txt').replace(/[\/:*?"<>|]/g,'');a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
-    status('✅ TXT de prompts descargado.',true);
-  });
-  $('#vibesImages')?.addEventListener('change',async e=>{
-    const files=[...(e.target.files||[])].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
-    const scenes=[...document.querySelectorAll('#scenes .scene')];
-    if(!scenes.length)return status('Primero genera las escenas/prompts.');
-    if(files.length!==scenes.length)return status(`Necesito ${scenes.length} imágenes y seleccionaste ${files.length}.`);
-    for(let i=0;i<scenes.length;i++){
-      const url=URL.createObjectURL(files[i]); const el=scenes[i]; el.dataset.clipUrl=url;
-      const media=el.querySelector('.media'); if(media)media.innerHTML=`<img src="${url}" alt="Vibes ${i+1}" style="width:100%;height:100%;object-fit:cover;display:block">`;
-      const p=el.querySelector('.provider'); if(p)p.textContent='Fuente: Vibes.ai · personaje de referencia';
-      const m=el.querySelector('.match'); if(m){m.className='match ok';m.textContent='✨ Imagen Vibes importada';}
-    }
-    window.dfVibesWaiting=false;
-    const stepScenes=document.getElementById('stepScenes');
-    if(stepScenes){stepScenes.classList.remove('active','err');stepScenes.classList.add('done');const sm=stepScenes.querySelector('small');if(sm)sm.textContent=`${files.length} imágenes Vibes listas`;}
-    status(`✅ ${files.length} imágenes Vibes importadas y asignadas en orden. Ya puedes continuar con Alexander + Render.`,true);
-  });
-  $('#continueVibesRender')?.addEventListener('click',async()=>{
-    try{
-      const scenes=[...document.querySelectorAll('#scenes .scene')];
-      if(!scenes.length||scenes.some(x=>!x.dataset.clipUrl))throw new Error('Primero importa todas las imágenes de Vibes.');
-      status('🎙️ Generando Alexander V…');
-      if(typeof window.generateDocumentalVoice!=='function')throw new Error('Alexander V no está disponible.');
-      await window.generateDocumentalVoice();
-      status('🎬 Renderizando video final…');
-      if(typeof window.createDocumentalFinalVideo!=='function')throw new Error('FFmpeg no está disponible.');
-      const ok=await window.createDocumentalFinalVideo();
-      if(ok!==true)throw new Error('El render no confirmó que terminó.');
-      status('✅ Video terminado y descarga iniciada.',true);
-    }catch(err){status('❌ '+(err?.message||err));}
-  });
-})();
-</script>
-
-<script id="icecream-vibes-auto-v3-1">
-(function(){
-  const $=s=>document.querySelector(s), sleep=ms=>new Promise(r=>setTimeout(r,ms));
-  let bridgeReady=false, pending=new Map(), seq=0;
-  function bs(t,ok=false){const e=$('#vibesBridgeStatus');if(e){e.textContent=t;e.style.color=ok?'#7ef0a9':'#91a4bd';}}
-  function send(type,payload={}){const id='dfv_'+Date.now()+'_'+(++seq); const timeout=type==='PING'?5000:420000; return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(id);reject(new Error(type==='PING'?'No detecté IceCream Vibes Bridge v0.2 en esta página.':'El puente Vibes no respondió.'));},timeout);pending.set(id,{resolve,reject,timer});window.postMessage({source:'ICECREAM_FACTORY',id,type,payload},'*');});}
-  window.addEventListener('message',ev=>{const m=ev.data;if(!m||m.source!=='ICECREAM_BRIDGE')return;if(m.type==='READY'){bridgeReady=true;bs('🟢 IceCream Vibes Bridge conectado'+(m.version?' · v'+m.version:''),true);return;}const p=pending.get(m.id);if(!p)return;clearTimeout(p.timer);pending.delete(m.id);m.ok?p.resolve(m.data):p.reject(new Error(m.error||'Error en Vibes Bridge'));});
-  async function ping(){try{const r=await send('PING');bridgeReady=true;bs('🟢 IceCream Vibes Bridge conectado'+(r?.version?' · v'+r.version:''),true);return true}catch(e){bridgeReady=false;const local=location.protocol==='file:'?' Si abriste la Factory como archivo local, activa “Permitir acceso a URLs de archivo” en Detalles de la extensión.':'';bs('🔴 Puente no detectado.'+local);return false}}
-  $('#testVibesBridge')?.addEventListener('click',ping);$('#openVibesBridge')?.addEventListener('click',()=>window.open('https://www.vibes.ai/','_blank'));
-  setTimeout(ping,500);setTimeout(ping,2500);
-  function dataURLtoBlobURL(dataURL){const [h,b]=dataURL.split(',');const mime=(h.match(/data:([^;]+)/)||[])[1]||'image/png';const bin=atob(b),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return URL.createObjectURL(new Blob([u],{type:mime}));}
-  window.dfRunVibesAutomatic=async function(scenes){
-    if(!await ping()) throw new Error('IceCream Vibes Bridge no está conectado.');
-    if(!window.dfGetCharacterDataURL?.() && !window.dfCharacterDataURL) throw new Error('Falta la imagen maestra del personaje.');
-    const ref=window.dfGetCharacterDataURL?.()||window.dfCharacterDataURL;
-    const results=[]; window.dfVibesWaiting=false;
-    for(let i=0;i<scenes.length;i++){
-      const sc=scenes[i]; bs(`🎨 Escena ${i+1}/${scenes.length}: generando imagen…`);
-      const img=await send('GENERATE_IMAGE',{referenceDataURL:ref,prompt:sc.image_prompt,scene:i+1});
-      bs(`🎞️ Escena ${i+1}/${scenes.length}: animando…`);
-      const motion=`Animate this exact image naturally for a documentary shot. Preserve the exact same character, face, clothes, colors and environment. Subtle body movement, natural camera motion, cinematic depth, no morphing, no new objects, no text, no logo.`;
-      const vid=await send('ANIMATE_IMAGE',{imageDataURL:img.dataURL,prompt:motion,scene:i+1});
-      const url=dataURLtoBlobURL(vid.dataURL);results.push({url,blob:await (await fetch(url)).blob(),provider:'Vibes.ai animated clip',kind:'video'});
-      bs(`✅ Escena ${i+1}/${scenes.length} lista.`,true);
-    }
-    // Replace scene cards with videos in exact order
-    const cards=[...document.querySelectorAll('#scenes .scene')];
-    results.forEach((r,i)=>{const c=cards[i];if(!c)return;c.dataset.clipUrl=r.url;c.dataset.clipKind='video';const media=c.querySelector('.media');if(media)media.innerHTML=`<video src="${r.url}" muted loop playsinline controls style="width:100%;height:100%;object-fit:cover"></video>`;const p=c.querySelector('.provider');if(p)p.textContent='Fuente: Vibes.ai · clip animado';});
-    window.dfVibesAnimatedClips=results; window.generatedSceneImages=results;
-    bs(`✅ ${results.length} clips animados listos. Continuando con Alexander V…`,true);
-    return results;
-  };
-  // Expose character reference to bridge automation without changing original private variable semantics.
-  window.dfGetCharacterDataURL=()=>{try{return document.getElementById('characterPreview')?.src||''}catch(_){return ''}};
-})();
-</script>
-
-
-<script id="icecream-2-5d-auto-v1">
-(function(){
-  window.dfUseVibesCharacter=false;
-  window.dfVibesWaiting=false;
-  const panel=document.getElementById('vibesPanel'); if(panel) panel.style.display='none';
-  const st=document.getElementById('engineImage');
-  if(st){ const t=st.querySelector('.engineText'); if(t) t.childNodes[0].nodeValue='Imágenes · Pixazo + animación 2.5D automática '; }
-  const oldRender=window.render;
-  // Existing scene renderer already assigns six alternating motion patterns.
-  // FFmpeg turns each still into a 30 fps 720x1280 moving scene with zoom/pan/fades.
-  document.addEventListener('DOMContentLoaded',()=>{
-    const c=document.getElementById('characterStatus');
-    if(c && c.textContent.includes('Esperando')) c.textContent='Opcional: la referencia ayuda a Groq a describir el personaje; Pixazo genera las imágenes y FFmpeg las anima en 2.5D.';
-  });
-})();
-</script>
 </body></html>
 
 <style>
