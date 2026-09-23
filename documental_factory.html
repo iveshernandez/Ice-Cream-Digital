@@ -341,7 +341,7 @@ window.addEventListener('unhandledrejection',function(e){
       const main=document.querySelector('#log, .log, #statusLog');
       if(main && main!==log){
         const row=document.createElement('div');
-        row.textContent=now+' — 🖼️ Pixazo FLUX Schnell: '+text;
+        row.textContent=now+' — 🖼️ Pixazo SD 3.5 IMG2IMG: '+text;
         main.appendChild(row);
         main.scrollTop=main.scrollHeight;
       }
@@ -397,7 +397,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 }
 </style>
 
-</head><body>
+</head><body><div style="margin:10px;padding:10px 12px;border:1px solid #7c5c19;border-radius:10px;background:#241b07;color:#fde68a;font:12px system-ui"><b>PRUEBA DE CONSISTENCIA:</b> inicia con 5 escenas y fuerza 0.50. Esta versión envía la referencia visual real a SD 3.5 mediante una URL pública.</div>
 
 <div id="icFactoryHeader">
   <div class="ic-brand">
@@ -444,6 +444,15 @@ window.addEventListener('DOMContentLoaded',()=>{
     <h2 style="margin:0 0 6px">🧍 Personaje de referencia</h2>
     <p class="tiny">Sube una imagen maestra. Groq Vision analizará únicamente su apariencia y esa identidad se añadirá a todas las escenas generadas por Pixazo.</p>
     <input id="characterRef" type="file" accept="image/png,image/jpeg,image/webp">
+    <div style="margin-top:8px">
+      <label>URL pública de la MISMA imagen del personaje</label>
+      <input id="characterPublicUrl" type="url" placeholder="https://.../personaje.png">
+      <div class="tiny">Pixazo SD 3.5 exige una URL pública para recibir la referencia visual real.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+      <div><label>Fuerza de cambio</label><input id="sd35Strength" type="number" min="0" max="1" step="0.05" value="0.50"></div>
+      <div><label>Prueba</label><select id="sd35TestCount"><option value="5" selected>5 escenas</option><option value="0">Todas</option></select></div>
+    </div>
     <div id="characterPreviewWrap" style="display:none;margin-top:8px;grid-template-columns:90px 1fr;gap:10px;align-items:start">
       <img id="characterPreview" style="width:90px;aspect-ratio:9/16;object-fit:cover;border-radius:9px;border:1px solid var(--l);background:#000">
       <div>
@@ -498,7 +507,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Pixazo FLUX Schnell · 6X <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Pixazo SD 3.5 IMG2IMG · 6X <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -2297,17 +2306,17 @@ function imageProviderLog(text){
 async function generateAIImage(prompt){
   const waitStart=Date.now();
   while(typeof window.sdTurboLocalGenerate!=='function'){
-    if(Date.now()-waitStart>15000)throw new Error('Pixazo FLUX Schnell no terminó de iniciar.');
+    if(Date.now()-waitStart>15000)throw new Error('Pixazo SD 3.5 IMG2IMG no terminó de iniciar.');
     await new Promise(r=>setTimeout(r,200));
   }
   await window.sdTurboLocalInit?.();
-  imageProviderLog('⚡ Pixazo FLUX Schnell: '+String(prompt||'').slice(0,90));
+  imageProviderLog('⚡ Pixazo SD 3.5 IMG2IMG: '+String(prompt||'').slice(0,90));
   const out=await window.sdTurboLocalGenerate(String(prompt||'').trim(),msg=>{
     imageProviderLog(msg);
     const box=document.getElementById('sdLocalStatus');
     if(box)box.textContent=msg;
   });
-  imageProviderLog('✅ Imagen creada con Pixazo FLUX Schnell.');
+  imageProviderLog('✅ Imagen creada con Pixazo SD 3.5 IMG2IMG.');
   return out;
 }
 
@@ -2351,7 +2360,7 @@ function render(s,c,i){
     <b>ESCENA ${i+1} · NARRACIÓN ↔ IMAGEN</b>
     <p class="narr">${e(s.narration)}</p>
     <p class="q">🤖 ${e(s.image_prompt)}</p>
-    <p class="provider">Fuente: Pixazo · FLUX.1 Schnell</p>
+    <p class="provider">Fuente: Pixazo · SD 3.5 IMG2IMG</p>
     <p class="match ok">✨ IA · movimiento ${e(a.dataset.motion)}</p>
     <button class="sec change">↻ Regenerar imagen</button>
   </div>`;
@@ -2369,7 +2378,7 @@ function render(s,c,i){
       generatedSceneImages.push(c2);
       a.dataset.clipUrl=c2.url;
       a.querySelector('.media').innerHTML=`<img src="${e(c2.url)}" alt="Escena IA regenerada" style="width:100%;height:100%;object-fit:cover;display:block">`;
-      a.querySelector('.provider').textContent='Fuente: '+(c2.provider||'Pixazo · FLUX.1 Schnell');
+      a.querySelector('.provider').textContent='Fuente: '+(c2.provider||'Pixazo · SD 3.5 IMG2IMG');
       const match=a.querySelector('.match');
       if(match){match.className='match ok';match.textContent='✨ Imagen IA regenerada';}
       if(old){
@@ -2683,7 +2692,7 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
     const media=card.querySelector('.media');
     if(media) media.innerHTML=`<img src="${e(image.url)}" alt="Escena IA ${i+1}" style="width:100%;height:100%;object-fit:cover;display:block">`;
     const provider=card.querySelector('.provider');
-    if(provider) provider.textContent='Fuente: '+(image.provider||'Pixazo · FLUX.1 Schnell');
+    if(provider) provider.textContent='Fuente: '+(image.provider||'Pixazo · SD 3.5 IMG2IMG');
     const match=card.querySelector('.match');
     if(match){match.className='match ok';match.textContent=statusText+' · movimiento '+(card.dataset.motion||'2.5D');}
   }
@@ -2694,6 +2703,12 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
     if(match){match.className='match';match.textContent=`⏳ Escena ${idx+1} en cola · Pixazo 6X`;}
   });
 
+  const requestedTestCount=Number(document.getElementById('sd35TestCount')?.value||0);
+  if(requestedTestCount>0 && arr.length>requestedTestCount){
+    arr.splice(requestedTestCount);
+    imageProviderLog(`🧪 SD3.5 IMG2IMG · prueba limitada a ${requestedTestCount} escenas.`);
+    st(`🧪 Probando consistencia con ${requestedTestCount} escenas…`);
+  }
   const images=new Array(arr.length);
   let nextIndex=0;
   let completed=0;
@@ -3023,7 +3038,7 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     if(typeof window.documentalAnalyzeScenes!=='function')
       throw Error('Motor de escenas Groq no quedó registrado.');
     if(typeof window.sdTurboLocalGenerate!=='function' || window.__sdTurboVerifiedReady!==true)
-      throw Error('Pixazo FLUX Schnell todavía no está listo para crear imágenes.');
+      throw Error('Pixazo SD 3.5 IMG2IMG todavía no está listo para crear imágenes.');
     await window.documentalAnalyzeScenes();
     const scenes=[...document.querySelectorAll('#scenes .scene')];
     if(!scenes.length)throw Error('No se generaron escenas.');
@@ -4407,11 +4422,11 @@ window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
 <script type="text/plain" id="sd-turbo-module-source">
 
 /*
- Documental Factory — Pixazo FLUX.1 Schnell
- Remote generation; no Typhoon, ONNX, WebGPU or Pixazo FLUX Schnell.
+ Documental Factory — Pixazo SD 3.5 IMG2IMG
+ Remote generation; no Typhoon, ONNX, WebGPU or Pixazo SD 3.5 IMG2IMG.
  Existing sdTurboLocal* names are retained ONLY for compatibility with the app.
 */
-const PIXAZO_URL='https://gateway.pixazo.ai/flux-1-schnell/v1/getData';
+const PIXAZO_URL='https://gateway.pixazo.ai/sd3-5/v1/r-sd-3-5-large';
 const PIXAZO_TIMEOUT_MS=60000;
 window.PIXAZO_TIMEOUT_MS=60000;
 const PIXAZO_MAX_RETRIES=2;
@@ -4427,13 +4442,13 @@ async function fetchWithTimeout(url,options={},timeoutMs=PIXAZO_TIMEOUT_MS){
   }
 }
 let pixazoReady=false;
-const PIXAZO_CONCURRENCY=6;
-window.PIXAZO_CONCURRENCY=6;
+const PIXAZO_CONCURRENCY=2;
+window.PIXAZO_CONCURRENCY=2;
 
 function ui(msg){
   const el=document.getElementById('sdLocalStatus');
   if(el)el.textContent=msg;
-  console.log('[Pixazo FLUX Schnell]',msg);
+  console.log('[Pixazo SD 3.5 IMG2IMG]',msg);
 }
 function activity(msg,pct){try{window.sdActivity?.(msg,pct);}catch(_){}}
 
@@ -4458,8 +4473,8 @@ window.clearPixazoApiKey=function(){
 
 async function init(notify=ui){
   if(pixazoReady)return true;
-  notify('⚡ Pixazo FLUX Schnell listo para conectar.');
-  activity('100% · Pixazo FLUX Schnell listo',100);
+  notify('⚡ Pixazo SD 3.5 IMG2IMG listo para conectar.');
+  activity('100% · Pixazo SD 3.5 IMG2IMG listo',100);
   pixazoReady=true;
   window.__sdTurboVerifiedReady=true;
   try{window.__resolveSdTurboReady?.(true);}catch(_){}
@@ -4493,58 +4508,39 @@ async function fetchImageBlob(url){
 
 async function generate(prompt,notify=ui){
   await init(notify);
-  const key=getPixazoKey(true);
-  if(!key)throw new Error('Falta la API Key gratuita de Pixazo.');
-
-  notify('⚡ FLUX Schnell · generando imagen…');
-  activity('20% · FLUX Schnell generando…',20);
-
+  const key=getPixazoKey(false);
+  if(!key)throw new Error('Falta la API Key de Pixazo. Guárdala antes de iniciar.');
+  const ref=String(document.getElementById('characterPublicUrl')?.value||'').trim();
+  if(!/^https?:\/\//i.test(ref))throw new Error('Pega la URL pública de la imagen del personaje para SD 3.5 IMG2IMG.');
+  const strength=Math.max(0,Math.min(1,Number(document.getElementById('sd35Strength')?.value||0.50)));
   const body={
-    prompt:documentaryPrompt(prompt),
-    num_steps:4,
-    seed:Math.floor(Math.random()*2147483646)+1,
-    height:1024,
-    width:576
+    prompt:String(prompt||'').trim(),
+    image:ref,
+    cfg:4.5,
+    steps:28,
+    output_format:'webp',
+    output_quality:90,
+    prompt_strength:strength
   };
-
-  let r;
-  try{
-    r=await fetchWithTimeout(PIXAZO_URL,{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Cache-Control':'no-cache',
-        'Ocp-Apim-Subscription-Key':key
-      },
-      body:JSON.stringify(body)
-    },PIXAZO_TIMEOUT_MS);
-  }catch(e){
-    throw new Error('No se pudo conectar con Pixazo desde el navegador: '+(e?.message||e));
-  }
-
-  let j=null;
-  try{j=await r.json();}catch(_){}
-  if(!r.ok){
-    if(r.status===401 || r.status===403){
-      throw new Error('Pixazo rechazó la API Key. Revisa la clave gratuita.');
-    }
-    if(r.status===429)throw new Error('Pixazo alcanzó temporalmente el límite gratuito. Intenta nuevamente.');
-    throw new Error(j?.message||j?.error||`Pixazo HTTP ${r.status}`);
-  }
-
-  let imageUrl=j?.output || j?.image_url || j?.url || j?.data?.output || j?.data?.url;
-  if(Array.isArray(imageUrl))imageUrl=imageUrl[0];
-  if(!imageUrl)throw new Error('Pixazo respondió correctamente pero no devolvió la URL de imagen.');
-
-  notify('📥 FLUX Schnell · descargando imagen…');
-  activity('85% · Descargando imagen…',85);
-  const result=await fetchImageBlob(imageUrl);
-
-  notify('🟢 Imagen FLUX Schnell creada · 576×1024');
-  activity('100% · Imagen FLUX Schnell lista',100);
-  return {...result,provider:'Pixazo · FLUX.1 Schnell',model:'FLUX.1 Schnell'};
+  notify(`🎭 SD 3.5 IMG2IMG · referencia real · fuerza ${strength.toFixed(2)}`);
+  const res=await fetchWithTimeout(PIXAZO_URL,{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Cache-Control':'no-cache',
+      'Ocp-Apim-Subscription-Key':key
+    },
+    body:JSON.stringify(body)
+  },PIXAZO_TIMEOUT_MS);
+  const raw=await res.text(); let data={}; try{data=JSON.parse(raw)}catch(_){}
+  if(!res.ok)throw new Error(data?.error?.message||data?.message||`Pixazo SD3.5 HTTP ${res.status}`);
+  const remote=data?.output||data?.imageUrl||data?.url;
+  if(!remote)throw new Error('Pixazo SD 3.5 no devolvió imagen.');
+  const ir=await fetch(remote);
+  if(!ir.ok)throw new Error(`No se pudo descargar la imagen SD3.5 (${ir.status})`);
+  const blob=await ir.blob();
+  return {blob,url:URL.createObjectURL(blob),provider:'Pixazo · SD 3.5 IMG2IMG',remoteUrl:remote};
 }
-
 window.sdTurboLocalGenerate=(prompt,notify)=>generate(prompt,notify);
 window.sdTurboLocalInit=()=>init(ui);
 window.__sdRealInit=window.sdTurboLocalInit;
@@ -4565,13 +4561,13 @@ window.addEventListener('load',()=>{
     if(window.__sdRealInit) return window.__sdRealInit();
     if(!bootPromise){
       bootPromise=(async()=>{
-        window.sdActivity?.('2% · Iniciando Pixazo FLUX Schnell…',2);
+        window.sdActivity?.('2% · Iniciando Pixazo SD 3.5 IMG2IMG…',2);
         const src=document.getElementById('sd-turbo-module-source')?.textContent||'';
         if(!src) throw new Error('BOOTSTRAP: código del motor de imágenes no encontrado.');
         const blob=new Blob([src],{type:'text/javascript'});
         const url=URL.createObjectURL(blob);
         try{
-          window.sdActivity?.('4% · Ejecutando módulo Pixazo FLUX Schnell…',4);
+          window.sdActivity?.('4% · Ejecutando módulo Pixazo SD 3.5 IMG2IMG…',4);
           await import(url);
         }catch(e){
           throw new Error('MÓDULO AI HORDE: '+(e?.message||e));
@@ -4606,12 +4602,12 @@ window.addEventListener('load',()=>{
  };
  window.documentalSetEngineState=set;
 
- // Image readiness: use the actual Pixazo FLUX Schnell init promise/function.
+ // Image readiness: use the actual Pixazo SD 3.5 IMG2IMG init promise/function.
  async function imageCheck(){
    try{
      set('engineImage','loading','Preparando motor de imágenes…',1); window.sdActivity?.('1% · Preparando motor de imágenes…',1);
-     if(typeof window.sdTurboLocalInit!=='function')throw Error('BOOTSTRAP: función Pixazo FLUX Schnell no disponible.');
-     window.sdActivity?.('2% · Bootstrap Pixazo FLUX Schnell listo.',2);
+     if(typeof window.sdTurboLocalInit!=='function')throw Error('BOOTSTRAP: función Pixazo SD 3.5 IMG2IMG no disponible.');
+     window.sdActivity?.('2% · Bootstrap Pixazo SD 3.5 IMG2IMG listo.',2);
 
      const statusBox=document.getElementById('sdLocalStatus');
      let lastText='';
@@ -4630,14 +4626,14 @@ window.addEventListener('load',()=>{
        clearInterval(watcher);
      }
      if(typeof window.sdTurboLocalGenerate!=='function')
-       throw Error('Pixazo FLUX Schnell cargó, pero el generador de imágenes no quedó conectado.');
+       throw Error('Pixazo SD 3.5 IMG2IMG cargó, pero el generador de imágenes no quedó conectado.');
      if(window.__sdTurboVerifiedReady!==true)
-       throw Error('Pixazo FLUX Schnell no verificó UNet + Text Encoder + VAE.');
+       throw Error('Pixazo SD 3.5 IMG2IMG no verificó UNet + Text Encoder + VAE.');
      set('engineImage','ready','Listo · UNet + Text Encoder + VAE',100);
-     window.sdActivity?.('100% · Pixazo FLUX Schnell listo · API de generación verificada',100);
+     window.sdActivity?.('100% · Pixazo SD 3.5 IMG2IMG listo · API de generación verificada',100);
    }catch(e){
      const detail=(e?.message||String(e)||'Error desconocido').slice(0,180);
-     console.error('[Pixazo FLUX Schnell diagnóstico]',e); window.sdActivity?.('❌ '+detail,0);
+     console.error('[Pixazo SD 3.5 IMG2IMG diagnóstico]',e); window.sdActivity?.('❌ '+detail,0);
      set('engineImage','err',detail,0);
      const box=document.getElementById('sdLocalStatus');
      if(box)box.textContent='❌ '+detail;
@@ -4689,7 +4685,7 @@ window.addEventListener('load',()=>{
 
 
 <div id="pixazoKeyPanel" style="position:fixed;right:14px;bottom:14px;z-index:9999;background:#111827;border:1px solid #374151;border-radius:12px;padding:10px 12px;box-shadow:0 8px 24px #0008;font:12px system-ui;color:#e5e7eb;max-width:330px">
-  <div style="font-weight:700;margin-bottom:6px">Pixazo · FLUX Schnell · 6X · STORYBOARD EN VIVO · RECUPERACIÓN 6X · 2.5D LIMPIO</div>
+  <div style="font-weight:700;margin-bottom:6px">Pixazo · SD 3.5 IMG2IMG · PRUEBA · STORYBOARD EN VIVO · RECUPERACIÓN 6X · 2.5D LIMPIO</div>
   <div style="display:flex;gap:6px">
     <input id="pixazoKeyInput" type="password" placeholder="API Key gratuita" style="min-width:180px;flex:1;background:#030712;color:#fff;border:1px solid #4b5563;border-radius:7px;padding:7px">
     <button id="pixazoKeySave" type="button" style="border:0;border-radius:7px;padding:7px 10px;cursor:pointer">Guardar</button>
@@ -4715,14 +4711,14 @@ window.addEventListener('load',()=>{
 </style
 <div id="sdActivityPanel" style="margin-top:10px;border:1px solid #29425f;border-radius:10px;background:#07111e;padding:10px 12px;">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px">
-    <b>Actividad · Pixazo FLUX Schnell</b>
+    <b>Actividad · Pixazo SD 3.5 IMG2IMG</b>
     <span id="sdActivityPct" style="font-weight:900">0%</span>
   </div>
   <div style="height:7px;background:#142337;border-radius:999px;overflow:hidden;margin-bottom:7px">
     <i id="sdActivityBar" style="display:block;height:100%;width:0%;background:currentColor"></i>
   </div>
   <div id="sdActivityCurrent" style="font-size:12px;font-weight:800">Esperando inicio…</div>
-  <pre id="sdActivityLog" style="margin:8px 0 0;max-height:145px;overflow:auto;white-space:pre-wrap;font-size:11px;line-height:1.35;background:#030912;border:1px solid #1c3048;border-radius:8px;padding:8px">Esperando Pixazo FLUX Schnell…</pre>
+  <pre id="sdActivityLog" style="margin:8px 0 0;max-height:145px;overflow:auto;white-space:pre-wrap;font-size:11px;line-height:1.35;background:#030912;border:1px solid #1c3048;border-radius:8px;padding:8px">Esperando Pixazo SD 3.5 IMG2IMG…</pre>
 </div>
 
 >
