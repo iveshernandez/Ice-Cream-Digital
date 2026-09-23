@@ -21,13 +21,17 @@ textarea{min-height:240px;resize:vertical}.pill{display:inline-block;padding:5px
 <div class="card">
 <h2>1. Clips de la historia</h2>
 <div class="grid">
-<div><label>Subir clips MP4/WebM/MOV</label><input id="files" type="file" accept="video/*" multiple></div>
-<div><label>Duración objetivo</label><select id="duration"><option value="120" selected>2:00 · 24 escenas de 5 s</option><option value="60">1:00 · 12 escenas</option><option value="90">1:30 · 18 escenas</option><option value="180">3:00 · 36 escenas</option></select></div>
+<div><label>Subir carpetas de historias</label><input id="files" type="file" accept="video/*" webkitdirectory directory multiple></div>
+<div><label>Modo automático</label><div class="mut">Cada carpeta = 1 video · nombre de carpeta = nombre del MP4 · clips en orden por nombre</div><input id="duration" type="hidden" value="120"></div>
 </div>
 <div id="summary" class="mut" style="margin-top:10px">Esperando clips…</div><div id="clips"></div>
 </div>
 
-<div class="card">
+<div class="card"><h2>2. Generación automática</h2>
+<div id="queue" class="status">Sube tus carpetas. Cada carpeta aparecerá aquí como un trabajo independiente.</div>
+<div style="margin-top:14px"><button id="generateOnly">🚀 GENERAR TODO</button></div>
+</div>
+<div class="card" style="display:none">
 <h2>2. Groq · comprender escenas y escribir la historia</h2>
 <div class="grid">
 <div><label>Groq API Key</label><input id="key" type="password" placeholder="gsk_..."></div>
@@ -37,14 +41,14 @@ textarea{min-height:240px;resize:vertical}.pill{display:inline-block;padding:5px
 <p class="mut">Se extraen 3 fotogramas por clip. Para evitar límites de imágenes, cada clip se analiza por separado. Después Groq recibe las descripciones de todas las escenas y crea un único guion narrativo de ~2 minutos.</p>
 </div>
 
-<div class="card"><h2>3. Resultado de Groq</h2><div class="grid">
+<div class="card" style="display:none"><h2>3. Resultado de Groq</h2><div class="grid">
 <div><label>Mapa de escenas</label><textarea id="sceneMap" placeholder="Aquí aparecerá qué ocurre en cada clip…"></textarea></div>
 <div><label>Guion final</label><textarea id="script" placeholder="Aquí aparecerá la narración continua…"></textarea></div>
 </div>
 <div class="row" style="margin-top:12px"><button id="copy" class="secondary">Copiar guion</button><button id="downloadTxt" class="secondary">Descargar TXT</button></div>
 </div>
 
-<div class="card"><h2>4. Alexander V + montaje final</h2>
+<div class="card" style="display:none"><h2>4. Alexander V + montaje final</h2>
 <div class="grid">
 <div><label>Título del video</label><input id="title" placeholder="Historia"></div>
 <div><label>Salida</label><select id="quality"><option value="720" selected>720 × 1280 · 30 FPS</option><option value="540">540 × 960 · 30 FPS</option></select></div>
@@ -62,13 +66,28 @@ const $=s=>document.querySelector(s), log=t=>{$('#log').textContent+=`\n${new Da
 let clips=[];
 $('#key').value=localStorage.getItem('story_groq_key')||'';
 $('#saveKey').onclick=()=>{localStorage.setItem('story_groq_key',$('#key').value.trim());log('Groq API Key guardada localmente.')};
+let jobs=[];
+function naturalCmp(a,b){return a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'})}
+function groupFolders(files){
+ const m=new Map();
+ for(const f of files){
+   if(!f.type.startsWith('video/'))continue;
+   const rel=f.webkitRelativePath||f.name, parts=rel.split('/');
+   const folder=parts.length>1?parts[0]:'Historia';
+   if(!m.has(folder))m.set(folder,[]);
+   m.get(folder).push(f);
+ }
+ return [...m].map(([name,files])=>({name,files:files.sort((a,b)=>naturalCmp(a.webkitRelativePath||a.name,b.webkitRelativePath||b.name)),status:'En cola'}));
+}
+function paintQueue(){
+ const q=document.querySelector('#queue'); if(!q)return;
+ q.innerHTML=jobs.length?jobs.map((j,i)=>`${i+1}. ${j.name} · ${j.files.length} clips · ${j.status}`).join('\n'):'Sube tus carpetas.';
+}
 $('#files').onchange=async e=>{
- clips=[...e.target.files];
+ jobs=groupFolders([...e.target.files]); paintQueue();
  $('#clips').innerHTML='';
- for(let i=0;i<clips.length;i++){let u=URL.createObjectURL(clips[i]);let d=document.createElement('div');d.className='clip';d.innerHTML=`<video src="${u}" muted controls preload="metadata"></video><small>${i+1}. ${clips[i].name}</small>`;$('#clips').appendChild(d)}
- const need=Math.round(+$('select#duration').value/5);
- $('#summary').innerHTML=`<span class="pill">${clips.length} clips cargados</span><span class="pill">${need} clips esperados</span><span class="pill">5 s por escena</span>`;
- log(`${clips.length} clips cargados.`);
+ $('#summary').textContent=`${jobs.length} carpeta(s) · ${jobs.reduce((n,j)=>n+j.files.length,0)} clips totales`;
+ log(`${jobs.length} carpetas cargadas en cola.`);
 };
 function frame(file,time){
  return new Promise((ok,no)=>{
@@ -137,6 +156,7 @@ async function alex(){
  function wav(ab){const n=ab.length,c=ab.numberOfChannels,sr=ab.sampleRate,arr=new ArrayBuffer(44+n*c*2),v=new DataView(arr),w=(o,s)=>[...s].forEach((x,i)=>v.setUint8(o+i,x.charCodeAt(0)));w(0,'RIFF');v.setUint32(4,36+n*c*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,c,true);v.setUint32(24,sr,true);v.setUint32(28,sr*c*2,true);v.setUint16(32,c*2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*c*2,true);let p=44;for(let i=0;i<n;i++)for(let z=0;z<c;z++){let x=Math.max(-1,Math.min(1,ab.getChannelData(z)[i]));v.setInt16(p,x<0?x*32768:x*32767,true);p+=2}return new Blob([arr],{type:'audio/wav'})}
  voiceBlob=wav(m);voiceSeconds=m.duration;await ac.close();const u=URL.createObjectURL(voiceBlob);Q('#audio').src=u;Q('#audio').style.display='block';L(`✅ Alexander V lista · ${voiceSeconds.toFixed(1)} s`);return voiceBlob;
 }
+window.storyAlex=alex;
 Q('#voice').onclick=()=>alex().catch(e=>L('❌ '+e.message));
 
 function srtText(){
@@ -172,6 +192,7 @@ async function render(){
  const data=await f.readFile('final.mp4'),blob=new Blob([data.buffer],{type:'video/mp4'}),a=document.createElement('a'),name=(Q('#title').value.trim()||'historia').replace(/[\\/:*?"<>|]/g,' ');
  a.href=URL.createObjectURL(blob);a.download=name+'.mp4';a.click();L(`✅ ${name}.mp4 terminado.`);
 }
+window.storyRender=render;
 Q('#render').onclick=()=>render().catch(e=>L('❌ Render: '+e.message));
 Q('#all').onclick=async()=>{try{if(!Q('#script').value.trim())await Q('#analyze').onclick();if(!Q('#script').value.trim())throw Error('Groq no produjo guion.');await alex();await render()}catch(e){L('❌ '+e.message)}};
 </script>
