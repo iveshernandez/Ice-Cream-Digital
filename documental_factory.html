@@ -397,7 +397,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 }
 </style>
 
-</head><body><div style="margin:10px;padding:10px 12px;border:1px solid #7c5c19;border-radius:10px;background:#241b07;color:#fde68a;font:12px system-ui"><b>VALIDACIÓN SEGURA:</b> sube el personaje UNA SOLA VEZ. La Factory intentará alojarlo temporalmente, obtener una URL directa y habilitar la validación de Pixazo. Primero valida 1 imagen; después prueba 5 escenas.</div>
+</head><body><div style="margin:10px;padding:10px 12px;border:1px solid #7c5c19;border-radius:10px;background:#241b07;color:#fde68a;font:12px system-ui"><b>SD 3.5 · DIAGNÓSTICO DE ACCESO:</b> usa el endpoint y parámetros documentados actualmente por Pixazo. Primero valida UNA imagen. Si responde 403, la Factory se detiene inmediatamente: significa que esa API Key no tiene acceso al endpoint, aunque Pixazo lo anuncie como gratuito durante preview.</div>
 
 <div id="icFactoryHeader">
   <div class="ic-brand">
@@ -4521,7 +4521,6 @@ async function generate(prompt,notify=ui){
     image:ref,
     cfg:4.5,
     steps:40,
-    aspect_ratio:'9:16',
     output_format:'webp',
     output_quality:90,
     prompt_strength:strength
@@ -4537,7 +4536,18 @@ async function generate(prompt,notify=ui){
     body:JSON.stringify(body)
   },PIXAZO_TIMEOUT_MS);
   const raw=await res.text(); let data={}; try{data=JSON.parse(raw)}catch(_){}
-  if(!res.ok)throw new Error(data?.error?.message||data?.message||`Pixazo SD3.5 HTTP ${res.status}`);
+  if(!res.ok){
+    const detail=data?.error?.message||data?.message||data?.error||raw||'';
+    const e=new Error(
+      res.status===401 ? `Pixazo HTTP 401 · API Key no autorizada. ${detail}` :
+      res.status===402 ? `Pixazo HTTP 402 · saldo/acceso requerido. ${detail}` :
+      res.status===403 ? `Pixazo HTTP 403 · tu API Key no tiene acceso a SD 3.5 en este momento. ${detail}` :
+      `Pixazo SD3.5 HTTP ${res.status} · ${detail}`
+    );
+    if([400,401,402,403,404].includes(res.status)) e.noRetry=true;
+    e.httpStatus=res.status;
+    throw e;
+  }
   const remote=data?.output||data?.imageUrl||data?.url;
   if(!remote)throw new Error('Pixazo SD 3.5 no devolvió imagen.');
   const ir=await fetch(remote);
