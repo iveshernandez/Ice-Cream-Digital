@@ -115,6 +115,36 @@ function folderFromSelection(files){
  const name=parts.length>1?parts[0]:'Historia';
  return {name,files:vids,status:'En cola'};
 }
+
+function showClips(){
+ const box=$('#clips');
+ if(!box)return;
+ box.innerHTML='';
+ if(!clips.length){$('#summary').textContent='Esperando clips…';return}
+ const wrap=document.createElement('div');
+ wrap.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:12px';
+ clips.forEach((f,i)=>{
+   const d=document.createElement('div');
+   d.style.cssText='padding:8px;border:1px solid #30384b;border-radius:8px;background:#0b0f18;font-size:11px;overflow:hidden';
+   d.textContent=`${i+1}. ${f.name}`;
+   d.title=f.webkitRelativePath||f.name;
+   wrap.appendChild(d);
+ });
+ box.appendChild(wrap);
+}
+function paintQueue(){
+ const q=$('#queue');
+ if(!q)return;
+ q.innerHTML='';
+ if(!jobs.length){q.textContent='Carga las cuatro carpetas arriba.';return}
+ jobs.forEach((j,i)=>{
+   const d=document.createElement('div');
+   d.style.cssText='padding:10px;margin:6px 0;border:1px solid #30384b;border-radius:8px;background:#0b0f18';
+   d.textContent=`${i+1}. ${j.name} · ${j.files.length} clips · ${j.status||'En cola'}`;
+   q.appendChild(d);
+ });
+}
+
 const folderSlots=[null,null,null,null];
 document.querySelectorAll('.folderInput').forEach(inp=>{
  inp.onchange=e=>{
@@ -175,6 +205,49 @@ $('#analyze').onclick=async()=>{
 $('#copy').onclick=()=>navigator.clipboard.writeText($('#script').value);
 $('#downloadTxt').onclick=()=>{const b=new Blob([$('#script').value],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='guion_historia.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 $('#clearQueue').onclick=()=>{jobs=[];clips=[];for(let i=0;i<4;i++){folderSlots[i]=null;const el=document.querySelector(`.folderInput[data-slot="${i}"]`);if(el)el.value='';const st=document.querySelector('#slot'+i);if(st)st.textContent='Sin cargar'}paintQueue();$('#summary').textContent='0/4 carpetas cargadas.';$('#clips').innerHTML='';log('🗑 Cola vaciada.');};
+
+let batchRunning=false,currentJobName='';
+async function analyzeJobClassic(){
+ if(!clips.length)throw Error('Esta historia no contiene clips.');
+ const target=clips.length*5,desc=[];
+ for(let i=0;i<clips.length;i++){
+   log(`👁️ ${currentJobName} · clip ${i+1}/${clips.length}`);
+   desc.push(await describeClip(clips[i],i));
+ }
+ $('#sceneMap').value=desc.map((x,n)=>`ESCENA ${n+1} [${n*5}-${(n+1)*5}s]\n${x}`).join('\n\n');
+ const map=desc.map((x,n)=>`ESCENA ${n+1} (${n*5}-${(n+1)*5}s): ${x}`).join('\n');
+ const prompt=`Estas son ${desc.length} escenas consecutivas de aproximadamente 5 segundos cada una. Construye una narración continua en español latino que acompañe exactamente el orden visual. Duración objetivo: ${target} segundos. Debe sentirse como una sola historia, con gancho, desarrollo y cierre. No digas escena, clip, imagen ni timestamps. No contradigas lo visible. Entrega únicamente la narración. Apunta aproximadamente a ${Math.round(target*2.25)}-${Math.round(target*2.55)} palabras.\n\nMAPA VISUAL:\n${map}`;
+ $('#script').value=await groq([{role:'system',content:'Eres guionista experto en narración audiovisual breve. La voz complementa lo visible y mantiene continuidad.'},{role:'user',content:prompt}],1800);
+ log(`✍️ ${currentJobName} · guion listo.`);
+}
+async function runBatchClassic(){
+ if(batchRunning)return;
+ syncGroq();
+ if(!jobs.length){log('❌ No hay carpetas cargadas.');return}
+ if(!$('#key').value.trim()){log('❌ Falta Groq API Key.');return}
+ if(typeof window.storyAlex!=='function'||typeof window.storyRender!=='function'){log('❌ Los módulos de voz/render aún no están listos. Espera 2 segundos y vuelve a pulsar GENERAR TODO.');return}
+ batchRunning=true;$('#generateOnly').disabled=true;
+ try{
+   for(let i=0;i<jobs.length;i++){
+     const j=jobs[i];
+     currentJobName=j.name;
+     clips=[...j.files];
+     window.currentClips=clips;
+     showClips();
+     $('#summary').textContent=`Procesando ${i+1}/${jobs.length}: ${j.name} · ${clips.length} clips`;
+     $('#title').value=j.name;$('#script').value='';$('#sceneMap').value='';
+     j.status='⚙️ Analizando';paintQueue();log(`📁 ${i+1}/${jobs.length} · ${j.name} · ${clips.length} clips`);
+     try{
+       await analyzeJobClassic();
+       j.status='🎙️ Alexander V';paintQueue();await window.storyAlex();
+       j.status='🎬 Renderizando';paintQueue();await window.storyRender();
+       j.status='✅ Terminado';paintQueue();
+     }catch(e){j.status='❌ '+(e.message||e);paintQueue();log(`❌ ${j.name}: ${e.message||e}`)}
+   }
+   log('🏁 Todas las carpetas terminaron.');
+ }finally{batchRunning=false;$('#generateOnly').disabled=false}
+}
+$('#generateOnly').onclick=runBatchClassic;
 </script>
 <script type="module">
 let voiceBlob=null, voiceSeconds=0, piper=null, alexReady=false, ffmpeg=null;
@@ -245,39 +318,7 @@ async function render(){
 window.storyRender=render;
 Q('#render').onclick=()=>render().catch(e=>L('❌ Render: '+e.message));
 
-let batchRunning=false,currentJobName='';
-async function analyzeJob(){
- if(!clips.length)throw Error('Esta historia no contiene clips.');
- const target=clips.length*5,desc=[];
- for(let i=0;i<clips.length;i++){L(`👁️ ${currentJobName} · clip ${i+1}/${clips.length}`);desc.push(await describeClip(clips[i],i))}
- Q('#sceneMap').value=desc.map((x,n)=>`ESCENA ${n+1} [${n*5}-${(n+1)*5}s]\n${x}`).join('\n\n');
- const map=desc.map((x,n)=>`ESCENA ${n+1} (${n*5}-${(n+1)*5}s): ${x}`).join('\n');
- const prompt=`Estas son ${desc.length} escenas consecutivas de aproximadamente 5 segundos cada una. Construye una narración continua en español latino que acompañe exactamente el orden visual. Duración objetivo: ${target} segundos. Debe sentirse como una sola historia, con gancho, desarrollo y cierre. No digas escena, clip, imagen ni timestamps. No contradigas lo visible. Entrega únicamente la narración. Apunta aproximadamente a ${Math.round(target*2.25)}-${Math.round(target*2.55)} palabras.\n\nMAPA VISUAL:\n${map}`;
- Q('#script').value=await groq([{role:'system',content:'Eres guionista experto en narración audiovisual breve. La voz complementa lo visible y mantiene continuidad.'},{role:'user',content:prompt}],1800);
- L(`✍️ ${currentJobName} · guion listo.`);
-}
-async function runBatch(){
- if(batchRunning)return;
- if(!jobs.length){L('❌ Selecciona primero la carpeta raíz.');return}
- syncGroq();if(!Q('#key').value.trim()){L('❌ Falta Groq API Key. Escríbela arriba y pulsa Guardar API.');return}
- batchRunning=true;Q('#generateOnly').disabled=true;
- try{
-  for(let i=0;i<jobs.length;i++){
-   const j=jobs[i];currentJobName=j.name;clips=[...j.files];window.currentClips=clips;voiceBlob=null;voiceSeconds=0;
-   showClips();
-   Q('#title').value=j.name;Q('#script').value='';Q('#sceneMap').value='';
-   j.status='⚙️ Analizando';paintQueue();L(`📁 ${i+1}/${jobs.length} · ${j.name}`);
-   try{
-    await analyzeJob();
-    j.status='🎙️ Alexander V';paintQueue();await alex();
-    j.status='🎬 Renderizando';paintQueue();await render();
-    j.status='✅ Terminado';paintQueue();
-   }catch(e){j.status='❌ '+(e.message||e);paintQueue();L(`❌ ${j.name}: ${e.message||e}`)}
-  }
-  L('🏁 Todas las carpetas terminaron.');
- }finally{batchRunning=false;Q('#generateOnly').disabled=false}
-}
-Q('#generateOnly').onclick=runBatch;
+window.dispatchEvent(new Event('storyModuleReady'));
 
 Q('#all').onclick=async()=>{try{if(!Q('#script').value.trim())await Q('#analyze').onclick();if(!Q('#script').value.trim())throw Error('Groq no produjo guion.');await alex();await render()}catch(e){L('❌ '+e.message)}};
 </script>
