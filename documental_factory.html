@@ -397,7 +397,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 }
 </style>
 
-</head><body><div style="margin:10px;padding:10px 12px;border:1px solid #7c5c19;border-radius:10px;background:#241b07;color:#fde68a;font:12px system-ui"><b>VALIDACIÓN SEGURA:</b> primero genera SOLO 1 imagen. Si Pixazo acepta la referencia y devuelve imagen, entonces prueba 5 escenas. La documentación oficial del endpoint SD 3.5 mostrado por Pixazo no incluye un campo de imagen en su ejemplo, por eso esta versión no lanza el lote completo sin validar.</div>
+</head><body><div style="margin:10px;padding:10px 12px;border:1px solid #7c5c19;border-radius:10px;background:#241b07;color:#fde68a;font:12px system-ui"><b>VALIDACIÓN SEGURA:</b> sube el personaje UNA SOLA VEZ. La Factory intentará alojarlo temporalmente, obtener una URL directa y habilitar la validación de Pixazo. Primero valida 1 imagen; después prueba 5 escenas.</div>
 
 <div id="icFactoryHeader">
   <div class="ic-brand">
@@ -445,11 +445,12 @@ window.addEventListener('DOMContentLoaded',()=>{
     <p class="tiny">Sube una imagen maestra. Groq Vision analizará únicamente su apariencia y esa identidad se añadirá a todas las escenas generadas por Pixazo.</p>
     <input id="characterRef" type="file" accept="image/png,image/jpeg,image/webp">
     <div style="margin-top:8px">
-      <label>URL pública de la MISMA imagen del personaje</label>
-      <input id="characterPublicUrl" type="url" placeholder="https://.../personaje.png">
-      <button id="validateSd35Btn" type="button" style="margin-top:7px">🧪 Validar 1 imagen con Pixazo</button>
-      <div id="sd35ValidationStatus" class="tiny" style="margin-top:6px">Estado: sin validar.</div>
-      <div class="tiny">Pixazo SD 3.5 exige una URL pública para recibir la referencia visual real.</div>
+      <label>Referencia pública automática</label>
+      <input id="characterPublicUrl" type="hidden">
+      <div id="autoHostStatus" class="tiny" style="margin-top:6px">Sube el personaje arriba. La Factory intentará crear automáticamente una URL temporal directa.</div>
+      <button id="validateSd35Btn" type="button" style="margin-top:7px" disabled>🧪 Validar 1 imagen con Pixazo</button>
+      <div id="sd35ValidationStatus" class="tiny" style="margin-top:6px">Estado: esperando personaje.</div>
+      <div class="tiny">Hosting temporal: tmpfiles.org. El archivo se elimina automáticamente después de aproximadamente 60 minutos.</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
       <div><label>Fuerza de cambio</label><input id="sd35Strength" type="number" min="0" max="1" step="0.05" value="0.50"></div>
@@ -4513,7 +4514,7 @@ async function generate(prompt,notify=ui){
   const key=getPixazoKey(false);
   if(!key)throw new Error('Falta la API Key de Pixazo. Guárdala antes de iniciar.');
   const ref=String(document.getElementById('characterPublicUrl')?.value||'').trim();
-  if(!/^https?:\/\//i.test(ref)){const e=new Error('CONFIG: pega una URL pública JPG/PNG/WEBP del personaje.');e.noRetry=true;throw e;}
+  if(!/^https?:\/\//i.test(ref)){const e=new Error('CONFIG: la referencia automática todavía no está lista. Vuelve a seleccionar la imagen y espera el mensaje URL temporal creada.');e.noRetry=true;throw e;}
   const strength=Math.max(0,Math.min(1,Number(document.getElementById('sd35Strength')?.value||0.50)));
   const body={
     prompt:String(prompt||'').trim(),
@@ -4735,6 +4736,62 @@ window.addEventListener('load',()=>{
       s.textContent='❌ NO VALIDADO: '+(e?.message||e);
     }finally{b.disabled=false;}
   });
+})();
+</script>
+
+
+<script>
+(function(){
+  const input=document.getElementById('characterRef');
+  const urlBox=document.getElementById('characterPublicUrl');
+  const hostStatus=document.getElementById('autoHostStatus');
+  const validate=document.getElementById('validateSd35Btn');
+  const validation=document.getElementById('sd35ValidationStatus');
+  if(!input||!urlBox||!hostStatus||!validate)return;
+
+  async function uploadTmpFiles(file){
+    const fd=new FormData();
+    fd.append('file',file,file.name||'personaje.png');
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),45000);
+    try{
+      const r=await fetch('https://tmpfiles.org/api/v1/upload',{
+        method:'POST',body:fd,signal:ctrl.signal
+      });
+      const raw=await r.text();
+      let j={}; try{j=JSON.parse(raw)}catch(_){}
+      if(!r.ok)throw new Error(j?.message||`HTTP ${r.status}`);
+      let u=String(j?.data?.url||'').trim();
+      if(!u)throw new Error('El hosting no devolvió URL.');
+      // tmpfiles public page -> direct-download URL
+      u=u.replace(/^https?:\/\/tmpfiles\.org\//i,'https://tmpfiles.org/dl/');
+      return u;
+    }finally{clearTimeout(timer);}
+  }
+
+  input.addEventListener('change',async()=>{
+    const file=input.files?.[0];
+    urlBox.value='';
+    validate.disabled=true;
+    if(!file)return;
+    if(!/^image\/(png|jpeg|webp)$/i.test(file.type||'')){
+      hostStatus.textContent='❌ Usa PNG, JPG/JPEG o WEBP.';
+      return;
+    }
+    hostStatus.textContent='⏳ Creando URL temporal directa automáticamente…';
+    validation.textContent='Estado: esperando URL temporal.';
+    try{
+      const direct=await uploadTmpFiles(file);
+      urlBox.value=direct;
+      hostStatus.textContent='✅ URL temporal creada automáticamente: '+direct;
+      validation.textContent='Estado: referencia lista. Pulsa “Validar 1 imagen con Pixazo”.';
+      validate.disabled=false;
+    }catch(e){
+      const msg=e?.name==='AbortError'?'tiempo de espera agotado':(e?.message||e);
+      hostStatus.textContent='❌ No se pudo crear la URL automática: '+msg;
+      validation.textContent='No se enviará nada a Pixazo.';
+    }
+  },true);
 })();
 </script>
 
