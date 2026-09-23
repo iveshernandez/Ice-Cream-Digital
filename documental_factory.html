@@ -397,7 +397,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 }
 </style>
 
-</head><body><div style="margin:10px;padding:10px 12px;border:1px solid #7c5c19;border-radius:10px;background:#241b07;color:#fde68a;font:12px system-ui"><b>PRUEBA DE CONSISTENCIA:</b> inicia con 5 escenas y fuerza 0.50. Esta versión envía la referencia visual real a SD 3.5 mediante una URL pública.</div>
+</head><body><div style="margin:10px;padding:10px 12px;border:1px solid #7c5c19;border-radius:10px;background:#241b07;color:#fde68a;font:12px system-ui"><b>VALIDACIÓN SEGURA:</b> primero genera SOLO 1 imagen. Si Pixazo acepta la referencia y devuelve imagen, entonces prueba 5 escenas. La documentación oficial del endpoint SD 3.5 mostrado por Pixazo no incluye un campo de imagen en su ejemplo, por eso esta versión no lanza el lote completo sin validar.</div>
 
 <div id="icFactoryHeader">
   <div class="ic-brand">
@@ -447,11 +447,13 @@ window.addEventListener('DOMContentLoaded',()=>{
     <div style="margin-top:8px">
       <label>URL pública de la MISMA imagen del personaje</label>
       <input id="characterPublicUrl" type="url" placeholder="https://.../personaje.png">
+      <button id="validateSd35Btn" type="button" style="margin-top:7px">🧪 Validar 1 imagen con Pixazo</button>
+      <div id="sd35ValidationStatus" class="tiny" style="margin-top:6px">Estado: sin validar.</div>
       <div class="tiny">Pixazo SD 3.5 exige una URL pública para recibir la referencia visual real.</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
       <div><label>Fuerza de cambio</label><input id="sd35Strength" type="number" min="0" max="1" step="0.05" value="0.50"></div>
-      <div><label>Prueba</label><select id="sd35TestCount"><option value="5" selected>5 escenas</option><option value="0">Todas</option></select></div>
+      <div><label>Prueba</label><select id="sd35TestCount"><option value="1" selected>1 imagen · validar endpoint</option><option value="5">5 escenas · después de validar</option><option value="0">Todas · después de validar</option></select></div>
     </div>
     <div id="characterPreviewWrap" style="display:none;margin-top:8px;grid-template-columns:90px 1fr;gap:10px;align-items:start">
       <img id="characterPreview" style="width:90px;aspect-ratio:9/16;object-fit:cover;border-radius:9px;border:1px solid var(--l);background:#000">
@@ -2703,7 +2705,7 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
     if(match){match.className='match';match.textContent=`⏳ Escena ${idx+1} en cola · Pixazo 6X`;}
   });
 
-  const requestedTestCount=Number(document.getElementById('sd35TestCount')?.value||0);
+  const requestedTestCount=Number(document.getElementById('sd35TestCount')?.value||1);
   if(requestedTestCount>0 && arr.length>requestedTestCount){
     arr.splice(requestedTestCount);
     imageProviderLog(`🧪 SD3.5 IMG2IMG · prueba limitada a ${requestedTestCount} escenas.`);
@@ -4511,13 +4513,14 @@ async function generate(prompt,notify=ui){
   const key=getPixazoKey(false);
   if(!key)throw new Error('Falta la API Key de Pixazo. Guárdala antes de iniciar.');
   const ref=String(document.getElementById('characterPublicUrl')?.value||'').trim();
-  if(!/^https?:\/\//i.test(ref))throw new Error('Pega la URL pública de la imagen del personaje para SD 3.5 IMG2IMG.');
+  if(!/^https?:\/\//i.test(ref)){const e=new Error('CONFIG: pega una URL pública JPG/PNG/WEBP del personaje.');e.noRetry=true;throw e;}
   const strength=Math.max(0,Math.min(1,Number(document.getElementById('sd35Strength')?.value||0.50)));
   const body={
     prompt:String(prompt||'').trim(),
     image:ref,
     cfg:4.5,
-    steps:28,
+    steps:40,
+    aspect_ratio:'9:16',
     output_format:'webp',
     output_quality:90,
     prompt_strength:strength
@@ -4701,6 +4704,37 @@ window.addEventListener('load',()=>{
    if(!v || /^•+$/.test(v)){msg.textContent='Escribe una API Key nueva.';return;}
    localStorage.setItem('pixazo_api_key',v); inp.value='••••••••••••'; msg.textContent='✓ API Key guardada';
  };
+})();
+</script>
+
+
+<script>
+(function(){
+  const b=document.getElementById('validateSd35Btn');
+  const s=document.getElementById('sd35ValidationStatus');
+  if(!b||!s)return;
+  b.addEventListener('click',async()=>{
+    const ref=String(document.getElementById('characterPublicUrl')?.value||'').trim();
+    if(!/^https?:\/\//i.test(ref)){
+      s.textContent='❌ Falta URL pública de la referencia.';
+      return;
+    }
+    s.textContent='⏳ Validando una sola solicitud…';
+    b.disabled=true;
+    try{
+      if(typeof window.sdTurboLocalGenerate!=='function') throw new Error('Generador Pixazo no inicializado.');
+      const identity=String(window.dfCharacterIdentity||localStorage.getItem('dfCharacterIdentity')||'same reference character');
+      const prompt=`${identity}. Keep the exact same character design, clothing, colors, face, proportions and art style. Full body, standing in a modern city street, vertical cinematic composition.`;
+      const r=await window.sdTurboLocalGenerate(prompt,(m)=>{s.textContent='⏳ '+m;});
+      if(!r?.url) throw new Error('Pixazo respondió sin imagen.');
+      s.innerHTML='✅ VALIDADO: Pixazo devolvió una imagen. Ya puedes seleccionar 5 escenas.';
+      const img=document.createElement('img');
+      img.src=r.url; img.alt='Prueba Pixazo'; img.style='display:block;max-width:220px;max-height:320px;margin-top:8px;border-radius:10px';
+      s.appendChild(img);
+    }catch(e){
+      s.textContent='❌ NO VALIDADO: '+(e?.message||e);
+    }finally{b.disabled=false;}
+  });
 })();
 </script>
 
