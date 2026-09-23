@@ -52,7 +52,7 @@ textarea{min-height:240px;resize:vertical}.pill{display:inline-block;padding:5px
 <h2>2. Groq · comprender escenas y escribir la historia</h2>
 <div class="grid">
 <div><label>Groq API Key</label><input id="key" type="password" placeholder="gsk_..."></div>
-<div><label>Modelo de visión</label><input id="model" value="meta-llama/llama-4-scout-17b-16e-instruct"></div>
+<div><label>Modelo de visión</label><input id="model" value="qwen/qwen3.8-27b"></div>
 </div>
 <div class="row" style="margin-top:12px"><button id="analyze">🧠 Analizar clips + crear guion</button><button id="saveKey" class="secondary">Guardar key localmente</button></div>
 <p class="mut">Se extraen 3 fotogramas por clip. Para evitar límites de imágenes, cada clip se analiza por separado. Después Groq recibe las descripciones de todas las escenas y crea un único guion narrativo de ~2 minutos.</p>
@@ -76,7 +76,7 @@ textarea{min-height:240px;resize:vertical}.pill{display:inline-block;padding:5px
 <p class="mut">El render normaliza cada clip a 5 segundos, formato vertical y 30 FPS; concatena todos los clips y coloca la narración Alexander V. También genera un SRT sincronizado por bloques. Esta versión prioriza que el flujo completo funcione primero; después afinamos subtítulos incrustados, música y estilo.</p>
 </div>
 
-<div class="card"><h2>Registro</h2><div id="log" class="status">Factory lista.</div></div>
+<div class="card"><h2>Registro</h2><div id="log" class="status">Factory lista. Vision Groq: qwen/qwen3.8-27b.</div></div>
 </div>
 <script>
 const $=s=>document.querySelector(s), log=t=>{$('#log').textContent+=`\n${new Date().toLocaleTimeString()} — ${t}`;$('#log').scrollTop=999999};
@@ -101,7 +101,7 @@ document.querySelector('#saveGroqVisible')?.addEventListener('click',()=>{
  document.querySelector('#groqVisibleStatus').textContent='✅ Groq API guardada en este navegador.';
  log('✅ Groq API guardada.');
 });
-if(savedGroq && document.querySelector('#groqVisibleStatus'))document.querySelector('#groqVisibleStatus').textContent='✅ Groq API recuperada del navegador.';
+if(savedGroq && document.querySelector('#groqVisibleStatus'))document.querySelector('#groqVisibleStatus').textContent='✅ Groq API recuperada del navegador. Modelo Vision: qwen/qwen3.8-27b.';
 
 $('#key').value=localStorage.getItem('story_groq_key')||'';
 $('#saveKey').onclick=()=>{localStorage.setItem('story_groq_key',$('#key').value.trim());log('Groq API Key guardada localmente.')};
