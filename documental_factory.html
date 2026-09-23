@@ -450,7 +450,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         <div id="characterStatus" class="status mut">Esperando imagen…</div>
         <textarea id="characterIdentity" rows="5" placeholder="La descripción fija del personaje aparecerá aquí" style="min-height:92px!important"></textarea>
         <div class="actions"><button type="button" class="sec" id="reanalyzeCharacter">🔎 Analizar personaje</button><button type="button" class="danger" id="clearCharacter">Quitar</button></div>
-      <div id="vibesPanel" style="margin-top:9px;padding:9px;border:1px solid #314662;border-radius:9px;background:#091523">
+      <div id="vibesPanel" class="hiddenAuto" style="display:none">
         <b style="font-size:10px">✨ Vibes.ai · personaje de referencia</b>
         <div class="tiny" style="margin-top:4px">Modo sin extensión: Documental Factory prepara todos los prompts para Vibes y luego importa las imágenes generadas en el mismo orden. El navegador no puede controlar directamente otra web sin una API oficial o un puente.</div>
         <div class="actions">
@@ -513,7 +513,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
     <div class="engineState loading" id="engineVoice"><span class="engineDot"></span><span class="engineText">Voz · Alexander V <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
-    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Vibes con personaje / Pixazo sin personaje <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
+    <div class="engineState loading" id="engineImage"><span class="engineDot"></span><span class="engineText">Imágenes · Pixazo + animación 2.5D automática <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
     <div class="engineState loading" id="engineFfmpeg"><span class="engineDot"></span><span class="engineText">FFmpeg.wasm <b class="enginePct">0%</b><small>Inicializando…</small><span class="engineTrack"><i></i></span></span></div>
   </div>
 </div>
@@ -2356,9 +2356,7 @@ async function dfGenerateHFReferenceImage(prompt){
 }
 
 async function generateAIImage(prompt){
-  if(dfCharacterDataURL && window.dfUseVibesCharacter){
-    throw new Error('VIBES_IMPORT_REQUIRED');
-  }
+  if(dfCharacterDataURL && window.dfUseVibesCharacter){ window.dfUseVibesCharacter=false; }
   const waitStart=Date.now();
   while(typeof window.sdTurboLocalGenerate!=='function'){
     if(Date.now()-waitStart>15000)throw new Error('Pixazo FLUX Schnell no terminó de iniciar.');
@@ -2706,7 +2704,7 @@ REGLAS CRÍTICAS DE CONCORDANCIA VISUAL:
   }
 
   // VIBES AUTO MODE: generate image + animate each scene through IceCream Vibes Bridge.
-  if(dfCharacterDataURL && window.dfUseVibesCharacter!==false){
+  if(false && dfCharacterDataURL && window.dfUseVibesCharacter!==false){
     window.dfUseVibesCharacter=true;
     window.dfVibesScenes=arr;
     window.dfVibesPromptText=arr.map((x,i)=>`SCENE ${i+1}\n${x.image_prompt}`).join('\n\n');
@@ -4756,7 +4754,7 @@ window.addEventListener('load',()=>{
 
 <script id="vibes-integrated-workflow">
 (function(){
-  window.dfUseVibesCharacter=true;
+  window.dfUseVibesCharacter=false;
   const $=s=>document.querySelector(s);
   function status(t,ok=false){const e=$('#vibesStatus');if(e){e.textContent=t;e.className='status '+(ok?'ok':'mut');}}
   function prompts(){return String(window.dfVibesPromptText||'').trim();}
@@ -4841,6 +4839,23 @@ window.addEventListener('load',()=>{
 })();
 </script>
 
+
+<script id="icecream-2-5d-auto-v1">
+(function(){
+  window.dfUseVibesCharacter=false;
+  window.dfVibesWaiting=false;
+  const panel=document.getElementById('vibesPanel'); if(panel) panel.style.display='none';
+  const st=document.getElementById('engineImage');
+  if(st){ const t=st.querySelector('.engineText'); if(t) t.childNodes[0].nodeValue='Imágenes · Pixazo + animación 2.5D automática '; }
+  const oldRender=window.render;
+  // Existing scene renderer already assigns six alternating motion patterns.
+  // FFmpeg turns each still into a 30 fps 720x1280 moving scene with zoom/pan/fades.
+  document.addEventListener('DOMContentLoaded',()=>{
+    const c=document.getElementById('characterStatus');
+    if(c && c.textContent.includes('Esperando')) c.textContent='Opcional: la referencia ayuda a Groq a describir el personaje; Pixazo genera las imágenes y FFmpeg las anima en 2.5D.';
+  });
+})();
+</script>
 </body></html>
 
 <style>
