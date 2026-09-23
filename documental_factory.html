@@ -123,6 +123,13 @@ document.querySelectorAll('.folderInput').forEach(inp=>{
    if(!j){log(`❌ Carpeta ${slot+1} no contiene videos.`);return}
    folderSlots[slot]=j;
    jobs=folderSlots.filter(Boolean);
+   // Keep the legacy clip pipeline synchronized with the four-folder queue.
+   // This makes preview/analyzer see real File objects instead of an empty global clips array.
+   if(!clips.length || slot===0){
+     clips=j.files;
+     window.currentClips=clips;
+     showClips();
+   }
    document.querySelector('#slot'+slot).textContent=`✅ ${j.name} · ${j.files.length} clips`;
    paintQueue();
    $('#summary').textContent=`${jobs.length}/4 carpetas cargadas · ${jobs.reduce((n,x)=>n+x.files.length,0)} clips totales`;
@@ -217,15 +224,17 @@ async function getFF(){
  L('✅ FFmpeg listo.');return ffmpeg;
 }
 async function render(){
- if(!clips.length)throw Error('No hay clips.');if(!voiceBlob)await alex();
+ const activeClips=window.currentClips||[];
+
+ if(!activeClips.length)throw Error('No hay clips.');if(!voiceBlob)await alex();
  const f=await getFF(),W=+Q('#quality').value,H=W===720?1280:960;
- L(`🎬 Normalizando ${clips.length} clips…`);
+ L(`🎬 Normalizando ${activeClips.length} clips…`);
  let list='';
- for(let i=0;i<clips.length;i++){
-  const ext=(clips[i].name.split('.').pop()||'mp4').replace(/\W/g,'');const inp=`in${i}.${ext}`,out=`c${i}.mp4`;
-  await f.writeFile(inp,new Uint8Array(await clips[i].arrayBuffer()));
+ for(let i=0;i<activeClips.length;i++){
+  const ext=(activeClips[i].name.split('.').pop()||'mp4').replace(/\W/g,'');const inp=`in${i}.${ext}`,out=`c${i}.mp4`;
+  await f.writeFile(inp,new Uint8Array(await activeClips[i].arrayBuffer()));
   await f.exec(['-i',inp,'-t','5','-vf',`scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},fps=30`,'-an','-c:v','libx264','-preset','ultrafast','-crf','23',out]);
-  list+=`file '${out}'\n`;L(`🎞️ Clip ${i+1}/${clips.length} listo.`);
+  list+=`file '${out}'\n`;L(`🎞️ Clip ${i+1}/${activeClips.length} listo.`);
  }
  await f.writeFile('list.txt',new TextEncoder().encode(list));await f.writeFile('voice.wav',new Uint8Array(await voiceBlob.arrayBuffer()));
  L('🔗 Uniendo clips + Alexander V…');
@@ -254,7 +263,8 @@ async function runBatch(){
  batchRunning=true;Q('#generateOnly').disabled=true;
  try{
   for(let i=0;i<jobs.length;i++){
-   const j=jobs[i];currentJobName=j.name;clips=j.files;voiceBlob=null;voiceSeconds=0;
+   const j=jobs[i];currentJobName=j.name;clips=[...j.files];window.currentClips=clips;voiceBlob=null;voiceSeconds=0;
+   showClips();
    Q('#title').value=j.name;Q('#script').value='';Q('#sceneMap').value='';
    j.status='⚙️ Analizando';paintQueue();L(`📁 ${i+1}/${jobs.length} · ${j.name}`);
    try{
