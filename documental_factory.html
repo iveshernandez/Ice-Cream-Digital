@@ -1,325 +1,345 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Documental Factory · Story Clips</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TXT + Clips · Alexander V · FFmpeg</title>
 <style>
 :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0b0d12;color:#f4f6fb;font-family:system-ui,Segoe UI,Arial}
-.wrap{max-width:1180px;margin:auto;padding:24px}.hero,.card{background:#131722;border:1px solid #293041;border-radius:18px;padding:20px;margin-bottom:16px}
-h1{margin:0 0 8px;font-size:28px}.mut{color:#9ba6ba}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-label{display:block;font-weight:700;margin-bottom:7px}input,select,button,textarea{width:100%;border:1px solid #343d51;border-radius:12px;background:#0e121b;color:white;padding:12px}
-button{cursor:pointer;font-weight:800;background:#f4f6fb;color:#111827;border:0}.secondary{background:#222938;color:white}.danger{background:#5a2028;color:white}
-.row{display:flex;gap:10px}.row>*{flex:1}.status{white-space:pre-wrap;background:#090c12;border:1px solid #283043;padding:14px;border-radius:12px;min-height:100px;max-height:280px;overflow:auto;font-family:ui-monospace,Consolas,monospace;font-size:12px}
-#clips{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.clip{background:#0c1018;border:1px solid #283043;border-radius:12px;padding:8px}.clip video{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:8px;background:#000}.clip small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:5px}
-textarea{min-height:240px;resize:vertical}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#222938;margin:3px;font-size:12px}
-@media(max-width:800px){.grid{grid-template-columns:1fr}#clips{grid-template-columns:repeat(2,1fr)}}
+.wrap{max-width:1120px;margin:auto;padding:24px}.hero,.card{background:#131722;border:1px solid #293041;border-radius:18px;padding:20px;margin-bottom:16px}
+h1,h2{margin-top:0}.mut{color:#9ba6ba}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+label{display:block;font-weight:700;margin-bottom:7px}input,button,textarea{width:100%;border:1px solid #343d51;border-radius:12px;background:#0e121b;color:white;padding:12px}
+button{cursor:pointer;font-weight:800;background:#f4f6fb;color:#111827;border:0}.secondary{background:#222938;color:white}
+.row{display:flex;gap:10px}.row>*{flex:1}.status{white-space:pre-wrap;background:#090c12;border:1px solid #283043;padding:14px;border-radius:12px;min-height:110px;max-height:280px;overflow:auto;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.pill{padding:6px 10px;border-radius:999px;background:#222938;font-size:12px}
+#clipsList{max-height:260px;overflow:auto;margin-top:10px}.cliprow{padding:8px;border-bottom:1px solid #283043}
+textarea{min-height:170px;resize:vertical}audio,video{width:100%;margin-top:12px}video{max-height:520px;background:#000;border-radius:12px}
+progress{width:100%;height:18px;margin-top:12px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.row{display:block}.row>*{margin-top:8px}}
 </style>
 </head>
 <body><div class="wrap">
-<div class="hero"><h1>🎬 ICECREAM DIGITAL · Documental Factory</h1><div class="mut">Nuevo enfoque: clips reales → análisis visual → guion continuo → narración → montaje. Sin Pixazo ni generación de imágenes.</div></div>
 
-<div class="card">
-<h2>1. Clips de la historia</h2>
-<div class="grid">
-<div style="grid-column:1/-1">
-<label>Sube las 4 carpetas de historias</label>
-<div class="grid" id="folderSlots">
-  <div><label>📁 Carpeta 1</label><input class="folderInput" data-slot="0" type="file" accept="video/*" webkitdirectory directory multiple><div id="slot0" class="mut">Sin cargar</div></div>
-  <div><label>📁 Carpeta 2</label><input class="folderInput" data-slot="1" type="file" accept="video/*" webkitdirectory directory multiple><div id="slot1" class="mut">Sin cargar</div></div>
-  <div><label>📁 Carpeta 3</label><input class="folderInput" data-slot="2" type="file" accept="video/*" webkitdirectory directory multiple><div id="slot2" class="mut">Sin cargar</div></div>
-  <div><label>📁 Carpeta 4</label><input class="folderInput" data-slot="3" type="file" accept="video/*" webkitdirectory directory multiple><div id="slot3" class="mut">Sin cargar</div></div>
-</div>
-<input id="duration" type="hidden" value="120">
-<p class="mut">Cada espacio conserva su propia carpeta. El nombre de esa carpeta será el nombre exacto del MP4 final.</p>
-</div>
-</div>
-<div id="summary" class="mut" style="margin-top:10px">Esperando clips…</div><div id="clips"></div>
+<div class="hero">
+<h1>🎬 TXT + Clips · Alexander V · FFmpeg</h1>
+<div class="mut">Primera línea del TXT = título y nombre del MP4. Desde la segunda línea = guion. Alexander V genera la narración y los subtítulos. Los clips se ordenan automáticamente por nombre.</div>
 </div>
 
 <div class="card">
-<h2>2. Groq API</h2>
-<div class="grid">
-  <div><label>Groq API Key</label><input id="groqVisible" type="password" placeholder="gsk_..." autocomplete="off"></div>
-  <div><label>&nbsp;</label><button id="saveGroqVisible" class="secondary">💾 Guardar API</button></div>
+<h2>1. TXT de la historia</h2>
+<input id="txt" type="file" accept=".txt,text/plain">
+<div class="pills">
+<span class="pill" id="titleStat">Título: —</span>
+<span class="pill" id="wordsStat">Guion: 0 palabras</span>
+<span class="pill" id="voiceStat">Audio: —</span>
 </div>
-<div id="groqVisibleStatus" class="mut" style="margin-top:10px">La API se guarda únicamente en este navegador.</div>
-</div>
-<div class="card"><h2>3. Generación automática</h2>
-<div id="queue" class="status">Carga una carpeta en cada uno de los 4 espacios. Luego pulsa GENERAR TODO y se procesarán en orden: 1 → 2 → 3 → 4.</div>
-<div class="row" style="margin-top:14px"><button id="generateOnly">🚀 GENERAR TODO</button><button id="clearQueue" class="danger">🗑 Vaciar cola</button></div>
-</div>
-<div class="card" style="display:none">
-<h2>2. Groq · comprender escenas y escribir la historia</h2>
-<div class="grid">
-<div><label>Groq API Key</label><input id="key" type="password" placeholder="gsk_..."></div>
-<div><label>Modelo de visión</label><input id="model" value="qwen/qwen3.8-27b"></div>
-</div>
-<div class="row" style="margin-top:12px"><button id="analyze">🧠 Analizar clips + crear guion</button><button id="saveKey" class="secondary">Guardar key localmente</button></div>
-<p class="mut">Se extraen 3 fotogramas por clip. Para evitar límites de imágenes, cada clip se analiza por separado. Después Groq recibe las descripciones de todas las escenas y crea un único guion narrativo de ~2 minutos.</p>
+<div style="margin-top:14px"><label>Guion detectado</label><textarea id="script" readonly placeholder="Aquí aparecerá el contenido desde la segunda línea del TXT..."></textarea></div>
 </div>
 
-<div class="card" style="display:none"><h2>3. Resultado de Groq</h2><div class="grid">
-<div><label>Mapa de escenas</label><textarea id="sceneMap" placeholder="Aquí aparecerá qué ocurre en cada clip…"></textarea></div>
-<div><label>Guion final</label><textarea id="script" placeholder="Aquí aparecerá la narración continua…"></textarea></div>
-</div>
-<div class="row" style="margin-top:12px"><button id="copy" class="secondary">Copiar guion</button><button id="downloadTxt" class="secondary">Descargar TXT</button></div>
-</div>
-
-<div class="card" style="display:none"><h2>4. Alexander V + montaje final</h2>
-<div class="grid">
-<div><label>Título del video</label><input id="title" placeholder="Historia"></div>
-<div><label>Salida</label><select id="quality"><option value="720" selected>720 × 1280 · 30 FPS</option><option value="540">540 × 960 · 30 FPS</option></select></div>
-</div>
-<div class="row" style="margin-top:12px"><button id="voice">🎙️ Generar Alexander V</button><button id="render">🎬 Renderizar MP4 final</button></div>
-<audio id="audio" controls style="width:100%;margin-top:12px;display:none"></audio>
-<div class="row" style="margin-top:12px"><button id="srt" class="secondary">⬇ Descargar subtítulos SRT</button><button id="all" class="secondary">⚡ HACER TODO AUTOMÁTICO</button></div>
-<p class="mut">El render normaliza cada clip a 5 segundos, formato vertical y 30 FPS; concatena todos los clips y coloca la narración Alexander V. También genera un SRT sincronizado por bloques. Esta versión prioriza que el flujo completo funcione primero; después afinamos subtítulos incrustados, música y estilo.</p>
+<div class="card">
+<h2>2. Clips</h2>
+<input id="clips" type="file" accept="video/*" multiple>
+<div id="clipsList" class="mut">Esperando clips…</div>
 </div>
 
-<div class="card"><h2>Registro</h2><div id="log" class="status">Factory lista. Vision Groq: qwen/qwen3.8-27b.</div></div>
+<div class="card">
+<h2>3. Generación</h2>
+<div class="row">
+<button id="all">🚀 GENERAR TODO</button>
+<button id="voice" class="secondary">🎙️ SOLO AUDIO</button>
+<button id="srt" class="secondary">⬇ SRT</button>
 </div>
-<script>
-const $=s=>document.querySelector(s), log=t=>{$('#log').textContent+=`\n${new Date().toLocaleTimeString()} — ${t}`;$('#log').scrollTop=999999};
-let clips=[];
+<div class="row">
+<button id="loadFF" class="secondary">⚙️ CARGAR FFMPEG</button>
+<button id="render" class="secondary">🎬 SOLO RENDER</button>
+</div>
+<progress id="bar" max="1" value="0"></progress>
+<audio id="audio" controls style="display:none"></audio>
+</div>
 
-const groqVisible=document.querySelector('#groqVisible');
-const hiddenGroq=document.querySelector('#key');
-const savedGroq=localStorage.getItem('story_groq_key')||localStorage.getItem('groq_api_key')||'';
-if(groqVisible)groqVisible.value=savedGroq;
-if(hiddenGroq)hiddenGroq.value=savedGroq;
-function syncGroq(){
- const v=(groqVisible?.value||'').trim();
- if(hiddenGroq)hiddenGroq.value=v;
- return v;
-}
-groqVisible?.addEventListener('input',syncGroq);
-document.querySelector('#saveGroqVisible')?.addEventListener('click',()=>{
- const v=syncGroq();
- if(!v){document.querySelector('#groqVisibleStatus').textContent='❌ Escribe primero tu Groq API Key.';return}
- localStorage.setItem('story_groq_key',v);
- localStorage.setItem('groq_api_key',v);
- document.querySelector('#groqVisibleStatus').textContent='✅ Groq API guardada en este navegador.';
- log('✅ Groq API guardada.');
-});
-if(savedGroq && document.querySelector('#groqVisibleStatus'))document.querySelector('#groqVisibleStatus').textContent='✅ Groq API recuperada del navegador. Modelo Vision: qwen/qwen3.8-27b.';
+<div class="card">
+<h2>Resultado</h2>
+<video id="preview" controls playsinline></video>
+<button id="download" style="display:none;margin-top:12px">⬇ DESCARGAR MP4</button>
+</div>
 
-$('#key').value=localStorage.getItem('story_groq_key')||'';
-$('#saveKey').onclick=()=>{localStorage.setItem('story_groq_key',$('#key').value.trim());log('Groq API Key guardada localmente.')};
-let jobs=[];
-function naturalCmp(a,b){return a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'})}
-function folderFromSelection(files){
- const vids=files.filter(f=>f.type.startsWith('video/')).sort((a,b)=>naturalCmp(a.webkitRelativePath||a.name,b.webkitRelativePath||b.name));
- if(!vids.length)return null;
- const rel=vids[0].webkitRelativePath||vids[0].name;
- const parts=rel.split('/').filter(Boolean);
- const name=parts.length>1?parts[0]:'Historia';
- return {name,files:vids,status:'En cola'};
-}
+<div class="card"><h2>Registro</h2><div id="log" class="status">Listo. Carga un TXT y tus clips.</div></div>
 
-function showClips(){
- const box=$('#clips');
- if(!box)return;
- box.innerHTML='';
- if(!clips.length){$('#summary').textContent='Esperando clips…';return}
- const wrap=document.createElement('div');
- wrap.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:12px';
- clips.forEach((f,i)=>{
-   const d=document.createElement('div');
-   d.style.cssText='padding:8px;border:1px solid #30384b;border-radius:8px;background:#0b0f18;font-size:11px;overflow:hidden';
-   d.textContent=`${i+1}. ${f.name}`;
-   d.title=f.webkitRelativePath||f.name;
-   wrap.appendChild(d);
- });
- box.appendChild(wrap);
-}
-function paintQueue(){
- const q=$('#queue');
- if(!q)return;
- q.innerHTML='';
- if(!jobs.length){q.textContent='Carga las cuatro carpetas arriba.';return}
- jobs.forEach((j,i)=>{
-   const d=document.createElement('div');
-   d.style.cssText='padding:10px;margin:6px 0;border:1px solid #30384b;border-radius:8px;background:#0b0f18';
-   d.textContent=`${i+1}. ${j.name} · ${j.files.length} clips · ${j.status||'En cola'}`;
-   q.appendChild(d);
- });
-}
+</div>
 
-const folderSlots=[null,null,null,null];
-document.querySelectorAll('.folderInput').forEach(inp=>{
- inp.onchange=e=>{
-   const slot=+inp.dataset.slot;
-   const j=folderFromSelection([...e.target.files]);
-   if(!j){log(`❌ Carpeta ${slot+1} no contiene videos.`);return}
-   folderSlots[slot]=j;
-   jobs=folderSlots.filter(Boolean);
-   // Keep the legacy clip pipeline synchronized with the four-folder queue.
-   // This makes preview/analyzer see real File objects instead of an empty global clips array.
-   if(!clips.length || slot===0){
-     clips=j.files;
-     window.currentClips=clips;
-     showClips();
-   }
-   document.querySelector('#slot'+slot).textContent=`✅ ${j.name} · ${j.files.length} clips`;
-   paintQueue();
-   $('#summary').textContent=`${jobs.length}/4 carpetas cargadas · ${jobs.reduce((n,x)=>n+x.files.length,0)} clips totales`;
-   log(`📁 Espacio ${slot+1}: ${j.name} · ${j.files.length} clips.`);
- };
-});
-function frame(file,time){
- return new Promise((ok,no)=>{
-  const v=document.createElement('video'),u=URL.createObjectURL(file);v.src=u;v.muted=true;v.preload='auto';
-  v.onloadedmetadata=()=>{v.currentTime=Math.min(Math.max(0,time),Math.max(.01,v.duration-.05))};
-  v.onseeked=()=>{const c=document.createElement('canvas');const max=640,scale=Math.min(1,max/v.videoWidth);c.width=Math.round(v.videoWidth*scale);c.height=Math.round(v.videoHeight*scale);c.getContext('2d').drawImage(v,0,0,c.width,c.height);let x=c.toDataURL('image/jpeg',.72);URL.revokeObjectURL(u);ok(x)};
-  v.onerror=()=>no(new Error('No se pudo leer '+file.name));
- });
-}
-async function groq(messages,max_tokens=900){
- const key=$('#key').value.trim(); if(!key)throw new Error('Falta Groq API Key.');
- const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model:$('#model').value.trim(),messages,temperature:.35,max_tokens})});
- const raw=await r.text();let j={};try{j=JSON.parse(raw)}catch{}
- if(!r.ok)throw new Error(`Groq HTTP ${r.status}: ${j?.error?.message||raw}`);
- return j.choices?.[0]?.message?.content?.trim()||'';
-}
-async function describeClip(file,i){
- const dur=await new Promise((ok,no)=>{let v=document.createElement('video'),u=URL.createObjectURL(file);v.src=u;v.preload='metadata';v.onloadedmetadata=()=>{let d=v.duration;URL.revokeObjectURL(u);ok(d)};v.onerror=no});
- const ts=[Math.min(.4,dur*.1),dur*.5,Math.max(.1,dur-.4)];
- const imgs=[];for(const t of ts)imgs.push(await frame(file,t));
- const content=[{type:'text',text:`Analiza SOLO este clip, escena ${i+1}. Los tres fotogramas son inicio, mitad y final del mismo clip. Describe en español de forma objetiva: personajes/objetos visibles, acción o cambio durante el clip, lugar, emoción visual y cualquier detalle narrativo útil. No inventes nombres, pensamientos ni hechos no visibles. Devuelve máximo 90 palabras.`},...imgs.map(x=>({type:'image_url',image_url:{url:x}}))];
- return await groq([{role:'user',content}],250);
-}
-$('#analyze').onclick=async()=>{
- try{
-  if(!clips.length)throw new Error('Sube primero los clips.');
-  const target=+$('select#duration').value, expected=Math.round(target/5);
-  log(`Inicio de análisis: ${clips.length} clips. Objetivo ${target}s.`);
-  const desc=[];
-  for(let i=0;i<clips.length;i++){log(`👁️ Analizando clip ${i+1}/${clips.length}…`);desc.push(await describeClip(clips[i],i));$('#sceneMap').value=desc.map((x,n)=>`ESCENA ${n+1} [${n*5}-${(n+1)*5}s]\n${x}`).join('\n\n')}
-  log('✍️ Groq está construyendo la historia completa…');
-  const map=desc.map((x,n)=>`ESCENA ${n+1} (${n*5}-${(n+1)*5}s): ${x}`).join('\n');
-  const prompt=`Estas son ${desc.length} escenas consecutivas de aproximadamente 5 segundos cada una. Construye una narración continua en español latino que acompañe exactamente el orden visual. Duración objetivo: ${target} segundos. El guion debe sentirse como una sola historia, no como descripciones separadas. Usa un gancho fuerte al inicio, desarrollo natural y cierre satisfactorio. Puedes inferir conexiones narrativas razonables, pero no contradigas lo visible. No digas "escena", "clip", "imagen" ni timestamps. Entrega únicamente el texto que debe narrar la voz, sin títulos, acotaciones ni viñetas. Para ${target} segundos apunta aproximadamente a ${Math.round(target*2.25)}-${Math.round(target*2.55)} palabras, priorizando naturalidad.\n\nMAPA VISUAL:\n${map}`;
-  $('#script').value=await groq([{role:'system',content:'Eres guionista experto en narración audiovisual breve. El video manda: la voz debe complementar lo que se ve y mantener continuidad.'},{role:'user',content:prompt}],1400);
-  log(`✅ Guion terminado · ${$('#script').value.trim().split(/\s+/).length} palabras.`);
- }catch(e){log('❌ '+(e.message||e))}
-};
-$('#copy').onclick=()=>navigator.clipboard.writeText($('#script').value);
-$('#downloadTxt').onclick=()=>{const b=new Blob([$('#script').value],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='guion_historia.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
-$('#clearQueue').onclick=()=>{jobs=[];clips=[];for(let i=0;i<4;i++){folderSlots[i]=null;const el=document.querySelector(`.folderInput[data-slot="${i}"]`);if(el)el.value='';const st=document.querySelector('#slot'+i);if(st)st.textContent='Sin cargar'}paintQueue();$('#summary').textContent='0/4 carpetas cargadas.';$('#clips').innerHTML='';log('🗑 Cola vaciada.');};
-
-let batchRunning=false,currentJobName='';
-async function analyzeJobClassic(){
- if(!clips.length)throw Error('Esta historia no contiene clips.');
- const target=clips.length*5,desc=[];
- for(let i=0;i<clips.length;i++){
-   log(`👁️ ${currentJobName} · clip ${i+1}/${clips.length}`);
-   desc.push(await describeClip(clips[i],i));
- }
- $('#sceneMap').value=desc.map((x,n)=>`ESCENA ${n+1} [${n*5}-${(n+1)*5}s]\n${x}`).join('\n\n');
- const map=desc.map((x,n)=>`ESCENA ${n+1} (${n*5}-${(n+1)*5}s): ${x}`).join('\n');
- const prompt=`Estas son ${desc.length} escenas consecutivas de aproximadamente 5 segundos cada una. Construye una narración continua en español latino que acompañe exactamente el orden visual. Duración objetivo: ${target} segundos. Debe sentirse como una sola historia, con gancho, desarrollo y cierre. No digas escena, clip, imagen ni timestamps. No contradigas lo visible. Entrega únicamente la narración. Apunta aproximadamente a ${Math.round(target*2.25)}-${Math.round(target*2.55)} palabras.\n\nMAPA VISUAL:\n${map}`;
- $('#script').value=await groq([{role:'system',content:'Eres guionista experto en narración audiovisual breve. La voz complementa lo visible y mantiene continuidad.'},{role:'user',content:prompt}],1800);
- log(`✍️ ${currentJobName} · guion listo.`);
-}
-async function runBatchClassic(){
- if(batchRunning)return;
- syncGroq();
- if(!jobs.length){log('❌ No hay carpetas cargadas.');return}
- if(!$('#key').value.trim()){log('❌ Falta Groq API Key.');return}
- if(typeof window.storyAlex!=='function'||typeof window.storyRender!=='function'){log('❌ Los módulos de voz/render aún no están listos. Espera 2 segundos y vuelve a pulsar GENERAR TODO.');return}
- batchRunning=true;$('#generateOnly').disabled=true;
- try{
-   for(let i=0;i<jobs.length;i++){
-     const j=jobs[i];
-     currentJobName=j.name;
-     clips=[...j.files];
-     window.currentClips=clips;
-     showClips();
-     $('#summary').textContent=`Procesando ${i+1}/${jobs.length}: ${j.name} · ${clips.length} clips`;
-     $('#title').value=j.name;$('#script').value='';$('#sceneMap').value='';
-     j.status='⚙️ Analizando';paintQueue();log(`📁 ${i+1}/${jobs.length} · ${j.name} · ${clips.length} clips`);
-     try{
-       await analyzeJobClassic();
-       j.status='🎙️ Alexander V';paintQueue();await window.storyAlex();
-       j.status='🎬 Renderizando';paintQueue();await window.storyRender();
-       j.status='✅ Terminado';paintQueue();
-     }catch(e){j.status='❌ '+(e.message||e);paintQueue();log(`❌ ${j.name}: ${e.message||e}`)}
-   }
-   log('🏁 Todas las carpetas terminaron.');
- }finally{batchRunning=false;$('#generateOnly').disabled=false}
-}
-$('#generateOnly').onclick=runBatchClassic;
-</script>
 <script type="module">
-let voiceBlob=null, voiceSeconds=0, piper=null, alexReady=false, ffmpeg=null;
-const Q=s=>document.querySelector(s), sleep=ms=>new Promise(r=>setTimeout(r,ms));
-function L(x){const el=Q('#log');el.textContent+=`\n${new Date().toLocaleTimeString()} — ${x}`;el.scrollTop=999999}
-function splitText(t,max=360){const a=(t||'').replace(/\s+/g,' ').trim().match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[];let o=[],c='';for(let x of a){x=x.trim();if((c+' '+x).trim().length<=max)c=(c+' '+x).trim();else{if(c)o.push(c);c=x}}if(c)o.push(c);return o}
+const $=s=>document.querySelector(s);
+const L=x=>{const e=$("#log");e.textContent+=`\n${new Date().toLocaleTimeString()} — ${x}`;e.scrollTop=999999};
+
+let title="",clips=[],voiceBlob=null,voiceSeconds=0,piper=null,alexReady=false,ffmpeg=null,ffLoading=null,ffReady=false,finalBlob=null,finalURL=null;
+
+function naturalCmp(a,b){return a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:"base"})}
+function safeName(s){return (s||"video").replace(/[\\/:*?"<>|]/g," ").replace(/\s+/g," ").trim()||"video"}
+
+$("#txt").onchange=async e=>{
+ const f=e.target.files[0]; if(!f)return;
+ const raw=(await f.text()).replace(/^\uFEFF/,"").replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+ const lines=raw.split("\n");
+ title=(lines.shift()||"").trim();
+ const script=lines.join("\n").trim();
+ $("#script").value=script;
+ $("#titleStat").textContent="Título: "+(title||"—");
+ $("#wordsStat").textContent="Guion: "+(script?script.split(/\s+/).length:0)+" palabras";
+ voiceBlob=null;voiceSeconds=0;$("#voiceStat").textContent="Audio: —";$("#audio").style.display="none";
+ L(`📄 TXT cargado · título: ${title||"(sin título)"}`);
+ if(!script)L("❌ El TXT no contiene guion después de la primera línea.");
+};
+
+$("#clips").onchange=e=>{
+ clips=[...e.target.files].filter(f=>f.type.startsWith("video/")).sort(naturalCmp);
+ $("#clipsList").innerHTML=clips.length?clips.map((f,i)=>`<div class="cliprow">${i+1}. ${f.name.replace(/[&<>"]/g,"")}</div>`).join(""):"Esperando clips…";
+ L(`🎞️ ${clips.length} clips cargados y ordenados.`);
+};
+
+function splitText(t,max=360){
+ const a=(t||"").replace(/\s+/g," ").trim().match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[];
+ let o=[],c="";
+ for(let x of a){x=x.trim();if((c+" "+x).trim().length<=max)c=(c+" "+x).trim();else{if(c)o.push(c);c=x}}
+ if(c)o.push(c);return o
+}
 async function getPiper(){
  if(piper)return piper;
- for(const u of ['https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm','https://esm.run/@mintplex-labs/piper-tts-web@1.0.4']){
+ for(const u of ["https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm","https://esm.run/@mintplex-labs/piper-tts-web@1.0.4"]){
   try{piper=await import(u);return piper}catch(e){}
  }
- throw Error('No se pudo cargar Piper TTS.');
+ throw Error("No se pudo cargar Piper TTS.");
+}
+function wav(ab){
+ const n=ab.length,c=ab.numberOfChannels,sr=ab.sampleRate,arr=new ArrayBuffer(44+n*c*2),v=new DataView(arr);
+ const w=(o,s)=>[...s].forEach((x,i)=>v.setUint8(o+i,x.charCodeAt(0)));
+ w(0,"RIFF");v.setUint32(4,36+n*c*2,true);w(8,"WAVE");w(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,c,true);v.setUint32(24,sr,true);v.setUint32(28,sr*c*2,true);v.setUint16(32,c*2,true);v.setUint16(34,16,true);w(36,"data");v.setUint32(40,n*c*2,true);
+ let p=44;for(let i=0;i<n;i++)for(let z=0;z<c;z++){let x=Math.max(-1,Math.min(1,ab.getChannelData(z)[i]));v.setInt16(p,x<0?x*32768:x*32767,true);p+=2}
+ return new Blob([arr],{type:"audio/wav"})
 }
 async function alex(){
- const t=await getPiper(),voiceId='es_ES-sharvard-medium';
- if(!alexReady){L('🎙️ Preparando Alexander V…');let stored=[];try{stored=await t.stored()}catch(e){}
-  if(!stored?.includes?.(voiceId))await t.download(voiceId,p=>{if(p?.loaded&&p?.total)L(`Alexander V ${Math.round(p.loaded*100/p.total)}%`)});
+ const text=$("#script").value.trim();if(!text)throw Error("Carga un TXT con guion.");
+ const t=await getPiper(),voiceId="es_ES-sharvard-medium";
+ if(!alexReady){
+  L("🎙️ Preparando Alexander V…");let stored=[];try{stored=await t.stored()}catch(e){}
+  if(!stored?.includes?.(voiceId)){
+   let lastPct=-5;
+   await t.download(voiceId,p=>{
+    if(p?.loaded&&p?.total){
+     const pct=Math.round(p.loaded*100/p.total);
+     if(pct>lastPct && (pct===100 || pct>=lastPct+5)){lastPct=pct;L(`Alexander V ${pct}%`)}
+    }
+   });
+  }
   alexReady=true;
  }
- const text=Q('#script').value.trim();if(!text)throw Error('No hay guion.');
- const chunks=splitText(text), blobs=[];
+ const chunks=splitText(text),blobs=[];
  for(let i=0;i<chunks.length;i++){L(`🎙️ Alexander V · parte ${i+1}/${chunks.length}`);blobs.push(await t.predict({text:chunks[i],voiceId,speakerId:0},()=>{}))}
- const ac=new AudioContext(), bufs=[];
+ const ac=new AudioContext(),bufs=[];
  for(const b of blobs)bufs.push(await ac.decodeAudioData(await b.arrayBuffer()));
  const sr=bufs[0].sampleRate,ch=bufs[0].numberOfChannels,total=bufs.reduce((n,b)=>n+b.length,0),m=ac.createBuffer(ch,total,sr);let off=0;
  for(const b of bufs){for(let c=0;c<ch;c++)m.getChannelData(c).set(b.getChannelData(Math.min(c,b.numberOfChannels-1)),off);off+=b.length}
- function wav(ab){const n=ab.length,c=ab.numberOfChannels,sr=ab.sampleRate,arr=new ArrayBuffer(44+n*c*2),v=new DataView(arr),w=(o,s)=>[...s].forEach((x,i)=>v.setUint8(o+i,x.charCodeAt(0)));w(0,'RIFF');v.setUint32(4,36+n*c*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,c,true);v.setUint32(24,sr,true);v.setUint32(28,sr*c*2,true);v.setUint16(32,c*2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*c*2,true);let p=44;for(let i=0;i<n;i++)for(let z=0;z<c;z++){let x=Math.max(-1,Math.min(1,ab.getChannelData(z)[i]));v.setInt16(p,x<0?x*32768:x*32767,true);p+=2}return new Blob([arr],{type:'audio/wav'})}
- voiceBlob=wav(m);voiceSeconds=m.duration;await ac.close();const u=URL.createObjectURL(voiceBlob);Q('#audio').src=u;Q('#audio').style.display='block';L(`✅ Alexander V lista · ${voiceSeconds.toFixed(1)} s`);return voiceBlob;
+ voiceBlob=wav(m);voiceSeconds=m.duration;await ac.close();
+ $("#audio").src=URL.createObjectURL(voiceBlob);$("#audio").style.display="block";$("#voiceStat").textContent=`Audio: ${voiceSeconds.toFixed(1)} s`;
+ L(`✅ Alexander V lista · ${voiceSeconds.toFixed(1)} s`);
+ return voiceBlob
 }
-window.storyAlex=alex;
-Q('#voice').onclick=()=>alex().catch(e=>L('❌ '+e.message));
+$("#voice").onclick=()=>alex().catch(e=>L("❌ "+e.message));
 
 function srtText(){
- const words=Q('#script').value.trim().split(/\s+/), total=voiceSeconds||(+Q('#duration').value), per=7, groups=[];for(let i=0;i<words.length;i+=per)groups.push(words.slice(i,i+per).join(' '));
- const fmt=x=>{let ms=Math.floor((x%1)*1000),s=Math.floor(x)%60,m=Math.floor(x/60)%60,h=Math.floor(x/3600);return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(ms).padStart(3,'0')}`};
- return groups.map((g,i)=>`${i+1}\n${fmt(i*total/groups.length)} --> ${fmt((i+1)*total/groups.length)}\n${g}\n`).join('\n');
+ const words=$("#script").value.trim().split(/\s+/).filter(Boolean);if(!words.length)throw Error("No hay guion.");
+ if(!voiceSeconds)throw Error("Genera primero Alexander V.");
+ const per=7,groups=[];for(let i=0;i<words.length;i+=per)groups.push(words.slice(i,i+per).join(" "));
+ const fmt=x=>{let ms=Math.floor((x%1)*1000),s=Math.floor(x)%60,m=Math.floor(x/60)%60,h=Math.floor(x/3600);return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")},${String(ms).padStart(3,"0")}`};
+ return groups.map((g,i)=>`${i+1}\n${fmt(i*voiceSeconds/groups.length)} --> ${fmt((i+1)*voiceSeconds/groups.length)}\n${g}\n`).join("\n")
 }
-Q('#srt').onclick=()=>{let b=new Blob([srtText()],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='subtitulos.srt';a.click()};
+$("#srt").onclick=()=>{try{const b=new Blob([srtText()],{type:"text/plain;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=safeName(title)+"_subtitulos.srt";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}catch(e){L("❌ "+e.message)}};
+
+let ffmpegClassWorkerURL=null;
+
+function getFFmpegClassWorkerURL(){
+  if(ffmpegClassWorkerURL) return ffmpegClassWorkerURL;
+
+  // Worker principal de @ffmpeg/ffmpeg 0.12.x, creado como Blob del MISMO origen.
+  // Esto evita que el navegador intente abrir worker.js directamente desde esm.sh.
+  const workerCode=`
+const FFMessageType={
+  LOAD:"LOAD",EXEC:"EXEC",WRITE_FILE:"WRITE_FILE",READ_FILE:"READ_FILE",
+  DELETE_FILE:"DELETE_FILE",RENAME:"RENAME",CREATE_DIR:"CREATE_DIR",
+  LIST_DIR:"LIST_DIR",DELETE_DIR:"DELETE_DIR",ERROR:"ERROR",
+  PROGRESS:"PROGRESS",LOG:"LOG",MOUNT:"MOUNT",UNMOUNT:"UNMOUNT"
+};
+const ERROR_UNKNOWN_MESSAGE_TYPE=new Error("unknown message type");
+const ERROR_NOT_LOADED=new Error("ffmpeg is not loaded, call await ffmpeg.load() first");
+const ERROR_IMPORT_FAILURE=new Error("failed to import ffmpeg-core.js");
+let ffmpeg;
+
+const load=async({coreURL:_coreURL,wasmURL:_wasmURL,workerURL:_workerURL}={})=>{
+  const first=!ffmpeg;
+  try{
+    // En Worker tipo module normalmente importScripts no existe.
+    importScripts(_coreURL);
+  }catch(_){
+    const mod=await import(_coreURL);
+    self.createFFmpegCore=mod.default||mod.createFFmpegCore||self.createFFmpegCore;
+    if(!self.createFFmpegCore) throw ERROR_IMPORT_FAILURE;
+  }
+  if(!self.createFFmpegCore && typeof createFFmpegCore!=="undefined"){
+    self.createFFmpegCore=createFFmpegCore;
+  }
+  if(!self.createFFmpegCore) throw ERROR_IMPORT_FAILURE;
+
+  const coreURL=_coreURL;
+  const wasmURL=_wasmURL||_coreURL.replace(/\\.js$/g,".wasm");
+  const workerURL=_workerURL||_coreURL.replace(/\\.js$/g,".worker.js");
+
+  ffmpeg=await self.createFFmpegCore({
+    mainScriptUrlOrBlob:coreURL+"#"+btoa(JSON.stringify({wasmURL,workerURL}))
+  });
+
+  ffmpeg.setLogger(data=>self.postMessage({type:FFMessageType.LOG,data}));
+  ffmpeg.setProgress(data=>self.postMessage({type:FFMessageType.PROGRESS,data}));
+  return first;
+};
+
+const exec=({args,timeout=-1})=>{
+  ffmpeg.setTimeout(timeout);
+  ffmpeg.exec(...args);
+  const ret=ffmpeg.ret;
+  ffmpeg.reset();
+  return ret;
+};
+const writeFile=({path,data})=>{ffmpeg.FS.writeFile(path,data);return true};
+const readFile=({path,encoding})=>ffmpeg.FS.readFile(path,{encoding});
+const deleteFile=({path})=>{ffmpeg.FS.unlink(path);return true};
+const rename=({oldPath,newPath})=>{ffmpeg.FS.rename(oldPath,newPath);return true};
+const createDir=({path})=>{ffmpeg.FS.mkdir(path);return true};
+const listDir=({path})=>ffmpeg.FS.readdir(path).map(name=>{
+  const stat=ffmpeg.FS.stat(path+"/"+name);
+  return {name,isDir:ffmpeg.FS.isDir(stat.mode)};
+});
+const deleteDir=({path})=>{ffmpeg.FS.rmdir(path);return true};
+const mount=({fsType,options,mountPoint})=>{
+  const fs=ffmpeg.FS.filesystems[fsType];
+  if(!fs)return false;
+  ffmpeg.FS.mount(fs,options,mountPoint);
+  return true;
+};
+const unmount=({mountPoint})=>{ffmpeg.FS.unmount(mountPoint);return true};
+
+self.onmessage=async({data:{id,type,data:_data}})=>{
+  const trans=[];
+  let data;
+  try{
+    if(type!==FFMessageType.LOAD&&!ffmpeg)throw ERROR_NOT_LOADED;
+    switch(type){
+      case FFMessageType.LOAD:data=await load(_data);break;
+      case FFMessageType.EXEC:data=exec(_data);break;
+      case FFMessageType.WRITE_FILE:data=writeFile(_data);break;
+      case FFMessageType.READ_FILE:data=readFile(_data);break;
+      case FFMessageType.DELETE_FILE:data=deleteFile(_data);break;
+      case FFMessageType.RENAME:data=rename(_data);break;
+      case FFMessageType.CREATE_DIR:data=createDir(_data);break;
+      case FFMessageType.LIST_DIR:data=listDir(_data);break;
+      case FFMessageType.DELETE_DIR:data=deleteDir(_data);break;
+      case FFMessageType.MOUNT:data=mount(_data);break;
+      case FFMessageType.UNMOUNT:data=unmount(_data);break;
+      default:throw ERROR_UNKNOWN_MESSAGE_TYPE;
+    }
+  }catch(e){
+    self.postMessage({id,type:FFMessageType.ERROR,data:e?.toString?.()||String(e)});
+    return;
+  }
+  if(data instanceof Uint8Array)trans.push(data.buffer);
+  self.postMessage({id,type,data},trans);
+};
+`;
+  ffmpegClassWorkerURL=URL.createObjectURL(
+    new Blob([workerCode],{type:'text/javascript'})
+  );
+  return ffmpegClassWorkerURL;
+}
 
 async function getFF(){
- if(ffmpeg)return ffmpeg;
- L('⚙️ Cargando FFmpeg.wasm…');
- const [{FFmpeg},{toBlobURL}]=await Promise.all([import('https://esm.sh/@ffmpeg/ffmpeg@0.12.10'),import('https://esm.sh/@ffmpeg/util@0.12.1')]);
- ffmpeg=new FFmpeg();ffmpeg.on('log',({message})=>console.log(message));
- const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
- await ffmpeg.load({coreURL:await toBlobURL(base+'/ffmpeg-core.js','text/javascript'),wasmURL:await toBlobURL(base+'/ffmpeg-core.wasm','application/wasm')});
- L('✅ FFmpeg listo.');return ffmpeg;
+  if(ffmpeg) return ffmpeg;
+  if(ffLoading) return ffLoading;
+
+  ffLoading=(async()=>{
+    L("⚙️ Cargando motor de render FFmpeg…");
+
+    const {FFmpeg}=await import('https://esm.sh/@ffmpeg/ffmpeg@0.12.10');
+    const {toBlobURL}=await import('https://esm.sh/@ffmpeg/util@0.12.1');
+
+    const ffmpeg=new FFmpeg();
+    ffmpeg.on('log',({message})=>console.log('[FFmpeg]',message));
+    ffmpeg.on('progress',({progress})=>{
+      const p=Math.max(0,Math.min(1,Number(progress)||0));
+      $("#bar").value=p;
+    });
+
+    // Usamos el CORE ESM como Blob. El worker principal también es Blob,
+    // por lo que ya no existe un Worker cruzado hacia esm.sh.
+    const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
+    const coreURL=await toBlobURL(base+'/ffmpeg-core.js','text/javascript');
+    const wasmURL=await toBlobURL(base+'/ffmpeg-core.wasm','application/wasm');
+
+    await ffmpeg.load({
+      classWorkerURL:getFFmpegClassWorkerURL(),
+      coreURL,
+      wasmURL
+    });
+
+    ffmpeg=ffmpeg;
+    ffReady=true; L("✅ FFmpeg listo.");
+    return ffmpeg;
+  })().catch(err=>{
+    ffLoading=null;
+    ffmpeg=null;
+    throw err;
+  });
+
+  return ffLoading;
 }
+$("#loadFF").onclick=()=>getFF().catch(e=>L("❌ FFmpeg: "+e.message));
+
 async function render(){
- const activeClips=window.currentClips||[];
-
- if(!activeClips.length)throw Error('No hay clips.');if(!voiceBlob)await alex();
- const f=await getFF(),W=+Q('#quality').value,H=W===720?1280:960;
- L(`🎬 Normalizando ${activeClips.length} clips…`);
- let list='';
- for(let i=0;i<activeClips.length;i++){
-  const ext=(activeClips[i].name.split('.').pop()||'mp4').replace(/\W/g,'');const inp=`in${i}.${ext}`,out=`c${i}.mp4`;
-  await f.writeFile(inp,new Uint8Array(await activeClips[i].arrayBuffer()));
-  await f.exec(['-i',inp,'-t','5','-vf',`scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},fps=30`,'-an','-c:v','libx264','-preset','ultrafast','-crf','23',out]);
-  list+=`file '${out}'\n`;L(`🎞️ Clip ${i+1}/${activeClips.length} listo.`);
+ if(!clips.length)throw Error("Carga los clips.");
+ if(!voiceBlob)await alex();
+ const f=await getFF(),W=720,H=1280;let list="";
+ L(`🎬 Normalizando ${clips.length} clips…`);
+ for(let i=0;i<clips.length;i++){
+  const ext=(clips[i].name.split(".").pop()||"mp4").replace(/\W/g,""),inp=`in${i}.${ext}`,out=`c${i}.mp4`;
+  await f.writeFile(inp,new Uint8Array(await clips[i].arrayBuffer()));
+  await f.exec(["-i",inp,"-vf",`scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},fps=30`,"-an","-c:v","libx264","-preset","ultrafast","-crf","23",out]);
+  list+=`file '${out}'\n`;L(`🎞️ Clip ${i+1}/${clips.length} listo.`);
  }
- await f.writeFile('list.txt',new TextEncoder().encode(list));await f.writeFile('voice.wav',new Uint8Array(await voiceBlob.arrayBuffer()));
- L('🔗 Uniendo clips + Alexander V…');
- await f.exec(['-f','concat','-safe','0','-i','list.txt','-i','voice.wav','-c:v','copy','-c:a','aac','-b:a','160k','-shortest','final.mp4']);
- const data=await f.readFile('final.mp4'),blob=new Blob([data.buffer],{type:'video/mp4'}),a=document.createElement('a'),name=(Q('#title').value.trim()||'historia').replace(/[\\/:*?"<>|]/g,' ');
- a.href=URL.createObjectURL(blob);a.download=name+'.mp4';a.click();L(`✅ ${name}.mp4 terminado.`);
+ await f.writeFile("list.txt",new TextEncoder().encode(list));
+ await f.writeFile("voice.wav",new Uint8Array(await voiceBlob.arrayBuffer()));
+ await f.exec(["-f","concat","-safe","0","-i","list.txt","-c","copy","joined.mp4"]);
+ L("🔗 Sincronizando clips con Alexander V…");
+ await f.exec(["-stream_loop","-1","-i","joined.mp4","-i","voice.wav","-map","0:v:0","-map","1:a:0","-c:v","libx264","-preset","ultrafast","-crf","23","-c:a","aac","-b:a","160k","-r","30","-pix_fmt","yuv420p","-shortest","-movflags","+faststart","final.mp4"]);
+ const data=await f.readFile("final.mp4");finalBlob=new Blob([data.buffer],{type:"video/mp4"});
+ if(finalURL)URL.revokeObjectURL(finalURL);finalURL=URL.createObjectURL(finalBlob);$("#preview").src=finalURL;$("#download").style.display="block";$("#bar").value=1;
+ L(`✅ ${safeName(title)}.mp4 terminado.`);
+ return finalBlob
 }
-window.storyRender=render;
-Q('#render').onclick=()=>render().catch(e=>L('❌ Render: '+e.message));
+$("#render").onclick=()=>render().catch(e=>L("❌ Render: "+e.message));
 
-window.dispatchEvent(new Event('storyModuleReady'));
+$("#download").onclick=()=>{if(!finalBlob)return;const a=document.createElement("a");a.href=finalURL;a.download=safeName(title)+".mp4";a.click()};
 
-Q('#all').onclick=async()=>{try{if(!Q('#script').value.trim())await Q('#analyze').onclick();if(!Q('#script').value.trim())throw Error('Groq no produjo guion.');await alex();await render()}catch(e){L('❌ '+e.message)}};
+$("#all").onclick=async()=>{
+ $("#all").disabled=true;
+ try{
+  if(!title)throw Error("Carga primero el TXT.");
+  if(!$("#script").value.trim())throw Error("El TXT no tiene guion después de la primera línea.");
+  if(!clips.length)throw Error("Carga los clips.");
+  L(`🚀 Iniciando: ${title}`);
+  await alex();
+  // Create SRT automatically in memory; downloadable with SRT button.
+  srtText();
+  await render();
+  L("🏁 Proceso completo terminado.");
+ }catch(e){L("❌ "+e.message)}
+ finally{$("#all").disabled=false}
+};
 </script>
 </body></html>
