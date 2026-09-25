@@ -269,7 +269,7 @@ async function getFF(){
     const {FFmpeg}=await import('https://esm.sh/@ffmpeg/ffmpeg@0.12.10');
     const {toBlobURL}=await import('https://esm.sh/@ffmpeg/util@0.12.1');
 
-    const ffmpeg=new FFmpeg();
+    ffmpeg=new FFmpeg();
     ffmpeg.on('log',({message})=>console.log('[FFmpeg]',message));
     ffmpeg.on('progress',({progress})=>{
       const p=Math.max(0,Math.min(1,Number(progress)||0));
