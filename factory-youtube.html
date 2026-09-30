@@ -2743,6 +2743,47 @@ function expandSemanticScenesToShots(scenes){
   return out;
 }
 
+async function refineExpandedShotsWithGroq(shots,title,contentDomain){
+  // The first director pass finds semantic sections. This second pass gives EVERY short shot
+  // its own concrete English stock query. It prevents 6-10 consecutive shots from reusing
+  // the same search merely because they came from the same paragraph.
+  const out=[];
+  const batchSize=10;
+  for(let base=0;base<shots.length;base+=batchSize){
+    const batch=shots.slice(base,base+batchSize);
+    const payload=batch.map((x,j)=>({id:base+j,narration:String(x.narration||'')}));
+    st(`🧠 Director visual ${base+1}-${base+batch.length}/${shots.length}: creando búsquedas únicas…`);
+    const prompt=`You are the visual director for a long YouTube video. Topic: ${contentDomain||title||'general documentary'}.
+For EACH numbered narration fragment below, choose a DIFFERENT concrete stock-photo visual that literally supports that fragment.
+Return ONLY valid JSON: {"shots":[{"id":0,"image_prompt":"4-8 English words","alt_queries":["3-7 English words","3-7 English words","3-7 English words"],"visual_description":"8-16 English words","subject":"English visible subject","action":"English visible action","setting":"English physical setting","objects":["visible object"],"must_include":["essential visible concept"],"avoid_terms":["misleading visible concept"]}]}
+RULES: queries MUST be English; use physical people/actions/objects/places; never copy Spanish narration into image_prompt; never use abstract words as the main search; no metaphors; no animals unless narration literally discusses animals; no text/illustration/vector/cinematic/style words; do not repeat the same visual in adjacent shots. For personal finance use real actions such as paying bills, checking bank account, budgeting, shopping, credit card, cash, investment screen, house, small business, receipts, calculator, grocery aisle when they fit the exact narration. Preserve every id exactly.
+SHOTS:\n${JSON.stringify(payload)}`;
+    try{
+      const raw=await ai(prompt);
+      let parsed;
+      try{parsed=JSON.parse(String(raw).replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'').trim())}catch(_){parsed=null}
+      const plans=Array.isArray(parsed?.shots)?parsed.shots:[];
+      const byId=new Map(plans.map(x=>[Number(x.id),x]));
+      for(let j=0;j<batch.length;j++){
+        const original=batch[j], plan=byId.get(base+j)||plans[j];
+        if(plan && String(plan.image_prompt||'').trim().split(/\s+/).length>=2){
+          out.push({...original,...plan,narration:original.narration,
+            image_prompt:String(plan.image_prompt).trim(),
+            alt_queries:(Array.isArray(plan.alt_queries)?plan.alt_queries:[]).map(String).filter(Boolean).slice(0,4),
+            objects:(Array.isArray(plan.objects)?plan.objects:[]).map(String).filter(Boolean),
+            must_include:(Array.isArray(plan.must_include)?plan.must_include:[]).map(String).filter(Boolean),
+            avoid_terms:(Array.isArray(plan.avoid_terms)?plan.avoid_terms:[]).map(String).filter(Boolean)
+          });
+        }else out.push(original);
+      }
+    }catch(err){
+      imageProviderLog('⚠️ Director visual por lotes falló; se conserva el plan anterior: '+(err?.message||err));
+      out.push(...batch);
+    }
+  }
+  return out;
+}
+
 function editorialFallbackImage(scene,index){
   const c=document.createElement('canvas');c.width=1280;c.height=720;
   const ctx=c.getContext('2d');
@@ -2882,7 +2923,11 @@ REGLAS:
   arr=ensureFullScriptCoverage(script,arr);
   const semanticCount=arr.length;
   arr=expandSemanticScenesToShots(arr);
-  st(`🎬 Editor dinámico: ${semanticCount} escenas semánticas → ${arr.length} planos visuales de 3.5–4.5 s aprox.`,'ok');
+  // Critical 2.0 fix: every expanded shot gets its own Groq-authored ENGLISH stock search.
+  // Previously all child shots inherited/rotated the parent paragraph query, producing repeated
+  // Spanish searches such as "Bienvenido Si hay algo..." and therefore zero stock matches.
+  arr=await refineExpandedShotsWithGroq(arr,title,contentDomain);
+  st(`🎬 Editor dinámico: ${semanticCount} escenas semánticas → ${arr.length} planos visuales únicos de 3.5–4.5 s aprox.`,'ok');
 
   // V5.1.1: the requested scene count is a target, not a reason to abort.
   // Groq may naturally return slightly fewer/more semantic scenes.
