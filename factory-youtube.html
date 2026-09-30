@@ -1074,17 +1074,44 @@ self.onmessage=async({data:{id,type,data:_data}})=>{
   return ffmpegClassWorkerURL;
 }
 
+function setFfmpegEngineCard(state,detail,pct){
+  try{
+    if(typeof window.documentalSetEngineState==='function'){
+      window.documentalSetEngineState('engineFfmpeg',state,detail,pct);
+      return;
+    }
+    const el=document.getElementById('engineFfmpeg');
+    if(!el)return;
+    el.classList.remove('loading','ready','err');el.classList.add(state);
+    const sm=el.querySelector('small');if(sm){sm.textContent=detail;sm.title=detail||'';}
+    const n=Math.max(0,Math.min(100,Math.round(Number(pct)||0)));
+    const pe=el.querySelector('.enginePct');if(pe)pe.textContent=n+'%';
+    const bar=el.querySelector('.engineTrack i');if(bar)bar.style.width=n+'%';
+  }catch(e){}
+}
+
+window.__factoryFfmpegState={status:'idle',ready:false,error:'',detail:'Esperando carga'};
+
 async function loadFFmpeg(){
-  if(ffmpegInstance) return ffmpegInstance;
+  if(ffmpegInstance){
+    window.__factoryFfmpegState={status:'ready',ready:true,error:'',detail:'FFmpeg listo'};
+    setFfmpegEngineCard('ready','Listo · 1280×720 / 30 FPS · YouTube 16:9',100);
+    return ffmpegInstance;
+  }
   if(ffmpegLoading) return ffmpegLoading;
+
+  window.__factoryFfmpegState={status:'loading',ready:false,error:'',detail:'Cargando librería FFmpeg'};
+  setFfmpegEngineCard('loading','Cargando librería FFmpeg…',8);
 
   ffmpegLoading=(async()=>{
     rs('3/5 Cargando motor FFmpeg original…');
     rb(9);
 
-    // MOTOR COPIADO DEL FACTORY YOUTUBE ORIGINAL.
-    // Mismas versiones, mismo core ESM, mismo worker Blob y mismo mecanismo de load().
+    // Mismo motor del archivo original. El estado visual ahora depende del loader real,
+    // no de un temporizador falso que antes podía llegar a 100% y luego caer a 0%.
     const {FFmpeg}=await import('https://esm.sh/@ffmpeg/ffmpeg@0.12.10');
+    window.__factoryFfmpegState.detail='Cargando utilidades FFmpeg';
+    setFfmpegEngineCard('loading','Cargando utilidades FFmpeg…',18);
     const {toBlobURL}=await import('https://esm.sh/@ffmpeg/util@0.12.1');
 
     const ffmpeg=new FFmpeg();
@@ -1102,9 +1129,16 @@ async function loadFFmpeg(){
     });
 
     const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
+    window.__factoryFfmpegState.detail='Descargando ffmpeg-core.js';
+    setFfmpegEngineCard('loading','Descargando ffmpeg-core.js…',32);
     const coreURL=await toBlobURL(base+'/ffmpeg-core.js','text/javascript');
+
+    window.__factoryFfmpegState.detail='Descargando ffmpeg-core.wasm';
+    setFfmpegEngineCard('loading','Descargando ffmpeg-core.wasm…',58);
     const wasmURL=await toBlobURL(base+'/ffmpeg-core.wasm','application/wasm');
 
+    window.__factoryFfmpegState.detail='Iniciando WebAssembly';
+    setFfmpegEngineCard('loading','Iniciando WebAssembly…',82);
     await ffmpeg.load({
       classWorkerURL:getFFmpegClassWorkerURL(),
       coreURL,
@@ -1112,17 +1146,28 @@ async function loadFFmpeg(){
     });
 
     ffmpegInstance=ffmpeg;
+    window.__factoryFfmpegState={status:'ready',ready:true,error:'',detail:'FFmpeg listo'};
+    window.__factoryFFmpegInstance=ffmpeg;
+    setFfmpegEngineCard('ready','Listo · 1280×720 / 30 FPS · YouTube 16:9',100);
     rs('3/5 ✅ FFmpeg original listo.','ok');
     rb(15);
     return ffmpeg;
   })().catch(err=>{
     ffmpegLoading=null;
     ffmpegInstance=null;
+    window.__factoryFFmpegInstance=null;
+    const msg=(err?.message||String(err)||'Error desconocido').slice(0,180);
+    window.__factoryFfmpegState={status:'error',ready:false,error:msg,detail:msg};
+    setFfmpegEngineCard('err','Error real: '+msg,0);
+    console.error('[FFmpeg load failed]',err);
     throw err;
   });
 
   return ffmpegLoading;
 }
+
+window.loadFactoryFFmpeg=loadFFmpeg;
+window.getFactoryFFmpegState=()=>({...window.__factoryFfmpegState});
 
 async function resetFFmpegAfterVideo(){
   const old=ffmpegInstance;
@@ -2026,14 +2071,9 @@ async function createFinalVideo(){
 window.createDocumentalFinalVideo=createFinalVideo;
 R('#finalRender')?.addEventListener('click',createFinalVideo);
 
-// Preload FFmpeg only when the browser is idle, so Transformers.js gets priority first.
-window.addEventListener('load',()=>{
-  setTimeout(()=>{
-    if('requestIdleCallback' in window){
-      requestIdleCallback(()=>loadFFmpeg().catch(()=>{}),{timeout:7000});
-    }
-  },3500);
-});
+// FFmpeg se precarga desde el comprobador real de Estado de motores.
+// Evitamos un segundo preload paralelo para no crear carreras entre workers.
+
 </script>
 
 <script>
@@ -4298,18 +4338,26 @@ window.addEventListener('load',()=>setTimeout(()=>init(ui),200));
 
  // FFmpeg: reuse Factory's own loader.
  async function ffCheck(){
-   set('engineFfmpeg','loading','Cargando…',5);
-   let n=0;
-   while(n<120000){
-     const rs=(document.getElementById('renderStatus')?.textContent||'');
-     const body=(document.body?.innerText||'');
-     if(/FFmpeg listo/i.test(rs) || /FFmpeg listo/i.test(body)){
-       set('engineFfmpeg','ready','Listo · 1280×720 / 30 FPS · YouTube 16:9',100);
-       return;
+   set('engineFfmpeg','loading','Conectando con el loader real…',5);
+   try{
+     let wait=0;
+     while(typeof window.loadFactoryFFmpeg!=='function' && wait<10000){
+       await new Promise(r=>setTimeout(r,100));
+       wait+=100;
      }
-     await new Promise(r=>setTimeout(r,350)); n+=350; set('engineFfmpeg','loading','Cargando FFmpeg.wasm…',Math.min(95,5+n/1300));
+     if(typeof window.loadFactoryFFmpeg!=='function')
+       throw Error('El loader FFmpeg no quedó expuesto por Factory YouTube.');
+
+     const ff=await window.loadFactoryFFmpeg();
+     if(!ff)throw Error('FFmpeg terminó la carga sin devolver una instancia.');
+     const st=window.getFactoryFFmpegState?.();
+     if(st && st.ready!==true)throw Error(st.error||st.detail||'FFmpeg no confirmó estado listo.');
+     set('engineFfmpeg','ready','Listo · 1280×720 / 30 FPS · YouTube 16:9',100);
+   }catch(e){
+     const detail=(e?.message||String(e)||'Error desconocido').slice(0,180);
+     console.error('[FFmpeg diagnóstico real]',e);
+     set('engineFfmpeg','err','Error real: '+detail,0);
    }
-   set('engineFfmpeg','err','No respondió',0);
  }
 
  // Alexander is already preloaded by Factory. Watch its own visible log/state,
