@@ -454,7 +454,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     </div>
     <div>
       <label>Número de escenas</label>
-      <div class="inputLike" id="sceneCountLabel">Automático — aprox. 1 ilustración cada 7 s</div>
+      <div class="inputLike" id="sceneCountLabel">Automático — aprox. 1 plano cada 4–5 s</div>
       <input id="sceneCount" type="hidden" value="12">
     </div>
   </div>
@@ -1224,7 +1224,7 @@ function wavFromStereo(left,right,sampleRate=44100){
   return new Blob([buffer],{type:'audio/wav'});
 }
 
-async function mixNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol){
+async function mixNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol,sfxCues=[]){
   const outRate=44100;
   const frames=Math.max(1,Math.ceil(total*outRate));
   const Ctx=window.AudioContext||window.webkitAudioContext;
@@ -1295,7 +1295,28 @@ async function mixNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol){
     const ml=sampleLinear(mL,mp,true)*mg;
     const mr=sampleLinear(mR,mp,true)*mg;
 
-    let l=vl+ml, r=vr+mr;
+    // Editorial SFX generated locally: no external files. Sparse and narration-safe.
+    let sfx=0;
+    for(const cue of sfxCues){
+      const dt=sec-Number(cue.time||0);
+      if(dt<0 || dt>0.42) continue;
+      const type=cue.type||'whoosh';
+      if(type==='impact'){
+        const envS=Math.exp(-dt*13);
+        sfx += (Math.sin(2*Math.PI*72*dt)+0.42*Math.sin(2*Math.PI*118*dt))*envS*0.055;
+      }else if(type==='pop'){
+        const envS=Math.exp(-dt*24);
+        sfx += Math.sin(2*Math.PI*(520-260*dt)*dt)*envS*0.038;
+      }else{
+        const envS=Math.sin(Math.PI*Math.min(1,dt/0.30))*Math.exp(-dt*4.2);
+        const noise=Math.sin(2*Math.PI*(900+1800*dt)*dt)+0.35*Math.sin(2*Math.PI*430*dt);
+        sfx += noise*envS*0.020;
+      }
+    }
+    // Duck SFX under strong speech; they are accents, never the protagonist.
+    sfx *= (0.45 + 0.55*(1-speech));
+
+    let l=vl+ml+sfx, r=vr+mr+sfx;
     l=Math.tanh(l*1.035);
     r=Math.tanh(r*1.035);
 
@@ -1635,10 +1656,10 @@ async function makeSubtitleOverlay(text){
     const words=String(text||'').trim().split(/\s+/).filter(Boolean);
     if(!words.length)return;
     const yellow=new Set(subtitleKeywordIndexes(words));
-    const fontSize=46;
+    const fontSize=40;
     const font='900 '+fontSize+'px Arial, sans-serif';
     ctx.font=font; ctx.textBaseline='middle'; ctx.textAlign='left';
-    const maxW=1120, gap=16, lineH=56;
+    const maxW=1060, gap=14, lineH=50;
     const lines=[]; let line=[]; let width=0;
     words.forEach((word,i)=>{
       const ww=ctx.measureText(word).width;
@@ -1651,7 +1672,7 @@ async function makeSubtitleOverlay(text){
     });
     if(line.length)lines.push(line);
     const shown=lines.slice(0,2);
-    const baseY=c.height-92-(shown.length-1)*lineH/2;
+    const baseY=c.height-70-(shown.length-1)*lineH/2;
     ctx.lineJoin='round';
     ctx.lineWidth=8;
     ctx.strokeStyle='rgba(0,0,0,.95)';
@@ -1671,6 +1692,44 @@ async function makeSubtitleOverlay(text){
     });
     ctx.shadowBlur=0;
   });
+}
+
+
+async function makeEditorialOverlay(narration,index){
+  const text=String(narration||'').replace(/\s+/g,' ').trim();
+  const lesson=text.match(/\b(?:LECCI[ÓO]N|LESSON)\s*(\d{1,2})\b/i);
+  const money=text.match(/(?:\$\s?\d[\d,.]*|\b\d{1,3}\s?%\b|\b\d{1,3}\/\d{1,3}\/\d{1,3}\b)/);
+  const contrast=/\b(?:versus|vs\.?|pero|mientras|en cambio|deuda buena|deuda mala|ahorrar|invertir)\b/i.test(text);
+  if(!lesson && !money && !contrast)return null;
+  return await canvasPngBlob((ctx,c)=>{
+    ctx.clearRect(0,0,c.width,c.height);
+    if(lesson){
+      ctx.fillStyle='rgba(5,10,20,.82)'; roundRect(ctx,54,48,300,82,18);ctx.fill();
+      ctx.fillStyle='#FFD400';ctx.font='900 31px Arial';ctx.textAlign='left';ctx.textBaseline='middle';
+      ctx.fillText('LECCIÓN '+lesson[1],82,89);
+    }
+    if(money){
+      const val=money[0].replace(/\s+/g,' ');
+      ctx.font='900 72px Arial'; const tw=Math.min(560,ctx.measureText(val).width+74);
+      const x=c.width-tw-58,y=48;
+      ctx.fillStyle='rgba(5,10,20,.84)';roundRect(ctx,x,y,tw,104,22);ctx.fill();
+      ctx.fillStyle='#FFFFFF';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(val,x+tw/2,y+53,tw-40);
+      ctx.fillStyle='#FFD400';ctx.fillRect(x,y+96,tw,8);
+    }
+    if(contrast && !money){
+      ctx.fillStyle='rgba(5,10,20,.76)';roundRect(ctx,c.width-370,50,310,70,18);ctx.fill();
+      ctx.fillStyle='#FFFFFF';ctx.font='800 25px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('IDEA CLAVE',c.width-215,85);
+      ctx.fillStyle='#FFD400';ctx.fillRect(c.width-370,112,310,8);
+    }
+  });
+}
+
+function editorialSfxType(narration,index){
+  const t=String(narration||'');
+  if(/\b(?:LECCI[ÓO]N|ERROR|NUNCA|SIEMPRE|RIESGO|DEUDA|QUIEBRA|PELIGRO)\b/i.test(t))return 'impact';
+  if(/(?:\$\s?\d|\b\d{1,3}\s?%\b|\b\d{1,3}\/\d{1,3}\/\d{1,3}\b)/.test(t))return 'pop';
+  return index%3===0?'whoosh':null;
 }
 
 async function getDefaultMusic(total){
@@ -1734,6 +1793,14 @@ async function createFinalVideo(){
     await ffmpeg.writeFile(musicInfo.name,new Uint8Array(await musicBlob.arrayBuffer()));
 
     const durations=sceneDurations(total,sceneEls);
+    // Sparse editorial sound cues at scene boundaries / important narration.
+    const sfxCues=[]; let cueTime=0;
+    sceneEls.forEach((el,idx)=>{
+      const narration=el.dataset.narration||el.querySelector('.narr')?.textContent||'';
+      const type=editorialSfxType(narration,idx);
+      if(type && cueTime>0.35)sfxCues.push({time:cueTime,type});
+      cueTime+=durations[idx]||0;
+    });
     const partNames=[];
     const chunkNames=[];
     const CHUNK_SIZE=5;
@@ -1899,6 +1966,15 @@ async function createFinalVideo(){
         overlaySpecs.push({fileIndex:1,start:0,end:Math.min(3.2,durNum)});
       }
 
+      // Editorial callout: lesson labels, important numbers and key ideas.
+      const editorialBlob=await makeEditorialOverlay(el.dataset.narration||el.querySelector('.narr')?.textContent||'',i);
+      if(editorialBlob){
+        const ef=`editorial_${i}.png`;
+        await ffmpeg.writeFile(ef,new Uint8Array(await editorialBlob.arrayBuffer()));
+        overlayFiles.push(ef); overlayInputs.push('-i',ef);
+        overlaySpecs.push({fileIndex:overlaySpecs.length+1,start:0.08,end:Math.min(durNum,2.8)});
+      }
+
       if(R('#subtitles')?.value!=='no'){
         const chunks=splitSubtitleText(el.dataset.narration||el.querySelector('.narr')?.textContent||'');
         const each=durNum/Math.max(1,chunks.length);
@@ -1921,7 +1997,8 @@ async function createFinalVideo(){
 
       // Advanced Ken Burns: every scene gets a different camera movement.
       // First fill a safe oversized vertical canvas, then animate crop/zoom at 30 fps.
-      let zExpr=emphasis==='strong'?"min(zoom+0.00080,1.16)":"min(zoom+0.00055,1.12)";
+      // Faster editorial camera. Strong beats get a subtle rhythmic punch instead of a slow slideshow zoom.
+      let zExpr=emphasis==='strong'?"min(1.18,1.035+0.00070*on+0.025*abs(sin(on/13)))":"min(zoom+0.00072,1.14)";
       let xExpr="iw/2-(iw/zoom/2)";
       let yExpr="ih/2-(ih/zoom/2)";
 
@@ -1992,7 +2069,7 @@ async function createFinalVideo(){
     // v6.4: mix narration + music in the browser FIRST.
     // FFmpeg receives one finished WAV track, so it cannot drop the music.
     rs('5/5 Mezclando voz + música directamente en el navegador…');
-    const mixResult=await mixNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol);
+    const mixResult=await mixNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol,sfxCues);
     const mixedBuffer=await mixResult.blob.arrayBuffer();
     const mixedBytes=new Uint8Array(mixedBuffer);
     const mixBytes=mixedBytes.byteLength;
