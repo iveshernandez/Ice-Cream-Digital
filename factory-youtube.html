@@ -2366,6 +2366,7 @@ function jsonDocument(t){
       ? {narration:'',image_prompt:x,alt_queries:[],subject:'',action:'',setting:'',objects:[],must_include:[],avoid_terms:[]}
       : {
           narration:String(x?.narration??x?.narracion??x?.text??x?.texto??x?.scene??'').trim(),
+          visual_description:String(x?.visual_description??x?.visualDescription??x?.description??'').trim(),
           image_prompt:String(x?.image_prompt??x?.prompt??x?.visual_prompt??x?.imagePrompt??x?.imagen??x?.query??'').trim(),
           alt_queries:(Array.isArray(x?.alt_queries)?x.alt_queries:[x?.alt_query,x?.query2,x?.query3,x?.query4,x?.query5]).filter(Boolean).map(v=>String(v).trim()),
           subject:String(x?.subject??x?.main_subject??x?.sujeto??'').trim(),
@@ -2467,19 +2468,14 @@ function sceneQueryVariants(scene){
   const literalParts=[scene?.subject,scene?.action,...(Array.isArray(scene?.objects)?scene.objects.slice(0,2):[]),scene?.setting]
     .map(normalizeSearchQuery).filter(Boolean);
   const literal=normalizeSearchQuery([...literalParts,...anchors.slice(0,2)].join(' '));
-  const raw=[literal,scene?.image_prompt, ...(Array.isArray(scene?.alt_queries)?scene.alt_queries:[]), ...(Array.isArray(scene?.queries)?scene.queries:[])];
+  const raw=[scene?.image_prompt, ...(Array.isArray(scene?.alt_queries)?scene.alt_queries:[]), scene?.visual_description, literal, ...(Array.isArray(scene?.queries)?scene.queries:[])];
   const abstract=/\b(wealth|freedom|success|fear|future|mindset|power|growth|risk|discipline|knowledge|opportunity|strategy|rich|poor|poverty|prosperity|dream|goal|concept|idea)\b/gi;
   const unique=[];
   for(const item of raw){
     let q=normalizeSearchQuery(item).replace(abstract,' ').replace(/\s+/g,' ').trim();
     if(!q)continue;
-    const lower=q.toLowerCase();
-    const hasAnchor=anchors.some(a=>a && lower.includes(a.toLowerCase()));
-    if(anchors.length && !hasAnchor){
-      q=normalizeSearchQuery(q+' '+anchors.slice(0,2).join(' '));
-    }
     const words=q.split(/\s+/).filter(Boolean);
-    if(words.length>12)q=words.slice(0,12).join(' ');
+    if(words.length>8)q=words.slice(0,8).join(' ');
     const key=q.toLowerCase();
     if(!unique.some(x=>x.toLowerCase()===key)) unique.push(q);
   }
@@ -2507,28 +2503,22 @@ function orderQueriesByNovelty(variants,attempt=0){
 }
 
 function groundedFallbackQueries(scene){
-  const anchors=(Array.isArray(scene?.domain_anchor)?scene.domain_anchor:[]).map(normalizeSearchQuery).filter(Boolean);
   const subject=normalizeSearchQuery(scene?.subject);
   const action=normalizeSearchQuery(scene?.action);
   const setting=normalizeSearchQuery(scene?.setting);
   const objects=(Array.isArray(scene?.objects)?scene.objects:[]).map(normalizeSearchQuery).filter(Boolean);
-  const must=(Array.isArray(scene?.must_include)?scene.must_include:[]).map(normalizeSearchQuery).filter(Boolean);
-  const domain=normalizeSearchQuery(scene?.content_domain);
-  const anchor=anchors[0]||domain;
   const raw=[
-    [subject,action,objects[0],anchor].filter(Boolean).join(' '),
-    [subject,objects[0],setting,anchor].filter(Boolean).join(' '),
-    [objects[0],objects[1],setting,anchor].filter(Boolean).join(' '),
-    [must[0],subject,setting,anchor].filter(Boolean).join(' '),
-    [domain,subject,objects[0]].filter(Boolean).join(' '),
-    [domain,objects[0],setting].filter(Boolean).join(' ')
+    [subject,action,objects[0]].filter(Boolean).join(' '),
+    [subject,action,setting].filter(Boolean).join(' '),
+    [subject,objects[0],setting].filter(Boolean).join(' '),
+    [action,objects[0],objects[1]].filter(Boolean).join(' ')
   ];
   const out=[];
   for(let q of raw){
     q=normalizeSearchQuery(q);
     if(!q)continue;
     const words=q.split(/\s+/).filter(Boolean);
-    if(words.length>8)q=words.slice(0,8).join(' ');
+    if(words.length>7)q=words.slice(0,7).join(' ');
     if(q.split(/\s+/).length<2)continue;
     if(!out.some(x=>x.toLowerCase()===q.toLowerCase()))out.push(q);
   }
@@ -2545,6 +2535,7 @@ async function generateAIImageForScene(scene,attempt=0){
     try{
       window.__stockSceneContext={
         narration:String(scene?.narration||''),
+        visual_description:String(scene?.visual_description||''),
         subject:String(scene?.subject||''),
         action:String(scene?.action||''),
         setting:String(scene?.setting||''),
@@ -2766,7 +2757,8 @@ Devuelve SOLAMENTE JSON válido con esta forma:
   "scenes":[
     {
       "narration":"fragmento exacto y consecutivo del guion",
-      "image_prompt":"English stock search, 6 to 12 words",
+      "visual_description":"literal visible scene in English, 8 to 18 words",
+      "image_prompt":"English stock search, 4 to 8 words",
       "alt_queries":["alternative stock search 1","alternative stock search 2","alternative stock search 3","alternative stock search 4"],
       "subject":"main visible subject in English",
       "action":"visible action in English",
@@ -2785,14 +2777,15 @@ REGLAS:
 - narration debe cubrir TODO el guion, en orden, sin resumir, duplicar ni inventar texto.
 - Corta cuando cambie la idea, acción, persona, objeto o lugar. No cortes una oración importante por la mitad.
 - image_prompt es una CONSULTA DE BÚSQUEDA para fotografías reales, NO un prompt de generación de imágenes.
-- image_prompt siempre en INGLÉS y de 6 a 12 palabras. Debe describir sujeto + acción + objeto + contexto o lugar. Ejemplos: "young woman paying bills at kitchen table", "father comparing grocery prices in supermarket aisle", "small business owner reviewing expenses in office".
+- visual_description explica literalmente QUÉ debe verse en pantalla. Debe ser concreta, física y sin metáforas.
+- image_prompt siempre en INGLÉS y de 4 a 8 palabras. Debe ser una búsqueda SIMPLE que Pexels/Pixabay realmente entiendan: sujeto + acción + objeto o lugar. Ejemplos: "young woman paying bills at kitchen table", "father comparing grocery prices in supermarket aisle", "small business owner reviewing expenses in office".
 - content_domain identifica el TEMA LITERAL del video, no una emoción ni metáfora. Ejemplos: personal finance, automotive maintenance, coffee farming, haunted forest, computer repair.
 - domain_anchor contiene 3 a 6 términos VISIBLES y concretos que mantengan TODAS las búsquedas dentro del tema real. Para finanzas: money, bills, budget, banking, investment. Para autos: car, engine, mechanic, repair.
 - PROHIBIDO usar metáforas como imagen: wealth, freedom, success, fear, opportunity, future, mindset, power, growth, risk, rich, poor, strategy, discipline, knowledge. Convierte esas ideas a una SITUACIÓN FÍSICA visible.
 - Nunca conviertas una palabra figurada en un animal, paisaje u objeto no mencionado. "bull market" no es un toro; "bear market" no es un oso; "nest egg" no es un nido; "whale" financiero no es una ballena.
 - Si una frase es abstracta, representa la ACCIÓN HUMANA concreta que demuestra esa idea. Ejemplo: "financial freedom" -> "woman reviewing investment portfolio on laptop at home".
-- Cada image_prompt y alt_query debe incluir al menos UNO de los domain_anchor cuando sea natural, para evitar salir del tema principal.
-- alt_queries debe traer EXACTAMENTE 4 búsquedas alternativas en INGLÉS. Cada una debe conservar la MISMA idea narrativa pero cambiar claramente el ancla visual: una puede centrarse en persona/acción, otra en manos/objeto, otra en lugar/contexto y otra en una consecuencia visible.
+- NO agregues domain_anchor mecánicamente a todas las búsquedas. Úsalos solo cuando ayuden a describir lo visible. La consulta debe priorizar la acción concreta de ESA escena.
+- alt_queries debe traer EXACTAMENTE 4 búsquedas alternativas SIMPLES en INGLÉS, de 3 a 7 palabras. Cada una debe conservar la MISMA idea narrativa pero cambiar claramente el ancla visual: una puede centrarse en persona/acción, otra en manos/objeto, otra en lugar/contexto y otra en una consecuencia visible.
 - subject, action, setting y objects describen literalmente QUÉ debería verse en la foto. No uses metáforas.
 - must_include contiene 2 a 5 conceptos visuales esenciales que una foto correcta debería representar.
 - avoid_terms contiene conceptos que producirían una imagen incorrecta o ambigua para ESA escena. Ejemplo: si el guion habla de "bull market" como concepto financiero, evita toro/animal; si habla literalmente de un toro, NO los prohíbas. Haz esta decisión según el significado real del guion.
@@ -4588,20 +4581,34 @@ function candidateSemanticScore(meta,query){
  return score;
 }
 function rankCandidates(items,provider,keyOf,metaOf,query,serial){
+ const ctx=sceneContext();
  const fresh=items.filter(x=>!usedStockVisuals.has(provider+':'+keyOf(x)));
  const pool=fresh.length?fresh:items;
  if(!pool.length)return null;
- const ranked=pool.map((x,i)=>({x,i,score:candidateSemanticScore(metaOf(x),query)}))
-   .filter(r=>r.score>=0)
-   .sort((a,b)=>b.score-a.score || ((a.i+serial*5)%pool.length)-((b.i+serial*5)%pool.length));
- if(!ranked.length)return null;
- // Choose among the best few to keep variety while preserving semantic fit.
- const topScore=ranked[0].score;
- const top=ranked.filter(r=>r.score>=topScore-2).slice(0,6);
- const pick=top[(serial*3)%top.length].x;
+ // Trust the stock provider's relevance order. Only veto clearly forbidden/animal mismatches.
+ const safe=[];
+ for(let i=0;i<pool.length;i++){
+   const x=pool[i];
+   const meta=String(metaOf(x)||'').toLowerCase();
+   const words=new Set(semanticWords(meta));
+   let blocked=false;
+   for(const term of (ctx.avoid_terms||[])){
+     const tw=semanticWords(term); if(tw.some(w=>words.has(w))){blocked=true;break;}
+   }
+   if(!blocked && !sceneAllowsAnimals(ctx)){
+     for(const w of words){if(obviousAnimalWords.has(w)){blocked=true;break;}}
+   }
+   if(!blocked)safe.push(x);
+ }
+ const choices=safe.length?safe:[];
+ if(!choices.length)return null;
+ // Pick from the first few RELEVANT results, not random pages or deep results.
+ const top=choices.slice(0,6);
+ const pick=top[serial%top.length];
  usedStockVisuals.add(provider+':'+keyOf(pick));
  return pick;
 }
+
 function chooseUnique(items,provider,keyOf,serial){
  const fresh=items.filter(x=>!usedStockVisuals.has(provider+':'+keyOf(x)));
  const pool=fresh.length?fresh:items;
@@ -4613,8 +4620,8 @@ function chooseUnique(items,provider,keyOf,serial){
  return x;
 }
 async function pexels(q,key,serial){
- const page=1+(serial%4);
- const u='https://api.pexels.com/v1/search?orientation=landscape&per_page=30&page='+page+'&query='+encodeURIComponent(q);
+ const page=1;
+ const u='https://api.pexels.com/v1/search?orientation=landscape&per_page=24&page=1&query='+encodeURIComponent(q);
  const r=await fetch(u,{headers:{Authorization:key}});const raw=await r.text();let j={};try{j=JSON.parse(raw)}catch(_){};
  if(!r.ok)throw new Error('Pexels HTTP '+r.status+' · '+String(j?.error||raw).slice(0,180));
  const arr=(j.photos||[]).slice(0,30);if(!arr.length)return null;
@@ -4622,8 +4629,8 @@ async function pexels(q,key,serial){
  const img=x?.src?.landscape||x?.src?.large2x||x?.src?.large;if(!img)return null;const b=await blobFrom(img);return {...b,provider:'Pexels',credit:x.photographer||'',source:x.url||'',stockId:'pexels:'+x.id};
 }
 async function pixabay(q,key,serial){
- const page=1+(serial%4);
- const u='https://pixabay.com/api/?key='+encodeURIComponent(key)+'&q='+encodeURIComponent(q)+'&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page='+page;
+ const page=1;
+ const u='https://pixabay.com/api/?key='+encodeURIComponent(key)+'&q='+encodeURIComponent(q)+'&image_type=photo&orientation=horizontal&safesearch=true&per_page=30&page=1&order=popular';
  const r=await fetch(u);const raw=await r.text();let j={};try{j=JSON.parse(raw)}catch(_){};
  if(!r.ok)throw new Error('Pixabay HTTP '+r.status+' · '+raw.slice(0,180));
  const arr=(j.hits||[]).slice(0,40);if(!arr.length)return null;
@@ -4631,7 +4638,7 @@ async function pixabay(q,key,serial){
  const img=x.largeImageURL||x.webformatURL;if(!img)return null;const b=await blobFrom(img);return {...b,provider:'Pixabay',credit:x.user||'',source:x.pageURL||'',stockId:'pixabay:'+x.id};
 }
 async function generate(prompt,notify=ui){
- await init(notify);const q=cleanQuery(prompt);const serial=stockSerial++;notify('🔎 Buscando visual específico: '+q);activity('20% · Buscando stock variado…',20);
+ await init(notify);const q=cleanQuery(prompt);const serial=stockSerial++;notify('🔎 Buscando visual específico: '+q);activity('20% · Buscando stock relevante…',20);
  const pk=getKey('pexels_api_key',false,'Pexels'), bk=getKey('pixabay_api_key',false,'Pixabay');
  if(!pk&&!bk)throw new Error('Falta API Key de Pexels o Pixabay. Agrega al menos una clave gratuita.');
  let errors=[];
