@@ -2290,7 +2290,12 @@ function jsonDocument(t){
           emphasis:String(x?.emphasis??'normal').trim()
         }).filter(x=>x.image_prompt);
     if(!scenes.length)return null;
-    return {visual_identity:String(v.visual_identity??v.identidad_visual??v.identity??'').trim(),scenes};
+    return {
+      visual_identity:String(v.visual_identity??v.identidad_visual??v.identity??'').trim(),
+      content_domain:String(v.content_domain??v.domain??v.tema??'').trim(),
+      domain_anchor:(Array.isArray(v.domain_anchor)?v.domain_anchor:[v.domain_anchor,v.anchor,v.topic_anchor]).flat().filter(Boolean).map(x=>String(x).trim()),
+      scenes
+    };
   }
 
   const candidates=[text];
@@ -2369,15 +2374,29 @@ function normalizeSearchQuery(str){
 }
 
 function sceneQueryVariants(scene){
-  const raw=[scene?.image_prompt, ...(Array.isArray(scene?.alt_queries)?scene.alt_queries:[]), ...(Array.isArray(scene?.queries)?scene.queries:[])];
+  const anchors=(Array.isArray(scene?.domain_anchor)?scene.domain_anchor:[]).map(normalizeSearchQuery).filter(Boolean);
+  const literalParts=[scene?.subject,scene?.action,...(Array.isArray(scene?.objects)?scene.objects.slice(0,2):[]),scene?.setting]
+    .map(normalizeSearchQuery).filter(Boolean);
+  const literal=normalizeSearchQuery([...literalParts,...anchors.slice(0,2)].join(' '));
+  const raw=[literal,scene?.image_prompt, ...(Array.isArray(scene?.alt_queries)?scene.alt_queries:[]), ...(Array.isArray(scene?.queries)?scene.queries:[])];
+  const abstract=/\b(wealth|freedom|success|fear|future|mindset|power|growth|risk|discipline|knowledge|opportunity|strategy|rich|poor|poverty|prosperity|dream|goal|concept|idea)\b/gi;
   const unique=[];
   for(const item of raw){
-    const q=normalizeSearchQuery(item);
+    let q=normalizeSearchQuery(item).replace(abstract,' ').replace(/\s+/g,' ').trim();
     if(!q)continue;
+    const lower=q.toLowerCase();
+    const hasAnchor=anchors.some(a=>a && lower.includes(a.toLowerCase()));
+    if(anchors.length && !hasAnchor){
+      q=normalizeSearchQuery(q+' '+anchors.slice(0,2).join(' '));
+    }
+    const words=q.split(/\s+/).filter(Boolean);
+    if(words.length>12)q=words.slice(0,12).join(' ');
     const key=q.toLowerCase();
     if(!unique.some(x=>x.toLowerCase()===key)) unique.push(q);
   }
-  if(!unique.length) unique.push('person managing finances at home');
+  if(!unique.length){
+    unique.push(normalizeSearchQuery([scene?.subject,scene?.action,scene?.setting,...anchors].filter(Boolean).join(' '))||'person working indoors');
+  }
   return unique.slice(0,5);
 }
 
@@ -2412,6 +2431,8 @@ async function generateAIImageForScene(scene,attempt=0){
         objects:Array.isArray(scene?.objects)?scene.objects:[],
         must_include:Array.isArray(scene?.must_include)?scene.must_include:[],
         avoid_terms:Array.isArray(scene?.avoid_terms)?scene.avoid_terms:[],
+        content_domain:String(scene?.content_domain||''),
+        domain_anchor:Array.isArray(scene?.domain_anchor)?scene.domain_anchor:[],
         query
       };
       const out=await generateAIImage(query);
@@ -2563,6 +2584,8 @@ ${script}
 Devuelve SOLAMENTE JSON válido con esta forma:
 {
   "visual_identity":"tema visual general breve",
+  "content_domain":"literal topic of the whole video in English",
+  "domain_anchor":["3 to 6 concrete English words that must ground every stock search in the real topic"],
   "scenes":[
     {
       "narration":"fragmento exacto y consecutivo del guion",
@@ -2586,6 +2609,12 @@ REGLAS:
 - Corta cuando cambie la idea, acción, persona, objeto o lugar. No cortes una oración importante por la mitad.
 - image_prompt es una CONSULTA DE BÚSQUEDA para fotografías reales, NO un prompt de generación de imágenes.
 - image_prompt siempre en INGLÉS y de 6 a 12 palabras. Debe describir sujeto + acción + objeto + contexto o lugar. Ejemplos: "young woman paying bills at kitchen table", "father comparing grocery prices in supermarket aisle", "small business owner reviewing expenses in office".
+- content_domain identifica el TEMA LITERAL del video, no una emoción ni metáfora. Ejemplos: personal finance, automotive maintenance, coffee farming, haunted forest, computer repair.
+- domain_anchor contiene 3 a 6 términos VISIBLES y concretos que mantengan TODAS las búsquedas dentro del tema real. Para finanzas: money, bills, budget, banking, investment. Para autos: car, engine, mechanic, repair.
+- PROHIBIDO usar metáforas como imagen: wealth, freedom, success, fear, opportunity, future, mindset, power, growth, risk, rich, poor, strategy, discipline, knowledge. Convierte esas ideas a una SITUACIÓN FÍSICA visible.
+- Nunca conviertas una palabra figurada en un animal, paisaje u objeto no mencionado. "bull market" no es un toro; "bear market" no es un oso; "nest egg" no es un nido; "whale" financiero no es una ballena.
+- Si una frase es abstracta, representa la ACCIÓN HUMANA concreta que demuestra esa idea. Ejemplo: "financial freedom" -> "woman reviewing investment portfolio on laptop at home".
+- Cada image_prompt y alt_query debe incluir al menos UNO de los domain_anchor cuando sea natural, para evitar salir del tema principal.
 - alt_queries debe traer EXACTAMENTE 4 búsquedas alternativas en INGLÉS. Cada una debe conservar la MISMA idea narrativa pero cambiar claramente el ancla visual: una puede centrarse en persona/acción, otra en manos/objeto, otra en lugar/contexto y otra en una consecuencia visible.
 - subject, action, setting y objects describen literalmente QUÉ debería verse en la foto. No uses metáforas.
 - must_include contiene 2 a 5 conceptos visuales esenciales que una foto correcta debería representar.
@@ -2609,7 +2638,7 @@ REGLAS:
     doc=jsonDocument(await ai(prompt));
   }catch(firstErr){
     st('Groq devolvió un formato irregular. Corrigiéndolo automáticamente…');
-    const repair=`Divide este guion en aproximadamente ${n} escenas. Devuelve SOLO JSON: {"visual_identity":"...","scenes":[{"narration":"fragmento del guion","image_prompt":"English stock search 6-12 words","alt_queries":["alternative search 1","alternative search 2","alternative search 3","alternative search 4"],"subject":"visible subject","action":"visible action","setting":"physical setting","objects":["object"],"must_include":["essential concept"],"avoid_terms":["misleading concept"],"motion":"zoom-in","transition":"crossfade","emphasis":"normal"}]}. Sin markdown. Las búsquedas deben ser específicas, fotográficas y variadas. TÍTULO: ${title}. GUION: ${script}`;
+    const repair=`Divide este guion en aproximadamente ${n} escenas. Devuelve SOLO JSON: {"visual_identity":"...","content_domain":"literal topic in English","domain_anchor":["concrete topic anchor"],"scenes":[{"narration":"fragmento del guion","image_prompt":"English stock search 6-12 words","alt_queries":["alternative search 1","alternative search 2","alternative search 3","alternative search 4"],"subject":"visible subject","action":"visible action","setting":"physical setting","objects":["object"],"must_include":["essential concept"],"avoid_terms":["misleading concept"],"motion":"zoom-in","transition":"crossfade","emphasis":"normal"}]}. Sin markdown. Las búsquedas deben ser específicas, fotográficas y variadas. TÍTULO: ${title}. GUION: ${script}`;
     try{
       doc=jsonDocument(await ai(repair));
     }catch(secondErr){
@@ -2646,6 +2675,8 @@ REGLAS:
     };
   });
   const identity=String(doc.visual_identity||'').trim();
+  const contentDomain=String(doc.content_domain||'').trim();
+  const domainAnchor=(Array.isArray(doc.domain_anchor)?doc.domain_anchor:[]).map(x=>String(x).trim()).filter(Boolean).slice(0,6);
 
   if(!Array.isArray(arr)||arr.length<1){
     throw Error('Groq no devolvió escenas utilizables.');
@@ -2669,6 +2700,8 @@ REGLAS:
   for(let i=0;i<arr.length;i++){
     const scene=arr[i];
     if(identity && !scene.visual_identity) scene.visual_identity=identity;
+    scene.content_domain=contentDomain;
+    scene.domain_anchor=domainAnchor;
     st(`Buscando imagen ${i+1}/${arr.length}…`);
     const image=await generateAIImageForScene(scene,i%3);
     generatedSceneImages.push(image);
@@ -4339,13 +4372,16 @@ function candidateSemanticScore(meta,query){
  const ctx=sceneContext();
  const text=String(meta||'').toLowerCase();
  const words=new Set(semanticWords(text));
- const desired=[query,ctx.subject,ctx.action,ctx.setting,...(ctx.objects||[]),...(ctx.must_include||[])].join(' ');
+ const desired=[query,ctx.content_domain,...(ctx.domain_anchor||[]),ctx.subject,ctx.action,ctx.setting,...(ctx.objects||[]),...(ctx.must_include||[])].join(' ');
  const desiredWords=[...new Set(semanticWords(desired))];
  const forbidden=[...(ctx.avoid_terms||[])].flatMap(semanticWords);
  let score=0;
  for(const w of desiredWords) if(words.has(w)) score+=2;
  for(const term of (ctx.must_include||[])){
    const tw=semanticWords(term); if(tw.length && tw.some(w=>words.has(w))) score+=4;
+ }
+ for(const term of (ctx.domain_anchor||[])){
+   const tw=semanticWords(term); if(tw.length && tw.some(w=>words.has(w))) score+=5;
  }
  for(const term of forbidden){ if(words.has(term)) score-=20; }
  // Generic semantic guard: reject obvious animals unless the actual scene calls for animals.
@@ -4360,7 +4396,7 @@ function rankCandidates(items,provider,keyOf,metaOf,query,serial){
  const pool=fresh.length?fresh:items;
  if(!pool.length)return null;
  const ranked=pool.map((x,i)=>({x,i,score:candidateSemanticScore(metaOf(x),query)}))
-   .filter(r=>r.score>-20)
+   .filter(r=>r.score>=0)
    .sort((a,b)=>b.score-a.score || ((a.i+serial*5)%pool.length)-((b.i+serial*5)%pool.length));
  if(!ranked.length)return null;
  // Choose among the best few to keep variety while preserving semantic fit.
@@ -4409,13 +4445,11 @@ async function generate(prompt,notify=ui){
    if(provider==='pexels'&&pk){try{const x=await pexels(q,pk,serial);if(x){notify('✅ Pexels · visual '+(serial+1));activity('100% · Imagen única lista',100);return x}}catch(e){errors.push(e.message)}}
    if(provider==='pixabay'&&bk){try{const x=await pixabay(q,bk,serial);if(x){notify('✅ Pixabay · visual '+(serial+1));activity('100% · Imagen única lista',100);return x}}catch(e){errors.push(e.message)}}
  }
- const broad=q.split(' ').slice(0,7).join(' ');
- if(broad!==q){
-   const retrySerial=stockSerial++;
-   for(const provider of order.slice().reverse()){
-     if(provider==='pexels'&&pk){try{const x=await pexels(broad,pk,retrySerial);if(x)return x}catch(e){errors.push(e.message)}}
-     if(provider==='pixabay'&&bk){try{const x=await pixabay(broad,bk,retrySerial);if(x)return x}catch(e){errors.push(e.message)}}
-   }
+ // Retry the SAME grounded query on another result page. Do not broaden it by dropping topic words.
+ const retrySerial=stockSerial++;
+ for(const provider of order.slice().reverse()){
+   if(provider==='pexels'&&pk){try{const x=await pexels(q,pk,retrySerial);if(x)return x}catch(e){errors.push(e.message)}}
+   if(provider==='pixabay'&&bk){try{const x=await pixabay(q,bk,retrySerial);if(x)return x}catch(e){errors.push(e.message)}}
  }
  throw new Error('Sin imagen stock para "'+q+'". '+errors.join(' | '));
 }
