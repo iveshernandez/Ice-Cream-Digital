@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YouTube Script Factory V3</title>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Factory YouTube 2.0 V3</title>
 <style>
 :root{--b:#08111f;--p:#0f1b2d;--p2:#0a1424;--l:#263853;--t:#f8fafc;--m:#91a4bd;--g:#37d67a}*{box-sizing:border-box}body{margin:0;background:var(--b);color:var(--t);font-family:Arial,sans-serif}.w{max-width:1200px;margin:auto;padding:25px}h1{font-size:42px;margin:0}.mut{color:var(--m)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{background:var(--p);border:1px solid var(--l);border-radius:18px;padding:18px;margin-top:18px}label{display:block;font-size:13px;font-weight:bold;margin:12px 0 6px}textarea,input,select{width:100%;background:var(--p2);color:white;border:1px solid var(--l);border-radius:11px;padding:12px}textarea{min-height:230px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}button{border:0;border-radius:10px;padding:11px 14px;font-weight:bold;cursor:pointer}.pri{background:var(--g);color:#06150c}.sec{background:#233552;color:white}.danger{background:#4b2027;color:#ffd0d0}.scenes{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:15px}.scene{background:var(--p2);border:1px solid var(--l);border-radius:15px;overflow:hidden}.media{aspect-ratio:16/9;max-height:390px;background:#03070d;display:grid;place-items:center}.media video{width:100%;height:100%;object-fit:cover}.body{padding:12px}.body p{font-size:12px;color:var(--m)}.q{font-family:monospace}.status{margin-top:12px;font-size:13px}.ok{color:#7ef0a9}.err{color:#ff9696}.api{display:grid;grid-template-columns:1fr auto;gap:7px}.tiny{font-size:11px;color:var(--m)}.renderbox{margin-top:18px;padding:18px;border:1px solid var(--l);border-radius:16px;background:var(--p2)}.progress{height:12px;background:#050b14;border:1px solid var(--l);border-radius:999px;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0%;background:var(--g);transition:width .25s}.finalvideo{width:100%;max-height:620px;background:#000;border-radius:14px;margin-top:12px;display:none}.hiddenAuto{display:none!important}@media(max-width:850px){.grid{grid-template-columns:1fr}.scenes{grid-template-columns:repeat(2,1fr)}}@media(max-width:550px){.scenes{grid-template-columns:1fr}}
 .pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}.pipe{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--l);border-radius:12px;background:#08101d;opacity:.62}.pipe span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#152237;font-weight:800}.pipe b,.pipe small{display:block}.pipe small{font-size:10px;color:var(--m);margin-top:2px}.pipe.active{opacity:1;border-color:#5d87ff}.pipe.active span{background:#2857d7}.pipe.done{opacity:1;border-color:#2b9b66}.pipe.done span{background:#157347}.pipe.err{opacity:1;border-color:#b94b4b}.pipe.err span{background:#8e2d2d}.liveLog{max-height:145px;overflow:auto;font-size:11px;line-height:1.5;background:#050a12;border:1px solid var(--l);border-radius:10px;padding:10px;margin-top:10px;color:#b9c5d6}.liveLog:empty{display:none}@media(max-width:800px){.pipeline{grid-template-columns:1fr 1fr}.pipe:last-child{grid-column:1/-1}}
@@ -2643,7 +2643,7 @@ function automaticSceneCount(script){
   const seconds=selected==='auto' ? estimateNarrationSeconds(script) : Number(selected);
   // V5.5: automatic visual rhythm based on script/narration size.
   // Target: one new AI image about every 4 seconds.
-  return Math.max(18,Math.min(120,Math.round(seconds/9.5)));
+  return Math.max(24,Math.min(180,Math.round(seconds/4.2)));
 }
 
 function updateAutomaticSceneCount(){
@@ -2652,7 +2652,7 @@ function updateAutomaticSceneCount(){
   const hidden=document.querySelector('#sceneCount');
   const label=document.querySelector('#sceneCountLabel');
   if(hidden)hidden.value=String(n);
-  if(label)label.textContent=`${n} escenas base — edición dinámica con 1 visual aprox. cada 4–6 s`;
+  if(label)label.textContent=`${n} planos objetivo — edición dinámica con 1 visual aprox. cada 3.5–4.5 s`;
   return n;
 }
 
@@ -2693,12 +2693,39 @@ function splitNarrationIntoShots(text,count){
   return out.filter(Boolean);
 }
 
+function ensureFullScriptCoverage(script,scenes){
+  const full=String(script||'').trim();
+  if(!full || !Array.isArray(scenes) || !scenes.length)return scenes||[];
+  const fullWords=full.split(/\s+/).filter(Boolean).length;
+  const groqWords=scenes.reduce((a,s)=>a+String(s.narration||'').split(/\s+/).filter(Boolean).length,0);
+  const ratio=groqWords/Math.max(1,fullWords);
+  if(ratio>=0.92)return scenes;
+
+  // Groq sometimes shortens long scripts to fit its JSON output. Keep its visual
+  // direction, but redistribute the ORIGINAL script across those semantic scenes.
+  const sentences=full.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[full];
+  const weights=scenes.map(s=>Math.max(1,String(s.narration||'').split(/\s+/).filter(Boolean).length));
+  const totalW=weights.reduce((a,b)=>a+b,0)||scenes.length;
+  const buckets=Array.from({length:scenes.length},()=>[]);
+  let cursor=0;
+  for(let i=0;i<scenes.length;i++){
+    const remainingScenes=scenes.length-i;
+    const remainingSent=sentences.length-cursor;
+    let take=i===scenes.length-1?remainingSent:Math.max(1,Math.round(sentences.length*(weights[i]/totalW)));
+    take=Math.min(take,Math.max(1,remainingSent-(remainingScenes-1)));
+    buckets[i]=sentences.slice(cursor,cursor+take);
+    cursor+=take;
+  }
+  if(cursor<sentences.length)buckets[buckets.length-1].push(...sentences.slice(cursor));
+  return scenes.map((s,i)=>({...s,narration:buckets[i].join(' ').trim()||s.narration}));
+}
+
 function expandSemanticScenesToShots(scenes){
   const out=[];
   for(const scene of scenes){
     const words=String(scene.narration||'').trim().split(/\s+/).filter(Boolean).length;
     // ~145–155 palabras/minuto => unas 12–13 palabras por cada 5 s.
-    const shotCount=Math.max(1,Math.min(18,Math.ceil(words/13)));
+    const shotCount=Math.max(1,Math.min(24,Math.ceil(words/9))); // ~3.5 s por plano a ritmo normal
     const chunks=splitNarrationIntoShots(scene.narration,shotCount);
     const queryPool=[scene.image_prompt,...(scene.alt_queries||[])].filter(Boolean);
     chunks.forEach((chunk,j)=>{
@@ -2852,9 +2879,10 @@ REGLAS:
     throw Error('Groq no devolvió escenas utilizables.');
   }
 
+  arr=ensureFullScriptCoverage(script,arr);
   const semanticCount=arr.length;
   arr=expandSemanticScenesToShots(arr);
-  st(`🎬 Editor dinámico: ${semanticCount} escenas semánticas → ${arr.length} planos visuales de 4–6 s aprox.`,'ok');
+  st(`🎬 Editor dinámico: ${semanticCount} escenas semánticas → ${arr.length} planos visuales de 3.5–4.5 s aprox.`,'ok');
 
   // V5.1.1: the requested scene count is a target, not a reason to abort.
   // Groq may naturally return slightly fewer/more semantic scenes.
@@ -4526,7 +4554,7 @@ window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
 });
 </script>
 <script type="text/plain" id="sd-turbo-module-source">
-/* YouTube Script Factory V8 — stock visual engine with anti-repeat diversity */
+/* Factory YouTube 2.0 V8 — stock visual engine with anti-repeat diversity */
 let stockReady=false;
 let stockSerial=0;
 const usedStockVisuals=new Set();
@@ -4546,7 +4574,7 @@ function cleanQuery(prompt){
 }
 function resetStockHistory(){usedStockVisuals.clear();stockSerial=0;}
 window.__resetStockVisualHistory=resetStockHistory;
-async function init(notify=ui){if(stockReady)return true;notify('🖼️ Motor stock listo · Pexels + Pixabay · anti-repetición');activity('100% · Motor stock listo',100);stockReady=true;window.__sdTurboVerifiedReady=true;try{window.__resolveSdTurboReady?.(true)}catch(_){};return true}
+async function init(notify=ui){if(stockReady)return true;notify('🖼️ Factory 2.0 · Pexels + Pixabay + verificación visual Groq');activity('100% · Motor stock listo',100);stockReady=true;window.__sdTurboVerifiedReady=true;try{window.__resolveSdTurboReady?.(true)}catch(_){};return true}
 async function blobFrom(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('No se pudo descargar imagen ('+r.status+').');const blob=await r.blob();return {url:URL.createObjectURL(blob),blob}}
 function semanticWords(text){
  return String(text||'').toLowerCase().replace(/[^a-z0-9\s-]/g,' ').split(/\s+/).filter(w=>w.length>2);
@@ -4619,13 +4647,46 @@ function chooseUnique(items,provider,keyOf,serial){
  usedStockVisuals.add(provider+':'+keyOf(x));
  return x;
 }
+async function verifyVisualWithGroq(imageUrl,query,meta=''){
+ const key=(document.querySelector('#groq')?.value||localStorage.getItem('df_groq')||'').trim();
+ if(!key)return {ok:true,score:6,reason:'Groq no configurado; validación omitida'};
+ const ctx=sceneContext();
+ const expected=[ctx.subject,ctx.action,ctx.setting,...(ctx.objects||[]),...(ctx.must_include||[])].filter(Boolean).join(', ');
+ const avoid=(ctx.avoid_terms||[]).join(', ');
+ const prompt=`You are a strict visual editor for a YouTube documentary. Decide whether this candidate stock image genuinely illustrates the requested shot.\nSEARCH: ${query}\nEXPECTED VISUAL: ${expected||query}\nCANDIDATE METADATA: ${meta}\nAVOID: ${avoid||'none'}\nReject generic, metaphorical, unrelated, misleading, animal, sports, food, landscape or historical imagery unless explicitly requested. A merely attractive image is not enough. Return ONLY JSON: {"score":0-10,"ok":true|false,"reason":"short reason"}. ok may be true only for score >= 7.`;
+ try{
+   const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'meta-llama/llama-4-scout-17b-16e-instruct',temperature:0,max_tokens:120,messages:[{role:'user',content:[{type:'text',text:prompt},{type:'image_url',image_url:{url:imageUrl}}]}]})});
+   if(!r.ok) return {ok:false,score:0,reason:'Vision HTTP '+r.status};
+   const j=await r.json(); let raw=String(j?.choices?.[0]?.message?.content||'').trim().replace(/^```json\s*/i,'').replace(/```$/,'').trim();
+   const out=JSON.parse(raw); const score=Math.max(0,Math.min(10,Number(out.score)||0));
+   return {ok:Boolean(out.ok)&&score>=7,score,reason:String(out.reason||'')};
+ }catch(err){return {ok:false,score:0,reason:'Vision: '+(err?.message||err)}}
+}
+async function pickVerified(items,provider,keyOf,metaOf,imgOf,query,serial){
+ const ctx=sceneContext();
+ const fresh=items.filter(x=>!usedStockVisuals.has(provider+':'+keyOf(x)));
+ const pool=(fresh.length?fresh:items).slice(0,10);
+ for(let i=0;i<pool.length;i++){
+   const x=pool[(serial+i)%pool.length]; const meta=String(metaOf(x)||'');
+   let blocked=false; const words=new Set(semanticWords(meta));
+   for(const term of (ctx.avoid_terms||[])){if(semanticWords(term).some(w=>words.has(w))){blocked=true;break}}
+   if(!blocked&&!sceneAllowsAnimals(ctx)){for(const w of words){if(obviousAnimalWords.has(w)){blocked=true;break}}}
+   if(blocked)continue;
+   const imageUrl=imgOf(x); if(!imageUrl)continue;
+   ui(`👁️ Verificando ${provider} ${i+1}/${pool.length} con IA…`);
+   const verdict=await verifyVisualWithGroq(imageUrl,query,meta);
+   if(verdict.ok){usedStockVisuals.add(provider+':'+keyOf(x));ui(`✅ IA aprobó ${provider} · ${verdict.score}/10`);return x}
+   ui(`↪️ IA rechazó ${provider} · ${verdict.score}/10 · ${verdict.reason}`);
+ }
+ return null;
+}
 async function pexels(q,key,serial){
  const page=1;
  const u='https://api.pexels.com/v1/search?orientation=landscape&per_page=24&page=1&query='+encodeURIComponent(q);
  const r=await fetch(u,{headers:{Authorization:key}});const raw=await r.text();let j={};try{j=JSON.parse(raw)}catch(_){};
  if(!r.ok)throw new Error('Pexels HTTP '+r.status+' · '+String(j?.error||raw).slice(0,180));
  const arr=(j.photos||[]).slice(0,30);if(!arr.length)return null;
- const x=rankCandidates(arr,'Pexels',v=>String(v.id||v.url||''),v=>String(v.alt||'')+' '+String(v.url||''),q,serial);if(!x)return null;
+ const x=await pickVerified(arr,'Pexels',v=>String(v.id||v.url||''),v=>String(v.alt||'')+' '+String(v.url||''),v=>v?.src?.landscape||v?.src?.large2x||v?.src?.large,q,serial);if(!x)return null;
  const img=x?.src?.landscape||x?.src?.large2x||x?.src?.large;if(!img)return null;const b=await blobFrom(img);return {...b,provider:'Pexels',credit:x.photographer||'',source:x.url||'',stockId:'pexels:'+x.id};
 }
 async function pixabay(q,key,serial){
@@ -4634,7 +4695,7 @@ async function pixabay(q,key,serial){
  const r=await fetch(u);const raw=await r.text();let j={};try{j=JSON.parse(raw)}catch(_){};
  if(!r.ok)throw new Error('Pixabay HTTP '+r.status+' · '+raw.slice(0,180));
  const arr=(j.hits||[]).slice(0,40);if(!arr.length)return null;
- const x=rankCandidates(arr,'Pixabay',v=>String(v.id||v.pageURL||''),v=>String(v.tags||'')+' '+String(v.pageURL||''),q,serial);if(!x)return null;
+ const x=await pickVerified(arr,'Pixabay',v=>String(v.id||v.pageURL||''),v=>String(v.tags||'')+' '+String(v.pageURL||''),v=>v.largeImageURL||v.webformatURL,q,serial);if(!x)return null;
  const img=x.largeImageURL||x.webformatURL;if(!img)return null;const b=await blobFrom(img);return {...b,provider:'Pixabay',credit:x.user||'',source:x.pageURL||'',stockId:'pixabay:'+x.id};
 }
 async function generate(prompt,notify=ui){
