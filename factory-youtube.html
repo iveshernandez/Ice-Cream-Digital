@@ -2353,15 +2353,71 @@ function clearGeneratedSceneImages(){
 
 window.documentalResetClipSearch=()=>{
   clearGeneratedSceneImages();
+  try{ window.__factoryUsedSceneQueries=[]; }catch(_){}
+  try{ window.__resetStockVisualHistory?.(); }catch(_){}
 };
 
+function normalizeSearchQuery(str){
+  return String(str||'').replace(/\s+/g,' ').trim();
+}
 
+function sceneQueryVariants(scene){
+  const raw=[scene?.image_prompt, ...(Array.isArray(scene?.alt_queries)?scene.alt_queries:[]), ...(Array.isArray(scene?.queries)?scene.queries:[])];
+  const unique=[];
+  for(const item of raw){
+    const q=normalizeSearchQuery(item);
+    if(!q)continue;
+    const key=q.toLowerCase();
+    if(!unique.some(x=>x.toLowerCase()===key)) unique.push(q);
+  }
+  if(!unique.length) unique.push('person managing finances at home');
+  return unique.slice(0,5);
+}
+
+function queryWordsForDiversity(q){
+  const stop=new Set('a an the of in on at with and or from to for by person people man woman young old adult indoors outdoor inside outside'.split(' '));
+  return new Set(normalizeSearchQuery(q).toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>2&&!stop.has(w)));
+}
+function querySimilarity(a,b){
+  const A=queryWordsForDiversity(a),B=queryWordsForDiversity(b);
+  if(!A.size||!B.size)return 0;
+  let hit=0; for(const w of A)if(B.has(w))hit++;
+  return hit/Math.max(1,new Set([...A,...B]).size);
+}
+function orderQueriesByNovelty(variants,attempt=0){
+  const used=Array.isArray(window.__factoryUsedSceneQueries)?window.__factoryUsedSceneQueries:[];
+  return variants.map((q,i)=>({q,i,sim:used.length?Math.max(...used.slice(-8).map(u=>querySimilarity(q,u))):0}))
+    .sort((a,b)=>a.sim-b.sim || ((a.i-attempt+variants.length)%variants.length)-((b.i-attempt+variants.length)%variants.length))
+    .map(x=>x.q);
+}
+
+async function generateAIImageForScene(scene,attempt=0){
+  const variants=orderQueriesByNovelty(sceneQueryVariants(scene),attempt);
+  let lastErr=null;
+  for(let step=0;step<variants.length;step++){
+    const query=variants[step];
+    try{
+      const out=await generateAIImage(query);
+      if(out) out.__usedQuery=query;
+      window.__factoryUsedSceneQueries=Array.isArray(window.__factoryUsedSceneQueries)?window.__factoryUsedSceneQueries:[];
+      window.__factoryUsedSceneQueries.push(query);
+      if(window.__factoryUsedSceneQueries.length>40)window.__factoryUsedSceneQueries.splice(0,window.__factoryUsedSceneQueries.length-40);
+      return out;
+    }catch(err){
+      lastErr=err;
+      imageProviderLog('⚠️ Variación sin resultado: '+query);
+    }
+  }
+  throw lastErr||new Error('No se encontró imagen para la escena.');
+}
 
 function render(s,c,i){
   let a=document.createElement('article');
   a.className='scene';
   a.dataset.narration=s.narration||'';
   a.dataset.imagePrompt=s.image_prompt||'';
+  a.dataset.altQueries=JSON.stringify(sceneQueryVariants(s));
+  a.dataset.searchAttempt='0';
   if(c?.url)a.dataset.clipUrl=c.url;
 
   const motionPatterns=[
@@ -2385,7 +2441,7 @@ function render(s,c,i){
   <div class="body">
     <b>ESCENA ${i+1} · NARRACIÓN ↔ IMAGEN</b>
     <p class="narr">${e(s.narration)}</p>
-    <p class="q">🤖 ${e(s.image_prompt)}</p>
+    <p class="q">🔎 ${e(c?.__usedQuery||s.image_prompt)}</p>
     <p class="provider">Fuente: Stock Visual</p>
     <p class="match ok">✨ Director IA · ${e(a.dataset.motion)} · transición ${e(a.dataset.transition)} · énfasis ${e(a.dataset.emphasis)}</p>
     <button class="sec change">↻ Regenerar imagen</button>
@@ -2400,13 +2456,17 @@ function render(s,c,i){
     b.disabled=true;b.textContent='Generando IA...';
     try{
       const old=a.dataset.clipUrl||'';
-      const c2=await generateAIImage(a.dataset.imagePrompt);
+      const variants=JSON.parse(a.dataset.altQueries||'[]');
+      const nextAttempt=(Number(a.dataset.searchAttempt||'0')+1)%Math.max(1,variants.length);
+      a.dataset.searchAttempt=String(nextAttempt);
+      const c2=await generateAIImageForScene({image_prompt:a.dataset.imagePrompt,alt_queries:variants.slice(1)},nextAttempt);
       generatedSceneImages.push(c2);
       a.dataset.clipUrl=c2.url;
       a.querySelector('.media').innerHTML=`<img src="${e(c2.url)}" alt="Escena IA regenerada" style="width:100%;height:100%;object-fit:cover;display:block">`;
+      a.querySelector('.q').textContent='🔎 '+(c2.__usedQuery||variants[nextAttempt]||a.dataset.imagePrompt);
       a.querySelector('.provider').textContent='Fuente: '+(c2.provider||'Stock Visual');
       const match=a.querySelector('.match');
-      if(match){match.className='match ok';match.textContent='✨ Imagen IA regenerada';}
+      if(match){match.className='match ok';match.textContent='✨ Imagen regenerada con una variación distinta';}
       if(old){
         const idx=generatedSceneImages.findIndex(x=>x?.url===old);
         if(idx>=0){
@@ -2489,7 +2549,8 @@ Devuelve SOLAMENTE JSON válido con esta forma:
   "scenes":[
     {
       "narration":"fragmento exacto y consecutivo del guion",
-      "image_prompt":"English stock search, 3 to 7 words",
+      "image_prompt":"English stock search, 6 to 12 words",
+      "alt_queries":["alternative stock search 1","alternative stock search 2","alternative stock search 3"],
       "motion":"zoom-in|zoom-out|pan-left-right|pan-right-left|pan-up|diagonal",
       "transition":"crossfade|fade|cut",
       "emphasis":"normal|strong"
@@ -2501,12 +2562,15 @@ REGLAS:
 - narration debe cubrir TODO el guion, en orden, sin resumir, duplicar ni inventar texto.
 - Corta cuando cambie la idea, acción, persona, objeto o lugar. No cortes una oración importante por la mitad.
 - image_prompt es una CONSULTA DE BÚSQUEDA para fotografías reales, NO un prompt de generación de imágenes.
-- image_prompt siempre en INGLÉS y de 3 a 7 palabras. Ejemplos: "stressed man paying bills", "woman saving money jar", "business owner checking expenses", "family grocery shopping".
+- image_prompt siempre en INGLÉS y de 6 a 12 palabras. Debe describir sujeto + acción + objeto + contexto o lugar. Ejemplos: "young woman paying bills at kitchen table", "father comparing grocery prices in supermarket aisle", "small business owner reviewing expenses in office".
+- alt_queries debe traer EXACTAMENTE 4 búsquedas alternativas en INGLÉS. Cada una debe conservar la MISMA idea narrativa pero cambiar claramente el ancla visual: una puede centrarse en persona/acción, otra en manos/objeto, otra en lugar/contexto y otra en una consecuencia visible.
+- Entre escenas consecutivas, evita reutilizar el mismo sujeto + lugar + objeto. Cada escena debe tener al menos UN elemento visual concreto diferente de las dos escenas anteriores.
 - Busca lo físicamente visible y fotografiable. Si la narración es abstracta, tradúcela a una situación humana real relacionada.
 - PROHIBIDO en image_prompt: illustration, 2D, vector, cinematic, 16:9, no text, logo, watermark, establishing shot, close-up, camera, style, maintain identity, labeled, split-screen, graph with labels, thought bubble.
 - No pidas texto dentro de fotografías. Para una frase o lección, busca una acción/persona/objeto que represente el concepto.
 - Evita nombres de celebridades y marcas salvo que sean indispensables; prefiere conceptos genéricos disponibles en stock.
-- Alterna sujetos y contextos para evitar imágenes repetitivas.
+- Alterna sujetos, edades, género, contexto físico y objeto principal para evitar imágenes repetitivas.
+- No repitas la misma estructura en escenas consecutivas. Si una escena usa una persona en escritorio, la siguiente intenta manos, familia, tienda, banco, teléfono, cartera, recibos, automóvil, comida, casa u otro elemento coherente con el guion.
 - Decide motion como editor. No repitas el mismo motion dos escenas consecutivas.
 - transition=crossfade para continuidad; cut para cambio claro; fade solo para capítulos/reflexiones.
 - emphasis=strong únicamente en 10-15% de escenas de mayor impacto.
@@ -2518,7 +2582,7 @@ REGLAS:
     doc=jsonDocument(await ai(prompt));
   }catch(firstErr){
     st('Groq devolvió un formato irregular. Corrigiéndolo automáticamente…');
-    const repair=`Divide este guion en aproximadamente ${n} escenas. Devuelve SOLO JSON: {"visual_identity":"...","scenes":[{"narration":"fragmento del guion","image_prompt":"English stock search 3-7 words","motion":"zoom-in","transition":"crossfade","emphasis":"normal"}]}. Sin markdown. TÍTULO: ${title}. GUION: ${script}`;
+    const repair=`Divide este guion en aproximadamente ${n} escenas. Devuelve SOLO JSON: {"visual_identity":"...","scenes":[{"narration":"fragmento del guion","image_prompt":"English stock search 6-12 words","alt_queries":["alternative search 1","alternative search 2","alternative search 3"],"motion":"zoom-in","transition":"crossfade","emphasis":"normal"}]}. Sin markdown. Las búsquedas deben ser específicas, fotográficas y variadas. TÍTULO: ${title}. GUION: ${script}`;
     try{
       doc=jsonDocument(await ai(repair));
     }catch(secondErr){
@@ -2530,17 +2594,19 @@ REGLAS:
       const usable=chunks.map(x=>x.join(' ').trim()).filter(Boolean);
       doc={visual_identity:'',scenes:usable.map(narr=>({
         narration:narr,
-        image_prompt:'person managing personal finances'
+        image_prompt:'person managing finances at home',alt_queries:['stressed person reviewing monthly bills','hands counting cash and receipts','family planning household budget']
       }))};
     }
   }
   const arr=doc.scenes.map((scene,i)=>{
     const narration=String(scene.narration||'').trim();
     let imagePrompt=String(scene.image_prompt||'').trim();
-    if(imagePrompt.length<45){
-      imagePrompt='person managing personal finances';
+    const altQueries=(Array.isArray(scene.alt_queries)?scene.alt_queries:[scene.alt_queries,scene.alt_query,scene.query2,scene.query3,scene.query4].filter(Boolean))
+      .map(x=>String(x||'').trim()).filter(Boolean);
+    if(imagePrompt.split(/\s+/).filter(Boolean).length<2){
+      imagePrompt=altQueries[0]||'person managing finances at home';
     }
-    return {...scene,narration,image_prompt:imagePrompt};
+    return {...scene,narration,image_prompt:imagePrompt,alt_queries:altQueries};
   });
   const identity=String(doc.visual_identity||'').trim();
 
@@ -2565,16 +2631,9 @@ REGLAS:
 
   for(let i=0;i<arr.length;i++){
     const scene=arr[i];
-    const finalPrompt=[
-      scene.image_prompt,
-      identity ? `Maintain this visual identity consistently: ${identity}.` : '',
-      'Photorealistic cinematic documentary still, realistic anatomy, natural lighting, high detail, vertical 9:16 composition, no text, no letters, no logo, no watermark.'
-    ].filter(Boolean).join(' ');
-
-    scene.image_prompt=finalPrompt;
-
-    st(`Generando escena IA ${i+1}/${arr.length}…`);
-    const image=await generateAIImage(finalPrompt);
+    if(identity && !scene.visual_identity) scene.visual_identity=identity;
+    st(`Buscando imagen ${i+1}/${arr.length}…`);
+    const image=await generateAIImageForScene(scene,i%3);
     generatedSceneImages.push(image);
     render(scene,image,i);
   }
@@ -4208,43 +4267,75 @@ window.sdTurboReadyPromise = new Promise((resolve,reject)=>{
 });
 </script>
 <script type="text/plain" id="sd-turbo-module-source">
-/* YouTube Script Factory V7 — stock visual engine: Pexels + Pixabay fallback */
+/* YouTube Script Factory V8 — stock visual engine with anti-repeat diversity */
 let stockReady=false;
+let stockSerial=0;
+const usedStockVisuals=new Set();
 function ui(msg){const el=document.getElementById('sdLocalStatus');if(el)el.textContent=msg;console.log('[Stock Visual]',msg)}
-function activity(msg,pct){try{window.sdActivity?.(msg,pct)}catch(_){}}
-function getKey(name,ask,label){let k='';try{k=String(localStorage.getItem(name)||'').trim()}catch(_){};if(!k&&ask){k=String(prompt('Pega tu API Key gratuita de '+label+':')||'').trim();if(k)try{localStorage.setItem(name,k)}catch(_){}}return k}
+function activity(msg,pct){try{window.sdActivity?.(msg,pct)}catch(_){} }
+function getKey(name,ask,label){let k='';try{k=String(localStorage.getItem(name)||'').trim()}catch(_){}if(!k&&ask){k=String(prompt('Pega tu API Key gratuita de '+label+':')||'').trim();if(k)try{localStorage.setItem(name,k)}catch(_){}}return k}
 function cleanQuery(prompt){
- let q=String(prompt||'').replace(/\b(maintain identity|consistently|sleek|modern documentary|clean 2D|editorial|establishing shot|close-up|close up|medium shot|wide shot|cinematic|illustration|vector|16:9|no text|no logo|no watermark|labeled|split screen|split-screen)\b/gi,' ').replace(/[^a-zA-Z0-9 ,'-]/g,' ').replace(/\s+/g,' ').trim();
- const stop=new Set('a an the of in on at with and or from to for showing exactly this narration literal visual image scene person people main subject relevant physical environment performing narrated action'.split(' '));
+ let q=String(prompt||'')
+   .replace(/\b(maintain identity|consistently|sleek|modern documentary|clean 2D|editorial|establishing shot|close-up|close up|medium shot|wide shot|cinematic|illustration|vector|16:9|no text|no logo|no watermark|labeled|split screen|split-screen)\b/gi,' ')
+   .replace(/[^a-zA-Z0-9 ,'-]/g,' ')
+   .replace(/\s+/g,' ')
+   .trim();
+ const stop=new Set('a an the of in on at with and or from to for showing exactly this narration literal visual image scene main subject relevant physical environment performing narrated action'.split(' '));
  let words=q.split(/\s+/).filter(w=>!stop.has(w.toLowerCase()));
- return words.slice(0,10).join(' ')||'business lifestyle';
+ if(words.length>12) words=words.slice(0,12);
+ return words.join(' ')||'business lifestyle';
 }
-async function init(notify=ui){if(stockReady)return true;notify('🖼️ Motor stock listo · Pexels + Pixabay');activity('100% · Motor stock listo',100);stockReady=true;window.__sdTurboVerifiedReady=true;try{window.__resolveSdTurboReady?.(true)}catch(_){};return true}
+function resetStockHistory(){usedStockVisuals.clear();stockSerial=0;}
+window.__resetStockVisualHistory=resetStockHistory;
+async function init(notify=ui){if(stockReady)return true;notify('🖼️ Motor stock listo · Pexels + Pixabay · anti-repetición');activity('100% · Motor stock listo',100);stockReady=true;window.__sdTurboVerifiedReady=true;try{window.__resolveSdTurboReady?.(true)}catch(_){};return true}
 async function blobFrom(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('No se pudo descargar imagen ('+r.status+').');const blob=await r.blob();return {url:URL.createObjectURL(blob),blob}}
-async function pexels(q,key){
- const u='https://api.pexels.com/v1/search?orientation=landscape&per_page=15&query='+encodeURIComponent(q);
+function chooseUnique(items,provider,keyOf,serial){
+ const fresh=items.filter(x=>!usedStockVisuals.has(provider+':'+keyOf(x)));
+ const pool=fresh.length?fresh:items;
+ if(!pool.length)return null;
+ // Deterministic spread through the result set instead of always top-ranked photos.
+ const idx=(serial*7 + Math.floor(serial/2)*3)%pool.length;
+ const x=pool[idx];
+ usedStockVisuals.add(provider+':'+keyOf(x));
+ return x;
+}
+async function pexels(q,key,serial){
+ const page=1+(serial%4);
+ const u='https://api.pexels.com/v1/search?orientation=landscape&per_page=30&page='+page+'&query='+encodeURIComponent(q);
  const r=await fetch(u,{headers:{Authorization:key}});const raw=await r.text();let j={};try{j=JSON.parse(raw)}catch(_){};
  if(!r.ok)throw new Error('Pexels HTTP '+r.status+' · '+String(j?.error||raw).slice(0,180));
- const arr=(j.photos||[]).slice(0,8);if(!arr.length)return null;const x=arr[Math.floor(Math.random()*Math.min(arr.length,5))];
- const img=x?.src?.landscape||x?.src?.large2x||x?.src?.large;if(!img)return null;const b=await blobFrom(img);return {...b,provider:'Pexels',credit:x.photographer||'',source:x.url||''};
+ const arr=(j.photos||[]).slice(0,30);if(!arr.length)return null;
+ const x=chooseUnique(arr,'Pexels',v=>String(v.id||v.url||''),serial);if(!x)return null;
+ const img=x?.src?.landscape||x?.src?.large2x||x?.src?.large;if(!img)return null;const b=await blobFrom(img);return {...b,provider:'Pexels',credit:x.photographer||'',source:x.url||'',stockId:'pexels:'+x.id};
 }
-async function pixabay(q,key){
- const u='https://pixabay.com/api/?key='+encodeURIComponent(key)+'&q='+encodeURIComponent(q)+'&image_type=photo&orientation=horizontal&safesearch=true&per_page=20';
+async function pixabay(q,key,serial){
+ const page=1+(serial%4);
+ const u='https://pixabay.com/api/?key='+encodeURIComponent(key)+'&q='+encodeURIComponent(q)+'&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page='+page;
  const r=await fetch(u);const raw=await r.text();let j={};try{j=JSON.parse(raw)}catch(_){};
  if(!r.ok)throw new Error('Pixabay HTTP '+r.status+' · '+raw.slice(0,180));
- const arr=(j.hits||[]).slice(0,8);if(!arr.length)return null;const x=arr[Math.floor(Math.random()*Math.min(arr.length,5))];const img=x.largeImageURL||x.webformatURL;if(!img)return null;const b=await blobFrom(img);return {...b,provider:'Pixabay',credit:x.user||'',source:x.pageURL||''};
+ const arr=(j.hits||[]).slice(0,40);if(!arr.length)return null;
+ const x=chooseUnique(arr,'Pixabay',v=>String(v.id||v.pageURL||''),serial);if(!x)return null;
+ const img=x.largeImageURL||x.webformatURL;if(!img)return null;const b=await blobFrom(img);return {...b,provider:'Pixabay',credit:x.user||'',source:x.pageURL||'',stockId:'pixabay:'+x.id};
 }
 async function generate(prompt,notify=ui){
- await init(notify);const q=cleanQuery(prompt);notify('🔎 Buscando visual: '+q);activity('20% · Buscando stock…',20);
+ await init(notify);const q=cleanQuery(prompt);const serial=stockSerial++;notify('🔎 Buscando visual específico: '+q);activity('20% · Buscando stock variado…',20);
  const pk=getKey('pexels_api_key',false,'Pexels'), bk=getKey('pixabay_api_key',false,'Pixabay');
  if(!pk&&!bk)throw new Error('Falta API Key de Pexels o Pixabay. Agrega al menos una clave gratuita.');
  let errors=[];
- if(pk){try{let x=await pexels(q,pk);if(x){notify('✅ Pexels · '+q);activity('100% · Imagen lista',100);return x}}catch(e){errors.push(e.message)}}
- if(bk){try{let x=await pixabay(q,bk);if(x){notify('✅ Pixabay · '+q);activity('100% · Imagen lista',100);return x}}catch(e){errors.push(e.message)}}
- // retry broader query
- const broad=q.split(' ').slice(0,4).join(' ');
- if(pk&&broad!==q){try{let x=await pexels(broad,pk);if(x)return x}catch(e){errors.push(e.message)}}
- if(bk&&broad!==q){try{let x=await pixabay(broad,bk);if(x)return x}catch(e){errors.push(e.message)}}
+ // Alternate the first provider scene by scene to avoid a single library dominating the video.
+ const order=(serial%2===0)?['pexels','pixabay']:['pixabay','pexels'];
+ for(const provider of order){
+   if(provider==='pexels'&&pk){try{const x=await pexels(q,pk,serial);if(x){notify('✅ Pexels · visual '+(serial+1));activity('100% · Imagen única lista',100);return x}}catch(e){errors.push(e.message)}}
+   if(provider==='pixabay'&&bk){try{const x=await pixabay(q,bk,serial);if(x){notify('✅ Pixabay · visual '+(serial+1));activity('100% · Imagen única lista',100);return x}}catch(e){errors.push(e.message)}}
+ }
+ const broad=q.split(' ').slice(0,7).join(' ');
+ if(broad!==q){
+   const retrySerial=stockSerial++;
+   for(const provider of order.slice().reverse()){
+     if(provider==='pexels'&&pk){try{const x=await pexels(broad,pk,retrySerial);if(x)return x}catch(e){errors.push(e.message)}}
+     if(provider==='pixabay'&&bk){try{const x=await pixabay(broad,bk,retrySerial);if(x)return x}catch(e){errors.push(e.message)}}
+   }
+ }
  throw new Error('Sin imagen stock para "'+q+'". '+errors.join(' | '));
 }
 window.sdTurboLocalGenerate=(prompt,notify)=>generate(prompt,notify);window.sdTurboLocalInit=()=>init(ui);window.__sdRealInit=window.sdTurboLocalInit;
