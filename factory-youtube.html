@@ -1409,19 +1409,33 @@ async function blobDuration(blob){
 }
 
 function sceneDurations(total,sceneEls){
-  // V5.5 TIMED SCENES:
-  // Every generated scene is shown once and for the same amount of time.
-  // Example: 68 s / 16 scenes = one new image every ~4.25 s.
-  // This avoids a long narration fragment keeping one image on screen for 10–15 s.
+  // Edición dinámica: la duración visual sigue aproximadamente la cantidad de palabras
+  // de cada fragmento. Con escenas/shot cards expandidas, normalmente queda en 4–6 s.
   const count=Math.max(1,sceneEls.length);
-  const each=total/count;
-  const ds=new Array(count).fill(each);
+  const weights=sceneEls.map(el=>{
+    const txt=String(el.dataset.narration||el.querySelector('.narr')?.textContent||'').trim();
+    const words=Math.max(1,txt.split(/\s+/).filter(Boolean).length);
+    return Math.max(0.55,Math.min(2.0,words/12));
+  });
+  const sum=weights.reduce((a,b)=>a+b,0)||1;
+  let ds=weights.map(w=>total*w/sum);
 
-  // Correct floating-point remainder on the final scene so the visual track
-  // ends at exactly Alexander's natural narration duration.
-  const used=each*count;
-  ds[count-1]+=total-used;
-  return ds;
+  // Evita planos eternos o cortes demasiado nerviosos cuando sea posible.
+  const minD=count>total/3.2?1.8:2.8;
+  const maxD=count<total/8?10.0:6.8;
+  for(let pass=0;pass<5;pass++){
+    let fixed=0, freeW=0;
+    const locked=ds.map((d,i)=>{
+      if(d<minD){fixed+=minD;return minD;}
+      if(d>maxD){fixed+=maxD;return maxD;}
+      freeW+=weights[i];return null;
+    });
+    const remain=Math.max(0.1,total-fixed);
+    ds=ds.map((d,i)=>locked[i]!==null?locked[i]:remain*(weights[i]/Math.max(0.001,freeW)));
+  }
+  const used=ds.reduce((a,b)=>a+b,0);
+  ds[ds.length-1]+=total-used;
+  return ds.map(d=>Math.max(0.5,d));
 }
 
 async function fetchBlob(url,{attempts=3}={}){
@@ -1546,7 +1560,7 @@ function fitTitleLayout(ctx,text,maxWidth){
 }
 
 async function canvasPngBlob(draw){
-  const c=document.createElement('canvas'); c.width=720; c.height=1280;
+  const c=document.createElement('canvas'); c.width=1280; c.height=720;
   const ctx=c.getContext('2d');
   ctx.clearRect(0,0,c.width,c.height);
   draw(ctx,c);
@@ -1558,7 +1572,7 @@ async function makeTitleOverlay(title){
     const text=String(title||'').trim();
     ctx.textAlign='center'; ctx.textBaseline='middle';
 
-    const maxTextWidth=620;
+    const maxTextWidth=1040;
     const fitted=fitTitleLayout(ctx,text,maxTextWidth);
     ctx.font=`700 ${fitted.fontSize}px Arial, sans-serif`;
 
@@ -1567,7 +1581,7 @@ async function makeTitleOverlay(title){
     const padTop=Math.max(24,Math.round(fitted.fontSize*.48));
     const padBottom=padTop;
     const h=Math.max(112,lines.length*lineH+padTop+padBottom);
-    const x=42,y=80,w=c.width-84;
+    const x=110,y=42,w=c.width-220;
 
     ctx.fillStyle='rgba(0,0,0,.58)';
     roundRect(ctx,x,y,w,h,24); ctx.fill();
@@ -1621,10 +1635,10 @@ async function makeSubtitleOverlay(text){
     const words=String(text||'').trim().split(/\s+/).filter(Boolean);
     if(!words.length)return;
     const yellow=new Set(subtitleKeywordIndexes(words));
-    const fontSize=54;
+    const fontSize=46;
     const font='900 '+fontSize+'px Arial, sans-serif';
     ctx.font=font; ctx.textBaseline='middle'; ctx.textAlign='left';
-    const maxW=650, gap=14, lineH=66;
+    const maxW=1120, gap=16, lineH=56;
     const lines=[]; let line=[]; let width=0;
     words.forEach((word,i)=>{
       const ww=ctx.measureText(word).width;
@@ -1637,9 +1651,9 @@ async function makeSubtitleOverlay(text){
     });
     if(line.length)lines.push(line);
     const shown=lines.slice(0,2);
-    const baseY=c.height-205-(shown.length-1)*lineH/2;
+    const baseY=c.height-92-(shown.length-1)*lineH/2;
     ctx.lineJoin='round';
-    ctx.lineWidth=10;
+    ctx.lineWidth=8;
     ctx.strokeStyle='rgba(0,0,0,.95)';
     ctx.shadowColor='rgba(0,0,0,.72)';
     ctx.shadowBlur=5;
@@ -1882,7 +1896,7 @@ async function createFinalVideo(){
       // This prevents it from reappearing/accumulating after segment concatenation.
       if(sharedTitleFile && i===0){
         overlayInputs.push('-i',sharedTitleFile);
-        overlaySpecs.push({fileIndex:1,start:0,end:Math.min(5,durNum)});
+        overlaySpecs.push({fileIndex:1,start:0,end:Math.min(3.2,durNum)});
       }
 
       if(R('#subtitles')?.value!=='no'){
@@ -1928,14 +1942,12 @@ async function createFinalVideo(){
         yExpr="(ih-ih/zoom)*(1-on/"+frames+")";
       }
 
-      const fadeIn=(i===0||fadeDur<=0)?'':`fade=t=in:st=0:d=${fadeDur.toFixed(3)},`;
-      const fadeOut=(i===sceneEls.length-1||fadeDur<=0)?'':`fade=t=out:st=${fadeOutStart.toFixed(3)}:d=${fadeDur.toFixed(3)},`;
+      const fadeIn=(i===0)?`fade=t=in:st=0:d=0.22,`:'';
+      const fadeOut=(i===sceneEls.length-1)?`fade=t=out:st=${Math.max(0,durNum-0.28).toFixed(3)}:d=0.28,`:'';
       // Still image -> full moving scene. d must equal the number of output frames.
-      const composeAndMove=`split=2[fgsrc][bgsrc];`+
-        `[bgsrc]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,gblur=sigma=24:steps=2,eq=brightness=-0.06:saturation=0.92[bg];`+
-        `[fgsrc]scale=720:720:force_original_aspect_ratio=decrease[fg];`+
-        `[bg][fg]overlay=x=(W-w)/2:y=(H-h)/2:format=auto,`+
-        `scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,`+
+      const grade=emphasis==='strong'?'eq=contrast=1.09:saturation=1.10:brightness=-0.015':'eq=contrast=1.045:saturation=1.055:brightness=-0.008';
+      const composeAndMove=`scale=1420:800:force_original_aspect_ratio=increase,crop=1420:800,`+
+        `${grade},unsharp=5:5:0.35:3:3:0.0,`+
         `zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=${frames}:s=1280x720:fps=30,`+
         `trim=duration=${durNum.toFixed(3)},setpts=PTS-STARTPTS,${fadeIn}${fadeOut}format=yuv420p`;
       const filters=[`[0:v]${composeAndMove}[v0]`];
@@ -2046,7 +2058,7 @@ async function createFinalVideo(){
 
     window.documentalFfmpegProgressCtx=null;
     rb(100);
-    rs(`✅ Video terminado: ${total.toFixed(1)} s naturales, 1280×720, 30 FPS, título, subtítulos, voz nivelada y música documental al 30%. Descarga iniciada. Liberando memoria…`, 'ok');
+    rs(`✅ Video terminado: ${total.toFixed(1)} s naturales, edición dinámica 1280×720, 30 FPS, cortes rápidos, movimiento, subtítulos, voz nivelada y música documental al 30%. Descarga iniciada. Liberando memoria…`, 'ok');
 
     await clean(ffmpeg,[...partNames,...chunkNames,...sourceFilesToClean,sharedTitleFile,'concat.txt','joined.mp4','voice.wav','voice_target.wav',musicInfo.name,'mixed_browser.wav','documental_final.mp4'].filter(Boolean));
     return true;
@@ -2417,8 +2429,39 @@ function orderQueriesByNovelty(variants,attempt=0){
     .map(x=>x.q);
 }
 
+function groundedFallbackQueries(scene){
+  const anchors=(Array.isArray(scene?.domain_anchor)?scene.domain_anchor:[]).map(normalizeSearchQuery).filter(Boolean);
+  const subject=normalizeSearchQuery(scene?.subject);
+  const action=normalizeSearchQuery(scene?.action);
+  const setting=normalizeSearchQuery(scene?.setting);
+  const objects=(Array.isArray(scene?.objects)?scene.objects:[]).map(normalizeSearchQuery).filter(Boolean);
+  const must=(Array.isArray(scene?.must_include)?scene.must_include:[]).map(normalizeSearchQuery).filter(Boolean);
+  const domain=normalizeSearchQuery(scene?.content_domain);
+  const anchor=anchors[0]||domain;
+  const raw=[
+    [subject,action,objects[0],anchor].filter(Boolean).join(' '),
+    [subject,objects[0],setting,anchor].filter(Boolean).join(' '),
+    [objects[0],objects[1],setting,anchor].filter(Boolean).join(' '),
+    [must[0],subject,setting,anchor].filter(Boolean).join(' '),
+    [domain,subject,objects[0]].filter(Boolean).join(' '),
+    [domain,objects[0],setting].filter(Boolean).join(' ')
+  ];
+  const out=[];
+  for(let q of raw){
+    q=normalizeSearchQuery(q);
+    if(!q)continue;
+    const words=q.split(/\s+/).filter(Boolean);
+    if(words.length>8)q=words.slice(0,8).join(' ');
+    if(q.split(/\s+/).length<2)continue;
+    if(!out.some(x=>x.toLowerCase()===q.toLowerCase()))out.push(q);
+  }
+  return out;
+}
+
 async function generateAIImageForScene(scene,attempt=0){
-  const variants=orderQueriesByNovelty(sceneQueryVariants(scene),attempt);
+  const primary=sceneQueryVariants(scene);
+  const fallback=groundedFallbackQueries(scene);
+  const variants=orderQueriesByNovelty([...primary,...fallback].filter((q,i,a)=>a.findIndex(x=>x.toLowerCase()===q.toLowerCase())===i),attempt);
   let lastErr=null;
   for(let step=0;step<variants.length;step++){
     const query=variants[step];
@@ -2443,7 +2486,7 @@ async function generateAIImageForScene(scene,attempt=0){
       return out;
     }catch(err){
       lastErr=err;
-      imageProviderLog('⚠️ Variación sin resultado: '+query);
+      imageProviderLog('⚠️ Sin resultado, probando otra búsqueda: '+query);
     }
   }
   throw lastErr||new Error('No se encontró imagen para la escena.');
@@ -2532,7 +2575,7 @@ function automaticSceneCount(script){
   const seconds=selected==='auto' ? estimateNarrationSeconds(script) : Number(selected);
   // V5.5: automatic visual rhythm based on script/narration size.
   // Target: one new AI image about every 4 seconds.
-  return Math.max(10,Math.min(180,Math.round(seconds/7.0)));
+  return Math.max(18,Math.min(120,Math.round(seconds/9.5)));
 }
 
 function updateAutomaticSceneCount(){
@@ -2541,7 +2584,7 @@ function updateAutomaticSceneCount(){
   const hidden=document.querySelector('#sceneCount');
   const label=document.querySelector('#sceneCountLabel');
   if(hidden)hidden.value=String(n);
-  if(label)label.textContent=`${n} escenas automáticas — aprox. 1 ilustración cada 7 s`;
+  if(label)label.textContent=`${n} escenas base — edición dinámica con 1 visual aprox. cada 4–6 s`;
   return n;
 }
 
@@ -2563,6 +2606,63 @@ function ensureScenesContainer(){
   section.innerHTML='<h2>4. Escenas generadas</h2><div id="scenes" class="scenes"></div>';
   host.appendChild(section);
   return document.getElementById('scenes');
+}
+
+function splitNarrationIntoShots(text,count){
+  const words=String(text||'').trim().split(/\s+/).filter(Boolean);
+  if(!words.length)return [''];
+  const k=Math.max(1,Math.min(count,words.length));
+  const out=[];
+  let start=0;
+  for(let i=0;i<k;i++){
+    const left=words.length-start;
+    const slots=k-i;
+    const take=Math.max(1,Math.round(left/slots));
+    out.push(words.slice(start,start+take).join(' '));
+    start+=take;
+  }
+  if(start<words.length) out[out.length-1]+=' '+words.slice(start).join(' ');
+  return out.filter(Boolean);
+}
+
+function expandSemanticScenesToShots(scenes){
+  const out=[];
+  for(const scene of scenes){
+    const words=String(scene.narration||'').trim().split(/\s+/).filter(Boolean).length;
+    // ~145–155 palabras/minuto => unas 12–13 palabras por cada 5 s.
+    const shotCount=Math.max(1,Math.min(18,Math.ceil(words/13)));
+    const chunks=splitNarrationIntoShots(scene.narration,shotCount);
+    const queryPool=[scene.image_prompt,...(scene.alt_queries||[])].filter(Boolean);
+    chunks.forEach((chunk,j)=>{
+      const rotated=queryPool.length?queryPool[j%queryPool.length]:scene.image_prompt;
+      const alts=queryPool.length?queryPool.filter((_,idx)=>idx!==j%queryPool.length):[];
+      out.push({...scene,
+        narration:chunk,
+        image_prompt:rotated||scene.image_prompt,
+        alt_queries:alts,
+        shot_index:j,
+        shot_count:chunks.length
+      });
+    });
+  }
+  return out;
+}
+
+function editorialFallbackImage(scene,index){
+  const c=document.createElement('canvas');c.width=1280;c.height=720;
+  const ctx=c.getContext('2d');
+  const hue=(index*47)%360;
+  const g=ctx.createLinearGradient(0,0,1280,720);
+  g.addColorStop(0,`hsl(${hue} 28% 14%)`);g.addColorStop(1,'#060b12');
+  ctx.fillStyle=g;ctx.fillRect(0,0,1280,720);
+  ctx.fillStyle='rgba(255,255,255,.06)';
+  for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(110+i*165,110+(i%2)*320,80+i*7,0,Math.PI*2);ctx.fill();}
+  const label=String(scene.subject||scene.objects?.[0]||scene.content_domain||'Documental').replace(/\s+/g,' ').trim();
+  const action=String(scene.action||'').replace(/\s+/g,' ').trim();
+  ctx.fillStyle='#ffd400';ctx.font='800 24px Arial';ctx.fillText('VISUAL DE APOYO',84,520);
+  ctx.fillStyle='#fff';ctx.font='900 50px Arial';ctx.fillText((label||'Escena').slice(0,34),84,585);
+  if(action){ctx.fillStyle='#cbd5e1';ctx.font='700 28px Arial';ctx.fillText(action.slice(0,58),84,632);}
+  return {url:c.toDataURL('image/jpeg',0.90),provider:'Fallback editorial',credit:'',source:'',stockId:'fallback:'+index};
 }
 
 async function go(){
@@ -2654,7 +2754,7 @@ REGLAS:
       }))};
     }
   }
-  const arr=doc.scenes.map((scene,i)=>{
+  let arr=doc.scenes.map((scene,i)=>{
     const narration=String(scene.narration||'').trim();
     let imagePrompt=String(scene.image_prompt||'').trim();
     const altQueries=(Array.isArray(scene.alt_queries)?scene.alt_queries:[scene.alt_queries,scene.alt_query,scene.query2,scene.query3,scene.query4].filter(Boolean))
@@ -2682,6 +2782,10 @@ REGLAS:
     throw Error('Groq no devolvió escenas utilizables.');
   }
 
+  const semanticCount=arr.length;
+  arr=expandSemanticScenesToShots(arr);
+  st(`🎬 Editor dinámico: ${semanticCount} escenas semánticas → ${arr.length} planos visuales de 4–6 s aprox.`,'ok');
+
   // V5.1.1: the requested scene count is a target, not a reason to abort.
   // Groq may naturally return slightly fewer/more semantic scenes.
   const minAccept=Math.max(8,n-4);
@@ -2697,18 +2801,33 @@ REGLAS:
   const scenesEl=ensureScenesContainer();
   scenesEl.innerHTML='';
 
+  let okImages=0, failedImages=0;
+  let lastGoodImage=null;
   for(let i=0;i<arr.length;i++){
     const scene=arr[i];
     if(identity && !scene.visual_identity) scene.visual_identity=identity;
     scene.content_domain=contentDomain;
     scene.domain_anchor=domainAnchor;
     st(`Buscando imagen ${i+1}/${arr.length}…`);
-    const image=await generateAIImageForScene(scene,i%3);
-    generatedSceneImages.push(image);
+    let image=null;
+    try{
+      image=await generateAIImageForScene(scene,i);
+      if(image){
+        generatedSceneImages.push(image);
+        lastGoodImage=image;
+        okImages++;
+      }
+    }catch(err){
+      failedImages++;
+      imageProviderLog(`⚠️ Escena ${i+1}: ${err?.message||err}. Se continúa con las demás.`);
+      // Nunca repetir la foto anterior durante decenas de segundos.
+      // Si stock falla, usa una tarjeta editorial propia y continúa el lote.
+      image=editorialFallbackImage(scene,i);
+    }
     render(scene,image,i);
   }
 
-  st(`✅ ${arr.length} escenas IA listas.`,'ok');
+  st(`✅ ${arr.length} escenas procesadas · ${okImages} imágenes encontradas${failedImages?` · ${failedImages} con respaldo/regeneración pendiente`:''}.`,'ok');
   return arr.length;
 }
 window.documentalAnalyzeScenes=go;
