@@ -140,8 +140,8 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
     box-shadow:0 0 0 2px rgba(255,235,0,.10);
   }
   #editorIcecreamPanel{display:block}
-  #documentalFactoryPanel{display:none;width:100%;height:calc(100vh - 54px);background:#070709}
-  #documentalFactoryFrame{display:block;width:100%;height:100%;border:0;background:#070709}
+  #documentalFactoryPanel,#youtubeFactoryPanel{display:none;width:100%;height:calc(100vh - 54px);background:#070709}
+  #documentalFactoryFrame,#youtubeFactoryFrame{display:block;width:100%;height:100%;border:0;background:#070709}
   #editorIcecreamPanel > header{top:54px!important}
   #editorIcecreamPanel .glass[style*="position:sticky"]{top:142px!important}
   @media(max-width:700px){
@@ -481,6 +481,7 @@ body > div[style*="Nunca fui yo"]{
 <div id="mainAppTabs" aria-label="Herramientas">
   <button type="button" class="mainAppTab active" id="tabEditorIcecream">🍦 Editor Icecream</button>
   <button type="button" class="mainAppTab" id="tabDocumentalFactory">🎬 Documental Factory</button>
+  <button type="button" class="mainAppTab" id="tabYoutubeFactory">▶️ Factory YouTube</button>
 </div>
 
 <div id="editorIcecreamPanel">
@@ -608,34 +609,51 @@ Nunca fui yo, siempre fue Dios. La gloria y la honra sean para Él…
   ></iframe>
 </section>
 
+<section id="youtubeFactoryPanel" aria-label="Factory YouTube">
+  <iframe
+    id="youtubeFactoryFrame"
+    title="Factory YouTube"
+    data-src="factory-youtube.html"
+    allow="autoplay; clipboard-write"
+  ></iframe>
+</section>
+
 <script id="ic-documental-tabs-script">
 (function(){
   const editorPanel=document.getElementById('editorIcecreamPanel');
-  const factoryPanel=document.getElementById('documentalFactoryPanel');
+  const documentalPanel=document.getElementById('documentalFactoryPanel');
+  const youtubePanel=document.getElementById('youtubeFactoryPanel');
   const editorBtn=document.getElementById('tabEditorIcecream');
-  const factoryBtn=document.getElementById('tabDocumentalFactory');
-  const frame=document.getElementById('documentalFactoryFrame');
+  const documentalBtn=document.getElementById('tabDocumentalFactory');
+  const youtubeBtn=document.getElementById('tabYoutubeFactory');
+  const documentalFrame=document.getElementById('documentalFactoryFrame');
+  const youtubeFrame=document.getElementById('youtubeFactoryFrame');
+
+  function lazyLoad(frame){
+    if(frame && !frame.src) frame.src=frame.dataset.src;
+  }
 
   function openTab(which){
-    const isFactory=which==='factory';
-    editorPanel.style.display=isFactory?'none':'block';
-    factoryPanel.style.display=isFactory?'block':'none';
-    editorBtn.classList.toggle('active',!isFactory);
-    factoryBtn.classList.toggle('active',isFactory);
-
-    // Lazy-load Documental Factory only the first time it is opened.
-    // This avoids loading a second FFmpeg/TTS environment while using Editor Icecream.
-    if(isFactory && !frame.src){
-      frame.src=frame.dataset.src;
-    }
-    try{ localStorage.setItem('icecream_active_tool', isFactory?'factory':'editor'); }catch(e){}
+    const isEditor=which==='editor';
+    const isDocumental=which==='documental';
+    const isYoutube=which==='youtube';
+    editorPanel.style.display=isEditor?'block':'none';
+    documentalPanel.style.display=isDocumental?'block':'none';
+    youtubePanel.style.display=isYoutube?'block':'none';
+    editorBtn.classList.toggle('active',isEditor);
+    documentalBtn.classList.toggle('active',isDocumental);
+    youtubeBtn.classList.toggle('active',isYoutube);
+    if(isDocumental) lazyLoad(documentalFrame);
+    if(isYoutube) lazyLoad(youtubeFrame);
+    try{localStorage.setItem('icecream_active_tool',which)}catch(e){}
     window.scrollTo({top:0,behavior:'instant'});
   }
 
   editorBtn.addEventListener('click',()=>openTab('editor'));
-  factoryBtn.addEventListener('click',()=>openTab('factory'));
+  documentalBtn.addEventListener('click',()=>openTab('documental'));
+  youtubeBtn.addEventListener('click',()=>openTab('youtube'));
 
-  // Editor Icecream remains the default tab every fresh load.
+  // Editor Icecream sigue siendo la pestaña inicial.
   openTab('editor');
   window.openIcecreamToolTab=openTab;
 })();
