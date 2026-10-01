@@ -1059,6 +1059,59 @@ async function getTTS(){
   throw new Error('No se pudo cargar Piper - revisa internet');
 }
 
+// === PIPER AISLADO POR VOZ ===
+// Cada modelo vive en su propio Web Worker para impedir que una sesion ONNX
+// reutilice accidentalmente el modelo de otra voz.
+const _piperVoiceWorkers = new Map();
+let _piperReqSeq = 0;
+function getPiperVoiceWorker(voiceId){
+  if(_piperVoiceWorkers.has(voiceId)) return _piperVoiceWorkers.get(voiceId);
+  const workerCode = `
+    let tts=null;
+    async function lib(){
+      if(tts) return tts;
+      const urls=[
+        'https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm',
+        'https://esm.run/@mintplex-labs/piper-tts-web@1.0.4'
+      ];
+      let last;
+      for(const u of urls){try{tts=await import(u);return tts;}catch(e){last=e;}}
+      throw last||new Error('No se pudo cargar Piper');
+    }
+    self.onmessage=async(ev)=>{
+      const {id,voiceId,speakerId,text}=ev.data;
+      try{
+        const t=await lib();
+        await t.download(voiceId,()=>{});
+        const blob=await t.predict({text,voiceId,speakerId},()=>{});
+        const ab=await blob.arrayBuffer();
+        self.postMessage({id,ok:true,buffer:ab,type:blob.type||'audio/wav'},[ab]);
+      }catch(e){self.postMessage({id,ok:false,error:e?.message||String(e)});}
+    };
+  `;
+  const url=URL.createObjectURL(new Blob([workerCode],{type:'text/javascript'}));
+  const worker=new Worker(url);
+  URL.revokeObjectURL(url);
+  const state={worker,pending:new Map(),voiceId};
+  worker.onmessage=(ev)=>{
+    const m=ev.data||{}; const q=state.pending.get(m.id); if(!q)return;
+    state.pending.delete(m.id);
+    if(m.ok) q.resolve(new Blob([m.buffer],{type:m.type||'audio/wav'}));
+    else q.reject(new Error(m.error||'Error Piper Worker'));
+  };
+  worker.onerror=(e)=>{ for(const q of state.pending.values())q.reject(new Error(e.message||'Error Worker')); state.pending.clear(); };
+  _piperVoiceWorkers.set(voiceId,state);
+  return state;
+}
+function predictPiperIsolated({text,voiceId,speakerId=0}){
+  const state=getPiperVoiceWorker(voiceId);
+  const id=++_piperReqSeq;
+  return new Promise((resolve,reject)=>{state.pending.set(id,{resolve,reject});state.worker.postMessage({id,text,voiceId,speakerId});});
+}
+function resetPiperVoiceWorker(voiceId){
+  const st=_piperVoiceWorkers.get(voiceId); if(st){try{st.worker.terminate()}catch{} _piperVoiceWorkers.delete(voiceId);}
+}
+
 function splitIntoChunks(txt, maxLen){
   maxLen = maxLen || 380;
   const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
@@ -1160,7 +1213,7 @@ async function handleGenerate(){
       let wavBlob=null;
       for(let retry=1; retry<=2; retry++){
         try{
-          wavBlob = await tts.predict({ text: chunk, voiceId: voiceId, speakerId: speakerId }, onProgress);
+          wavBlob = await predictPiperIsolated({ text: chunk, voiceId: voiceId, speakerId: speakerId });
           if(wavBlob && wavBlob.size>=500) break;
           console.warn('Chunk '+i+' vacio intento '+retry, wavBlob?.size);
         }catch(e){ console.warn('predict fail chunk '+i+' intento '+retry, e); }
@@ -1312,7 +1365,7 @@ async function previewSelectedPiperVoice(){
     const tts=await getTTS();
     setKStatus('Vista previa · cargando '+sel.options[sel.selectedIndex].text+'...');
     await tts.download(voiceId,()=>{});
-    const blob=await tts.predict({text:sample,voiceId,speakerId},()=>{});
+    const blob=await predictPiperIsolated({text:sample,voiceId,speakerId});
     if(!blob||blob.size<500)throw new Error('La voz no devolvió audio.');
     if(voicePreviewObjectUrl)try{URL.revokeObjectURL(voicePreviewObjectUrl)}catch(e){}
     voicePreviewObjectUrl=URL.createObjectURL(blob);
@@ -1321,7 +1374,7 @@ async function previewSelectedPiperVoice(){
     player.volume=1; player.muted=false;
     await player.play();
     btn.textContent='⏹ DETENER VISTA PREVIA';
-    setKStatus('▶ Vista previa · '+sel.options[sel.selectedIndex].text);
+    setKStatus('▶ Vista previa · '+sel.options[sel.selectedIndex].text+' · ID REAL: '+voiceId);
     player.onended=()=>{btn.textContent='▶ ESCUCHAR VISTA PREVIA DE ESTA VOZ';btn.disabled=false;setKStatus('Motor Piper listo · voz '+sel.options[sel.selectedIndex].text);};
   }catch(e){
     console.error('preview voz',e);
@@ -1516,7 +1569,7 @@ window.getTTS = getTTS;
           for(let attempt=1;attempt<=2;attempt++){
             try{
               wb=await Promise.race([
-                tts.predict({text:chunks[i],voiceId:vId,speakerId:spk},()=>{}),
+                predictPiperIsolated({text:chunks[i],voiceId:vId,speakerId:spk}),
                 new Promise((_,rej)=>setTimeout(()=>rej(new Error('TTS timeout')),45000))
               ]);
               if(wb&&wb.size>=500) break;
