@@ -2040,92 +2040,8 @@ window.getTTS = getTTS;
   }
 
   window.renderAllVideosBlindado=async function(){
-    if(window._remotionBatchActive)return;
-    const list=(window.queue||[]).filter(q=>q.videoUrl&&q.audioUrl);
-    if(!list.length){alert('No hay videos con voz listos.');return;}
-
-    window._remotionBatchActive=true;
-    window._batchGenerating=true;
-    freezePreviewForRender();
-
-    const ov=document.getElementById('renderOverlay'),pct=document.getElementById('renderPct'),
-      txt=document.getElementById('renderText'),lst=document.getElementById('renderList'),
-      master=document.getElementById('renderMasterBar'),sub=document.getElementById('renderSubLabel');
-
-    if(ov)ov.style.display='flex';
-    if(lst)lst.innerHTML=list.map(q=>`<div id="renderSlot-${q.id}" style="background:#0d0d12;border:1px solid #292932;border-radius:9px;padding:8px 9px;display:flex;justify-content:space-between;align-items:center"><span style="color:#d8d8df;font-size:8px;font-weight:900">SLOT ${q.id} · VIDEO</span><span style="color:#777783;font-size:9px;font-weight:950">EN COLA</span></div>`).join('');
-
-    const completedFiles=[];
-    let failed=0;
-
-    try{
-      for(let i=0;i<list.length;i++){
-        const q=list[i],row=document.getElementById('renderSlot-'+q.id);
-        const basePct=Math.round((i/list.length)*96);
-        if(pct)pct.textContent=basePct+'%';
-        if(master)master.style.width=basePct+'%';
-        if(sub)sub.textContent=`VIDEO ${i+1} DE ${list.length}`;
-        if(row){row.style.borderColor='#FFEB00';row.lastChild.textContent='INICIANDO';}
-        if(txt)txt.textContent=`SLOT ${q.id} · MOTOR NUEVO`;
-
-        try{
-          const r=await renderFresh(q,phase=>{
-            if(row)row.lastChild.textContent=phase;
-            if(txt)txt.textContent=`SLOT ${q.id} · ${phase}`;
-          });
-          if(!r?.rendered || !r?.blob || r.blob.size<10000){
-            throw new Error('El resultado no es un render Remotion válido');
-          }
-          if(q.finalUrl?.startsWith('blob:'))try{URL.revokeObjectURL(q.finalUrl);}catch{}
-          q.finalUrl=r.url;q.finalExt='mp4';q.status='hecho';q.progress=100;
-          const base=(window.sanitizar?window.sanitizar(q.fileNameBase):q.fileNameBase)||`Video ${q.id}`;
-          completedFiles.push({slot:q.id,name:base+'.mp4',blob:r.blob});
-          if(row){row.style.borderColor='#22c55e';row.lastChild.textContent='LISTO';}
-        }catch(e){
-          failed++;q.status='error';
-          console.error('[V85 SLOT '+q.id+']',e);
-          if(row){row.style.borderColor='#ef4444';row.lastChild.textContent='ERROR';}
-        }
-
-        const donePct=Math.round(((i+1)/list.length)*96);
-        if(pct)pct.textContent=donePct+'%';
-        if(master)master.style.width=donePct+'%';
-        window.renderCola?.(true);
-      }
-
-      if(!completedFiles.length)throw new Error('Ningún video pudo renderizarse.');
-      completedFiles.sort((a,b)=>a.slot-b.slot);
-
-      if(window.JSZip){
-        if(txt)txt.textContent=`CREANDO ZIP CON ${completedFiles.length} VIDEOS...`;
-        if(pct)pct.textContent='97%';
-        if(master)master.style.width='97%';
-        const zip=new JSZip();
-        completedFiles.forEach(f=>zip.file(f.name,f.blob,{compression:'STORE'}));
-        const zipBlob=await zip.generateAsync({type:'blob',compression:'STORE'},meta=>{
-          const p=97+Math.floor(meta.percent*.03);
-          if(pct)pct.textContent=Math.min(99,p)+'%';
-          if(master)master.style.width=Math.min(99,p)+'%';
-        });
-        const u=URL.createObjectURL(zipBlob);
-        window.safeDownload?.(u,`ICECREAM_DIGITAL_${completedFiles.length}_VIDEOS.zip`);
-        setTimeout(()=>{try{URL.revokeObjectURL(u);}catch{}},60000);
-      }
-
-      if(pct)pct.textContent='100%';
-      if(master)master.style.width='100%';
-      if(sub)sub.textContent=`${completedFiles.length} LISTOS${failed?` · ${failed} ERROR${failed===1?'':'ES'}`:''}`;
-      if(txt)txt.textContent=`COMPLETADO · ${completedFiles.length} MP4 EN ZIP`;
-    }catch(e){
-      console.error('[V85 LOTE]',e);
-      if(txt)txt.textContent='ERROR: '+(e?.message||e);
-      alert('Error de render: '+(e?.message||e));
-    }finally{
-      window._remotionBatchActive=false;
-      window._batchGenerating=false;
-      window.renderCola?.(true);
-      resumePreviewAfterRender();
-    }
+    if(typeof window.renderAllRemotion==='function') return await window.renderAllRemotion();
+    throw new Error('Remotion todavía se está inicializando. Espera un momento y vuelve a intentar.');
   };
 
   function installWasmButton(){
@@ -2581,10 +2497,15 @@ console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Wo
    const list=(window.queue||[]).filter(q=>q.videoUrl&&(q.audioUrl||q.audioBlob));
    if(!list.length){alert('No hay slots con video + voz listos.');return}
    links.innerHTML='';bar.style.width='0%';
-   try{
-     for(let i=0;i<list.length;i++)await renderSlot(list[i],i,list.length);
-     bar.style.width='100%';status.textContent='✅ '+list.length+' VIDEO(S) REMOTION LISTOS';
-   }catch(e){console.error(e);status.textContent='❌ '+e.message;alert(e.message)}
+   const errors=[];
+   for(let i=0;i<list.length;i++){
+     try{await renderSlot(list[i],i,list.length)}
+     catch(e){console.error('[REMOTION SLOT '+list[i].id+']',e);errors.push('SLOT '+list[i].id+': '+(e?.message||String(e)))}
+   }
+   if(errors.length){
+     status.textContent='❌ '+errors.length+' slot(s) con error';
+     links.innerHTML='<div style="color:#ff7373;font-size:9px;line-height:1.45;white-space:normal">'+errors.map(x=>x.replace(/&/g,'&amp;').replace(/</g,'&lt;')).join('<br><br>')+'</div>'+links.innerHTML;
+   }else{bar.style.width='100%';status.textContent='✅ '+list.length+' VIDEO(S) REMOTION LISTOS'}
  };
  // Sustituye físicamente el botón antiguo para eliminar todos sus listeners Remotion.
  const old=document.getElementById('btnRender');
@@ -2592,7 +2513,7 @@ console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Wo
  // El botón oculto de render individual también queda en Remotion.
  const one=document.getElementById('btnRenderSingle');
  if(one){const b=one.cloneNode(true);one.replaceWith(b);b.id='btnRenderSingle';b.onclick=window.renderRemotionActive}
- console.log('[ICE CREAM] REMOTION ONLY · 6 SLOTS · SINGLE HTML');
+ console.log('[ICE CREAM] REMOTION ONLY V6 · OLD RENDER REMOVED · 6 SLOTS');
 })();
 </script>
 
