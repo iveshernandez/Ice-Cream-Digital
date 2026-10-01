@@ -1,4 +1,4 @@
-<!-- ICECREAM DIGITAL V60 CLEAN - Ultima version 60FPS - Limpieza de versiones viejas -->
+<!-- ICECREAM DIGITAL · 3 VOCES + PREVIEW · MUSICA 19% SIN DUCKING -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -533,9 +533,11 @@ body > div[style*="Nunca fui yo"]{
         <option value="1" selected>1x</option>
       </select>
     </div>
+    <button id="btnVoicePreview" type="button" style="width:100%;background:#19191e;color:#FFEB00;border:1px solid #3a3a40;border-radius:8px;padding:8px;font-size:10px;font-weight:900;cursor:pointer">▶ ESCUCHAR VISTA PREVIA DE ESTA VOZ</button>
+    <audio id="voicePreviewPlayer" preload="auto" style="display:none"></audio>
     <!-- MUSICA ELIMINADA V61 -->
     <button id="btnKokoroGen" style="width:100%;background:#FFEB00;color:#000;border:2px solid #000;border-radius:8px;padding:9px;font-size:11px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #000">🔊 GENERAR AUDIO ESPAÑOL</button>
-    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Motor Piper listo - 8 voces</div>
+    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Motor Piper listo · Ald / Claude / Sharvard</div>
     <div id="kokoroProgress" style="height:4px;background:#1a1a1e;border-radius:10px;overflow:hidden;display:none"><div id="kokoroProgressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
     <div id="audioName" style="font-size:9.5px;color:#4ade80;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);padding:5px 7px;border-radius:6px;word-break:break-all;min-height:18px;display:flex;align-items:center;gap:4px"><span style="color:#666">Sin audio - se guardará aquí</span></div>
     <input type="file" id="inputAudio" accept="audio/*" style="display:none">
@@ -667,7 +669,7 @@ const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c
 const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;};
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
-const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-ald-medium:0",voiceSpeed:1,audioBlob:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-ald-medium:0",voiceSpeed:1,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
 let activeId=1,lastCola=0,raf=null;
 window.queue=queue; window.activeId=1; window.getActiveId=()=>activeId;
 const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
@@ -1201,6 +1203,7 @@ async function handleGenerate(){
     slot.audioUrl=url;
     slot.audioName='SLOT'+slot.id+'-'+voiceId+'-'+text.length+'chars-'+chunks.length+'partes.wav';
     slot.audioBlob=finalWavBlob;
+    slot.audioVoiceId=slot.voiceId; // voz exacta que genero este WAV
 
     const tempAudio = new Audio(); tempAudio.src = url;
     await new Promise((res)=>{
@@ -1284,6 +1287,56 @@ window.generateVoiceForSlotIdLocked = async function(slotId){
   }
 };
 
+
+// === VISTA PREVIA DE VOZ: no altera el audio guardado del slot ===
+let voicePreviewObjectUrl=null;
+async function previewSelectedPiperVoice(){
+  const btn=document.getElementById('btnVoicePreview');
+  const player=document.getElementById('voicePreviewPlayer');
+  const sel=document.getElementById('kokoroVoice');
+  if(!btn||!player||!sel)return;
+  const fullVoiceId=sel.value||'es_MX-ald-medium:0';
+  const parts=fullVoiceId.split(':');
+  const voiceId=parts[0], speakerId=parseInt(parts[1]||'0',10)||0;
+  const slot=window.queue?.find(q=>q.id===(window.activeId||1));
+  let source=(slot?.txtContent||slot?.script||document.getElementById('inputScript')?.value||'').trim();
+  // Frase suficientemente larga para apreciar timbre, pero rápida de generar.
+  let sample=source ? source.split(/(?<=[.!?])\s+/)[0] : '';
+  if(sample.length<55 && source.length>sample.length) sample=source.slice(0,180);
+  if(!sample) sample='Esta es una prueba de voz para tus videos. Escucha el tono, la claridad y la pronunciación antes de exportar.';
+  if(sample.length>220) sample=sample.slice(0,220).replace(/\s+\S*$/,'')+'.';
+  const oldText=btn.textContent;
+  btn.disabled=true; btn.textContent='⏳ PREPARANDO '+sel.options[sel.selectedIndex].text+'...';
+  try{
+    player.pause();
+    const tts=await getTTS();
+    setKStatus('Vista previa · cargando '+sel.options[sel.selectedIndex].text+'...');
+    await tts.download(voiceId,()=>{});
+    const blob=await tts.predict({text:sample,voiceId,speakerId},()=>{});
+    if(!blob||blob.size<500)throw new Error('La voz no devolvió audio.');
+    if(voicePreviewObjectUrl)try{URL.revokeObjectURL(voicePreviewObjectUrl)}catch(e){}
+    voicePreviewObjectUrl=URL.createObjectURL(blob);
+    player.src=voicePreviewObjectUrl;
+    player.playbackRate=parseFloat(document.getElementById('kokoroSpeed')?.value)||1;
+    player.volume=1; player.muted=false;
+    await player.play();
+    btn.textContent='⏹ DETENER VISTA PREVIA';
+    setKStatus('▶ Vista previa · '+sel.options[sel.selectedIndex].text);
+    player.onended=()=>{btn.textContent='▶ ESCUCHAR VISTA PREVIA DE ESTA VOZ';btn.disabled=false;setKStatus('Motor Piper listo · voz '+sel.options[sel.selectedIndex].text);};
+  }catch(e){
+    console.error('preview voz',e);
+    setKStatus('❌ Vista previa: '+e.message);
+    btn.textContent=oldText;
+    btn.disabled=false;
+  }
+}
+document.getElementById('btnVoicePreview')?.addEventListener('click',()=>{
+  const p=document.getElementById('voicePreviewPlayer');
+  const b=document.getElementById('btnVoicePreview');
+  if(p && !p.paused){p.pause();p.currentTime=0;b.textContent='▶ ESCUCHAR VISTA PREVIA DE ESTA VOZ';b.disabled=false;setKStatus('Vista previa detenida');return;}
+  previewSelectedPiperVoice();
+});
+
 $id('btnKokoroGen')?.addEventListener('click', handleGenerate);
 document.getElementById('inputTxt')?.addEventListener('change', ()=>{
   setTimeout(()=>{
@@ -1292,8 +1345,24 @@ document.getElementById('inputTxt')?.addEventListener('change', ()=>{
   },600);
 });
 document.getElementById('kokoroVoice')?.addEventListener('change', e=>{
+  const vp=document.getElementById('voicePreviewPlayer'); if(vp&&!vp.paused){vp.pause();vp.currentTime=0;}
+  const vpb=document.getElementById('btnVoicePreview'); if(vpb){vpb.disabled=false;vpb.textContent='▶ ESCUCHAR VISTA PREVIA DE ESTA VOZ';}
   const it = window.getA ? window.getA() : getActiveSlot();
-  if(it){ it.voiceId = e.target.value; console.log(`SLOT ${it.id} voz -> ${e.target.value}`); }
+  if(it){
+    const nuevaVoz=e.target.value;
+    const cambio=it.voiceId!==nuevaVoz;
+    it.voiceId=nuevaVoz;
+    if(cambio){
+      // CRITICO: nunca reutilizar un WAV generado con otra voz.
+      try{ if(it.audioUrl && it.audioUrl.startsWith('blob:')) URL.revokeObjectURL(it.audioUrl); }catch{}
+      it.audioUrl=null; it.audioBlob=null; it.audioName=''; it.audioDur=0; it.audioVoiceId=null;
+      if((it.txtContent||it.script||'').trim()) it.status='sin audio';
+      const an=document.getElementById('audioName');
+      if(an) an.innerHTML='<span style="color:#FFEB00">Voz cambiada → el audio se regenerará con '+e.target.options[e.target.selectedIndex].text+'</span>';
+      setKStatus('Voz SLOT '+it.id+' → '+e.target.options[e.target.selectedIndex].text+' · audio anterior invalidado');
+    }
+    console.log(`SLOT ${it.id} voz -> ${nuevaVoz}`);
+  }
 });
 document.getElementById('kokoroSpeed')?.addEventListener('change', e=>{
   const it = window.getA ? window.getA() : getActiveSlot();
@@ -1333,7 +1402,7 @@ window.getTTS = getTTS;
   // 6 voces simultaneas que guardan seguro
   window.generateAllVoicesSimultaneous=async function(){
     const q=window.queue||[];
-    const pending=q.filter(x=>(x.txtContent||x.script)&&!x.audioUrl&&x.videoUrl);
+    const pending=q.filter(x=>(x.txtContent||x.script)&&x.videoUrl&&(!x.audioUrl || (x.audioVoiceId && x.audioVoiceId!==x.voiceId)));
     if(!pending.length) return true;
 
     window._voiceGenerating=true;
@@ -1475,6 +1544,7 @@ window.getTTS = getTTS;
         if(slot.audioUrl) try{URL.revokeObjectURL(slot.audioUrl);}catch{}
         slot.audioUrl=url;
         slot.audioBlob=wavBlob;
+        slot.audioVoiceId=slot.voiceId; // voz exacta que genero este WAV
         slot.audioName=`SLOT${slot.id}.wav`;
         slot.audioDur=concat.length/concat.sampleRate;
         slot.status='con audio';
@@ -1555,7 +1625,7 @@ window.getTTS = getTTS;
       btn.disabled = false; btn.style.opacity='1';
       btn.disabled=true; const orig=btn.textContent; btn.textContent='AUTOMATICO 6x6 FB...';
       try{
-        const need=(window.queue||[]).filter(x=>(x.txtContent||x.script)&&!x.audioUrl&&x.videoUrl);
+        const need=(window.queue||[]).filter(x=>(x.txtContent||x.script)&&x.videoUrl&&(!x.audioUrl || (x.audioVoiceId && x.audioVoiceId!==x.voiceId)));
         if(need.length) await window.generateAllVoicesSimultaneous();
         await new Promise(r=>setTimeout(r,300));
         await window.renderAllVideosBlindado();
@@ -1594,7 +1664,7 @@ window.getTTS = getTTS;
     try{
       const del=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!k) continue; const low=k.toLowerCase(); if(low.includes('sb-')||low.includes('supabase')||low.includes('auth')) continue; if(k.startsWith('ice_')||k.includes('ice_')) del.push(k); }
       del.forEach(k=>{try{localStorage.removeItem(k);}catch{}});
-      if(window.queue) window.queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase='Video '+q.id; q.txtName=''; q.txtContent=''; q.audioBlob=null; });
+      if(window.queue) window.queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase='Video '+q.id; q.txtName=''; q.txtContent=''; q.audioBlob=null; q.audioVoiceId=null; });
       document.querySelectorAll('input[type=file]').forEach(inp=>{try{inp.value='';}catch{}});
     }catch{}
     setTimeout(()=>location.reload(),400);
@@ -1828,17 +1898,12 @@ window.getTTS = getTTS;
       const i0=Math.floor(pos),i1=loop?(i0+1)%len:Math.min(len-1,i0+1),f=pos-i0;
       return arr[i0]*(1-f)+arr[i1]*f;
     };
-    let musicEnergy=0,voiceEnergy=0,mixedEnergy=0,peak=0,env=0;
-    const attack=Math.exp(-1/(outRate*0.018)),release=Math.exp(-1/(outRate*0.36));
+    let musicEnergy=0,voiceEnergy=0,mixedEnergy=0,peak=0;
     for(let i=0;i<frames;i++){
       const sec=i/outRate,vp=sec*vRate,mp=sec*mRate,voiceGain=1.12;
       const vl=sampleLinear(vL,vp,false)*voiceGain,vr=sampleLinear(vR,vp,false)*voiceGain;
-      const level=Math.max(Math.abs(vl),Math.abs(vr));
-      env=level>env?attack*env+(1-attack)*level:release*env+(1-release)*level;
-      const speech=Math.max(0,Math.min(1,(env-0.014)/0.075));
-      const duck=1-(0.62*speech);
-      let mg=musicVol*duck;
-      if(env<0.010)mg=Math.min(0.23,musicVol*1.22);
+      // SIN DUCKING: la música permanece al volumen base durante toda la narración.
+      let mg=musicVol;
       const fadeIn=Math.min(0.7,Math.max(0.18,total/8)),fadeOut=Math.min(1.0,Math.max(0.25,total/8));
       if(sec<fadeIn)mg*=sec/fadeIn;
       if(sec>total-fadeOut)mg*=Math.max(0,(total-sec)/fadeOut);
@@ -2086,7 +2151,7 @@ window.getTTS = getTTS;
           return;
         }
 
-        const need=withVideo.filter(x=>(x.txtContent||x.script)&&!x.audioUrl);
+        const need=withVideo.filter(x=>(x.txtContent||x.script)&&(!x.audioUrl || (x.audioVoiceId && x.audioVoiceId!==x.voiceId)));
         if(need.length){
           nb.textContent='⏳ FASE 1/2 · GENERANDO VOCES...';
           const ok=await window.generateAllVoicesSimultaneous();
@@ -2142,7 +2207,7 @@ window._doLimpiarReal=async function(){
     if(window.queue) window.queue.forEach(q=>{ try{if(q.videoUrl&&q.videoUrl.startsWith('blob:')) URL.revokeObjectURL(q.videoUrl); if(q.audioUrl&&q.audioUrl.startsWith('blob:')) URL.revokeObjectURL(q.audioUrl); if(q.finalUrl&&q.finalUrl.startsWith('blob:')) URL.revokeObjectURL(q.finalUrl);}catch{}} );
   }catch{}
   try{
-    if(window.queue) window.queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase='Video '+q.id; q.txtName=''; q.txtContent=''; q.audioBlob=null; });
+    if(window.queue) window.queue.forEach(q=>{ q.title=''; q.script=''; q.videoUrl=null; q.videoName=''; q.videoDur=0; q.audioUrl=null; q.audioName=''; q.audioDur=0; q.status='vacio'; q.progress=0; q.finalUrl=null; q.finalExt='mp4'; q.fileNameBase='Video '+q.id; q.txtName=''; q.txtContent=''; q.audioBlob=null; q.audioVoiceId=null; });
     document.querySelectorAll('input[type=file]').forEach(inp=>{try{inp.value='';}catch{}}); 
   }catch{}
   setTimeout(()=>location.reload(),400);
