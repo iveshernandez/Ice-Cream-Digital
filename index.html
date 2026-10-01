@@ -1558,8 +1558,19 @@ window.getTTS = getTTS;
         const parts=voiceId.split(':');
         const vId=parts[0], spk=parseInt(parts[1]||0,10);
 
+        setState(`DESCARGANDO`);
+        let modelReady=false, lastDownloadError=null;
+        for(let da=1; da<=3 && !modelReady; da++){
+          try{
+            await tts.download(vId,()=>{});
+            modelReady=true;
+          }catch(e){
+            lastDownloadError=e;
+            if(da<3) await new Promise(r=>setTimeout(r,1200));
+          }
+        }
+        if(!modelReady) throw lastDownloadError || new Error('No se pudo descargar el modelo '+vId);
         setState(`TTS ${workerId}`);
-        try{ await tts.download(vId,()=>{}); }catch{}
 
         const chunks=splitFn(text,380);
         const AC=window.AudioContext||window.webkitAudioContext;
@@ -1574,11 +1585,15 @@ window.getTTS = getTTS;
             try{
               wb=await Promise.race([
                 predictPiperIsolated({text:chunks[i],voiceId:vId,speakerId:spk}),
-                new Promise((_,rej)=>setTimeout(()=>rej(new Error('TTS timeout')),45000))
+                new Promise((_,rej)=>setTimeout(()=>rej(new Error('TTS timeout')),180000))
               ]);
               if(wb&&wb.size>=500) break;
             }catch(e){
-              if(attempt<2) await new Promise(r=>setTimeout(r,350));
+              console.warn('[TTS SLOT '+slot.id+'] chunk '+(i+1)+' intento '+attempt+' fallo:', e);
+              // Si hubo timeout/error, el Worker anterior puede seguir sintetizando en segundo plano.
+              // Lo terminamos antes del reintento para impedir dos inferencias sobre el mismo modelo.
+              try{ resetPiperVoiceWorker(vId); }catch{}
+              if(attempt<2) await new Promise(r=>setTimeout(r,900));
             }
           }
           if(!wb||wb.size<800) throw new Error('Chunk de voz vacío');
@@ -1601,7 +1616,7 @@ window.getTTS = getTTS;
         if(slot.audioUrl) try{URL.revokeObjectURL(slot.audioUrl);}catch{}
         slot.audioUrl=url;
         slot.audioBlob=wavBlob;
-        slot.audioVoiceId=slot.voiceId; // voz exacta que genero este WAV
+        slot.audioVoiceId=voiceId; // voz exacta (modelo:speaker) que generó este WAV
         slot.audioName=`SLOT${slot.id}.wav`;
         slot.audioDur=concat.length/concat.sampleRate;
         slot.status='con audio';
@@ -1640,7 +1655,11 @@ window.getTTS = getTTS;
             // un reintento sigue perteneciendo al mismo slot lógico.
             finished=Math.max(0,finished-1);
             failed=Math.max(0,failed-1);
-            await new Promise(r=>setTimeout(r,800));
+            try{
+              const retryVoice=(slot.voiceId||document.getElementById('kokoroVoice')?.value||'es_MX-claude-high:0').split(':')[0];
+              resetPiperVoiceWorker(retryVoice);
+            }catch{}
+            await new Promise(r=>setTimeout(r,1200));
           }
         }
 
@@ -2545,5 +2564,8 @@ window.IC_renew=function(username){
 })();
 </script>
 
+<script>
+console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Worker en error');
+</script>
 </body>
 </html>
