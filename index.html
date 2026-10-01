@@ -2,20 +2,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script type="importmap">
-{"imports":{
-"react":"https://esm.sh/react@19.1.1",
-"react/":"https://esm.sh/react@19.1.1/",
-"react-dom":"https://esm.sh/react-dom@19.1.1?external=react",
-"react-dom/":"https://esm.sh/react-dom@19.1.1/",
-"remotion":"https://esm.sh/remotion@4.0.529?external=react,react-dom",
-"remotion/":"https://esm.sh/remotion@4.0.529/",
-"@remotion/media":"https://esm.sh/@remotion/media@4.0.529?external=react,react-dom,remotion",
-"@remotion/media/":"https://esm.sh/@remotion/media@4.0.529/",
-"@remotion/web-renderer":"https://esm.sh/@remotion/web-renderer@4.0.529?external=react,react-dom,remotion",
-"@remotion/web-renderer/":"https://esm.sh/@remotion/web-renderer@4.0.529/"
-}}
-</script>
+<script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Icecream Digital · Compact Studio</title>
@@ -506,7 +493,7 @@ body > div[style*="Nunca fui yo"]{
 </div>
 <div style="display:flex;gap:8px;align-items:center">
 <label style="background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222;font-size:10px"><input type="checkbox" id="autoDownloadCheck" checked> Auto-descargar</label>
-<button id="btnLimpiarTodo" type="button">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender">⚡ RENDERIZAR TODO · REMOTION</button>
+<button id="btnLimpiarTodo" type="button">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender">⚡ RENDERIZAR TODO (6 VIDEOS 720p FB HD)</button>
 </div>
 </header>
 
@@ -601,7 +588,7 @@ body > div[style*="Nunca fui yo"]{
     <div id="renderList" style="width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:none;overflow:visible"></div>
 
     <div style="margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#666671;font-size:7px;font-weight:850">
-      <span>720 × 1280</span><span>H.264 · 30 FPS</span><span>2 MOTORES REMOTION</span>
+      <span>720 × 1280</span><span>H.264 · 30 FPS</span><span>2 MOTORES FFMPEG</span>
     </div>
   </div>
 </div>
@@ -1027,7 +1014,7 @@ setActive(1);renderCola(true);log('V3 COMPACT UI · AUDIO + DUCKING · FUNCIONAL
 </script>
 
 <script>
-// === V72: PREVIEW HTML/CSS POR CAPAS; RENDER REMOTION V70 CONSERVADO ===
+// === V72: PREVIEW HTML/CSS POR CAPAS; RENDER FFMPEG V70 CONSERVADO ===
 </script>
 
 <!-- TTS PIPER MODULE - ULTIMA VERSION V50 CLEAN -->
@@ -1613,7 +1600,7 @@ window.getTTS = getTTS;
   };
 
   // V77: renderer simultáneo antiguo eliminado físicamente.
-  // Solo existe el renderer Remotion secuencial de la sección final.
+  // Solo existe el renderer FFmpeg secuencial de la sección final.
 
 
 // Unico boton Render Todo automatico
@@ -1635,7 +1622,7 @@ window.getTTS = getTTS;
       }catch(err){ alert(err.message); } finally{ btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO (6 VIDEOS 720p FB HD)'; window._batchGenerating=false; }
     });
   }
-  // V81: instalador legacy desactivado; el botón final Remotion es el único dueño.
+  // V81: instalador legacy desactivado; el botón final FFmpeg es el único dueño.
   // setTimeout(installRenderTodo,600);
   // setTimeout(installRenderTodo,1500);
 
@@ -1722,33 +1709,33 @@ window.getTTS = getTTS;
 
 <script>
 
-// === V78 REMOTION.WASM + 3 EN PARALELO + REINICIO POR SLOT ===
-// Render final 100% en el navegador con Remotion WebAssembly (single-thread).
+// === V78 FFMPEG.WASM + 3 EN PARALELO + REINICIO POR SLOT ===
+// Render final 100% en el navegador con FFmpeg WebAssembly (single-thread).
 // La interfaz, Piper, Supabase, preview y cola se conservan. El render final NO usa
 // VideoEncoder, MediaRecorder, MP4Box ni mp4-muxer.
 (function(){
   const ICW = window.ICECREAM_WASM = {
     wrapperLoading:null,
-    corePath:'https://unpkg.com/@remotion/core-st@0.11.1/dist/remotion-core.js',
-    wrapperPath:'https://cdn.jsdelivr.net/npm/@remotion/remotion@0.11.6/dist/remotion.min.js',
-    fontUrl:'https://raw.githubusercontent.com/remotionwasm/testdata/master/arial.ttf'
+    corePath:'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
+    wrapperPath:'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js',
+    fontUrl:'https://raw.githubusercontent.com/ffmpegwasm/testdata/master/arial.ttf'
   };
 
   function loadClassicScript(src){
-    if(window.Remotion?.createRemotion) return Promise.resolve();
+    if(window.FFmpeg?.createFFmpeg) return Promise.resolve();
     if(ICW.wrapperLoading) return ICW.wrapperLoading;
     ICW.wrapperLoading=new Promise((resolve,reject)=>{
       const sc=document.createElement('script');
       sc.src=src; sc.async=true;
       sc.onload=resolve;
-      sc.onerror=()=>reject(new Error('No se pudo cargar Remotion.wasm'));
+      sc.onerror=()=>reject(new Error('No se pudo cargar FFmpeg.wasm'));
       document.head.appendChild(sc);
     });
     return ICW.wrapperLoading;
   }
 
-  function safeFSUnlink(remotion,name){
-    try{remotion.FS('unlink',name);}catch{}
+  function safeFSUnlink(ffmpeg,name){
+    try{ffmpeg.FS('unlink',name);}catch{}
   }
 
   function extFromName(name,fallback){
@@ -1935,15 +1922,15 @@ window.getTTS = getTTS;
   }
 
   async function renderFresh(item,onPhase){
-    let remotion=null;
+    let ffmpeg=null;
     const files=[];
     try{
       onPhase?.('CARGANDO MOTOR');
       await loadClassicScript(ICW.wrapperPath);
-      const {createRemotion}=window.Remotion;
+      const {createFFmpeg}=window.FFmpeg;
       // Sin logger/progress: evita inundar el hilo principal con mensajes.
-      remotion=createRemotion({log:false,mainName:'main',corePath:ICW.corePath});
-      await remotion.load();
+      ffmpeg=createFFmpeg({log:false,mainName:'main',corePath:ICW.corePath});
+      await ffmpeg.load();
 
       const id=`slot${item.id}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
       // V84 CRÍTICO: entrada y salida JAMÁS comparten el mismo nombre.
@@ -1968,15 +1955,15 @@ window.getTTS = getTTS;
       const mix=await mixEditorNarrationMusicBrowser(voiceBlob,musicBlob,total,0.19);
       const ab=new Uint8Array(await mix.blob.arrayBuffer());
 
-      remotion.FS('writeFile',inV,vb);
-      remotion.FS('writeFile',inA,ab);
-      remotion.FS('writeFile','arial.ttf',fontb);
+      ffmpeg.FS('writeFile',inV,vb);
+      ffmpeg.FS('writeFile',inA,ab);
+      ffmpeg.FS('writeFile','arial.ttf',fontb);
 
       const info=typeof getRateInfo==='function'?getRateInfo(vDur,total):{rate:1,useLoop:false};
 
       const assText=makeASS(item,total);
       if(!assText || !assText.includes('[Events]')) throw new Error('No se pudo generar título/subtítulos');
-      remotion.FS('writeFile',ass,new TextEncoder().encode(assText));
+      ffmpeg.FS('writeFile',ass,new TextEncoder().encode(assText));
       const useSubs=true;
 
       const args=[];
@@ -1995,13 +1982,13 @@ window.getTTS = getTTS;
       onPhase?.('CODIFICANDO');
       // Deja pintar UI antes del trabajo pesado.
       await new Promise(r=>setTimeout(r,120));
-      await remotion.run(...args);
+      await ffmpeg.run(...args);
 
       onPhase?.('GUARDANDO');
-      const data=remotion.FS('readFile',out);
-      if(!data||data.byteLength<10000) throw new Error('Remotion no generó un MP4 final válido');
+      const data=ffmpeg.FS('readFile',out);
+      if(!data||data.byteLength<10000) throw new Error('FFmpeg no generó un MP4 final válido');
 
-      // La salida debe ser un archivo nuevo producido por Remotion, nunca el input.
+      // La salida debe ser un archivo nuevo producido por FFmpeg, nunca el input.
       if(out===inV) throw new Error('Colisión interna entrada/salida');
 
       const copy=new Uint8Array(data.byteLength);
@@ -2016,12 +2003,12 @@ window.getTTS = getTTS;
         outputBytes:copy.byteLength
       };
     }finally{
-      if(remotion){
-        files.forEach(n=>safeFSUnlink(remotion,n));
-        safeFSUnlink(remotion,'arial.ttf');
-        try{remotion.exit?.();}catch{}
+      if(ffmpeg){
+        files.forEach(n=>safeFSUnlink(ffmpeg,n));
+        safeFSUnlink(ffmpeg,'arial.ttf');
+        try{ffmpeg.exit?.();}catch{}
       }
-      remotion=null;
+      ffmpeg=null;
       // Ventana real para GC/memoria antes del siguiente slot.
       await new Promise(r=>setTimeout(r,700));
     }
@@ -2040,19 +2027,103 @@ window.getTTS = getTTS;
   }
 
   window.renderAllVideosBlindado=async function(){
-    if(typeof window.renderAllRemotion==='function') return await window.renderAllRemotion();
-    throw new Error('Remotion todavía se está inicializando. Espera un momento y vuelve a intentar.');
+    if(window._ffmpegBatchActive)return;
+    const list=(window.queue||[]).filter(q=>q.videoUrl&&q.audioUrl);
+    if(!list.length){alert('No hay videos con voz listos.');return;}
+
+    window._ffmpegBatchActive=true;
+    window._batchGenerating=true;
+    freezePreviewForRender();
+
+    const ov=document.getElementById('renderOverlay'),pct=document.getElementById('renderPct'),
+      txt=document.getElementById('renderText'),lst=document.getElementById('renderList'),
+      master=document.getElementById('renderMasterBar'),sub=document.getElementById('renderSubLabel');
+
+    if(ov)ov.style.display='flex';
+    if(lst)lst.innerHTML=list.map(q=>`<div id="renderSlot-${q.id}" style="background:#0d0d12;border:1px solid #292932;border-radius:9px;padding:8px 9px;display:flex;justify-content:space-between;align-items:center"><span style="color:#d8d8df;font-size:8px;font-weight:900">SLOT ${q.id} · VIDEO</span><span style="color:#777783;font-size:9px;font-weight:950">EN COLA</span></div>`).join('');
+
+    const completedFiles=[];
+    let failed=0;
+
+    try{
+      for(let i=0;i<list.length;i++){
+        const q=list[i],row=document.getElementById('renderSlot-'+q.id);
+        const basePct=Math.round((i/list.length)*96);
+        if(pct)pct.textContent=basePct+'%';
+        if(master)master.style.width=basePct+'%';
+        if(sub)sub.textContent=`VIDEO ${i+1} DE ${list.length}`;
+        if(row){row.style.borderColor='#FFEB00';row.lastChild.textContent='INICIANDO';}
+        if(txt)txt.textContent=`SLOT ${q.id} · MOTOR NUEVO`;
+
+        try{
+          const r=await renderFresh(q,phase=>{
+            if(row)row.lastChild.textContent=phase;
+            if(txt)txt.textContent=`SLOT ${q.id} · ${phase}`;
+          });
+          if(!r?.rendered || !r?.blob || r.blob.size<10000){
+            throw new Error('El resultado no es un render FFmpeg válido');
+          }
+          if(q.finalUrl?.startsWith('blob:'))try{URL.revokeObjectURL(q.finalUrl);}catch{}
+          q.finalUrl=r.url;q.finalExt='mp4';q.status='hecho';q.progress=100;
+          const base=(window.sanitizar?window.sanitizar(q.fileNameBase):q.fileNameBase)||`Video ${q.id}`;
+          completedFiles.push({slot:q.id,name:base+'.mp4',blob:r.blob});
+          if(row){row.style.borderColor='#22c55e';row.lastChild.textContent='LISTO';}
+        }catch(e){
+          failed++;q.status='error';
+          console.error('[V85 SLOT '+q.id+']',e);
+          if(row){row.style.borderColor='#ef4444';row.lastChild.textContent='ERROR';}
+        }
+
+        const donePct=Math.round(((i+1)/list.length)*96);
+        if(pct)pct.textContent=donePct+'%';
+        if(master)master.style.width=donePct+'%';
+        window.renderCola?.(true);
+      }
+
+      if(!completedFiles.length)throw new Error('Ningún video pudo renderizarse.');
+      completedFiles.sort((a,b)=>a.slot-b.slot);
+
+      if(window.JSZip){
+        if(txt)txt.textContent=`CREANDO ZIP CON ${completedFiles.length} VIDEOS...`;
+        if(pct)pct.textContent='97%';
+        if(master)master.style.width='97%';
+        const zip=new JSZip();
+        completedFiles.forEach(f=>zip.file(f.name,f.blob,{compression:'STORE'}));
+        const zipBlob=await zip.generateAsync({type:'blob',compression:'STORE'},meta=>{
+          const p=97+Math.floor(meta.percent*.03);
+          if(pct)pct.textContent=Math.min(99,p)+'%';
+          if(master)master.style.width=Math.min(99,p)+'%';
+        });
+        const u=URL.createObjectURL(zipBlob);
+        window.safeDownload?.(u,`ICECREAM_DIGITAL_${completedFiles.length}_VIDEOS.zip`);
+        setTimeout(()=>{try{URL.revokeObjectURL(u);}catch{}},60000);
+      }
+
+      if(pct)pct.textContent='100%';
+      if(master)master.style.width='100%';
+      if(sub)sub.textContent=`${completedFiles.length} LISTOS${failed?` · ${failed} ERROR${failed===1?'':'ES'}`:''}`;
+      if(txt)txt.textContent=`COMPLETADO · ${completedFiles.length} MP4 EN ZIP`;
+    }catch(e){
+      console.error('[V85 LOTE]',e);
+      if(txt)txt.textContent='ERROR: '+(e?.message||e);
+      alert('Error de render: '+(e?.message||e));
+    }finally{
+      window._ffmpegBatchActive=false;
+      window._batchGenerating=false;
+      window.renderCola?.(true);
+      resumePreviewAfterRender();
+    }
   };
 
   function installWasmButton(){
     const old=document.getElementById('btnRender'); if(!old) return;
-    if(old._remotionWasm) return;
-    const nb=old.cloneNode(true); old.parentNode.replaceChild(nb,old); nb._remotionWasm=true;
-    nb.textContent='⚡ RENDERIZAR TODO · REMOTION 720p';
+    if(old._ffmpegWasm) return;
+    const nb=old.cloneNode(true); old.parentNode.replaceChild(nb,old); nb._ffmpegWasm=true;
+    nb.textContent='⚡ RENDERIZAR TODO · FFMPEG 720p';
     nb.addEventListener('click',async e=>{
       e.preventDefault();
       e.stopPropagation();
-      if(window._remotionBatchActive || window._voiceGenerating) return;
+      if(window._ffmpegBatchActive || window._voiceGenerating) return;
 
       nb.disabled=true;
       try{
@@ -2091,20 +2162,20 @@ window.getTTS = getTTS;
         if(ov) ov.style.display='flex';
         if(pct) pct.textContent='0%';
         if(master) master.style.width='0%';
-        if(txt) txt.textContent='FASE 2/2 · INICIANDO REMOTION...';
+        if(txt) txt.textContent='FASE 2/2 · INICIANDO FFMPEG...';
         if(sub) sub.textContent='RENDER AUTOMÁTICO';
         if(lst) lst.innerHTML='';
 
         await new Promise(r=>setTimeout(r,180));
 
-        nb.textContent='⏳ FASE 2/2 · RENDER REMOTION...';
+        nb.textContent='⏳ FASE 2/2 · RENDER FFMPEG...';
         await window.renderAllVideosBlindado();
       }catch(err){
         console.error(err);
         alert(err.message||String(err));
       }finally{
         nb.disabled=false;
-        nb.textContent='⚡ RENDERIZAR TODO · REMOTION 720p';
+        nb.textContent='⚡ RENDERIZAR TODO · FFMPEG 720p';
         window._batchGenerating=false;
       }
     });
@@ -2113,8 +2184,8 @@ window.getTTS = getTTS;
   setTimeout(installWasmButton,2200);
   setTimeout(installWasmButton,3200);
   setTimeout(()=>{
-    const t=document.getElementById('renderText'); if(t && /60fps/i.test(t.textContent||'')) t.textContent='RENDER REMOTION 30 FPS';
-    console.log('[ICECREAM V85] 2 motores Remotion persistentes instalados');
+    const t=document.getElementById('renderText'); if(t && /60fps/i.test(t.textContent||'')) t.textContent='RENDER FFMPEG 30 FPS';
+    console.log('[ICECREAM V85] 2 motores FFmpeg persistentes instalados');
   },3400);
 })();
 
@@ -2413,109 +2484,5 @@ console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Wo
 <script>console.log('[ICE CREAM] V85 Render Todo usa exactamente handleGenerate manual por slot');</script>
 <script>console.log('[ICE CREAM] V86 Worker persistente: modelo se descarga una sola vez por lote');</script>
 <script>console.log('[ICE CREAM] V87 Piper Worker READY: un solo dueño del modelo durante Renderizar Todo');</script>
-
-
-
-<!-- REMOTION ONLY · SINGLE HTML CONTROLLER -->
-<div id="remotionLab" style="position:fixed;right:18px;bottom:18px;z-index:99999;width:330px;background:#0c0c11;border:1px solid #34343d;border-radius:14px;padding:12px;box-shadow:0 16px 45px #000b;font-family:Arial,sans-serif">
-  <div style="font-size:11px;font-weight:950;color:#fff">⚡ REMOTION · 6 SLOTS</div>
-  <div id="remotionStatus" style="font-size:9px;color:#aaa;margin-top:4px">Motor único · 720×1280 · 30 FPS · música 19%</div>
-  <div style="height:6px;background:#25252d;border-radius:99px;overflow:hidden;margin-top:9px"><div id="remotionBar" style="height:100%;width:0%;background:#a78bfa"></div></div>
-  <div id="remotionLinks" style="margin-top:8px;max-height:150px;overflow:auto"></div>
-</div>
-<script type="module">
-(async()=>{
- const $=id=>document.getElementById(id), status=$('remotionStatus'), bar=$('remotionBar'), links=$('remotionLinks');
- let mods=null;
- async function loadRemotion(){
-   if(mods)return mods;
-   status.textContent='Cargando Remotion...';
-   const [R,RM,M,WR]=await Promise.all([import('react'),import('remotion'),import('@remotion/media'),import('@remotion/web-renderer')]);
-   const React=R.default||R;
-   if(!React?.createElement)throw new Error('React no disponible');
-   if(!M.Video||!M.Audio)throw new Error('@remotion/media no exportó Video/Audio');
-   if(typeof WR.renderMediaOnWeb!=='function')throw new Error('renderMediaOnWeb no disponible');
-   mods={React,AbsoluteFill:RM.AbsoluteFill,Video:M.Video,Audio:M.Audio,renderMediaOnWeb:WR.renderMediaOnWeb};
-   return mods;
- }
- function wavFromSamples(samples,sr=24000){
-   const ab=new ArrayBuffer(44+samples.length*2),v=new DataView(ab);let p=0;
-   const st=x=>{for(const c of x)v.setUint8(p++,c.charCodeAt(0))},u32=x=>{v.setUint32(p,x,true);p+=4},u16=x=>{v.setUint16(p,x,true);p+=2};
-   st('RIFF');u32(36+samples.length*2);st('WAVE');st('fmt ');u32(16);u16(1);u16(1);u32(sr);u32(sr*2);u16(2);u16(16);st('data');u32(samples.length*2);
-   for(let i=0;i<samples.length;i++){let x=Math.max(-1,Math.min(1,samples[i]));v.setInt16(p,x<0?x*32768:x*32767,true);p+=2}
-   return new Blob([ab],{type:'audio/wav'});
- }
- function makeMusic(seconds){
-   const sr=24000,total=Math.max(1,Math.ceil(seconds*sr)),out=new Float32Array(total),bpm=96,beat=60/bpm,chordLen=beat*8;
-   const chords=[[110,164.81,220,246.94],[98,146.83,196,220],[87.31,130.81,174.61,196],[110,146.83,220,261.63]];
-   const pl=[329.63,392,440,523.25,440,392,349.23,493.88];let peak=0;
-   for(let i=0;i<total;i++){const t=i/sr,ch=chords[Math.floor(t/chordLen)%4];let pad=0;for(let n=0;n<ch.length;n++)pad+=Math.sin(2*Math.PI*ch[n]*t+n*.45)*(n===0?.105:.055);
-     const eighth=beat/2,step=Math.floor(t/eighth)%8,ph=(t%eighth)/eighth,pluck=[1,0,1,0,1,1,0,1][step]*Math.exp(-ph*8.5)*(Math.sin(2*Math.PI*pl[step]*t)*.12);
-     const bp=(t%beat)/beat,pulse=Math.sin(2*Math.PI*82.41*t)*.075*Math.exp(-bp*7.5),fade=Math.min(1,t/.8,Math.max(0,(seconds-t)/1));
-     const x=(pad+pluck+pulse)*(.88+.12*Math.sin(2*Math.PI*.045*t))*fade;out[i]=x;peak=Math.max(peak,Math.abs(x))}
-   const g=peak?0.62/peak:1;for(let i=0;i<total;i++)out[i]*=g;return wavFromSamples(out,sr);
- }
- async function renderSlot(slot,idx,totalSlots){
-   if(!slot?.videoUrl)throw new Error('SLOT '+slot.id+': falta video');
-   if(!slot?.audioUrl&&!slot?.audioBlob)throw new Error('SLOT '+slot.id+': falta voz');
-   const {React,AbsoluteFill,Video,Audio,renderMediaOnWeb}=await loadRemotion();
-   const audioSrc=slot.audioUrl||URL.createObjectURL(slot.audioBlob);
-   const dur=Math.max(.5,Number(slot.audioDur||slot.videoDur||1)),frames=Math.ceil(dur*30);
-   const musicUrl=URL.createObjectURL(makeMusic(dur));
-   const Comp=(p)=>React.createElement(AbsoluteFill,{style:{backgroundColor:'#000'}},
-     React.createElement(Video,{src:p.videoSrc,muted:true,loop:true,style:{width:'100%',height:'100%',objectFit:'cover'}}),
-     React.createElement(Audio,{src:p.audioSrc,volume:1}),
-     React.createElement(Audio,{src:p.musicSrc,volume:.19,loop:true}),
-     React.createElement(AbsoluteFill,{style:{justifyContent:'flex-start',alignItems:'center',paddingTop:54,pointerEvents:'none'}},
-       React.createElement('div',{style:{maxWidth:'88%',padding:'14px 22px',borderRadius:14,backgroundColor:'rgba(0,0,0,.62)',color:'#fff',fontSize:38,fontWeight:900,textAlign:'center',textShadow:'0 3px 10px #000'}},p.title||('SLOT '+slot.id))
-     )
-   );
-   status.textContent='SLOT '+slot.id+' · iniciando Remotion';
-   const result=await renderMediaOnWeb({
-     composition:{component:Comp,durationInFrames:frames,fps:30,width:720,height:1280,calculateMetadata:null,id:'slot-'+slot.id},
-     inputProps:{videoSrc:slot.videoUrl,audioSrc,musicSrc:musicUrl,title:slot.title||slot.fileNameBase||('SLOT '+slot.id)},
-     container:'mp4',videoCodec:'h264',audioCodec:'aac',
-     onProgress:({overallProgress})=>{
-       const local=Math.max(0,Math.min(1,Number(overallProgress)||0));
-       const all=(idx+local)/Math.max(1,totalSlots);
-       bar.style.width=Math.round(all*100)+'%';
-       status.textContent='SLOT '+slot.id+' · '+Math.round(local*100)+'% · total '+Math.round(all*100)+'%';
-     }
-   });
-   const blob=await result.getBlob(); URL.revokeObjectURL(musicUrl);
-   if(!blob||blob.size<1000)throw new Error('SLOT '+slot.id+': MP4 vacío');
-   const url=URL.createObjectURL(blob),name=(slot.fileNameBase||slot.title||('SLOT '+slot.id)).replace(/[\\/:*?"<>|]+/g,' ').trim()+'-REMOTION.mp4';
-   const a=document.createElement('a');a.href=url;a.download=name;a.textContent='⬇ SLOT '+slot.id+' · '+(blob.size/1048576).toFixed(1)+' MB';a.style.cssText='display:block;background:#22c55e;color:#061006;text-decoration:none;padding:7px 9px;border-radius:7px;margin-top:5px;font-size:9px;font-weight:950;text-align:center';links.appendChild(a);
-   slot.remotionUrl=url; slot.remotionBlob=blob;
-   return {url,blob,name};
- }
- window.renderRemotionActive=async()=>{
-   const slot=(window.queue||[]).find(q=>q.id===(window.activeId||1));links.innerHTML='';
-   try{bar.style.width='0%';await renderSlot(slot,0,1);bar.style.width='100%';status.textContent='✅ SLOT '+slot.id+' LISTO'}catch(e){console.error(e);status.textContent='❌ '+e.message}
- };
- window.renderAllRemotion=async()=>{
-   const list=(window.queue||[]).filter(q=>q.videoUrl&&(q.audioUrl||q.audioBlob));
-   if(!list.length){alert('No hay slots con video + voz listos.');return}
-   links.innerHTML='';bar.style.width='0%';
-   const errors=[];
-   for(let i=0;i<list.length;i++){
-     try{await renderSlot(list[i],i,list.length)}
-     catch(e){console.error('[REMOTION SLOT '+list[i].id+']',e);errors.push('SLOT '+list[i].id+': '+(e?.message||String(e)))}
-   }
-   if(errors.length){
-     status.textContent='❌ '+errors.length+' slot(s) con error';
-     links.innerHTML='<div style="color:#ff7373;font-size:9px;line-height:1.45;white-space:normal">'+errors.map(x=>x.replace(/&/g,'&amp;').replace(/</g,'&lt;')).join('<br><br>')+'</div>'+links.innerHTML;
-   }else{bar.style.width='100%';status.textContent='✅ '+list.length+' VIDEO(S) REMOTION LISTOS'}
- };
- // Sustituye físicamente el botón antiguo para eliminar todos sus listeners Remotion.
- const old=document.getElementById('btnRender');
- if(old){const b=old.cloneNode(true);old.replaceWith(b);b.id='btnRender';b.textContent='⚡ RENDERIZAR TODO · REMOTION';b.onclick=async()=>{b.disabled=true;try{await window.renderAllRemotion()}finally{b.disabled=false}}}
- // El botón oculto de render individual también queda en Remotion.
- const one=document.getElementById('btnRenderSingle');
- if(one){const b=one.cloneNode(true);one.replaceWith(b);b.id='btnRenderSingle';b.onclick=window.renderRemotionActive}
- console.log('[ICE CREAM] REMOTION ONLY V6 · OLD RENDER REMOVED · 6 SLOTS');
-})();
-</script>
-
 </body>
 </html>
