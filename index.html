@@ -2,7 +2,22 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script type="importmap">{"imports":{"mp4-muxer":"https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.js"}}</script>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.1.1",
+    "react/": "https://esm.sh/react@19.1.1/",
+    "react-dom": "https://esm.sh/react-dom@19.1.1?external=react",
+    "react-dom/": "https://esm.sh/react-dom@19.1.1/",
+    "remotion": "https://esm.sh/remotion@4.0.529?external=react,react-dom",
+    "remotion/": "https://esm.sh/remotion@4.0.529/",
+    "@remotion/media": "https://esm.sh/@remotion/media@4.0.529?external=react,react-dom,remotion",
+    "@remotion/media/": "https://esm.sh/@remotion/media@4.0.529/",
+    "@remotion/web-renderer": "https://esm.sh/@remotion/web-renderer@4.0.529?external=react,react-dom,remotion",
+    "@remotion/web-renderer/": "https://esm.sh/@remotion/web-renderer@4.0.529/"
+  }
+}
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Icecream Digital · Compact Studio</title>
@@ -2485,7 +2500,7 @@ console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Wo
 <script>console.log('[ICE CREAM] V86 Worker persistente: modelo se descarga una sola vez por lote');</script>
 <script>console.log('[ICE CREAM] V87 Piper Worker READY: un solo dueño del modelo durante Renderizar Todo');</script>
 
-<div id="remotionLab" style="position:fixed;right:18px;bottom:18px;z-index:9997;width:310px;background:#111116;border:1px solid #34343d;border-radius:14px;padding:12px;box-shadow:0 16px 45px #000a;font-family:Arial,sans-serif"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-size:11px;font-weight:950;color:#fff">🧪 REMOTION · SLOT ACTIVO</div><div id="remotionStatus" style="font-size:9px;color:#92929e;margin-top:4px">V2 React único · WebCodecs · 720×1280 · 30 FPS</div></div><button id="btnRemotionTest" type="button" style="border:0;border-radius:9px;background:#7c3aed;color:#fff;font-size:10px;font-weight:950;padding:10px 12px;cursor:pointer">RENDER</button></div><div style="height:6px;background:#25252d;border-radius:99px;overflow:hidden;margin-top:10px"><div id="remotionBar" style="height:100%;width:0%;background:#a78bfa;transition:width .15s"></div></div><div id="remotionDetail" style="font-size:8px;color:#6f6f7b;margin-top:6px">FFmpeg permanece intacto.</div><a id="remotionDownload" style="display:none;margin-top:9px;background:#22c55e;color:#071107;text-align:center;text-decoration:none;padding:9px;border-radius:8px;font-size:10px;font-weight:950">DESCARGAR MP4 REMOTION</a></div>
+<div id="remotionLab" style="position:fixed;right:18px;bottom:18px;z-index:9997;width:310px;background:#111116;border:1px solid #34343d;border-radius:14px;padding:12px;box-shadow:0 16px 45px #000a;font-family:Arial,sans-serif"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-size:11px;font-weight:950;color:#fff">🧪 REMOTION · SLOT ACTIVO</div><div id="remotionStatus" style="font-size:9px;color:#92929e;margin-top:4px">V4 AUTODIAGNÓSTICO · WebCodecs · 720×1280 · 30 FPS</div></div><button id="btnRemotionTest" type="button" style="border:0;border-radius:9px;background:#7c3aed;color:#fff;font-size:10px;font-weight:950;padding:10px 12px;cursor:pointer">RENDER</button></div><div style="height:6px;background:#25252d;border-radius:99px;overflow:hidden;margin-top:10px"><div id="remotionBar" style="height:100%;width:0%;background:#a78bfa;transition:width .15s"></div></div><div id="remotionDetail" style="font-size:8px;color:#6f6f7b;margin-top:6px">FFmpeg permanece intacto · recomendado: abrir desde tu Vercel HTTPS.</div><a id="remotionDownload" style="display:none;margin-top:9px;background:#22c55e;color:#071107;text-align:center;text-decoration:none;padding:9px;border-radius:8px;font-size:10px;font-weight:950">DESCARGAR MP4 REMOTION</a></div>
 <script type="importmap">
 {"imports":{
 "react":"https://esm.sh/react@19.1.1",
@@ -2497,7 +2512,37 @@ console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Wo
 }}
 </script>
 <script type="module">
-(async()=>{const $=id=>document.getElementById(id);const btn=$('btnRemotionTest'),st=$('remotionStatus'),bar=$('remotionBar'),det=$('remotionDetail'),dl=$('remotionDownload');if(!btn)return;let modules=null;const loadModules=async()=>{if(modules)return modules;st.textContent='Cargando Remotion V2...';const [R,WR,M]=await Promise.all([import('react'),import('@remotion/web-renderer'),import('@remotion/media')]);modules={React:R.default||R,renderMediaOnWeb:WR.renderMediaOnWeb,Video:M.Video,Audio:M.Audio};console.log('[REMOTION V2] React único',modules.React.version);return modules;};btn.addEventListener('click',async()=>{const slot=(window.queue||[]).find(q=>q.id===(window.activeId||1));if(!slot?.videoUrl){alert('El SLOT activo no tiene video.');return}if(!slot?.audioUrl&&!slot?.audioBlob){alert('Primero genera la voz del SLOT activo.');return}btn.disabled=true;btn.style.opacity='.55';dl.style.display='none';bar.style.width='0%';try{if(!('VideoEncoder' in window))throw new Error('WebCodecs VideoEncoder no disponible. Usa Chrome actualizado.');const {React,renderMediaOnWeb,Video,Audio}=await loadModules();const videoSrc=slot.videoUrl,audioSrc=slot.audioUrl||URL.createObjectURL(slot.audioBlob),dur=Math.max(.5,Number(slot.audioDur||slot.videoDur||1)),fps=30,frames=Math.max(1,Math.ceil(dur*fps));const Comp=(props)=>React.createElement(React.Fragment,null,React.createElement(Video,{src:props.videoSrc,muted:true,loop:true,style:{width:'100%',height:'100%',objectFit:'cover'}}),React.createElement(Audio,{src:props.audioSrc,volume:1}));st.textContent='Renderizando SLOT '+slot.id+' con Remotion...';det.textContent='WebCodecs · '+frames+' frames · '+dur.toFixed(1)+'s';const result=await renderMediaOnWeb({composition:{component:Comp,durationInFrames:frames,fps,width:720,height:1280,calculateMetadata:null,id:'ice-remotion-test'},inputProps:{videoSrc,audioSrc},container:'mp4',videoCodec:'h264',audioCodec:'aac',onProgress:({overallProgress})=>{const n=Math.max(0,Math.min(1,Number(overallProgress)||0));bar.style.width=Math.round(n*100)+'%';st.textContent='Remotion SLOT '+slot.id+' · '+Math.round(n*100)+'%'}});const blob=await result.getBlob();if(!blob||blob.size<1000)throw new Error('Remotion devolvió un archivo vacío.');const url=URL.createObjectURL(blob);dl.href=url;dl.download=(slot.fileNameBase||slot.title||('SLOT-'+slot.id))+'-REMOTION.mp4';dl.style.display='block';bar.style.width='100%';st.textContent='✅ REMOTION SLOT '+slot.id+' LISTO';det.textContent=(blob.size/1048576).toFixed(1)+' MB · MP4 · H.264/AAC'}catch(e){console.error('[REMOTION TEST]',e);st.textContent='❌ '+(e?.message||String(e));det.textContent='Mira F12 → Console para detalle. FFmpeg no fue modificado.';bar.style.width='0%'}finally{btn.disabled=false;btn.style.opacity='1'}})})();
+(async()=>{const $=id=>document.getElementById(id);const btn=$('btnRemotionTest'),st=$('remotionStatus'),bar=$('remotionBar'),det=$('remotionDetail'),dl=$('remotionDownload');if(!btn)return;let modules=null;const loadModules=async()=>{
+  if(modules)return modules;
+  st.textContent='Autodiagnóstico Remotion...';
+  const R=await import('react');
+  if(!(R.default||R)?.createElement) throw new Error('React no cargó correctamente');
+  const Remotion=await import('remotion');
+  if(!Remotion) throw new Error('Remotion base no cargó');
+  const M=await import('@remotion/media');
+  if(typeof M.Video!=='function' || typeof M.Audio!=='function') throw new Error('@remotion/media incompleto');
+  const WR=await import('@remotion/web-renderer');
+  if(typeof WR.renderMediaOnWeb!=='function') throw new Error('web-renderer no exportó renderMediaOnWeb');
+  modules={
+    React:R.default||R,
+    Remotion,
+    renderMediaOnWeb:WR.renderMediaOnWeb,
+    canRenderMediaOnWeb:WR.canRenderMediaOnWeb,
+    Video:M.Video,
+    Audio:M.Audio
+  };
+  console.log('[REMOTION FINAL CHECK]',{
+    react:modules.React.version,
+    remotion:'4.0.529',
+    renderMediaOnWeb:typeof modules.renderMediaOnWeb,
+    Video:typeof modules.Video,
+    Audio:typeof modules.Audio,
+    VideoEncoder:typeof window.VideoEncoder,
+    AudioEncoder:typeof window.AudioEncoder
+  });
+  return modules;
+};btn.addEventListener('click',async()=>{const slot=(window.queue||[]).find(q=>q.id===(window.activeId||1));if(!slot?.videoUrl){alert('El SLOT activo no tiene video.');return}if(!slot?.audioUrl&&!slot?.audioBlob){alert('Primero genera la voz del SLOT activo.');return}btn.disabled=true;btn.style.opacity='.55';dl.style.display='none';bar.style.width='0%';try{if(!('VideoEncoder' in window))throw new Error('WebCodecs VideoEncoder no disponible. Usa Chrome actualizado.');const {React,renderMediaOnWeb,Video,Audio}=await loadModules();const videoSrc=slot.videoUrl,audioSrc=slot.audioUrl||URL.createObjectURL(slot.audioBlob),dur=Math.max(.5,Number(slot.audioDur||slot.videoDur||1)),fps=30,frames=Math.max(1,Math.ceil(dur*fps));const Comp=(props)=>React.createElement(React.Fragment,null,React.createElement(Video,{src:props.videoSrc,muted:true,loop:true,style:{width:'100%',height:'100%',objectFit:'cover'}}),React.createElement(Audio,{src:props.audioSrc,volume:1}));st.textContent='Renderizando SLOT '+slot.id+' con Remotion...';det.textContent='WebCodecs · '+frames+' frames · '+dur.toFixed(1)+'s';const result=await renderMediaOnWeb({composition:{component:Comp,durationInFrames:frames,fps,width:720,height:1280,calculateMetadata:null,id:'ice-remotion-test'},inputProps:{videoSrc,audioSrc},container:'mp4',videoCodec:'h264',audioCodec:'aac',onProgress:({overallProgress})=>{const n=Math.max(0,Math.min(1,Number(overallProgress)||0));bar.style.width=Math.round(n*100)+'%';st.textContent='Remotion SLOT '+slot.id+' · '+Math.round(n*100)+'%'}});const blob=await result.getBlob();if(!blob||blob.size<1000)throw new Error('Remotion devolvió un archivo vacío.');const url=URL.createObjectURL(blob);dl.href=url;dl.download=(slot.fileNameBase||slot.title||('SLOT-'+slot.id))+'-REMOTION.mp4';dl.style.display='block';bar.style.width='100%';st.textContent='✅ REMOTION SLOT '+slot.id+' LISTO';det.textContent=(blob.size/1048576).toFixed(1)+' MB · MP4 · H.264/AAC'}catch(e){console.error('[REMOTION TEST]',e);st.textContent='❌ '+(e?.message||String(e));det.textContent='Mira F12 → Console para detalle. FFmpeg no fue modificado.';bar.style.width='0%'}finally{btn.disabled=false;btn.style.opacity='1'}})})();
 </script>
+<script>console.log('[ICE CREAM] REMOTION V4: un CDN, React único, mappings de subrutas y autodiagnóstico');</script>
 </body>
 </html>
