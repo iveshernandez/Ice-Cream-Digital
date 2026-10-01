@@ -525,10 +525,14 @@ body > div[style*="Nunca fui yo"]{
   <div style="background:#0f0f12;border:1.5px solid #222;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px">
     <div style="display:flex;gap:6px">
       <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
-        <option value="es_ES-sharvard-medium:0" selected>Alexander V - Español ES (Masculino)</option>
-        <option value="es_ES-sharvard-medium:1">Alejandra Pineda P - Español ES (Femenina)</option>
-        <option value="edge:es-ES-AlvaroNeural">Microsoft Álvaro Neural - Español ES (Exportable)</option>
-        <option value="google:es">Google español - Exportable</option>
+        <option value="es_ES-sharvard-medium:0" selected>Sharvard · Speaker 0 · Español (España) · Medium</option>
+        <option value="es_ES-davefx-medium:0">Davefx · Español (España) · Medium</option>
+        <option value="es_ES-carlfm-x_low:0">Carlfm · Español (España) · X-Low</option>
+        <option value="es_ES-mls_10246-low:0">MLS 10246 · Español (España) · Low</option>
+        <option value="es_ES-mls_9972-low:0">MLS 9972 · Español (España) · Low</option>
+        <option value="es_MX-ald-medium:0">Ald · Español (México) · Medium</option>
+        <option value="es_MX-claude-high:0">Claude · Español (México) · High</option>
+        <option value="es_AR-daniela-high:0">Daniela · Español (Argentina) · High</option>
       </select>
       <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="1" selected>1x</option>
@@ -536,7 +540,7 @@ body > div[style*="Nunca fui yo"]{
     </div>
     <!-- MUSICA ELIMINADA V61 -->
     <button id="btnKokoroGen" style="width:100%;background:#FFEB00;color:#000;border:2px solid #000;border-radius:8px;padding:9px;font-size:11px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #000">🔊 GENERAR AUDIO ESPAÑOL</button>
-    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Motor listo - Alexander V</div>
+    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Motor Piper listo - 8 voces</div>
     <div id="kokoroProgress" style="height:4px;background:#1a1a1e;border-radius:10px;overflow:hidden;display:none"><div id="kokoroProgressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
     <div id="audioName" style="font-size:9.5px;color:#4ade80;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);padding:5px 7px;border-radius:6px;word-break:break-all;min-height:18px;display:flex;align-items:center;gap:4px"><span style="color:#666">Sin audio - se guardará aquí</span></div>
     <input type="file" id="inputAudio" accept="audio/*" style="display:none">
@@ -1101,34 +1105,6 @@ function audioBufferToWavBlob(buffer){
   return new Blob([ab], {type:'audio/wav'});
 }
 
-async function generateRemoteExportableTTS(text, engineVoice, speed=1){
-  const parts=String(engineVoice||'').split(':');
-  const engine=parts.shift();
-  const voice=parts.join(':');
-  const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,engine,voice,speed})});
-  if(!r.ok){ let msg='HTTP '+r.status; try{const j=await r.json();msg=j.error||msg}catch{} throw new Error(msg); }
-  const blob=await r.blob();
-  if(!blob || blob.size<800) throw new Error('El motor remoto devolvió audio vacío');
-  return blob;
-}
-async function saveRemoteAudioToSlot(slot,text,voiceId,speed){
-  setKStatus('[SLOT '+slot.id+'] Generando voz exportable...'); setKProg(35);
-  const blob=await generateRemoteExportableTTS(text,voiceId,speed);
-  setKProg(85);
-  const url=URL.createObjectURL(blob);
-  if(slot.audioUrl) try{URL.revokeObjectURL(slot.audioUrl)}catch{}
-  slot.audioUrl=url; slot.audioBlob=blob;
-  slot.audioName='SLOT'+slot.id+'-'+voiceId.replace(/[^a-z0-9_-]+/gi,'-')+'.mp3';
-  slot.voiceId=voiceId; slot.voiceSpeed=speed; slot.status='con audio';
-  const temp=new Audio(url);
-  await new Promise(res=>{temp.onloadedmetadata=()=>{slot.audioDur=temp.duration||0;res()};temp.onerror=()=>res();temp.load()});
-  window.renderCola?.(true);
-  if(window.activeId===slot.id){const a=document.getElementById('previewAudio');if(a){a.src=url;a.load();}}
-  const nm=document.getElementById('audioName'); if(nm) nm.innerHTML='🎙️ <b>'+voiceId+'</b> · '+(slot.audioDur||0).toFixed(1)+'s ✅ GUARDADO REAL';
-  setKStatus('✅ SLOT '+slot.id+' COMPLETO · '+(slot.audioDur||0).toFixed(1)+'s · EXPORTABLE'); setKProg(100); setTimeout(()=>setKProg(null),1200);
-  return slot;
-}
-
 async function handleGenerate(){
   const capturedId = window.activeId || 1;
   const slot = window.queue ? window.queue.find(q=>q.id===capturedId) : null;
@@ -1144,13 +1120,6 @@ async function handleGenerate(){
   let speakerId = 0;
   if(voiceId.includes(':')){ const parts = voiceId.split(':'); voiceId = parts[0]; speakerId = parseInt(parts[1]||0); }
   const speed = slot.voiceSpeed||1;
-
-  if(String(slot.voiceId||'').startsWith('edge:') || String(slot.voiceId||'').startsWith('google:')){
-    const btn=document.getElementById('btnKokoroGen');
-    try{ if(btn){btn.disabled=true;btn.textContent='GENERANDO VOZ EXPORTABLE...';} return await saveRemoteAudioToSlot(slot,text,slot.voiceId,speed); }
-    catch(e){ setKStatus('❌ '+e.message,true); alert('Error TTS exportable: '+e.message); throw e; }
-    finally{ if(btn){btn.disabled=false;btn.textContent='🔊 GENERAR AUDIO ESPAÑOL';} }
-  }
 
   const chunks = splitIntoChunks(text, 380);
   console.log('[V14] SLOT '+slot.id+' TXT '+text.length+' chars -> '+chunks.length+' chunks');
@@ -1261,7 +1230,7 @@ async function handleGenerate(){
     }
     const audioNameEl=document.getElementById('audioName');
     if(audioNameEl){
-      const nombre = voiceId.indexOf('sharvard')>=0 ? 'Alexander (Voz Masculina)' : voiceId;
+      const nombre = voiceId;
       audioNameEl.innerHTML='🎙️ <b>'+nombre+' SLOT '+slot.id+'</b> · '+text.length+' chars · '+chunks.length+' partes · '+slot.audioDur.toFixed(1)+'s ✅ GUARDADO REAL';
       audioNameEl.style.color='#4ade80';
     }
@@ -1465,12 +1434,6 @@ window.getTTS = getTTS;
         if(!text) throw new Error('Sin texto');
 
         const voiceId=slot.voiceId||document.getElementById('kokoroVoice')?.value||'es_ES-sharvard-medium:0';
-        if(String(voiceId).startsWith('edge:') || String(voiceId).startsWith('google:')){
-          setState('TTS WEB');
-          await saveRemoteAudioToSlot(slot,text,voiceId,slot.voiceSpeed||1);
-          setState(`OK ${slot.audioDur.toFixed(1)}s`,'#22c55e');
-          return true;
-        }
         const parts=voiceId.split(':');
         const vId=parts[0], spk=parseInt(parts[1]||0,10);
 
@@ -1682,7 +1645,7 @@ window.getTTS = getTTS;
       const tts = await window.getTTS();
       window._ttsCache = tts;
       // Descargar voz principal 150MB en background como original
-      try{ await tts.download('es_ES-sharvard-medium', ()=>{}); window._voicesDownloaded.add('es_ES-sharvard-medium'); console.log('[ORIGINAL] Voz 150MB precargada'); const st=document.getElementById('kokoroStatus'); if(st) st.textContent='✅ Alexander V listo - 150MB precargado'; }catch(e){}
+      try{ await tts.download('es_ES-sharvard-medium', ()=>{}); window._voicesDownloaded.add('es_ES-sharvard-medium'); console.log('[ORIGINAL] Voz 150MB precargada'); const st=document.getElementById('kokoroStatus'); if(st) st.textContent='✅ Sharvard listo · Piper TTS'; }catch(e){}
     }catch(e){}
   }
   setTimeout(preheatOriginal, 1200);
