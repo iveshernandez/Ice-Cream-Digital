@@ -501,10 +501,10 @@ body > div[style*="Nunca fui yo"]{
 <div class="glass" style="padding:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid #FFEB00;background:rgba(255,235,0,0.06);justify-content:center;border-radius:12px">
 <div style="font-size:10px;font-weight:900;letter-spacing:0.5px">🎵 AUDIO INCRUSTADO + MÚSICA DOCUMENTAL</div>
 <div style="background:#0f2a18;border:1px solid #1f6b36;color:#63e684;padding:8px 12px;border-radius:9px;font-size:10px;font-weight:900">● ACTIVO</div>
-<div style="font-size:10px;color:#ddd;font-weight:800">Curiosidad / misterio · 16% base</div>
-<div style="font-size:9px;color:#aaa">Ducking automático: 6–8% con Alexander · hasta ~19.5% en pausas</div>
-<input type="hidden" id="bgVol" value="0.16">
-<span id="bgVolTxt" style="display:none">16%</span>
+<div style="font-size:10px;color:#ddd;font-weight:800">Curiosidad / misterio · 19% base</div>
+<div style="font-size:9px;color:#aaa">Ducking automático: voz al frente · música ~7–8% durante narración · ~23% en pausas</div>
+<input type="hidden" id="bgVol" value="0.19">
+<span id="bgVolTxt" style="display:none">19%</span>
 <input type="checkbox" id="bgEnabled" checked style="display:none">
 <input type="file" id="inputBgMusic" accept="audio/*" style="display:none">
 <label id="lblBg" style="display:none"><span id="txtBg">Música incrustada</span></label>
@@ -525,14 +525,9 @@ body > div[style*="Nunca fui yo"]{
   <div style="background:#0f0f12;border:1.5px solid #222;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px">
     <div style="display:flex;gap:6px">
       <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
-        <option value="es_ES-sharvard-medium:0" selected>Sharvard · Speaker 0 · Español (España) · Medium</option>
-        <option value="es_ES-davefx-medium:0">Davefx · Español (España) · Medium</option>
-        <option value="es_ES-carlfm-x_low:0">Carlfm · Español (España) · X-Low</option>
-        <option value="es_ES-mls_10246-low:0">MLS 10246 · Español (España) · Low</option>
-        <option value="es_ES-mls_9972-low:0">MLS 9972 · Español (España) · Low</option>
-        <option value="es_MX-ald-medium:0">Ald · Español (México) · Medium</option>
+        <option value="es_MX-ald-medium:0" selected>Ald · Español (México) · Medium</option>
         <option value="es_MX-claude-high:0">Claude · Español (México) · High</option>
-        <option value="es_AR-daniela-high:0">Daniela · Español (Argentina) · High</option>
+        <option value="es_ES-sharvard-medium:0">Sharvard · Speaker 0 · Español (España) · Medium</option>
       </select>
       <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="1" selected>1x</option>
@@ -672,7 +667,7 @@ const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c
 const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;};
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
-const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_ES-sharvard-medium:0",voiceSpeed:1,audioBlob:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-ald-medium:0",voiceSpeed:1,audioBlob:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
 let activeId=1,lastCola=0,raf=null;
 window.queue=queue; window.activeId=1; window.getActiveId=()=>activeId;
 const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
@@ -712,7 +707,7 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
 };
 
 try{
-  $("bgVol").value='0.16';
+  $("bgVol").value='0.19';
   $("bgEnabled").checked=true;
 }catch(e){}
 const log=m=>{const d=$("debug");d.textContent=new Date().toLocaleTimeString()+" | "+m+"\n"+d.textContent.slice(0,400);};
@@ -784,7 +779,7 @@ window.setActive=id=>{
   $("inputFileName").value=it.fileNameBase;
   try{
     const vSel=document.getElementById('kokoroVoice');
-    if(vSel) vSel.value = it.voiceId || 'es_ES-sharvard-medium:0';
+    if(vSel) vSel.value = it.voiceId || 'es_MX-ald-medium:0';
     const st=document.getElementById('kokoroStatus');
     if(st){
       if(it.audioUrl){
@@ -975,7 +970,7 @@ async function loadBgFile(file){
   log(`Fondo por defecto: ${file.name}`);
 }
 $("inputBgMusic").addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return; await loadBgFile(f); e.target.value=''; });
-$("bgVol").addEventListener('input', e=>{ e.target.value='0.16'; });
+$("bgVol").addEventListener('input', e=>{ e.target.value='0.19'; });
 $("inputTitle").addEventListener('input',()=>{ const it=getA(); const up=$("inputTitle").value.toUpperCase(); $("inputTitle").value=up; it.title=up; const fn=sanitizar(up); if(fn) $("inputFileName").value=fn; it.fileNameBase=$("inputFileName").value; renderOverlay(); });
 $("inputScript").addEventListener('input',()=>{ getA().script=$("inputScript").value; renderOverlay(); });
 $("inputFileName").addEventListener('input',()=>{ getA().fileNameBase=$("inputFileName").value; renderCola(); });
@@ -1116,7 +1111,7 @@ async function handleGenerate(){
   const speedSelectEl = document.getElementById('kokoroSpeed');
   if(voiceSelectEl) slot.voiceId = voiceSelectEl.value;
   if(speedSelectEl) slot.voiceSpeed = parseFloat(speedSelectEl.value)||1;
-  let voiceId = slot.voiceId || 'es_ES-sharvard-medium';
+  let voiceId = slot.voiceId || 'es_MX-ald-medium';
   let speakerId = 0;
   if(voiceId.includes(':')){ const parts = voiceId.split(':'); voiceId = parts[0]; speakerId = parseInt(parts[1]||0); }
   const speed = slot.voiceSpeed||1;
@@ -1433,7 +1428,7 @@ window.getTTS = getTTS;
         const text=(slot.txtContent||slot.script||'').trim();
         if(!text) throw new Error('Sin texto');
 
-        const voiceId=slot.voiceId||document.getElementById('kokoroVoice')?.value||'es_ES-sharvard-medium:0';
+        const voiceId=slot.voiceId||document.getElementById('kokoroVoice')?.value||'es_MX-ald-medium:0';
         const parts=voiceId.split(':');
         const vId=parts[0], spk=parseInt(parts[1]||0,10);
 
@@ -1645,7 +1640,7 @@ window.getTTS = getTTS;
       const tts = await window.getTTS();
       window._ttsCache = tts;
       // Descargar voz principal 150MB en background como original
-      try{ await tts.download('es_ES-sharvard-medium', ()=>{}); window._voicesDownloaded.add('es_ES-sharvard-medium'); console.log('[ORIGINAL] Voz 150MB precargada'); const st=document.getElementById('kokoroStatus'); if(st) st.textContent='✅ Sharvard listo · Piper TTS'; }catch(e){}
+      try{ await tts.download('es_MX-ald-medium', ()=>{}); window._voicesDownloaded.add('es_MX-ald-medium'); console.log('[ORIGINAL] Ald precargada'); const st=document.getElementById('kokoroStatus'); if(st) st.textContent='✅ Ald listo · Piper TTS'; }catch(e){}
     }catch(e){}
   }
   setTimeout(preheatOriginal, 1200);
@@ -1811,7 +1806,7 @@ window.getTTS = getTTS;
     return editorWavFromSamples(out,sr);
   }
 
-  async function mixEditorNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol=0.16){
+  async function mixEditorNarrationMusicBrowser(voiceBlob,musicBlob,total,musicVol=0.19){
     const outRate=44100,frames=Math.max(1,Math.ceil(total*outRate));
     const Ctx=window.AudioContext||window.webkitAudioContext,decodeCtx=new Ctx();
     let voiceBuf,musicBuf;
@@ -1841,9 +1836,9 @@ window.getTTS = getTTS;
       const level=Math.max(Math.abs(vl),Math.abs(vr));
       env=level>env?attack*env+(1-attack)*level:release*env+(1-release)*level;
       const speech=Math.max(0,Math.min(1,(env-0.014)/0.075));
-      const duck=1-(0.58*speech);
+      const duck=1-(0.62*speech);
       let mg=musicVol*duck;
-      if(env<0.010)mg=Math.min(0.20,musicVol*1.22);
+      if(env<0.010)mg=Math.min(0.23,musicVol*1.22);
       const fadeIn=Math.min(0.7,Math.max(0.18,total/8)),fadeOut=Math.min(1.0,Math.max(0.25,total/8));
       if(sec<fadeIn)mg*=sec/fadeIn;
       if(sec>total-fadeOut)mg*=Math.max(0,(total-sec)/fadeOut);
@@ -1902,7 +1897,7 @@ window.getTTS = getTTS;
 
       const vDur=item.videoDur||10,aDur=item.audioDur||vDur||10,total=aDur||vDur||10;
       const musicBlob=makeEditorDocumentaryMusic(total);
-      const mix=await mixEditorNarrationMusicBrowser(voiceBlob,musicBlob,total,0.16);
+      const mix=await mixEditorNarrationMusicBrowser(voiceBlob,musicBlob,total,0.19);
       const ab=new Uint8Array(await mix.blob.arrayBuffer());
 
       ffmpeg.FS('writeFile',inV,vb);
