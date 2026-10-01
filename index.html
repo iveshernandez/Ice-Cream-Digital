@@ -525,14 +525,13 @@ body > div[style*="Nunca fui yo"]{
   <div style="background:#0f0f12;border:1.5px solid #222;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px">
     <div style="display:flex;gap:6px">
       <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
-        <option value="es_MX-ald-medium:0" selected>Ald · Español (México) · Medium</option>
-        <option value="es_MX-claude-high:0">Claude · Español (México) · High</option>
+        <option value="es_MX-ald-medium:0">Ald · Español (México) · Medium</option>
+        <option value="es_MX-claude-high:0" selected>Claude · Español (México) · High</option>
         <option value="es_ES-sharvard-medium:0">Sharvard · Speaker 0 · Español (España) · Medium</option>
         <option value="es_ES-davefx-medium:0">Davefx · Español (España) · Medium</option>
         <option value="es_ES-carlfm-x_low:0">Carlfm · Español (España) · X-Low</option>
         <option value="es_ES-mls_10246-low:0">MLS 10246 · Español (España) · Low</option>
         <option value="es_ES-mls_9972-low:0">MLS 9972 · Español (España) · Low</option>
-        <option value="es_AR-daniela-high:0">Daniela · Español (Argentina) · High</option>
       </select>
       <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="1" selected>1x</option>
@@ -542,7 +541,7 @@ body > div[style*="Nunca fui yo"]{
     <audio id="voicePreviewPlayer" preload="auto" style="display:none"></audio>
     <!-- MUSICA ELIMINADA V61 -->
     <button id="btnKokoroGen" style="width:100%;background:#FFEB00;color:#000;border:2px solid #000;border-radius:8px;padding:9px;font-size:11px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #000">🔊 GENERAR AUDIO ESPAÑOL</button>
-    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Motor Piper listo · Ald / Claude / Sharvard</div>
+    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Motor Piper listo · Claude predeterminada</div>
     <div id="kokoroProgress" style="height:4px;background:#1a1a1e;border-radius:10px;overflow:hidden;display:none"><div id="kokoroProgressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
     <div id="audioName" style="font-size:9.5px;color:#4ade80;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);padding:5px 7px;border-radius:6px;word-break:break-all;min-height:18px;display:flex;align-items:center;gap:4px"><span style="color:#666">Sin audio - se guardará aquí</span></div>
     <input type="file" id="inputAudio" accept="audio/*" style="display:none">
@@ -674,7 +673,7 @@ const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c
 const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;};
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
-const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-ald-medium:0",voiceSpeed:1,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-claude-high:0",voiceSpeed:1,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
 let activeId=1,lastCola=0,raf=null;
 window.queue=queue; window.activeId=1; window.getActiveId=()=>activeId;
 const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
@@ -786,7 +785,7 @@ window.setActive=id=>{
   $("inputFileName").value=it.fileNameBase;
   try{
     const vSel=document.getElementById('kokoroVoice');
-    if(vSel) vSel.value = it.voiceId || 'es_MX-ald-medium:0';
+    if(vSel) vSel.value = it.voiceId || 'es_MX-claude-high:0';
     const st=document.getElementById('kokoroStatus');
     if(st){
       if(it.audioUrl){
@@ -1171,7 +1170,7 @@ async function handleGenerate(){
   const speedSelectEl = document.getElementById('kokoroSpeed');
   if(voiceSelectEl) slot.voiceId = voiceSelectEl.value;
   if(speedSelectEl) slot.voiceSpeed = parseFloat(speedSelectEl.value)||1;
-  let voiceId = slot.voiceId || 'es_MX-ald-medium';
+  let voiceId = slot.voiceId || 'es_MX-claude-high';
   let speakerId = 0;
   if(voiceId.includes(':')){ const parts = voiceId.split(':'); voiceId = parts[0]; speakerId = parseInt(parts[1]||0); }
   const speed = slot.voiceSpeed||1;
@@ -1353,7 +1352,7 @@ async function previewSelectedPiperVoice(){
   const player=document.getElementById('voicePreviewPlayer');
   const sel=document.getElementById('kokoroVoice');
   if(!btn||!player||!sel)return;
-  const fullVoiceId=sel.value||'es_MX-ald-medium:0';
+  const fullVoiceId=sel.value||'es_MX-claude-high:0';
   const parts=fullVoiceId.split(':');
   const voiceId=parts[0], speakerId=parseInt(parts[1]||'0',10)||0;
   const slot=window.queue?.find(q=>q.id===(window.activeId||1));
@@ -1555,7 +1554,7 @@ window.getTTS = getTTS;
         const text=(slot.txtContent||slot.script||'').trim();
         if(!text) throw new Error('Sin texto');
 
-        const voiceId=slot.voiceId||document.getElementById('kokoroVoice')?.value||'es_MX-ald-medium:0';
+        const voiceId=slot.voiceId||document.getElementById('kokoroVoice')?.value||'es_MX-claude-high:0';
         const parts=voiceId.split(':');
         const vId=parts[0], spk=parseInt(parts[1]||0,10);
 
@@ -1768,7 +1767,7 @@ window.getTTS = getTTS;
       const tts = await window.getTTS();
       window._ttsCache = tts;
       // Descargar voz principal 150MB en background como original
-      try{ await tts.download('es_MX-ald-medium', ()=>{}); window._voicesDownloaded.add('es_MX-ald-medium'); console.log('[ORIGINAL] Ald precargada'); const st=document.getElementById('kokoroStatus'); if(st) st.textContent='✅ Ald listo · Piper TTS'; }catch(e){}
+      try{ await tts.download('es_MX-claude-high', ()=>{}); window._voicesDownloaded.add('es_MX-claude-high'); console.log('[ORIGINAL] Claude precargada'); const st=document.getElementById('kokoroStatus'); if(st) st.textContent='✅ Claude listo · Piper TTS'; }catch(e){}
     }catch(e){}
   }
   setTimeout(preheatOriginal, 1200);
