@@ -527,6 +527,8 @@ body > div[style*="Nunca fui yo"]{
       <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="es_ES-sharvard-medium:0" selected>Alexander V - Español ES (Masculino)</option>
         <option value="es_ES-sharvard-medium:1">Alejandra Pineda P - Español ES (Femenina)</option>
+        <option value="edge:es-ES-AlvaroNeural">Microsoft Álvaro Neural - Español ES (Exportable)</option>
+        <option value="google:es">Google español - Exportable</option>
       </select>
       <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="1" selected>1x</option>
@@ -1099,6 +1101,34 @@ function audioBufferToWavBlob(buffer){
   return new Blob([ab], {type:'audio/wav'});
 }
 
+async function generateRemoteExportableTTS(text, engineVoice, speed=1){
+  const parts=String(engineVoice||'').split(':');
+  const engine=parts.shift();
+  const voice=parts.join(':');
+  const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,engine,voice,speed})});
+  if(!r.ok){ let msg='HTTP '+r.status; try{const j=await r.json();msg=j.error||msg}catch{} throw new Error(msg); }
+  const blob=await r.blob();
+  if(!blob || blob.size<800) throw new Error('El motor remoto devolvió audio vacío');
+  return blob;
+}
+async function saveRemoteAudioToSlot(slot,text,voiceId,speed){
+  setKStatus('[SLOT '+slot.id+'] Generando voz exportable...'); setKProg(35);
+  const blob=await generateRemoteExportableTTS(text,voiceId,speed);
+  setKProg(85);
+  const url=URL.createObjectURL(blob);
+  if(slot.audioUrl) try{URL.revokeObjectURL(slot.audioUrl)}catch{}
+  slot.audioUrl=url; slot.audioBlob=blob;
+  slot.audioName='SLOT'+slot.id+'-'+voiceId.replace(/[^a-z0-9_-]+/gi,'-')+'.mp3';
+  slot.voiceId=voiceId; slot.voiceSpeed=speed; slot.status='con audio';
+  const temp=new Audio(url);
+  await new Promise(res=>{temp.onloadedmetadata=()=>{slot.audioDur=temp.duration||0;res()};temp.onerror=()=>res();temp.load()});
+  window.renderCola?.(true);
+  if(window.activeId===slot.id){const a=document.getElementById('previewAudio');if(a){a.src=url;a.load();}}
+  const nm=document.getElementById('audioName'); if(nm) nm.innerHTML='🎙️ <b>'+voiceId+'</b> · '+(slot.audioDur||0).toFixed(1)+'s ✅ GUARDADO REAL';
+  setKStatus('✅ SLOT '+slot.id+' COMPLETO · '+(slot.audioDur||0).toFixed(1)+'s · EXPORTABLE'); setKProg(100); setTimeout(()=>setKProg(null),1200);
+  return slot;
+}
+
 async function handleGenerate(){
   const capturedId = window.activeId || 1;
   const slot = window.queue ? window.queue.find(q=>q.id===capturedId) : null;
@@ -1114,6 +1144,13 @@ async function handleGenerate(){
   let speakerId = 0;
   if(voiceId.includes(':')){ const parts = voiceId.split(':'); voiceId = parts[0]; speakerId = parseInt(parts[1]||0); }
   const speed = slot.voiceSpeed||1;
+
+  if(String(slot.voiceId||'').startsWith('edge:') || String(slot.voiceId||'').startsWith('google:')){
+    const btn=document.getElementById('btnKokoroGen');
+    try{ if(btn){btn.disabled=true;btn.textContent='GENERANDO VOZ EXPORTABLE...';} return await saveRemoteAudioToSlot(slot,text,slot.voiceId,speed); }
+    catch(e){ setKStatus('❌ '+e.message,true); alert('Error TTS exportable: '+e.message); throw e; }
+    finally{ if(btn){btn.disabled=false;btn.textContent='🔊 GENERAR AUDIO ESPAÑOL';} }
+  }
 
   const chunks = splitIntoChunks(text, 380);
   console.log('[V14] SLOT '+slot.id+' TXT '+text.length+' chars -> '+chunks.length+' chunks');
@@ -1428,6 +1465,12 @@ window.getTTS = getTTS;
         if(!text) throw new Error('Sin texto');
 
         const voiceId=slot.voiceId||document.getElementById('kokoroVoice')?.value||'es_ES-sharvard-medium:0';
+        if(String(voiceId).startsWith('edge:') || String(voiceId).startsWith('google:')){
+          setState('TTS WEB');
+          await saveRemoteAudioToSlot(slot,text,voiceId,slot.voiceSpeed||1);
+          setState(`OK ${slot.audioDur.toFixed(1)}s`,'#22c55e');
+          return true;
+        }
         const parts=voiceId.split(':');
         const vId=parts[0], spk=parseInt(parts[1]||0,10);
 
