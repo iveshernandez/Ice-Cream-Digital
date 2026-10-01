@@ -769,8 +769,8 @@ window.setActive=id=>{
     try{
       const vSel=document.getElementById('kokoroVoice');
       const sSel=document.getElementById('kokoroSpeed');
-      if(vSel) p.voiceId=vSel.value;
-      if(sSel) p.voiceSpeed=parseFloat(sSel.value)||1;
+      if(vSel && !window._voiceGenerating) p.voiceId=vSel.value;
+      if(sSel && !window._voiceGenerating) p.voiceSpeed=parseFloat(sSel.value)||1;
     }catch{}
   }
   try{ vEl.pause(); aEl.pause(); vEl.loop=false; vEl.playbackRate=1; vEl.muted=true; aEl.muted=false; vEl.volume=1; aEl.volume=1; if(raf) cancelAnimationFrame(raf); $("btnPlay").textContent='▶ Play'; }catch{}
@@ -1072,6 +1072,7 @@ function getPiperVoiceWorker(voiceId){
   if(_piperVoiceWorkers.has(voiceId)) return _piperVoiceWorkers.get(voiceId);
   const workerCode = `
     let tts=null;
+    let loadedVoice=null;
     async function lib(){
       if(tts) return tts;
       const urls=[
@@ -1086,7 +1087,11 @@ function getPiperVoiceWorker(voiceId){
       const {id,voiceId,speakerId,text}=ev.data;
       try{
         const t=await lib();
-        await t.download(voiceId,()=>{});
+        // El Worker es exclusivo de un modelo. Descargar/inicializar UNA sola vez.
+        if(loadedVoice!==voiceId){
+          await t.download(voiceId,()=>{});
+          loadedVoice=voiceId;
+        }
         const blob=await t.predict({text,voiceId,speakerId},()=>{});
         const ab=await blob.arrayBuffer();
         self.postMessage({id,ok:true,buffer:ab,type:blob.type||'audio/wav'},[ab]);
@@ -1193,10 +1198,15 @@ async function handleGenerate(){
         if(bar) bar.style.width=(20 + Math.round(pct*0.3))+'%';
       }
     };
-    // Descarga con retry real
-    let downloaded=false;
+    // Descarga principal: una vez por modelo durante el lote.
+    window._batchDownloadedVoices = window._batchDownloadedVoices || new Set();
+    let downloaded = window._voiceGenerating && window._batchDownloadedVoices.has(voiceId);
     for(let attempt=1; attempt<=3 && !downloaded; attempt++){
-      try{ await tts.download(voiceId, onProgress); downloaded=true; }
+      try{
+        await tts.download(voiceId, onProgress);
+        downloaded=true;
+        if(window._voiceGenerating) window._batchDownloadedVoices.add(voiceId);
+      }
       catch(e){ console.warn('download intento '+attempt+' fallo', e); if(attempt<3) await new Promise(r=>setTimeout(r,1500)); else throw e; }
     }
 
@@ -1465,6 +1475,8 @@ window.getTTS = getTTS;
     if(!pending.length) return true;
 
     window._voiceGenerating=true;
+    // Cache lógico del lote: el mismo modelo no vuelve a pasar por download entre slots.
+    window._batchDownloadedVoices = new Set();
     const ov=document.getElementById('renderOverlay');
     const pct=document.getElementById('renderPct');
     const master=document.getElementById('renderMasterBar');
@@ -1511,10 +1523,8 @@ window.getTTS = getTTS;
           console.warn('[V85] primer intento SLOT '+slot.id,e);
           if(state) state.textContent='REINTENTO';
           // Solo reiniciamos el worker del modelo; NO volvemos a una rutina TTS alternativa.
-          try{
-            const model=(slot.voiceId||'es_MX-claude-high:0').split(':')[0];
-            resetPiperVoiceWorker(model);
-          }catch{}
+          // Conservamos el mismo Worker/modelo cargado entre slots.
+          // Solo esperamos y repetimos la ruta manual; no redescargamos Claude.
           await new Promise(r=>setTimeout(r,1000));
           window.activeId=slot.id;
           if(sel) sel.value=slot.voiceId||'es_MX-claude-high:0';
@@ -2434,5 +2444,6 @@ window.IC_renew=function(username){
 console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Worker en error');
 </script>
 <script>console.log('[ICE CREAM] V85 Render Todo usa exactamente handleGenerate manual por slot');</script>
+<script>console.log('[ICE CREAM] V86 Worker persistente: modelo se descarga una sola vez por lote');</script>
 </body>
 </html>
