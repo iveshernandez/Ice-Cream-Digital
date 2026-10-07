@@ -22,7 +22,7 @@ input[type=file]{display:none}
 .anton{font-family:'Anton',sans-serif}
 header{max-width:1440px;margin:0 auto;border-radius:0 0 16px 16px;padding:16px 24px!important;display:flex!important;justify-content:space-between;align-items:center;gap:20px;background:rgba(10,10,12,0.85)!important;backdrop-filter:blur(20px);border:1px solid #222!important;border-top:0!important;position:sticky;top:0;z-index:50;min-height:88px}
 header > div{flex:1} header > div:last-child{justify-content:flex-end}
-#cola{display:grid;max-width:1180px;margin:16px auto 0;grid-template-columns:repeat(6, minmax(150px, 1fr));gap:12px;justify-content:center}
+#cola{display:grid;max-width:1180px;margin:16px auto 0;grid-template-columns:repeat(5, minmax(150px, 1fr));gap:12px;justify-content:center}
 .slot{min-height:118px;border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#0f0f12!important;border:1.5px solid #222!important;cursor:pointer;transition:all .2s ease;position:relative}
 .slot:hover{transform:translateY(-2px);border-color:#FFEB00!important;box-shadow:0 4px 12px rgba(255,235,0,0.15)}
 .slot.active{border:2px solid #FFEB00!important;background:rgba(255,235,0,0.08)!important;transform:translateY(-1px)}
@@ -223,7 +223,7 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
 }
 #editorIcecreamPanel #cola{
   max-width:1280px!important;
-  grid-template-columns:repeat(6,minmax(120px,1fr))!important;
+  grid-template-columns:repeat(5,minmax(120px,1fr))!important;
   gap:7px!important;
   margin:7px auto 0!important;
 }
@@ -493,7 +493,7 @@ body > div[style*="Nunca fui yo"]{
 </div>
 <div style="display:flex;gap:8px;align-items:center">
 <label style="background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222;font-size:10px"><input type="checkbox" id="autoDownloadCheck" checked> Auto-descargar</label>
-<button id="btnLimpiarTodo" type="button">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender">⚡ RENDERIZAR TODO (6 VIDEOS 720p FB HD)</button>
+<button id="btnLimpiarTodo" type="button">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender">⚡ RENDERIZAR TODO (10 VIDEOS 720p FB HD)</button>
 </div>
 </header>
 
@@ -514,7 +514,7 @@ body > div[style*="Nunca fui yo"]{
 </div>
 
 <div style="max-width:1280px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:10px">
-<div class="glass" style="padding:10px"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b style="font-size:11px;color:#FFEB00">🎬 SELECCIONA EL SLOT PARA EDITAR - 6 VIDEOS INDEPENDIENTES</b><span id="colaInfo" style="font-size:10px;color:#666"></span></div><div id="cola"></div></div>
+<div class="glass" style="padding:10px"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b style="font-size:11px;color:#FFEB00">🎬 SELECCIONA EL SLOT PARA EDITAR - 10 VIDEOS INDEPENDIENTES</b><span id="colaInfo" style="font-size:10px;color:#666"></span></div><div id="cola"></div></div>
 <div class="layout">
 <div class="glass" style="padding:10px;height:fit-content;position:sticky;top:88px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b id="slotLabel">SLOT 1</b><div style="display:flex;gap:6px;align-items:center"><span id="statusLabel" style="font-size:9px;background:#111;padding:4px 8px;border-radius:20px">vacio</span><span id="speedLabel" style="font-size:9px;background:#111;padding:4px 8px;border-radius:20px;color:#FFEB00">—</span><button id="btnRenderSingle" style="display:none">single</button></div></div>
@@ -569,7 +569,7 @@ body > div[style*="Nunca fui yo"]{
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
       <div style="min-width:0">
         <div style="font-size:8px;font-weight:900;letter-spacing:1.6px;color:#8d8d98">ICE CREAM DIGITAL · EXPORT</div>
-        <div style="font-size:14px;font-weight:950;color:#fff;margin-top:2px">Renderizando 6 videos</div>
+        <div style="font-size:14px;font-weight:950;color:#fff;margin-top:2px">Renderizando 10 videos</div>
       </div>
       <div style="width:34px;height:34px;border-radius:10px;background:#FFEB00;color:#050505;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;flex:0 0 auto">⚡</div>
     </div>
@@ -598,7 +598,7 @@ body > div[style*="Nunca fui yo"]{
 </div>
 </div>
 
-<div id="perfMon" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:rgba(8,8,10,0.92);border:1px solid #222;border-radius:14px;padding:10px;min-width:200px;font-family:sans-serif"><div style="font-size:8px;color:#FFEB00;font-weight:900">⚡ V60 60FPS CLEAN</div><div style="font-size:9px;color:#999;margin-top:6px">Voces: <b id="mVoices">0</b>/6 | Videos: <b id="mVideos">0</b>/6 | RAM: <b id="mRam">--</b></div></div>
+<div id="perfMon" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:rgba(8,8,10,0.92);border:1px solid #222;border-radius:14px;padding:10px;min-width:200px;font-family:sans-serif"><div style="font-size:8px;color:#FFEB00;font-weight:900">⚡ V60 60FPS CLEAN</div><div style="font-size:9px;color:#999;margin-top:6px">Voces: <b id="mVoices">0</b>/10 | Videos: <b id="mVideos">0</b>/10 | RAM: <b id="mRam">--</b></div></div>
 
 <div style="position:fixed;bottom:12px;left:14px;z-index:100;font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-size:11px;color:#aaa;background:rgba(20,20,24,0.85);border:1px solid #222;padding:6px 10px;border-radius:8px;backdrop-filter:blur(4px);pointer-events:none;letter-spacing:0.2px">
 Nunca fui yo, siempre fue Dios. La gloria y la honra sean para Él…
@@ -673,7 +673,7 @@ const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c
 const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;};
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
-const queue=Array.from({length:6},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-claude-high:0",voiceSpeed:1,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+const queue=Array.from({length:10},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-claude-high:0",voiceSpeed:1,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
 let activeId=1,lastCola=0,raf=null;
 window.queue=queue; window.activeId=1; window.getActiveId=()=>activeId;
 const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
@@ -692,13 +692,13 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
   const listEl = document.getElementById('renderList');
   if(overlay) overlay.style.display='flex';
   if(textEl) textEl.textContent = `GENERANDO VOZ ${current}/${total} chunks`;
-  let suma = 0; for(let i=1;i<=6;i++){ suma += (window.voiceProgressBySlot[i] ? window.voiceProgressBySlot[i].pct : 0); }
-  const promedio = Math.round(suma / 6);
+  let suma = 0; for(let i=1;i<=10;i++){ suma += (window.voiceProgressBySlot[i] ? window.voiceProgressBySlot[i].pct : 0); }
+  const promedio = Math.round(suma / 10);
   if(pctEl) pctEl.textContent = promedio + '%';
   if(subEl) subEl.textContent = `GENERANDO VOZ ${current}/${total} chunks`;
   if(listEl){
     let h='';
-    for(let id=1; id<=6; id++){
+    for(let id=1; id<=10; id++){
       const d = window.voiceProgressBySlot[id];
       const q = window.queue ? window.queue.find(x=>x.id===id) : null;
       const dur = q && q.audioDur ? `${q.audioDur.toFixed(1)}s` : (d ? `${d.current}/${d.total}` : '');
@@ -756,7 +756,7 @@ function renderCola(f=false){
     fr.appendChild(el);
   });
   c.appendChild(fr);
-  $("colaInfo").textContent=`${queue.filter(q=>q.videoUrl).length}/6 listos`;
+  $("colaInfo").textContent=`${queue.filter(q=>q.videoUrl).length}/10 listos`;
 }
 window.setActive=id=>{
   const p=getA();
@@ -1613,13 +1613,13 @@ window.getTTS = getTTS;
       e.preventDefault(); e.stopPropagation();
       // V53 - siempre activo
       btn.disabled = false; btn.style.opacity='1';
-      btn.disabled=true; const orig=btn.textContent; btn.textContent='AUTOMATICO 6x6 FB...';
+      btn.disabled=true; const orig=btn.textContent; btn.textContent='AUTOMATICO 10x10 FB...';
       try{
         const need=(window.queue||[]).filter(x=>(x.txtContent||x.script)&&x.videoUrl&&(!x.audioUrl || (x.audioVoiceId && x.audioVoiceId!==x.voiceId)));
         if(need.length) await window.generateAllVoicesSimultaneous();
         await new Promise(r=>setTimeout(r,300));
         await window.renderAllVideosBlindado();
-      }catch(err){ alert(err.message); } finally{ btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO (6 VIDEOS 720p FB HD)'; window._batchGenerating=false; }
+      }catch(err){ alert(err.message); } finally{ btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO (10 VIDEOS 720p FB HD)'; window._batchGenerating=false; }
     });
   }
   // V81: instalador legacy desactivado; el botón final FFmpeg es el único dueño.
