@@ -519,7 +519,7 @@ body > div[style*="Nunca fui yo"]{
 </div>
 <div id="visualFilterPanel" style="padding:9px;margin:7px 0;background:#101015;border:1px solid #383842;border-radius:9px">
 <div style="font-size:10px;font-weight:900;color:#FFEB00;margin-bottom:6px">🎨 ESTILO VISUAL DEL VIDEO · POR SLOT</div>
-<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="visualFilter" style="flex:1;min-width:145px;background:#070709;color:white;border:1px solid #444;padding:8px;border-radius:8px;font-size:11px"><option value="none">Original · sin filtro</option><option value="anime">Anime ilustrado</option><option value="cartoon">Cartoon / caricatura</option><option value="pencil">Dibujo a lápiz</option><option value="comic" selected>Cómic / pop art</option><option value="cinema">Cinemático</option></select><label style="font-size:10px;color:#aaa">Intensidad <b id="filterStrengthText">100%</b></label><input type="range" id="filterStrength" min="0" max="100" value="100" step="5" style="width:105px;accent-color:#FFEB00"></div>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="visualFilter" style="flex:1;min-width:145px;background:#070709;color:white;border:1px solid #444;padding:8px;border-radius:8px;font-size:11px"><option value="none">Original · sin filtro</option><option value="anime">Anime ilustrado</option><option value="cartoon" selected>Cartoon / caricatura</option><option value="pencil">Dibujo a lápiz</option><option value="comic">Cómic / pop art</option><option value="cinema">Cinemático</option></select><label style="font-size:10px;color:#aaa">Intensidad <b id="filterStrengthText">100%</b></label><input type="range" id="filterStrength" min="0" max="100" value="100" step="5" style="width:105px;accent-color:#FFEB00"></div>
 <div style="font-size:9px;color:#888;margin-top:5px">Vista previa aproximada. El filtro se aplica al MP4 final antes de los títulos y subtítulos.</div></div>
 <div style="margin-bottom:6px"><div style="font-size:9px;color:#FFEB00;font-weight:800">TITULO AMARILLO GRANDE</div><textarea id="inputTitle" rows="2" style="width:100%;background:#0f0f12;border:1px solid #333;color:#fff;border-radius:8px;padding:8px;font-size:13px;font-weight:800;min-height:56px;max-height:56px;resize:vertical">ESTE CORTE CAMBIÓ SU VIDA MIRA EL ANTES Y DESPUÉS</textarea></div>
 <div style="margin-bottom:6px"><div style="font-size:9px;color:#777">GUION - 12 palabras (3 líneas) sync voz</div><textarea id="inputScript" rows="12" style="width:100%;background:#0f0f12;border:1px solid #222;color:#fff;border-radius:8px;padding:12px;font-size:12.5px;min-height:380px;height:380px;max-height:500px;resize:vertical;line-height:1.5">Mira este cambio increíble que hicimos hoy en la barbería. El cliente llegó sin esperanza y se fue como un modelo.</textarea></div>
@@ -589,7 +589,7 @@ const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c
 const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;};
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
-const queue=Array.from({length:10},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-claude-high:0",voiceSpeed:1,visualFilter:"comic",filterStrength:100,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+const queue=Array.from({length:10},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-claude-high:0",voiceSpeed:1,visualFilter:"cartoon",filterStrength:100,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
 let activeId=1,lastCola=0,raf=null;
 window.queue=queue; window.activeId=1; window.getActiveId=()=>activeId;
 const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
@@ -701,7 +701,7 @@ window.setActive=id=>{
   $("inputFileName").value=it.fileNameBase;
   try{
     const fs=document.getElementById('visualFilter'); const fr=document.getElementById('filterStrength');
-    if(fs)fs.value=it.visualFilter||'comic'; if(fr)fr.value=it.filterStrength??100;
+    if(fs)fs.value=it.visualFilter||'cartoon'; if(fr)fr.value=it.filterStrength??100;
     if(typeof window.updateVisualFilterPreview==='function')window.updateVisualFilterPreview();
     const vSel=document.getElementById('kokoroVoice');
     if(vSel) vSel.value = it.voiceId || 'es_MX-claude-high:0';
@@ -2442,7 +2442,7 @@ console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Wo
  };
  // Real MP4 transformations: strong color quantization and edge extraction, not mere saturation.
  window.icVisualFFmpegFilter=function(q){
-  const kind=q.visualFilter||'comic',a=Math.max(0,Math.min(1,Number(q.filterStrength??100)/100));
+  const kind=q.visualFilter||'cartoon',a=Math.max(0,Math.min(1,Number(q.filterStrength??100)/100));
   if(kind==='none'||a===0)return '';
   const f=n=>n.toFixed(2);
   const step=Math.max(16,Math.round(24+48*a));
@@ -2457,7 +2457,7 @@ console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Wo
  function sync(){const q=active();if(!q)return;q.visualFilter=document.getElementById('visualFilter').value;q.filterStrength=Number(document.getElementById('filterStrength').value);window.updateVisualFilterPreview();}
  for(const id of ['visualFilter','filterStrength'])document.getElementById(id)?.addEventListener('input',sync);
  const original=window.setActive;
- if(typeof original==='function')window.setActive=function(id){const r=original(id),q=active();if(q){document.getElementById('visualFilter').value=q.visualFilter||'comic';document.getElementById('filterStrength').value=q.filterStrength??100;window.updateVisualFilterPreview();}return r;};
+ if(typeof original==='function')window.setActive=function(id){const r=original(id),q=active();if(q){document.getElementById('visualFilter').value=q.visualFilter||'cartoon';document.getElementById('filterStrength').value=q.filterStrength??100;window.updateVisualFilterPreview();}return r;};
  window.updateVisualFilterPreview();
 })();
 </script>
