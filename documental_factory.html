@@ -519,7 +519,7 @@ body > div[style*="Nunca fui yo"]{
 </div>
 <div id="visualFilterPanel" style="padding:9px;margin:7px 0;background:#101015;border:1px solid #383842;border-radius:9px">
 <div style="font-size:10px;font-weight:900;color:#FFEB00;margin-bottom:6px">🎨 ESTILO VISUAL DEL VIDEO · POR SLOT</div>
-<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="visualFilter" style="flex:1;min-width:145px;background:#070709;color:white;border:1px solid #444;padding:8px;border-radius:8px;font-size:11px"><option value="none">Original · sin filtro</option><option value="anime">Anime ilustrado</option><option value="cartoon">Cartoon / caricatura</option><option value="pencil">Dibujo a lápiz</option><option value="comic">Cómic / pop art</option><option value="cinema">Cinemático</option></select><label style="font-size:10px;color:#aaa">Intensidad <b id="filterStrengthText">65%</b></label><input type="range" id="filterStrength" min="0" max="100" value="65" step="5" style="width:105px;accent-color:#FFEB00"></div>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="visualFilter" style="flex:1;min-width:145px;background:#070709;color:white;border:1px solid #444;padding:8px;border-radius:8px;font-size:11px"><option value="none">Original · sin filtro</option><option value="anime">Anime ilustrado</option><option value="cartoon">Cartoon / caricatura</option><option value="pencil">Dibujo a lápiz</option><option value="comic">Cómic / pop art</option><option value="cinema">Cinemático</option></select><label style="font-size:10px;color:#aaa">Intensidad <b id="filterStrengthText">85%</b></label><input type="range" id="filterStrength" min="0" max="100" value="85" step="5" style="width:105px;accent-color:#FFEB00"></div>
 <div style="font-size:9px;color:#888;margin-top:5px">Vista previa aproximada. El filtro se aplica al MP4 final antes de los títulos y subtítulos.</div></div>
 <div style="margin-bottom:6px"><div style="font-size:9px;color:#FFEB00;font-weight:800">TITULO AMARILLO GRANDE</div><textarea id="inputTitle" rows="2" style="width:100%;background:#0f0f12;border:1px solid #333;color:#fff;border-radius:8px;padding:8px;font-size:13px;font-weight:800;min-height:56px;max-height:56px;resize:vertical">ESTE CORTE CAMBIÓ SU VIDA MIRA EL ANTES Y DESPUÉS</textarea></div>
 <div style="margin-bottom:6px"><div style="font-size:9px;color:#777">GUION - 12 palabras (3 líneas) sync voz</div><textarea id="inputScript" rows="12" style="width:100%;background:#0f0f12;border:1px solid #222;color:#fff;border-radius:8px;padding:12px;font-size:12.5px;min-height:380px;height:380px;max-height:500px;resize:vertical;line-height:1.5">Mira este cambio increíble que hicimos hoy en la barbería. El cliente llegó sin esperanza y se fue como un modelo.</textarea></div>
@@ -529,7 +529,7 @@ body > div[style*="Nunca fui yo"]{
 <div class="glass" style="padding:8px;height:fit-content;position:sticky;top:88px">
 <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW VIRAL · HTML/CSS · 720×1280 · WYSIWYG</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
 <div style="position:relative;width:100%;aspect-ratio:9/16;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
-<video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
+<video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video><canvas id="icShaderPreview" width="360" height="640" style="position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;display:none"></canvas>
 <audio id="previewAudio" muted preload="auto" style="display:none"></audio>
 <div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
 <div id="previewHtmlOverlay" style="position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;font-synthesis:none">
@@ -589,7 +589,7 @@ const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c
 const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;};
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
-const queue=Array.from({length:10},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-claude-high:0",voiceSpeed:1,visualFilter:"none",filterStrength:65,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+const queue=Array.from({length:10},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-claude-high:0",voiceSpeed:1,visualFilter:"none",filterStrength:85,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
 let activeId=1,lastCola=0,raf=null;
 window.queue=queue; window.activeId=1; window.getActiveId=()=>activeId;
 const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
@@ -701,7 +701,7 @@ window.setActive=id=>{
   $("inputFileName").value=it.fileNameBase;
   try{
     const fs=document.getElementById('visualFilter'); const fr=document.getElementById('filterStrength');
-    if(fs)fs.value=it.visualFilter||'none'; if(fr)fr.value=it.filterStrength??65;
+    if(fs)fs.value=it.visualFilter||'none'; if(fr)fr.value=it.filterStrength??85;
     if(typeof window.updateVisualFilterPreview==='function')window.updateVisualFilterPreview();
     const vSel=document.getElementById('kokoroVoice');
     if(vSel) vSel.value = it.voiceId || 'es_MX-claude-high:0';
@@ -2404,35 +2404,114 @@ console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Wo
 <script>console.log('[ICE CREAM] V85 Render Todo usa exactamente handleGenerate manual por slot');</script>
 <script>console.log('[ICE CREAM] V86 Worker persistente: modelo se descarga una sola vez por lote');</script>
 <script>console.log('[ICE CREAM] V87 Piper Worker READY: un solo dueño del modelo durante Renderizar Todo');</script>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute;pointer-events:none">
+<defs>
+<filter id="ic-cartoon" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+<feGaussianBlur stdDeviation="1.2" result="smooth"/>
+<feComponentTransfer in="smooth" result="poster"><feFuncR type="discrete" tableValues="0 .16 .32 .50 .68 .84 1"/><feFuncG type="discrete" tableValues="0 .16 .32 .50 .68 .84 1"/><feFuncB type="discrete" tableValues="0 .16 .32 .50 .68 .84 1"/></feComponentTransfer>
+<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"/>
+<feConvolveMatrix in="gray" order="3" kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" divisor="1" bias="0" preserveAlpha="true" result="edges"/>
+<feComponentTransfer in="edges" result="strongEdges"><feFuncR type="linear" slope="4"/><feFuncG type="linear" slope="4"/><feFuncB type="linear" slope="4"/></feComponentTransfer>
+<feBlend in="poster" in2="strongEdges" mode="multiply"/>
+</filter>
+<filter id="ic-anime" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+<feGaussianBlur stdDeviation=".7" result="smooth"/><feColorMatrix in="smooth" type="saturate" values="2.5" result="saturated"/>
+<feComponentTransfer in="saturated"><feFuncR type="discrete" tableValues="0 .14 .29 .43 .57 .71 .86 1"/><feFuncG type="discrete" tableValues="0 .14 .29 .43 .57 .71 .86 1"/><feFuncB type="discrete" tableValues="0 .14 .29 .43 .57 .71 .86 1"/></feComponentTransfer>
+</filter>
+<filter id="ic-pencil" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+<feColorMatrix type="saturate" values="0" result="gray"/>
+<feConvolveMatrix in="gray" order="3" kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" result="edges"/>
+<feComponentTransfer in="edges"><feFuncR type="linear" slope="-3" intercept="1"/><feFuncG type="linear" slope="-3" intercept="1"/><feFuncB type="linear" slope="-3" intercept="1"/></feComponentTransfer>
+</filter>
+<filter id="ic-comic" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+<feColorMatrix type="saturate" values="3" result="sat"/><feComponentTransfer in="sat" result="poster"><feFuncR type="discrete" tableValues="0 .25 .5 .75 1"/><feFuncG type="discrete" tableValues="0 .25 .5 .75 1"/><feFuncB type="discrete" tableValues="0 .25 .5 .75 1"/></feComponentTransfer>
+<feColorMatrix in="SourceGraphic" type="saturate" values="0" result="gray"/><feConvolveMatrix in="gray" order="3" kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" result="edges"/>
+<feBlend in="poster" in2="edges" mode="multiply"/>
+</filter>
+</defs></svg>
 <script id="ic-visual-filter-script">
 (function(){
-  const css={none:'none',anime:'saturate(1.65) contrast(1.25) brightness(1.06)',cartoon:'saturate(1.8) contrast(1.35)',pencil:'grayscale(1) contrast(2.1) brightness(1.25)',comic:'saturate(2) contrast(1.65)',cinema:'contrast(1.25) saturate(.85) sepia(.18)'};
-  function active(){return (window.queue||[]).find(x=>x.id===window.activeId)}
-  window.updateVisualFilterPreview=function(){
-    const q=active(),sel=document.getElementById('visualFilter'),rng=document.getElementById('filterStrength'),video=document.getElementById('previewVideo');
-    if(!q||!sel||!rng)return;
-    const kind=sel.value,amount=Number(rng.value)/100;
-    document.getElementById('filterStrengthText').textContent=rng.value+'%';
-    if(video){video.style.filter=amount===0?'none':(css[kind]||'none');video.style.opacity='1';}
-  };
-  window.icVisualFFmpegFilter=function(q){
-    const kind=q.visualFilter||'none',a=Math.max(0,Math.min(1,Number(q.filterStrength??65)/100));
-    if(kind==='none'||a===0)return '';
-    const f=n=>(n).toFixed(3);
-    // Only standard FFmpeg filters: compatible with the existing wasm core.
-    if(kind==='anime')return `,eq=contrast=${f(1+a*.25)}:saturation=${f(1+a*.9)}:brightness=${f(a*.035)},unsharp=3:3:${f(a*.75)}:3:3:0.0`;
-    if(kind==='cartoon')return `,hqdn3d=${f(1+a*5)}:${f(1+a*4)}:3:3,eq=contrast=${f(1+a*.38)}:saturation=${f(1+a*1.1)},unsharp=5:5:${f(a*.9)}:3:3:0`;
-    if(kind==='pencil')return `,format=gray,edgedetect=low=${f(.05+a*.08)}:high=${f(.12+a*.18)}:mode=wires,negate,eq=contrast=${f(1+a*.4)}`;
-    if(kind==='comic')return `,eq=contrast=${f(1+a*.65)}:saturation=${f(1+a*1.4)},unsharp=5:5:${f(a*1.1)}:3:3:0`;
-    if(kind==='cinema')return `,eq=contrast=${f(1+a*.24)}:saturation=${f(1-a*.16)}:brightness=${f(-a*.018)},unsharp=3:3:${f(a*.35)}:3:3:0`;
-    return '';
-  };
-  function sync(){const q=active();if(!q)return;const sel=document.getElementById('visualFilter'),rng=document.getElementById('filterStrength');q.visualFilter=sel.value;q.filterStrength=Number(rng.value);window.updateVisualFilterPreview();}
-  for(const id of ['visualFilter','filterStrength'])document.getElementById(id)?.addEventListener('input',sync);
-  // Restore the selected slot after initialization and on future slot changes.
-  const original=window.setActive;
-  if(typeof original==='function')window.setActive=function(id){const r=original(id),q=active();if(q){document.getElementById('visualFilter').value=q.visualFilter||'none';document.getElementById('filterStrength').value=q.filterStrength??65;window.updateVisualFilterPreview();}return r;};
-  window.updateVisualFilterPreview();
+ const css={none:'none',anime:'url(#ic-anime)',cartoon:'url(#ic-cartoon)',pencil:'url(#ic-pencil)',comic:'url(#ic-comic)',cinema:'contrast(1.35) saturate(.75) sepia(.2)'};
+ function active(){return (window.queue||[]).find(x=>x.id===window.activeId)}
+ window.updateVisualFilterPreview=function(){
+  const q=active(),sel=document.getElementById('visualFilter'),rng=document.getElementById('filterStrength'),video=document.getElementById('previewVideo');
+  if(!q||!sel||!rng)return;
+  const a=Number(rng.value)/100,kind=sel.value;
+  document.getElementById('filterStrengthText').textContent=rng.value+'%';
+  if(video){video.style.filter='none';}
+ };
+ // Real MP4 transformations: strong color quantization and edge extraction, not mere saturation.
+ window.icVisualFFmpegFilter=function(q){
+  const kind=q.visualFilter||'none',a=Math.max(0,Math.min(1,Number(q.filterStrength??85)/100));
+  if(kind==='none'||a===0)return '';
+  const f=n=>n.toFixed(2);
+  const step=Math.max(16,Math.round(24+48*a));
+  const poster=`lutrgb=r='trunc(val/${step})*${step}':g='trunc(val/${step})*${step}':b='trunc(val/${step})*${step}'`;
+  if(kind==='anime')return `,gblur=sigma=0.9,eq=contrast=${f(1+a*.35)}:saturation=${f(1+a*1.65)},${poster},edgedetect=low=0.035:high=0.11:mode=colormix`;
+  if(kind==='cartoon')return `,gblur=sigma=1.6,eq=contrast=${f(1+a*.35)}:saturation=${f(1+a*.75)},${poster},edgedetect=low=0.025:high=0.09:mode=colormix`;
+  if(kind==='pencil')return `,format=gray,edgedetect=low=0.035:high=0.10:mode=wires,negate,eq=contrast=1.65`;
+  if(kind==='comic')return `,eq=contrast=${f(1+a*.75)}:saturation=${f(1+a*1.8)},${poster},edgedetect=low=0.035:high=0.13:mode=colormix`;
+  if(kind==='cinema')return `,eq=contrast=${f(1+a*.25)}:saturation=${f(1-a*.2)}:brightness=-0.02`;
+  return '';
+ };
+ function sync(){const q=active();if(!q)return;q.visualFilter=document.getElementById('visualFilter').value;q.filterStrength=Number(document.getElementById('filterStrength').value);window.updateVisualFilterPreview();}
+ for(const id of ['visualFilter','filterStrength'])document.getElementById(id)?.addEventListener('input',sync);
+ const original=window.setActive;
+ if(typeof original==='function')window.setActive=function(id){const r=original(id),q=active();if(q){document.getElementById('visualFilter').value=q.visualFilter||'none';document.getElementById('filterStrength').value=q.filterStrength??85;window.updateVisualFilterPreview();}return r;};
+ window.updateVisualFilterPreview();
+})();
+</script>
+
+<script id="ic-webgl-visual-pro">
+(function(){
+const video=document.getElementById('previewVideo'),canvas=document.getElementById('icShaderPreview');
+if(!video||!canvas)return;
+const gl=canvas.getContext('webgl',{premultipliedAlpha:false,alpha:false,preserveDrawingBuffer:false});
+if(!gl)return;
+const vert=`attribute vec2 p;varying vec2 uv;void main(){uv=vec2((p.x+1.)*.5,1.-(p.y+1.)*.5);gl_Position=vec4(p,0.,1.);}`;
+const frag=`precision mediump float;
+varying vec2 uv;uniform sampler2D tex;uniform vec2 res;uniform float strength;uniform int mode;
+vec3 sampleAt(vec2 p){return texture2D(tex,clamp(p,vec2(0.),vec2(1.))).rgb;}
+float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
+void main(){
+vec3 c=sampleAt(uv),o=c;
+vec2 px=vec2(1.)/res;
+vec3 a=sampleAt(uv+vec2(px.x,0.)),b=sampleAt(uv-vec2(px.x,0.)),d=sampleAt(uv+vec2(0.,px.y)),e=sampleAt(uv-vec2(0.,px.y));
+float edge=clamp(length(c*4.-a-b-d-e)*1.8,0.,1.);
+if(mode==1){c=mix(c,vec3(lum(c)),.03);c=mix(vec3(lum(c)),c,2.0);c=floor(c*6.+.5)/6.;c*=1.-smoothstep(.12,.45,edge)*.72;}
+if(mode==2){c=(c+a+b+d+e)/5.;c=mix(vec3(lum(c)),c,1.6);c=floor(c*4.+.5)/4.;c*=1.-smoothstep(.07,.30,edge)*.9;}
+if(mode==3){float v=1.-smoothstep(.055,.25,edge);c=vec3(v);}
+if(mode==4){c=mix(vec3(lum(c)),c,2.5);c=floor(c*3.+.5)/3.;c*=1.-smoothstep(.05,.22,edge)*.96;}
+if(mode==5){c=pow(c,vec3(.85));c=mix(vec3(lum(c)),c,.7);c=clamp((c-.5)*1.35+.5,0.,1.);}
+gl_FragColor=vec4(mix(o,clamp(c,0.,1.),strength),1.);
+}`;
+function shader(type,source){let sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(sh));return sh;}
+let program;try{program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vert));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,frag));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));}catch(err){console.warn('WebGL preview unavailable',err);return;}
+gl.useProgram(program);
+const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+const loc=gl.getAttribLocation(program,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+gl.uniform1i(gl.getUniformLocation(program,'tex'),0);
+const modes={none:0,anime:1,cartoon:2,pencil:3,comic:4,cinema:5};
+function frame(){
+requestAnimationFrame(frame);
+const q=window.queue?.find(x=>x.id===window.activeId),mode=modes[q?.visualFilter]||0,st=(q?.filterStrength??85)/100;
+if(!mode||st<=0||video.readyState<2||getComputedStyle(video).display==='none'){canvas.style.display='none';video.style.opacity='1';return;}
+canvas.style.display='block';video.style.opacity='0';
+try{
+gl.viewport(0,0,canvas.width,canvas.height);gl.useProgram(program);
+gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
+gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,video);
+gl.uniform2f(gl.getUniformLocation(program,'res'),video.videoWidth||720,video.videoHeight||1280);
+gl.uniform1i(gl.getUniformLocation(program,'mode'),mode);
+gl.uniform1f(gl.getUniformLocation(program,'strength'),st);
+gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+}catch(e){canvas.style.display='none';video.style.opacity='1';}
+}
+requestAnimationFrame(frame);
 })();
 </script>
 </body>
