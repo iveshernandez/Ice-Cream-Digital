@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Factory YouTube 2.0 V3</title>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Factory YouTube Studio | Icecream Digital</title>
 <style>
 :root{--b:#08111f;--p:#0f1b2d;--p2:#0a1424;--l:#263853;--t:#f8fafc;--m:#91a4bd;--g:#37d67a}*{box-sizing:border-box}body{margin:0;background:var(--b);color:var(--t);font-family:Arial,sans-serif}.w{max-width:1200px;margin:auto;padding:25px}h1{font-size:42px;margin:0}.mut{color:var(--m)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.card{background:var(--p);border:1px solid var(--l);border-radius:18px;padding:18px;margin-top:18px}label{display:block;font-size:13px;font-weight:bold;margin:12px 0 6px}textarea,input,select{width:100%;background:var(--p2);color:white;border:1px solid var(--l);border-radius:11px;padding:12px}textarea{min-height:230px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}button{border:0;border-radius:10px;padding:11px 14px;font-weight:bold;cursor:pointer}.pri{background:var(--g);color:#06150c}.sec{background:#233552;color:white}.danger{background:#4b2027;color:#ffd0d0}.scenes{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:15px}.scene{background:var(--p2);border:1px solid var(--l);border-radius:15px;overflow:hidden}.media{aspect-ratio:16/9;max-height:390px;background:#03070d;display:grid;place-items:center}.media video{width:100%;height:100%;object-fit:cover}.body{padding:12px}.body p{font-size:12px;color:var(--m)}.q{font-family:monospace}.status{margin-top:12px;font-size:13px}.ok{color:#7ef0a9}.err{color:#ff9696}.api{display:grid;grid-template-columns:1fr auto;gap:7px}.tiny{font-size:11px;color:var(--m)}.renderbox{margin-top:18px;padding:18px;border:1px solid var(--l);border-radius:16px;background:var(--p2)}.progress{height:12px;background:#050b14;border:1px solid var(--l);border-radius:999px;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0%;background:var(--g);transition:width .25s}.finalvideo{width:100%;max-height:620px;background:#000;border-radius:14px;margin-top:12px;display:none}.hiddenAuto{display:none!important}@media(max-width:850px){.grid{grid-template-columns:1fr}.scenes{grid-template-columns:repeat(2,1fr)}}@media(max-width:550px){.scenes{grid-template-columns:1fr}}
 .pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}.pipe{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--l);border-radius:12px;background:#08101d;opacity:.62}.pipe span{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#152237;font-weight:800}.pipe b,.pipe small{display:block}.pipe small{font-size:10px;color:var(--m);margin-top:2px}.pipe.active{opacity:1;border-color:#5d87ff}.pipe.active span{background:#2857d7}.pipe.done{opacity:1;border-color:#2b9b66}.pipe.done span{background:#157347}.pipe.err{opacity:1;border-color:#b94b4b}.pipe.err span{background:#8e2d2d}.liveLog{max-height:145px;overflow:auto;font-size:11px;line-height:1.5;background:#050a12;border:1px solid var(--l);border-radius:10px;padding:10px;margin-top:10px;color:#b9c5d6}.liveLog:empty{display:none}@media(max-width:800px){.pipeline{grid-template-columns:1fr 1fr}.pipe:last-child{grid-column:1/-1}}
@@ -398,14 +398,70 @@ window.addEventListener('DOMContentLoaded',()=>{
 }
 </style>
 
-</head><body><div style="position:fixed;right:12px;top:10px;z-index:9999;background:#f5c451;color:#111;padding:7px 10px;border-radius:999px;font:700 11px system-ui">YOUTUBE SCRIPT FACTORY · 16:9 · DIRECTOR IA</div>
+<style id="factory-studio-2026">
+/* Diseño de interfaz. Mantiene intactos todos los ID y scripts funcionales. */
+:root{--b:#f5f7fb!important;--p:#ffffff!important;--p2:#f8fafc!important;--l:#e2e8f0!important;--t:#162235!important;--m:#64748b!important;--g:#2563eb!important}
+html{scroll-behavior:smooth}body{background:var(--b)!important;color:var(--t)!important;font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif!important}
+#icFactoryHeader{height:72px!important;background:rgba(255,255,255,.95)!important;border-bottom:1px solid #e8edf4!important;padding:0 max(28px,calc((100vw - 1400px)/2))!important;box-shadow:0 1px 12px #172c4a08!important}
+#icFactoryHeader .ic-badge{width:42px!important;height:42px!important;background:#2563eb!important;color:white!important;border-radius:13px!important;font-size:15px!important;box-shadow:0 5px 14px #2563eb30!important}
+#icFactoryHeader .ic-name{font-size:16px!important;color:#17233b!important;letter-spacing:-.5px!important;font-weight:800!important}
+#icFactoryHeader .ic-name strong{color:#2563eb}
+#icFactoryHeader .ic-sub{font-size:9px!important;letter-spacing:1.1px;color:#8794a9!important}
+#icFactoryHeader .ic-meta span{background:#f4f7fc!important;color:#53657f!important;border-color:#e6ebf3!important;font-size:11px!important;padding:7px 11px!important;border-radius:9px!important}
+.w{max-width:1400px!important;padding:26px 28px 70px!important}
+#tabTxt{color:var(--t)!important}
+.card{background:white!important;border:1px solid #e7ecf4!important;border-radius:18px!important;padding:24px!important;margin-top:18px!important;box-shadow:0 5px 24px #172c4a09!important;color:var(--t)!important}
+#titleFactory{border:1px solid #dbe6fa!important;background:linear-gradient(115deg,#fff 0%,#f7faff 72%,#edf4ff 100%)!important;padding:32px!important;box-shadow:0 8px 32px #2563eb0b!important}
+#titleFactory h2{font-size:30px!important;line-height:1.2!important;letter-spacing:-1.1px!important;margin:0 0 10px!important;color:#10203b!important}
+#titleFactory>p{font-size:13px!important;color:#697990!important;margin:0 0 22px!important}
+h2{font-size:18px!important;letter-spacing:-.35px!important;color:#18263e!important;margin:0 0 16px!important}h3{font-size:14px!important;color:#1c2c43!important}
+label{display:block!important;color:#45556c!important;font-size:12px!important;font-weight:700!important;margin:15px 0 7px!important}
+.tiny,.mut{font-size:12px!important;color:#73829a!important;line-height:1.55!important}
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),select,textarea,.inputLike{background:#f9fbff!important;color:#17243a!important;border:1px solid #dce4f0!important;border-radius:11px!important;padding:11px 13px!important;min-height:43px!important;font-size:13px!important;outline:none!important;box-shadow:none!important;transition:border-color .15s,box-shadow .15s!important}
+input:focus,select:focus,textarea:focus{border-color:#80a9fa!important;box-shadow:0 0 0 3px #2563eb18!important}
+input::placeholder,textarea::placeholder{color:#98a6b9!important}
+textarea{min-height:200px!important;line-height:1.6!important;font-size:13px!important}
+button,.apiHelp{font:700 12px/1.2 Inter,system-ui,sans-serif!important;min-height:39px!important;padding:11px 15px!important;border-radius:10px!important;transition:transform .15s,box-shadow .15s,background .15s!important;cursor:pointer}
+button:hover:not(:disabled){transform:translateY(-1px)!important;box-shadow:0 4px 12px #152b4920!important}
+button.pri,#factoryStart{background:#2563eb!important;color:white!important;border:1px solid #2563eb!important;box-shadow:0 4px 10px #2563eb21!important}
+#factoryStart{font-size:14px!important;padding:15px 25px!important;min-height:49px!important}
+button.sec,.apiHelp{background:#eef3fa!important;color:#38506d!important;border:1px solid #dfe7f2!important}
+button.danger{background:#fff1f2!important;color:#be123c!important;border:1px solid #ffe0e6!important}
+button:disabled{opacity:.48!important;cursor:not-allowed!important}
+.actions{gap:10px!important;margin-top:14px!important;flex-wrap:wrap!important}.row{gap:14px!important}.grid{gap:18px!important}
+.pipeline{gap:9px!important;margin:18px 0!important;grid-template-columns:repeat(5,minmax(0,1fr))!important}
+.pipe{background:#f7f9fd!important;border:1px solid #e6ebf3!important;border-radius:12px!important;padding:11px!important;gap:9px!important;opacity:1!important}
+.pipe span{width:27px!important;height:27px!important;background:#e8edf6!important;color:#62748c!important;border-radius:9px!important;font-size:11px!important}
+.pipe b{color:#24344e!important;font-size:11px!important}.pipe small{color:#8997aa!important;font-size:10px!important}
+.pipe.active{border-color:#8eb5fa!important;background:#eff6ff!important}.pipe.active span{background:#2563eb!important;color:white!important}
+.pipe.done{border-color:#a8dfc2!important;background:#f0fbf5!important}.pipe.done span{background:#16a34a!important;color:white!important}
+.pipe.err{border-color:#f4b9b9!important;background:#fff5f5!important}
+.enginePanel{background:#f8faff!important;border:1px solid #e5eaf4!important;border-radius:14px!important;padding:15px!important;margin:14px 0!important}
+.enginePanelTitle{font-size:12px!important;color:#54657e!important;margin-bottom:11px!important}
+.engineGrid{gap:9px!important}.engineState{background:white!important;border:1px solid #e5eaf3!important;border-radius:10px!important;padding:12px!important;color:#263951!important;font-size:11px!important}.engineText small{color:#8795a9!important;font-size:10px!important}
+.liveLog{background:#f8fafc!important;border:1px solid #e5ebf3!important;border-radius:12px!important;color:#52657e!important;font:11px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace!important;padding:14px!important;max-height:155px!important}
+.status{color:#63758e!important;font-size:12px!important;line-height:1.55!important}
+.progress{background:#eaf0f7!important;border-radius:99px!important;overflow:hidden!important;height:7px!important}.progress>div{background:#2563eb!important;border-radius:99px!important}
+#renderRightSlot .renderbox{background:#f9fbfe!important;border:1px solid #e6edf6!important;border-radius:14px!important;padding:18px!important}
+#renderRightSlot .finalvideo{max-height:280px!important;background:#0b1323!important;border-radius:12px!important}
+#generatedScenesSection{margin-top:20px!important}.scene{background:white!important;border:1px solid #e5ebf4!important;border-radius:13px!important;overflow:hidden!important;color:#23324a!important}
+#scenes{gap:13px!important}.scene .match.ok{color:#16864c!important}.scene .match.err{color:#dc4c4c!important}
+hr{border-color:#e8edf5!important}
+/* Ocultar controles avanzados sin desactivar sus eventos ni sus ID. */
+#titleFactory .actions{margin-top:21px!important}
+#factoryTopic{font-size:15px!important;min-height:51px!important;background:white!important}
+#factoryMessage{margin-top:13px!important}
+@media(max-width:1000px){.w{padding:18px 16px 45px!important}.pipeline{grid-template-columns:repeat(3,minmax(0,1fr))!important}.card{padding:19px!important}}
+@media(max-width:650px){#icFactoryHeader{padding:0 15px!important;height:62px!important}#icFactoryHeader .ic-meta{display:none!important}#titleFactory{padding:22px!important}#titleFactory h2{font-size:25px!important}.pipeline{grid-template-columns:repeat(2,minmax(0,1fr))!important}.engineGrid{grid-template-columns:1fr!important}.card{padding:17px!important;border-radius:15px!important}.w{padding:12px 10px 40px!important}#factoryStart{width:100%!important}}
+</style>
+</head><body>
 
 <div id="icFactoryHeader">
   <div class="ic-brand">
     <div class="ic-badge">IC</div>
     <div>
-      <div class="ic-name">ICECREAM DIGITAL</div>
-      <div class="ic-sub">Factory YouTube</div>
+      <div class="ic-name">Factory <strong>YouTube</strong></div>
+      <div class="ic-sub">ICECREAM DIGITAL · STUDIO</div>
     </div>
   </div>
   <div class="ic-meta">
@@ -415,9 +471,10 @@ window.addEventListener('DOMContentLoaded',()=>{
 </div>
 
 <div id="tabTxt">
+<section class="card" id="titleFactory" style="grid-column:1/-1;border:1px solid #3b9668;background:#10251e"><h2>Crea tu próximo video</h2><p class="tiny">Una idea es suficiente. Genera el guion, encuentra clips y produce tu documental automáticamente.</p><label>Título del video</label><input id="factoryTopic" placeholder="Ejemplo: ¿Qué le pasa a tu cuerpo cuando comes Maruchan?" maxlength="180"><div class="row"><div><label>Duración objetivo</label><select id="factoryMinutes"><option value="90">1:30 minutos</option><option value="180">3 minutos</option><option value="240" selected>4 minutos</option><option value="300">5 minutos</option></select></div><div><label>Estilo del guion</label><select id="factoryStyle"><option value="documental informativo, dinámico y claro">Documental informativo</option><option value="misterio narrativo y suspenso">Misterio</option><option value="motivacional y persuasivo">Motivacional</option><option value="educativo y sencillo">Educativo</option></select></div></div><div class="actions"><button class="pri" id="factoryStart">✦ Generar video</button></div><div id="factoryMessage" class="status mut">Configura Groq y las claves de Pexels/Pixabay una sola vez.</div></section>
 <div class="grid">
 <section class="card">
-  <h2>1. Subir guion .TXT</h2>
+  <h2>Guion y progreso</h2>
   <p class="tiny">La primera línea será el título del video y también el nombre del archivo final. Todo lo demás será el guion.</p>
 
   <label>Archivo .txt</label>
@@ -476,7 +533,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="progress"><div id="autoBar"></div></div>
 </section>
 
-<section class="card"><h2>2. Tus APIs</h2>
+<section class="card"><h2>Configuración y motores</h2>
 <div class="enginePanel" id="enginePanel">
   <div class="enginePanelTitle">Estado de motores</div>
   <div class="engineGrid">
@@ -496,7 +553,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 <div id="apiSavedStatus" class="tiny" style="margin-top:8px"></div>
 <p class="tiny"></p>
 <hr style="border:0;border-top:1px solid var(--l);margin:18px 0">
-<h2>3. Voz — español latino</h2>
+<h2>Narración</h2>
 <p class="tiny">Voz principal fija: Alexander V.</p>
 <label>Voz</label>
 <div class="inputLike">Alexander V — Español ES (Masculino)</div>
@@ -508,7 +565,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 <div id="renderRightSlot"><section class="card">
 
 <div class="renderbox" style="margin-top:0">
-<h2 style="margin-top:0">5. Render final</h2>
+<h2 style="margin-top:0">Exportación de video</h2>
 <div class="row">
   <div><label>Título en video</label><div class="inputLike">Visible durante todo el video</div><input id="titleOverlay" type="hidden" value="yes"></div>
   <div><label>Subtítulos</label><select id="subtitles"><option value="yes" selected>Activados</option><option value="no">Desactivados</option></select></div>
@@ -517,7 +574,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div><label>Música</label><div class="inputLike">Curiosidad / misterio documental — fija</div></div>
   <div><label>Volumen música</label><div class="inputLike">16% base · baja a 6–8% con Alexander · sube en pausas</div><input id="musicVol" type="hidden" value="0.16"></div>
 </div>
-<div class="actions"><button class="pri" id="finalRender">🎬 CREAR Y DESCARGAR VIDEO FINAL</button></div>
+<div class="actions"><button class="pri" id="finalRender">Exportar video MP4</button></div>
 <div id="renderStatus" class="status mut">Cuando tus escenas estén listas, este botón hará todo en una sola operación.</div>
 <div class="progress"><div id="renderBar"></div></div>
 <video id="finalPreview" class="finalvideo" controls playsinline></video>
@@ -526,7 +583,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 </section></div>
 </section></div>
 <div id="generatedScenesSection" class="card" style="margin-top:12px">
-  <h2>4. Escenas generadas</h2>
+  <h2>Biblioteca de escenas</h2>
   <div id="scenes" class="scenes"></div>
 </div>
 
@@ -2526,38 +2583,22 @@ function groundedFallbackQueries(scene){
 }
 
 async function generateAIImageForScene(scene,attempt=0){
-  const primary=sceneQueryVariants(scene);
-  const fallback=groundedFallbackQueries(scene);
-  const variants=orderQueriesByNovelty([...primary,...fallback].filter((q,i,a)=>a.findIndex(x=>x.toLowerCase()===q.toLowerCase())===i),attempt);
-  let lastErr=null;
-  for(let step=0;step<variants.length;step++){
-    const query=variants[step];
-    try{
-      window.__stockSceneContext={
-        narration:String(scene?.narration||''),
-        visual_description:String(scene?.visual_description||''),
-        subject:String(scene?.subject||''),
-        action:String(scene?.action||''),
-        setting:String(scene?.setting||''),
-        objects:Array.isArray(scene?.objects)?scene.objects:[],
-        must_include:Array.isArray(scene?.must_include)?scene.must_include:[],
-        avoid_terms:Array.isArray(scene?.avoid_terms)?scene.avoid_terms:[],
-        content_domain:String(scene?.content_domain||''),
-        domain_anchor:Array.isArray(scene?.domain_anchor)?scene.domain_anchor:[],
-        query
-      };
-      const out=await generateAIImage(query);
-      if(out) out.__usedQuery=query;
-      window.__factoryUsedSceneQueries=Array.isArray(window.__factoryUsedSceneQueries)?window.__factoryUsedSceneQueries:[];
-      window.__factoryUsedSceneQueries.push(query);
-      if(window.__factoryUsedSceneQueries.length>40)window.__factoryUsedSceneQueries.splice(0,window.__factoryUsedSceneQueries.length-40);
-      return out;
-    }catch(err){
-      lastErr=err;
-      imageProviderLog('⚠️ Sin resultado, probando otra búsqueda: '+query);
-    }
-  }
-  throw lastErr||new Error('No se encontró imagen para la escena.');
+ const raw=sceneQueryVariants(scene);
+ const anchor=(Array.isArray(scene?.domain_anchor)?scene.domain_anchor:[]).find(Boolean)||scene?.content_domain||'';
+ const simplify=q=>normalizeSearchQuery(q).replace(/\b(with|inside|beside|near|holding|showing|sitting|standing|placed|wooden|modern|closeup|close-up|background|packet|drawer)\b/gi,' ').replace(/\s+/g,' ').trim().split(' ').slice(0,3).join(' ');
+ const queries=[];
+ for(const q of [raw[0],anchor,scene?.subject,raw[1]]){
+   const clean=simplify(q);if(clean&& !queries.some(x=>x.toLowerCase()===clean.toLowerCase()))queries.push(clean);
+ }
+ if(!queries.length)queries.push('documentary');
+ let lastErr;
+ for(const query of queries.slice(0,3)){
+   try{
+     window.__stockSceneContext={narration:String(scene?.narration||''),content_domain:String(scene?.content_domain||''),query,avoid_terms:[]};
+     const out=await generateAIImage(query);if(out)out.__usedQuery=query;return out;
+   }catch(err){lastErr=err;imageProviderLog('↪️ Probando búsqueda más general: '+query);}
+ }
+ throw lastErr||new Error('No hay resultados para esta escena.');
 }
 
 function render(s,c,i){
@@ -2671,7 +2712,7 @@ function ensureScenesContainer(){
   section.id='generatedScenesSection';
   section.className='card';
   section.style.marginTop='12px';
-  section.innerHTML='<h2>4. Escenas generadas</h2><div id="scenes" class="scenes"></div>';
+  section.innerHTML='<h2>Biblioteca de escenas</h2><div id="scenes" class="scenes"></div>';
   host.appendChild(section);
   return document.getElementById('scenes');
 }
@@ -2744,6 +2785,8 @@ function expandSemanticScenesToShots(scenes){
 }
 
 async function refineExpandedShotsWithGroq(shots,title,contentDomain){
+  return shots; // Evitar segunda ronda costosa de Groq; conservar plan inicial.
+
   // The first director pass finds semantic sections. This second pass gives EVERY short shot
   // its own concrete English stock query. It prevents 6-10 consecutive shots from reusing
   // the same search merely because they came from the same paragraph.
@@ -3212,7 +3255,7 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
 
   async function makeScenes(){
     step('stepScenes','active','Analizando y buscando clips');
-    ast('1/4 Groq crea escenas y prompts para IA…');
+    ast('1/4 Preparando escenas y buscando imágenes en Pexels/Pixabay…');
     abar(10);
     if(typeof window.documentalAnalyzeScenes!=='function')
       throw Error('Motor de escenas Groq no quedó registrado.');
@@ -4708,22 +4751,21 @@ async function verifyVisualWithGroq(imageUrl,query,meta=''){
  }catch(err){return {ok:false,score:0,reason:'Vision: '+(err?.message||err)}}
 }
 async function pickVerified(items,provider,keyOf,metaOf,imgOf,query,serial){
+ // Búsqueda rápida: usar metadatos y evitar llamadas Groq Vision por fotografía.
  const ctx=sceneContext();
  const fresh=items.filter(x=>!usedStockVisuals.has(provider+':'+keyOf(x)));
- const pool=(fresh.length?fresh:items).slice(0,10);
- for(let i=0;i<pool.length;i++){
-   const x=pool[(serial+i)%pool.length]; const meta=String(metaOf(x)||'');
-   let blocked=false; const words=new Set(semanticWords(meta));
-   for(const term of (ctx.avoid_terms||[])){if(semanticWords(term).some(w=>words.has(w))){blocked=true;break}}
-   if(!blocked&&!sceneAllowsAnimals(ctx)){for(const w of words){if(obviousAnimalWords.has(w)){blocked=true;break}}}
-   if(blocked)continue;
-   const imageUrl=imgOf(x); if(!imageUrl)continue;
-   ui(`👁️ Verificando ${provider} ${i+1}/${pool.length} con IA…`);
-   const verdict=await verifyVisualWithGroq(imageUrl,query,meta);
-   if(verdict.ok){usedStockVisuals.add(provider+':'+keyOf(x));ui(`✅ IA aprobó ${provider} · ${verdict.score}/10`);return x}
-   ui(`↪️ IA rechazó ${provider} · ${verdict.score}/10 · ${verdict.reason}`);
- }
- return null;
+ const pool=(fresh.length?fresh:items).slice(0,20);
+ const queryWords=semanticWords(query);
+ const ranked=pool.map((x,i)=>{
+   const meta=String(metaOf(x)||'');const words=new Set(semanticWords(meta));
+   let blocked=(ctx.avoid_terms||[]).some(term=>semanticWords(term).some(w=>words.has(w)));
+   if(!sceneAllowsAnimals(ctx)) blocked ||= [...words].some(w=>obviousAnimalWords.has(w));
+   const score=queryWords.reduce((n,w)=>n+(words.has(w)?1:0),0);
+   return {x,i,score,blocked};
+ }).filter(v=>!v.blocked&&imgOf(v.x)).sort((a,b)=>b.score-a.score||a.i-b.i);
+ const selected=ranked[serial%Math.max(1,Math.min(4,ranked.length))]?.x;
+ if(selected){usedStockVisuals.add(provider+':'+keyOf(selected));ui('✅ '+provider+' · coincidencia encontrada');}
+ return selected||null;
 }
 async function pexels(q,key,serial){
  const page=1;
@@ -4753,12 +4795,6 @@ async function generate(prompt,notify=ui){
  for(const provider of order){
    if(provider==='pexels'&&pk){try{const x=await pexels(q,pk,serial);if(x){notify('✅ Pexels · visual '+(serial+1));activity('100% · Imagen única lista',100);return x}}catch(e){errors.push(e.message)}}
    if(provider==='pixabay'&&bk){try{const x=await pixabay(q,bk,serial);if(x){notify('✅ Pixabay · visual '+(serial+1));activity('100% · Imagen única lista',100);return x}}catch(e){errors.push(e.message)}}
- }
- // Retry the SAME grounded query on another result page. Do not broaden it by dropping topic words.
- const retrySerial=stockSerial++;
- for(const provider of order.slice().reverse()){
-   if(provider==='pexels'&&pk){try{const x=await pexels(q,pk,retrySerial);if(x)return x}catch(e){errors.push(e.message)}}
-   if(provider==='pixabay'&&bk){try{const x=await pixabay(q,bk,retrySerial);if(x)return x}catch(e){errors.push(e.message)}}
  }
  throw new Error('Sin imagen stock para "'+q+'". '+errors.join(' | '));
 }
@@ -4912,21 +4948,90 @@ window.addEventListener('load',()=>setTimeout(()=>init(ui),200));
 (()=>{const msg=document.getElementById('stockKeyMsg');function bind(id,btn,key){const inp=document.getElementById(id);try{if(localStorage.getItem(key))inp.value='••••••••••••'}catch(_){};document.getElementById(btn).onclick=()=>{const v=inp.value.trim();if(!v||v.includes('•'))return;localStorage.setItem(key,v);inp.value='••••••••••••';msg.textContent='✓ Clave guardada en este navegador';};}bind('pexelsKeyInput','pexelsSave','pexels_api_key');bind('pixabayKeyInput','pixabaySave','pixabay_api_key');})();
 </script>
 
-</body></html>
+<script id="factory-title-to-video">
+(()=>{
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const say=(t)=>{if($('factoryMessage'))$('factoryMessage').textContent=t;};
+async function createScript(title,seconds,style){
+ const key=($('groq')?.value||localStorage.getItem('df_groq')||'').trim();
+ if(!key)throw Error('Primero configura tu API de Groq.');
+ const words=Math.round(seconds*2.15);
+ const prompt=`Escribe un guion completo en ESPAÑOL para narración de YouTube. TÍTULO: ${title}. ESTILO: ${style}. EXTENSIÓN: aproximadamente ${words} palabras, adecuado para ${seconds} segundos de narración. Comienza con un gancho interesante, explica el tema con ejemplos visuales concretos y termina con un cierre memorable. No inventes estadísticas ni afirmaciones médicas categóricas. Devuelve SOLAMENTE el texto del guion en UN SOLO PÁRRAFO, sin encabezados, sin viñetas, sin indicaciones de cámara, sin markdown.`;
+ // Prefer a conventional chat model: reasoning models can exhaust max_tokens before producing visible content.
+ // Consultar modelos realmente habilitados para esta API Key antes de generar.
+ let models=[];
+ try {
+  const mr=await fetch('https://api.groq.com/openai/v1/models',{headers:{Authorization:'Bearer '+key}});
+  const md=await mr.json().catch(()=>({}));
+  if(!mr.ok)throw Error(md.error?.message||('HTTP '+mr.status));
+  const ids=(md.data||[]).filter(x=>x.active!==false).map(x=>x.id);
+  const preferred=['llama-3.3-70b-versatile','llama-3.1-8b-instant','qwen/qwen3-32b','openai/gpt-oss-120b','openai/gpt-oss-20b'];
+  models=preferred.filter(x=>ids.includes(x));
+  const extra=ids.filter(x=>/llama|qwen|gpt-oss|gemma|mistral/i.test(x)&&!/guard|whisper|tts|vision|audio|compound|safeguard/i.test(x)&&!models.includes(x));
+  models.push(...extra);
+  // Prefer non-reasoning models, then reasoning models with explicit low reasoning effort.
+  models.sort((a,b)=>Number(/gpt-oss|qwen3/i.test(a))-Number(/gpt-oss|qwen3/i.test(b)));
+  if(!models.length)throw Error('Tu cuenta no tiene modelos de texto disponibles. Consulta console.groq.com.');
+  say('Modelos disponibles: '+models.join(', '));
+ }catch(e){throw Error('No se pudo consultar los modelos habilitados de Groq: '+e.message);}
 
-<style>
-#sdLocalStatus{display:none!important}
-</style
-<div id="sdActivityPanel" style="margin-top:10px;border:1px solid #29425f;border-radius:10px;background:#07111e;padding:10px 12px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px">
-    <b>Actividad · Stock Visual</b>
-    <span id="sdActivityPct" style="font-weight:900">0%</span>
-  </div>
-  <div style="height:7px;background:#142337;border-radius:999px;overflow:hidden;margin-bottom:7px">
-    <i id="sdActivityBar" style="display:block;height:100%;width:0%;background:currentColor"></i>
-  </div>
-  <div id="sdActivityCurrent" style="font-size:12px;font-weight:800">Esperando inicio…</div>
-  <pre id="sdActivityLog" style="margin:8px 0 0;max-height:145px;overflow:auto;white-space:pre-wrap;font-size:11px;line-height:1.35;background:#030912;border:1px solid #1c3048;border-radius:8px;padding:8px">Esperando Stock Visual…</pre>
-</div>
-
->
+ let lastError='';
+ for(const model of models){
+  for(let i=0;i<4;i++){
+   let r,body;
+   try{
+    r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+     method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},
+     body:JSON.stringify({model,messages:[{role:'system',content:'Eres guionista profesional de documentales para YouTube en español. Escribe directamente el texto final del guion, sin razonamientos ni explicaciones.'},{role:'user',content:prompt}],temperature:0.5,max_completion_tokens:/gpt-oss|qwen3/i.test(model)?8192:Math.min(4096,Math.max(1600,Math.ceil(words*3.5))),...(/gpt-oss/i.test(model)?{reasoning_effort:'low'}:{}),...(/qwen3/i.test(model)?{reasoning_effort:'none'}:{}),stream:false})
+    });body=await r.json().catch(()=>({}));
+   }catch(e){throw Error('No se pudo conectar con Groq: '+e.message);}
+   if(r.ok){
+    const choice=body.choices?.[0];
+    let v=choice?.message?.content;
+    if(Array.isArray(v))v=v.map(x=>x.text||'').join(' ');
+    v=typeof v==='string'?v.trim():'';
+    if(v){v=v.replace(/<think>[\s\S]*?<\/think>/gi,'').trim();if(v)return v.replace(/\s+/g,' ');}
+    lastError='Groq devolvió contenido vacío con '+model+' (finish_reason: '+(choice?.finish_reason||'desconocido')+').';
+    if(choice?.finish_reason==='length')say('El modelo '+model+' consumió sus tokens razonando. Cambiando de modelo…');
+    console.warn('[Guion Groq vacío]',{model,finish_reason:choice?.finish_reason,usage:body.usage});
+    break;
+   }
+   lastError=body.error?.message||('HTTP '+r.status);
+   if(r.status===429){
+    const hint=String(lastError).match(/try again in ([\d.]+)s/i);
+    const delay=hint?Math.ceil(parseFloat(hint[1])*1000)+1200:Math.min(30000,5000*(i+1));
+    say('Groq: límite temporal ('+model+'). Esperando '+Math.ceil(delay/1000)+' segundos…');
+    await sleep(delay);continue;
+   }
+   if(r.status===401||r.status===403)throw Error('API de Groq no autorizada. Revisa la clave. '+lastError);
+   if(r.status===400||r.status===404||r.status===413){console.warn('Modelo no disponible:',model,lastError);break;}
+   console.warn('Groq fallo con modelo '+model+': '+lastError);break;
+  }
+  if(model!==models[models.length-1])say('Probando otro modelo disponible de Groq…');
+ }
+ throw Error('No fue posible generar el guion. '+lastError);
+}
+window.addEventListener('DOMContentLoaded',()=>{
+ $('factoryStart')?.addEventListener('click',async()=>{
+  const title=$('factoryTopic').value.trim();if(!title){say('Escribe el título del video.');return;}
+  const btn=$('factoryStart');btn.disabled=true;
+  try{
+   say('✍️ Generando el guion completo con Groq…');
+   const seconds=Number($('factoryMinutes').value);
+   const guion=await createScript(title,seconds,$('factoryStyle').value);
+   $('videoTitle').value=title;
+   $('downloadName').value=title.replace(/[\/:*?"<>|]/g,'').trim()+'.mp4';
+   $('script').value=guion;
+   $('duration').value='auto';
+   $('script').dispatchEvent(new Event('input',{bubbles:true}));
+   window.documentalTitle=title;
+   say('✅ Guion creado ('+guion.split(/\s+/).length+' palabras). Buscando clips y preparando el MP4…');
+   if(typeof window.documentalAutoCreate!=='function')throw Error('El motor de video aún no está listo. Recarga e inténtalo.');
+   const ok=await window.documentalAutoCreate();
+   say(ok?'✅ Video creado. Revisa la descarga MP4.':'⚠️ La creación se interrumpió. Revisa el registro de errores.');
+  }catch(e){say('❌ '+(e.message||e));console.error(e)}finally{btn.disabled=false;}
+ });
+});
+})();
+</script></body></html>
