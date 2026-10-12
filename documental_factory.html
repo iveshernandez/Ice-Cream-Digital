@@ -453,6 +453,10 @@ hr{border-color:#e8edf5!important}
 #factoryMessage{margin-top:13px!important}
 @media(max-width:1000px){.w{padding:18px 16px 45px!important}.pipeline{grid-template-columns:repeat(3,minmax(0,1fr))!important}.card{padding:19px!important}}
 @media(max-width:650px){#icFactoryHeader{padding:0 15px!important;height:62px!important}#icFactoryHeader .ic-meta{display:none!important}#titleFactory{padding:22px!important}#titleFactory h2{font-size:25px!important}.pipeline{grid-template-columns:repeat(2,minmax(0,1fr))!important}.engineGrid{grid-template-columns:1fr!important}.card{padding:17px!important;border-radius:15px!important}.w{padding:12px 10px 40px!important}#factoryStart{width:100%!important}}
+<style id="aspect-format-ui">
+.format-picker{margin-top:16px}.format-picker>label{font-size:13px!important;color:#334155!important;margin-bottom:9px!important}.format-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}.format-option{margin:0!important;cursor:pointer;display:block}.format-option input{position:absolute;opacity:0;width:1px;height:1px}.format-option span{display:block;border:2px solid #e2e8f0;background:#fff;border-radius:13px;padding:13px 15px;color:#172b4d;font-size:17px;font-weight:800;transition:.15s}.format-option small{display:block;font-size:11px;font-weight:500;color:#64748b;margin-top:5px}.format-option input:checked+span{border-color:#2563eb;background:#eff6ff;box-shadow:0 0 0 2px #2563eb15}.format-option input:focus-visible+span{outline:3px solid #93c5fd}.format-option:hover span{border-color:#93c5fd}@media(max-width:580px){.format-options{grid-template-columns:1fr}}
+body[data-video-aspect="9:16"] .media{aspect-ratio:9/16;max-height:450px}body[data-video-aspect="9:16"] .finalvideo{max-width:380px;max-height:675px;aspect-ratio:9/16;object-fit:contain}
+</style>
 </style>
 </head><body>
 
@@ -471,7 +475,7 @@ hr{border-color:#e8edf5!important}
 </div>
 
 <div id="tabTxt">
-<section class="card" id="titleFactory" style="grid-column:1/-1;border:1px solid #3b9668;background:#10251e"><h2>Crea tu próximo video</h2><p class="tiny">Una idea es suficiente. Genera el guion, encuentra clips y produce tu documental automáticamente.</p><label>Título del video</label><input id="factoryTopic" placeholder="Ejemplo: ¿Qué le pasa a tu cuerpo cuando comes Maruchan?" maxlength="180"><div class="row"><div><label>Duración objetivo</label><select id="factoryMinutes"><option value="90">1:30 minutos</option><option value="180">3 minutos</option><option value="240" selected>4 minutos</option><option value="300">5 minutos</option></select></div><div><label>Estilo del guion</label><select id="factoryStyle"><option value="documental informativo, dinámico y claro">Documental informativo</option><option value="misterio narrativo y suspenso">Misterio</option><option value="motivacional y persuasivo">Motivacional</option><option value="educativo y sencillo">Educativo</option></select></div></div><div class="actions"><button class="pri" id="factoryStart">✦ Generar video</button></div><div id="factoryMessage" class="status mut">Configura Groq y las claves de Pexels/Pixabay una sola vez.</div></section>
+<section class="card" id="titleFactory" style="grid-column:1/-1;border:1px solid #3b9668;background:#10251e"><h2>Crea tu próximo video</h2><p class="tiny">Una idea es suficiente. Genera el guion, encuentra clips y produce tu documental automáticamente.</p><label>Título del video</label><input id="factoryTopic" placeholder="Ejemplo: ¿Qué le pasa a tu cuerpo cuando comes Maruchan?" maxlength="180"><div class="row"><div><label>Duración objetivo</label><select id="factoryMinutes"><option value="90">1:30 minutos</option><option value="180">3 minutos</option><option value="240" selected>4 minutos</option><option value="300">5 minutos</option></select></div><div><label>Estilo del guion</label><select id="factoryStyle"><option value="documental informativo, dinámico y claro">Documental informativo</option><option value="misterio narrativo y suspenso">Misterio</option><option value="motivacional y persuasivo">Motivacional</option><option value="educativo y sencillo">Educativo</option></select></div></div><div class="format-picker"><label>Formato de salida</label><div class="format-options"><label class="format-option"><input type="radio" name="factoryAspect" value="16:9" checked><span>▭ &nbsp;16:9 <small>YouTube horizontal · 1280 × 720</small></span></label><label class="format-option"><input type="radio" name="factoryAspect" value="9:16"><span>▯ &nbsp;9:16 <small>Shorts y Reels · 720 × 1280</small></span></label></div></div><div class="actions"><button class="pri" id="factoryStart">✦ Generar video</button></div><div id="factoryMessage" class="status mut">Configura Groq y las claves de Pexels/Pixabay una sola vez.</div></section>
 <div class="grid">
 <section class="card">
   <h2>Guion y progreso</h2>
@@ -1152,7 +1156,7 @@ window.__factoryFfmpegState={status:'idle',ready:false,error:'',detail:'Esperand
 async function loadFFmpeg(){
   if(ffmpegInstance){
     window.__factoryFfmpegState={status:'ready',ready:true,error:'',detail:'FFmpeg listo'};
-    setFfmpegEngineCard('ready','Listo · 1280×720 / 30 FPS · YouTube 16:9',100);
+    setFfmpegEngineCard('ready',`Listo · ${factoryVideoGeometry().w}×${factoryVideoGeometry().h} / 30 FPS · ${factoryVideoGeometry().ratio}`,100);
     return ffmpegInstance;
   }
   if(ffmpegLoading) return ffmpegLoading;
@@ -1205,7 +1209,7 @@ async function loadFFmpeg(){
     ffmpegInstance=ffmpeg;
     window.__factoryFfmpegState={status:'ready',ready:true,error:'',detail:'FFmpeg listo'};
     window.__factoryFFmpegInstance=ffmpeg;
-    setFfmpegEngineCard('ready','Listo · 1280×720 / 30 FPS · YouTube 16:9',100);
+    setFfmpegEngineCard('ready',`Listo · ${factoryVideoGeometry().w}×${factoryVideoGeometry().h} / 30 FPS · ${factoryVideoGeometry().ratio}`,100);
     rs('3/5 ✅ FFmpeg original listo.','ok');
     rb(15);
     return ffmpeg;
@@ -1637,8 +1641,13 @@ function fitTitleLayout(ctx,text,maxWidth){
   return {fontSize:16,lines,lineH:20};
 }
 
+function factoryVideoGeometry(){
+  const portrait=document.querySelector('input[name="factoryAspect"]:checked')?.value==='9:16';
+  return portrait?{w:720,h:1280,portrait:true,ratio:'9:16'}:{w:1280,h:720,portrait:false,ratio:'16:9'};
+}
+window.factoryVideoGeometry=factoryVideoGeometry;
 async function canvasPngBlob(draw){
-  const c=document.createElement('canvas'); c.width=1280; c.height=720;
+  const c=document.createElement('canvas'); const geom=factoryVideoGeometry(); c.width=geom.w; c.height=geom.h;
   const ctx=c.getContext('2d');
   ctx.clearRect(0,0,c.width,c.height);
   draw(ctx,c);
@@ -1650,7 +1659,7 @@ async function makeTitleOverlay(title){
     const text=String(title||'').trim();
     ctx.textAlign='center'; ctx.textBaseline='middle';
 
-    const maxTextWidth=1040;
+    const maxTextWidth=c.width*(c.width<c.height?.84:.82);
     const fitted=fitTitleLayout(ctx,text,maxTextWidth);
     ctx.font=`700 ${fitted.fontSize}px Arial, sans-serif`;
 
@@ -1659,7 +1668,7 @@ async function makeTitleOverlay(title){
     const padTop=Math.max(24,Math.round(fitted.fontSize*.48));
     const padBottom=padTop;
     const h=Math.max(112,lines.length*lineH+padTop+padBottom);
-    const x=110,y=42,w=c.width-220;
+    const x=Math.round(c.width*.08),y=c.width<c.height?120:42,w=c.width-2*x;
 
     ctx.fillStyle='rgba(0,0,0,.58)';
     roundRect(ctx,x,y,w,h,24); ctx.fill();
@@ -1713,10 +1722,10 @@ async function makeSubtitleOverlay(text){
     const words=String(text||'').trim().split(/\s+/).filter(Boolean);
     if(!words.length)return;
     const yellow=new Set(subtitleKeywordIndexes(words));
-    const fontSize=40;
+    const fontSize=c.width<c.height?35:40;
     const font='900 '+fontSize+'px Arial, sans-serif';
     ctx.font=font; ctx.textBaseline='middle'; ctx.textAlign='left';
-    const maxW=1060, gap=14, lineH=50;
+    const maxW=c.width*.84, gap=14, lineH=50;
     const lines=[]; let line=[]; let width=0;
     words.forEach((word,i)=>{
       const ww=ctx.measureText(word).width;
@@ -1729,7 +1738,7 @@ async function makeSubtitleOverlay(text){
     });
     if(line.length)lines.push(line);
     const shown=lines.slice(0,2);
-    const baseY=c.height-70-(shown.length-1)*lineH/2;
+    const baseY=c.height-(c.width<c.height?200:70)-(shown.length-1)*lineH/2;
     ctx.lineJoin='round';
     ctx.lineWidth=8;
     ctx.strokeStyle='rgba(0,0,0,.95)';
@@ -2080,9 +2089,11 @@ async function createFinalVideo(){
       const fadeOut=(i===sceneEls.length-1)?`fade=t=out:st=${Math.max(0,durNum-0.28).toFixed(3)}:d=0.28,`:'';
       // Still image -> full moving scene. d must equal the number of output frames.
       const grade=emphasis==='strong'?'eq=contrast=1.09:saturation=1.10:brightness=-0.015':'eq=contrast=1.045:saturation=1.055:brightness=-0.008';
-      const composeAndMove=`scale=1420:800:force_original_aspect_ratio=increase,crop=1420:800,`+
+      const geom=factoryVideoGeometry();
+      const overscanW=geom.portrait?800:1420,overscanH=geom.portrait?1420:800;
+      const composeAndMove=`scale=${overscanW}:${overscanH}:force_original_aspect_ratio=increase,crop=${overscanW}:${overscanH},`+
         `${grade},unsharp=5:5:0.35:3:3:0.0,`+
-        `zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=${frames}:s=1280x720:fps=30,`+
+        `zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=${frames}:s=${geom.w}x${geom.h}:fps=30,`+
         `trim=duration=${durNum.toFixed(3)},setpts=PTS-STARTPTS,${fadeIn}${fadeOut}format=yuv420p`;
       const filters=[`[0:v]${composeAndMove}[v0]`];
       let prev='v0';
@@ -2192,7 +2203,7 @@ async function createFinalVideo(){
 
     window.documentalFfmpegProgressCtx=null;
     rb(100);
-    rs(`✅ Video terminado: ${total.toFixed(1)} s naturales, edición dinámica 1280×720, 30 FPS, cortes rápidos, movimiento, subtítulos, voz nivelada y música documental al 30%. Descarga iniciada. Liberando memoria…`, 'ok');
+    rs(`✅ Video terminado: ${total.toFixed(1)} s naturales, edición dinámica ${factoryVideoGeometry().w}×${factoryVideoGeometry().h}, 30 FPS, cortes rápidos, movimiento, subtítulos, voz nivelada y música documental al 30%. Descarga iniciada. Liberando memoria…`, 'ok');
 
     await clean(ffmpeg,[...partNames,...chunkNames,...sourceFilesToClean,sharedTitleFile,'concat.txt','joined.mp4','voice.wav','voice_target.wav',musicInfo.name,'mixed_browser.wav','documental_final.mp4'].filter(Boolean));
     return true;
@@ -2207,7 +2218,7 @@ async function createFinalVideo(){
     }
     throw err;
   }finally{
-    if(btn)btn.disabled=false;
+    if(btn)btn.disabled=false;document.querySelectorAll('input[name="factoryAspect"]').forEach(x=>x.disabled=false);
     // IMPORTANT: one fresh FFmpeg worker per documentary.
     // Prevents cumulative WASM memory growth across long queues.
     try{ await resetFFmpegAfterVideo(); }catch(e){ console.warn('[FFmpeg reset]',e); }
@@ -2828,12 +2839,12 @@ SHOTS:\n${JSON.stringify(payload)}`;
 }
 
 function editorialFallbackImage(scene,index){
-  const c=document.createElement('canvas');c.width=1280;c.height=720;
+  const c=document.createElement('canvas');const geom=factoryVideoGeometry();c.width=geom.w;c.height=geom.h;
   const ctx=c.getContext('2d');
   const hue=(index*47)%360;
-  const g=ctx.createLinearGradient(0,0,1280,720);
+  const g=ctx.createLinearGradient(0,0,c.width,c.height);
   g.addColorStop(0,`hsl(${hue} 28% 14%)`);g.addColorStop(1,'#060b12');
-  ctx.fillStyle=g;ctx.fillRect(0,0,1280,720);
+  ctx.fillStyle=g;ctx.fillRect(0,0,c.width,c.height);
   ctx.fillStyle='rgba(255,255,255,.06)';
   for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(110+i*165,110+(i%2)*320,80+i*7,0,Math.PI*2);ctx.fill();}
   const label=String(scene.subject||scene.objects?.[0]||scene.content_domain||'Documental').replace(/\s+/g,' ').trim();
@@ -3337,7 +3348,7 @@ if($('#demo')) $('#demo').onclick=()=>{$('#script').value='En las aguas heladas 
     }finally{
       autoRunning=false;
       await releaseWakeLock();
-      if(btn)btn.disabled=false;
+      if(btn)btn.disabled=false;document.querySelectorAll('input[name="factoryAspect"]').forEach(x=>x.disabled=false);
     }
   }
 
@@ -4903,7 +4914,7 @@ window.addEventListener('load',()=>setTimeout(()=>init(ui),200));
      if(!ff)throw Error('FFmpeg terminó la carga sin devolver una instancia.');
      const st=window.getFactoryFFmpegState?.();
      if(st && st.ready!==true)throw Error(st.error||st.detail||'FFmpeg no confirmó estado listo.');
-     set('engineFfmpeg','ready','Listo · 1280×720 / 30 FPS · YouTube 16:9',100);
+     set('engineFfmpeg','ready',`Listo · ${factoryVideoGeometry().w}×${factoryVideoGeometry().h} / 30 FPS · ${factoryVideoGeometry().ratio}`,100);
    }catch(e){
      const detail=(e?.message||String(e)||'Error desconocido').slice(0,180);
      console.error('[FFmpeg diagnóstico real]',e);
@@ -5015,7 +5026,7 @@ async function createScript(title,seconds,style){
 window.addEventListener('DOMContentLoaded',()=>{
  $('factoryStart')?.addEventListener('click',async()=>{
   const title=$('factoryTopic').value.trim();if(!title){say('Escribe el título del video.');return;}
-  const btn=$('factoryStart');btn.disabled=true;
+  const btn=$('factoryStart');btn.disabled=true;document.querySelectorAll('input[name="factoryAspect"]').forEach(x=>x.disabled=true);
   try{
    say('✍️ Generando el guion completo con Groq…');
    const seconds=Number($('factoryMinutes').value);
@@ -5030,8 +5041,13 @@ window.addEventListener('DOMContentLoaded',()=>{
    if(typeof window.documentalAutoCreate!=='function')throw Error('El motor de video aún no está listo. Recarga e inténtalo.');
    const ok=await window.documentalAutoCreate();
    say(ok?'✅ Video creado. Revisa la descarga MP4.':'⚠️ La creación se interrumpió. Revisa el registro de errores.');
-  }catch(e){say('❌ '+(e.message||e));console.error(e)}finally{btn.disabled=false;}
+  }catch(e){say('❌ '+(e.message||e));console.error(e)}finally{btn.disabled=false;document.querySelectorAll('input[name="factoryAspect"]').forEach(x=>x.disabled=false);}
  });
 });
+})();
+</script><script>
+(function(){
+function syncAspect(){const r=document.querySelector('input[name="factoryAspect"]:checked')?.value||'16:9';document.body.dataset.videoAspect=r;const meta=document.querySelector('#icFactoryHeader .ic-meta span:last-child');if(meta)meta.textContent=(r==='9:16'?'720×1280':'1280×720')+' · 30 FPS';}
+document.querySelectorAll('input[name="factoryAspect"]').forEach(x=>x.addEventListener('change',syncAspect));syncAspect();
 })();
 </script></body></html>
