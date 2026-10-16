@@ -528,7 +528,7 @@ body > div[style*="Nunca fui yo"]{
 <div style="display:flex;align-items:center;gap:12px">
 <div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div>
 <b class="anton" style="font-size:20px;letter-spacing:1px">ICE CREAM DIGITAL</b>
-<span style="font-size:10px;color:#666;background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222">720p • 60fps • 7Mbps • MP4 • FLUIDO</span>
+<span style="font-size:10px;color:#666;background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222">4:5 • 1080p • 30fps • MP4 • FLUIDO</span>
 </div>
 <div style="display:flex;gap:8px;align-items:center">
 <label style="background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222;font-size:10px"><input type="checkbox" id="autoDownloadCheck" checked> Auto-descargar</label>
@@ -593,14 +593,14 @@ body > div[style*="Nunca fui yo"]{
 <div id="debug" style="margin-top:6px;font-size:9px;color:#666;background:#000;padding:6px;border-radius:6px;white-space:pre-wrap;max-height:70px;overflow:auto"></div>
 </div>
 <div class="glass" style="padding:8px;height:fit-content;position:sticky;top:88px">
-<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW VIRAL · HTML/CSS · 720×1280 · WYSIWYG</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
-<div style="position:relative;width:100%;aspect-ratio:9/16;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW ECVT · 4:5 · 1080×1350 · WYSIWYG</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
+<div style="position:relative;width:100%;aspect-ratio:4/5;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
 <video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
 <audio id="previewAudio" muted preload="auto" style="display:none"></audio>
 <div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
-<div id="previewHtmlOverlay" style="position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;font-synthesis:none">
-  <div id="previewTitleLayer" style="position:absolute;left:4%;right:4%;top:5.5%;display:flex;flex-direction:column;align-items:center;gap:5px"></div>
-  <div id="previewSubtitleLayer" style="position:absolute;left:4%;right:4%;top:70%;display:flex;flex-direction:column;align-items:center;gap:4px"></div>
+<div id="ecvtDots" style="position:absolute;inset:62% 0 0;z-index:2;pointer-events:none;background:radial-gradient(circle at 20% 75%,rgba(38,108,211,.55) 0 9px,transparent 10px),radial-gradient(circle at 68% 65%,rgba(38,108,211,.55) 0 13px,transparent 14px),radial-gradient(circle at 45% 85%,rgba(38,108,211,.45) 0 20px,transparent 21px),radial-gradient(circle at 80% 90%,rgba(38,108,211,.45) 0 10px,transparent 11px);background-size:95px 95px"></div><div style="position:absolute;inset:1.3%;border:2px solid #f000a8;z-index:5;pointer-events:none"></div><div id="previewHtmlOverlay" style="position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;font-synthesis:none">
+  <div id="previewTitleLayer" style="position:absolute;left:4%;right:4%;top:78%;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3"></div>
+  <div id="previewSubtitleLayer" style="position:absolute;left:4%;right:4%;top:64%;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3"></div>
 </div>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
 <div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:30;background:linear-gradient(180deg,rgba(4,4,7,.985),rgba(10,10,15,.98));flex-direction:column;align-items:center;justify-content:center;padding:12px">
@@ -627,7 +627,7 @@ body > div[style*="Nunca fui yo"]{
     <div id="renderList" style="width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:none;overflow:visible"></div>
 
     <div style="margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#666671;font-size:7px;font-weight:850">
-      <span>720 × 1280</span><span>H.264 · 30 FPS</span><span>2 MOTORES FFMPEG</span>
+      <span>1080 × 1350</span><span>H.264 · 30 FPS</span><span>2 MOTORES FFMPEG</span>
     </div>
   </div>
 </div>
@@ -885,75 +885,23 @@ function drawHtmlPreview(titleText, subText){
   if(!titleLayer || !subLayer) return;
   titleLayer.innerHTML=''; subLayer.innerHTML='';
 
-  // V75: look viral limpio inspirado en editores short-form:
-  // título blanco/amarillo, borde negro fuerte y tarjetas compactas.
-  const titleLines=(()=>{
-    let t=(titleText||'').trim().toUpperCase();
-    if(!t) return [];
-    let words=t.split(/\s+/);
-    if(words.length<=2) return [words.join(' ')];
-    let bestIdx=Math.ceil(words.length/2), bestDiff=Infinity;
-    for(let i=1;i<words.length;i++){
-      const d=Math.abs(words.slice(0,i).join(' ').length-words.slice(i).join(' ').length);
-      if(d<bestDiff){bestDiff=d;bestIdx=i;}
-    }
-    return [words.slice(0,bestIdx).join(' '),words.slice(bestIdx).join(' ')].slice(0,2);
-  })();
-
-  titleLines.forEach((line,idx)=>{
-    const el=document.createElement('div');
-    el.textContent=line;
-    const isAccent=idx===0;
-    el.style.cssText=[
-      'box-sizing:border-box',
-      'max-width:94%',
-      'width:max-content',
-      'padding:5px 11px 7px',
-      'border-radius:10px',
-      'background:rgba(8,8,10,.90)',
-      'border:1px solid rgba(255,255,255,.10)',
-      'color:'+(isAccent?'#FFEB00':'#FFFFFF'),
-      'text-align:center',
-      'white-space:nowrap',
-      'font-family:"Arial Black",Arial,sans-serif',
-      'font-weight:900',
-      'line-height:.98',
-      'letter-spacing:-.4px',
-      'text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 4px 9px rgba(0,0,0,.75)'
-    ].join(';');
+  const lines=splitWords((titleText||'').trim(),27).slice(0,3);
+  titleLayer.style.top='78%'; titleLayer.style.left='5%'; titleLayer.style.right='5%';
+  titleLayer.style.gap='0';
+  lines.forEach(line=>{
+    const el=document.createElement('div');el.textContent=line;
+    el.style.cssText='max-width:100%;color:#ffea00;font-family:Georgia,serif;font-weight:900;line-height:1.03;text-align:center;text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 3px 3px #000';
     titleLayer.appendChild(el);
-    requestAnimationFrame(()=>fitPreviewText(el,44,18,(titleLayer.clientWidth||320)*.94));
+    requestAnimationFrame(()=>fitPreviewText(el,32,15,(titleLayer.clientWidth||320)*.98));
   });
+  const sub=(subText||'').trim();
+  subLayer.style.top='64%';
+  if(sub){splitWords(sub,32).slice(0,2).forEach(line=>{
+    const el=document.createElement('div');el.textContent=line;
+    el.style.cssText='color:white;font-family:Arial,sans-serif;font-weight:900;text-align:center;line-height:1.05;text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000';
+    subLayer.appendChild(el);requestAnimationFrame(()=>fitPreviewText(el,21,12,(subLayer.clientWidth||320)*.95));
+  });}
 
-  let sub=(subText||'').trim().toUpperCase();
-  if(sub){
-    const lines=splitWords(sub,30).slice(0,3);
-    lines.forEach((line,idx)=>{
-      const el=document.createElement('div');
-      el.textContent=line;
-      // Línea central en amarillo para dar golpe visual sin karaoke complejo.
-      const accent=(lines.length===1 || idx===Math.floor(lines.length/2));
-      el.style.cssText=[
-        'box-sizing:border-box',
-        'max-width:94%',
-        'width:max-content',
-        'padding:4px 9px 5px',
-        'border-radius:8px',
-        'background:rgba(5,5,7,.86)',
-        'border:1px solid rgba(255,255,255,.09)',
-        'color:'+(accent?'#FFEB00':'#FFFFFF'),
-        'text-align:center',
-        'white-space:nowrap',
-        'font-family:Arial,sans-serif',
-        'font-weight:900',
-        'line-height:1.03',
-        'letter-spacing:-.15px',
-        'text-shadow:-1.5px -1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px 1.5px 0 #000,0 3px 7px rgba(0,0,0,.8)'
-      ].join(';');
-      subLayer.appendChild(el);
-      requestAnimationFrame(()=>fitPreviewText(el,20,12,(subLayer.clientWidth||320)*.94));
-    });
-  }
 }
 function updSubs(){
   const it=getA(); if(!it) return;
@@ -1823,11 +1771,11 @@ window.getTTS = getTTS;
   function makeASS(item,total){
     const titleLines=titlePreviewLines(item.title||'');
     const parts=(typeof chunkSubs==='function'?chunkSubs(item.script||''):[]).filter(Boolean);
-    const head=`[Script Info]\nScriptType: v4.00+\nPlayResX: 720\nPlayResY: 1280\nWrapStyle: 2\nScaledBorderAndShadow: yes\nYCbCr Matrix: TV.709\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: TitleYellow,Arial,56,&H0000EBFF,&H0000EBFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: TitleWhite,Arial,56,&H00FFFFFF,&H00FFFFFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: SubWhite,Arial,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\nStyle: SubYellow,Arial,40,&H0000EBFF,&H0000EBFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n`;
+    const head=`[Script Info]\nScriptType: v4.00+\nPlayResX: 1080\nPlayResY: 1350\nWrapStyle: 2\nScaledBorderAndShadow: yes\nYCbCr Matrix: TV.709\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: TitleYellow,Georgia,68,&H0000EBFF,&H0000EBFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: TitleWhite,Georgia,68,&H00FFFFFF,&H00FFFFFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: SubWhite,Arial,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\nStyle: SubYellow,Arial,40,&H0000EBFF,&H0000EBFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n`;
     let ev='';
     titleLines.forEach((line,i)=>{
-      const fs=fitAssFont(line,60,35,650),y=70+i*(fs+12);
-      ev+=`Dialogue: 2,0:00:00.00,${assTime(total)},${i===0?'TitleYellow':'TitleWhite'},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
+      const fs=fitAssFont(line,74,38,980),y=1090+i*(fs+8);
+      ev+=`Dialogue: 2,0:00:00.00,${assTime(total)},${'TitleYellow'},,0,0,0,,{\\an8\\pos(540,${y})\\fs${fs}}${assEscape(line)}\n`;
     });
     if(parts.length){
       const d=total/parts.length;
@@ -1835,8 +1783,8 @@ window.getTTS = getTTS;
         const lines=(typeof splitWords==='function'?splitWords(String(p).toUpperCase(),30):[String(p).toUpperCase()]).slice(0,3);
         const mid=Math.floor(lines.length/2);
         lines.forEach((line,j)=>{
-          const fs=fitAssFont(line,40,28,650),y=896+j*(fs+10);
-          ev+=`Dialogue: 3,${assTime(i*d)},${assTime(Math.min(total,(i+1)*d))},${(lines.length===1||j===mid)?'SubYellow':'SubWhite'},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
+          const fs=fitAssFont(line,46,30,980),y=875+j*(fs+8);
+          ev+=`Dialogue: 3,${assTime(i*d)},${assTime(Math.min(total,(i+1)*d))},${(lines.length===1||j===mid)?'SubYellow':'SubWhite'},,0,0,0,,{\\an8\\pos(540,${y})\\fs${fs}}${assEscape(line)}\n`;
         });
       });
     }
@@ -2018,8 +1966,8 @@ window.getTTS = getTTS;
       args.push('-i',inV,'-i',inA);
       const rate=Math.max(.05,Number(info.rate)||1);
       // V85: zoom 10% centrado para sacar marcas pegadas a bordes superior/inferior.
-      let vf=`setpts=PTS/${rate.toFixed(6)},scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,scale=792:1408,crop=720:1280:36:64,fps=30`;
-      if(useSubs)vf+=`,subtitles=${ass}:fontsdir=.`;
+      let vf=`setpts=PTS/${rate.toFixed(6)},scale=1080:1350:force_original_aspect_ratio=increase,crop=1080:1350,fps=30,drawbox=x=14:y=18:w=1052:h=1314:color=0xf000a8@1:t=4`;
+      vf+=`,drawbox=x=0:y=1070:w=1080:h=280:color=0x236cc2@0.12:t=fill`; if(useSubs)vf+=`,subtitles=${ass}:fontsdir=.`;
       args.push('-filter_complex',`[0:v]${vf}[v];[1:a]aresample=48000,alimiter=limit=0.95[a]`,
         '-map','[v]','-map','[a]','-t',Number(total).toFixed(3),
         '-c:v','libx264','-preset','ultrafast','-b:v','3200k','-maxrate','3800k','-bufsize','6400k',
