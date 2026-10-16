@@ -868,14 +868,14 @@ function drawHtmlPreview(titleText, subText){
   titleLayer.innerHTML=''; subLayer.innerHTML='';
 
   const lines=titleDesignLines(titleText);
-  titleLayer.style.top='4%'; titleLayer.style.left='4%'; titleLayer.style.right='4%';
+  titleLayer.style.top='4.6%'; titleLayer.style.left='4%'; titleLayer.style.right='4%';
   titleLayer.style.gap='0'; titleLayer.style.background='transparent'; titleLayer.style.padding='0';
   lines.forEach((line,i)=>{
     const el=document.createElement('div'); el.textContent=line;
     const middle=i===1 && lines.length===3;
     el.style.cssText=`display:block;max-width:100%;white-space:nowrap;color:${middle?'#ffffff':'#ffeb00'};font-family:Impact,'Anton',Arial,sans-serif;font-weight:900;letter-spacing:-.6px;line-height:.97;text-align:center;text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 3px 3px #000;background:transparent;`;
     titleLayer.appendChild(el);
-    requestAnimationFrame(()=>fitPreviewText(el,middle?32:25,middle?19:15,(titleLayer.clientWidth||320)*.96));
+    requestAnimationFrame(()=>{const w=titleLayer.clientWidth||320;const scale=w/1080;const base=middle?76:62;const min=middle?40:34;const chars=Math.max(1,line.length);const fitted=Math.max(min,Math.min(base,Math.floor(960/(chars*.58))));el.style.fontSize=Math.max(10,Math.round(fitted*scale))+'px';el.style.letterSpacing=(-0.5*scale)+'px';});
   });
   const sub=(subText||'').trim();
   subLayer.style.top='auto'; subLayer.style.bottom='7%'; subLayer.style.background='rgba(0,0,0,.65)'; subLayer.style.borderRadius='10px'; subLayer.style.padding='9px 6px';
@@ -1955,10 +1955,10 @@ window.getTTS = getTTS;
       // El título permanece dentro del encuadre y ocupa menos altura.
       fixedTitleLines.forEach((line,i)=>{
         const middle=i===1 && fixedTitleLines.length===3;
-        const fs=fitAssFont(line,middle?112:83,middle?60:43,980);
+        const fs=fitAssFont(line,middle?76:62,middle?40:34,960);
         const color=middle?'white':'0xFFEB00';
-        const ypos=fixedTitleLines.length===3?(65+i*104):(65+i*100);
-        vf+=`,drawtext=fontfile=arial.ttf:textfile=${titleFiles[i]}:fontsize=${fs}:fontcolor=${color}:borderw=7:bordercolor=black:shadowx=3:shadowy=4:shadowcolor=black@0.8:x=(w-text_w)/2:y=${ypos}`;
+        const ypos=fixedTitleLines.length===3?(62+i*79):(62+i*82);
+        vf+=`,drawtext=fontfile=arial.ttf:textfile=${titleFiles[i]}:fontsize=${fs}:fontcolor=${color}:borderw=5:bordercolor=black:shadowx=2:shadowy=3:shadowcolor=black@0.8:x=(w-text_w)/2:y=${ypos}`;
       });
       vf+=`,drawbox=x=35:y=1080:w=1010:h=235:color=black@0.62:t=fill`;
       if(useSubs)vf+=`,subtitles=${ass}:fontsdir=.`;
