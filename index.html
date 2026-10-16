@@ -176,7 +176,7 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
 
 /* Main editor header */
 #editorIcecreamPanel > header{
-  top:42px!important;
+  top:0!important;
   min-height:62px!important;
   padding:8px 16px!important;
   gap:10px!important;
@@ -331,7 +331,7 @@ input[type="text"]:focus, textarea:focus{border-color:#FFEB00!important;outline:
   opacity:.92;
 }
 #user-session-bar{
-  top:48px!important;
+  top:8px!important;
   padding:6px 10px!important;
   border-radius:8px!important;
   gap:8px!important;
@@ -371,7 +371,46 @@ body > div[style*="Nunca fui yo"]{
 }
 </style>
 
-</head>
+<style id="ice-groups-style">
+#editorIcecreamPanel #cola{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important}
+#editorIcecreamPanel .ice-group-header{grid-column:1/-1;background:linear-gradient(90deg,#242119,#121216);border:1px solid #45402a;border-radius:10px;padding:11px 13px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ice-group-header strong{color:#ffeb00;font-size:13px;text-transform:uppercase;letter-spacing:1px}
+.ice-group-header span{font-size:10px;color:#aaa}
+#editorIcecreamPanel #cola .slot{min-width:0}
+@media(max-width:540px){#editorIcecreamPanel #cola{grid-template-columns:repeat(3,minmax(0,1fr))!important}.ice-group-header span{font-size:8px}}
+</style>
+<style id="ice-side-workspace-v2">
+/* 8 grupos a la izquierda y editor activo a la derecha */
+#editorIcecreamPanel > div:has(> .layout):has(#cola){
+ display:grid!important;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)!important;
+ align-items:start!important;gap:14px!important;max-width:1500px!important;
+ padding:12px 16px!important;margin:0 auto!important;
+}
+#editorIcecreamPanel > div:has(> .layout):has(#cola) > .glass:first-child{
+ grid-column:1!important;grid-row:1!important;min-width:0!important;
+ position:sticky;top:110px;max-height:calc(100vh - 125px);overflow-y:auto;
+}
+#editorIcecreamPanel > div:has(> .layout):has(#cola) > .layout{
+ grid-column:2!important;grid-row:1!important;display:flex!important;
+ flex-direction:column!important;width:100%!important;min-width:0!important;
+ padding:0!important;margin:0!important;gap:12px!important;
+}
+#editorIcecreamPanel .layout > .glass:first-child,
+#editorIcecreamPanel .layout > .glass:last-child{
+ width:100%!important;min-width:0!important;position:relative!important;top:auto!important;
+}
+#editorIcecreamPanel .layout > .glass:last-child{max-width:420px!important;align-self:center!important}
+#editorIcecreamPanel #cola{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+#editorIcecreamPanel #inputScript{height:180px!important;min-height:180px!important;max-height:320px!important}
+@media(max-width:900px){
+ #editorIcecreamPanel > div:has(> .layout):has(#cola){grid-template-columns:1fr!important}
+ #editorIcecreamPanel > div:has(> .layout):has(#cola) > .glass:first-child{
+  position:relative!important;top:auto!important;max-height:none!important;overflow:visible!important;
+ }
+ #editorIcecreamPanel > div:has(> .layout):has(#cola) > .layout{grid-column:1!important;grid-row:2!important}
+}
+</style>
+<style id="single-editor-layout">#editorIcecreamPanel > header{top:0!important}#editorIcecreamPanel .glass[style*="position:sticky"]{top:72px!important}</style></head>
 <body>
 
 <!-- LOGIN BETA + AUTH OVERLAY -->
@@ -478,22 +517,16 @@ body > div[style*="Nunca fui yo"]{
 </div>
 
 
-<div id="mainAppTabs" aria-label="Herramientas">
-  <button type="button" class="mainAppTab active" id="tabEditorIcecream">🍦 Editor Icecream</button>
-  <button type="button" class="mainAppTab" id="tabDocumentalFactory">🎬 Documental Factory</button>
-  <button type="button" class="mainAppTab" id="tabYoutubeFactory">▶️ Factory YouTube</button>
-</div>
-
 <div id="editorIcecreamPanel">
 <header>
 <div style="display:flex;align-items:center;gap:12px">
 <div style="width:36px;height:36px;background:#FFEB00;border-radius:10px;display:grid;place-items:center;color:#000;font-weight:900;font-family:Anton">IC</div>
 <b class="anton" style="font-size:20px;letter-spacing:1px">ICE CREAM DIGITAL</b>
-<span style="font-size:10px;color:#666;background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222">720p • 60fps • 7Mbps • MP4 • FLUIDO</span>
+<span style="font-size:10px;color:#666;background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222">4:5 • 1080p • 30fps • MP4 • FLUIDO</span>
 </div>
 <div style="display:flex;gap:8px;align-items:center">
 <label style="background:#141418;padding:6px 9px;border-radius:7px;border:1px solid #222;font-size:10px"><input type="checkbox" id="autoDownloadCheck" checked> Auto-descargar</label>
-<button id="btnLimpiarTodo" type="button">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender">⚡ RENDERIZAR TODO (10 VIDEOS 720p FB HD)</button>
+<button id="btnLimpiarTodo" type="button">🧹 LIMPIAR TODO EN CERO</button><button id="btnRender">⚡ RENDERIZAR 8 GRUPOS · 24 VIDEOS</button>
 </div>
 </header>
 
@@ -514,7 +547,7 @@ body > div[style*="Nunca fui yo"]{
 </div>
 
 <div style="max-width:1280px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:10px">
-<div class="glass" style="padding:10px"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b style="font-size:11px;color:#FFEB00">🎬 SELECCIONA EL SLOT PARA EDITAR - 10 VIDEOS INDEPENDIENTES</b><span id="colaInfo" style="font-size:10px;color:#666"></span></div><div id="cola"></div></div>
+<div class="glass" style="padding:10px"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b style="font-size:11px;color:#FFEB00">🎬 8 GRUPOS · 3 VIDEOS POR GRUPO · 24 SLOTS</b><span id="colaInfo" style="font-size:10px;color:#666"></span></div><div id="cola"></div></div>
 <div class="layout">
 <div class="glass" style="padding:10px;height:fit-content;position:sticky;top:88px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b id="slotLabel">SLOT 1</b><div style="display:flex;gap:6px;align-items:center"><span id="statusLabel" style="font-size:9px;background:#111;padding:4px 8px;border-radius:20px">vacio</span><span id="speedLabel" style="font-size:9px;background:#111;padding:4px 8px;border-radius:20px;color:#FFEB00">—</span><button id="btnRenderSingle" style="display:none">single</button></div></div>
@@ -554,14 +587,14 @@ body > div[style*="Nunca fui yo"]{
 <div id="debug" style="margin-top:6px;font-size:9px;color:#666;background:#000;padding:6px;border-radius:6px;white-space:pre-wrap;max-height:70px;overflow:auto"></div>
 </div>
 <div class="glass" style="padding:8px;height:fit-content;position:sticky;top:88px">
-<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW VIRAL · HTML/CSS · 720×1280 · WYSIWYG</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
-<div style="position:relative;width:100%;aspect-ratio:9/16;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;color:#777;font-weight:800">PREVIEW ECVT · 4:5 · 1080×1350 · WYSIWYG</span><button id="btnPlay" style="background:#fff;color:#000;border:0;border-radius:20px;padding:5px 10px;font-weight:800;font-size:10px;cursor:pointer">▶ Play</button></div>
+<div style="position:relative;width:100%;aspect-ratio:4/5;background:#000;border-radius:14px;overflow:hidden;border:1px solid #222">
 <video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
 <audio id="previewAudio" muted preload="auto" style="display:none"></audio>
 <div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
-<div id="previewHtmlOverlay" style="position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;font-synthesis:none">
-  <div id="previewTitleLayer" style="position:absolute;left:4%;right:4%;top:5.5%;display:flex;flex-direction:column;align-items:center;gap:5px"></div>
-  <div id="previewSubtitleLayer" style="position:absolute;left:4%;right:4%;top:70%;display:flex;flex-direction:column;align-items:center;gap:4px"></div>
+<div style="position:absolute;inset:1.3%;border:2px solid #f000a8;z-index:5;pointer-events:none"></div><div id="previewHtmlOverlay" style="position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;font-synthesis:none">
+  <div id="previewTitleLayer" style="position:absolute;left:4%;right:4%;top:6%;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3"></div>
+  <div id="previewSubtitleLayer" style="position:absolute;left:4%;right:4%;top:64%;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3"></div>
 </div>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
 <div id="renderOverlay" style="display:none;position:absolute;inset:0;z-index:30;background:linear-gradient(180deg,rgba(4,4,7,.985),rgba(10,10,15,.98));flex-direction:column;align-items:center;justify-content:center;padding:12px">
@@ -569,7 +602,7 @@ body > div[style*="Nunca fui yo"]{
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
       <div style="min-width:0">
         <div style="font-size:8px;font-weight:900;letter-spacing:1.6px;color:#8d8d98">ICE CREAM DIGITAL · EXPORT</div>
-        <div style="font-size:14px;font-weight:950;color:#fff;margin-top:2px">Renderizando 10 videos</div>
+        <div style="font-size:14px;font-weight:950;color:#fff;margin-top:2px">Renderizando 24 videos</div>
       </div>
       <div style="width:34px;height:34px;border-radius:10px;background:#FFEB00;color:#050505;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;flex:0 0 auto">⚡</div>
     </div>
@@ -588,7 +621,7 @@ body > div[style*="Nunca fui yo"]{
     <div id="renderList" style="width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:none;overflow:visible"></div>
 
     <div style="margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#666671;font-size:7px;font-weight:850">
-      <span>720 × 1280</span><span>H.264 · 30 FPS</span><span>2 MOTORES FFMPEG</span>
+      <span>1080 × 1350</span><span>H.264 · 30 FPS</span><span>2 MOTORES FFMPEG</span>
     </div>
   </div>
 </div>
@@ -598,7 +631,7 @@ body > div[style*="Nunca fui yo"]{
 </div>
 </div>
 
-<div id="perfMon" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:rgba(8,8,10,0.92);border:1px solid #222;border-radius:14px;padding:10px;min-width:200px;font-family:sans-serif"><div style="font-size:8px;color:#FFEB00;font-weight:900">⚡ V60 60FPS CLEAN</div><div style="font-size:9px;color:#999;margin-top:6px">Voces: <b id="mVoices">0</b>/10 | Videos: <b id="mVideos">0</b>/10 | RAM: <b id="mRam">--</b></div></div>
+<div id="perfMon" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:rgba(8,8,10,0.92);border:1px solid #222;border-radius:14px;padding:10px;min-width:200px;font-family:sans-serif"><div style="font-size:8px;color:#FFEB00;font-weight:900">⚡ V60 60FPS CLEAN</div><div style="font-size:9px;color:#999;margin-top:6px">Voces: <b id="mVoices">0</b>/24 | Videos: <b id="mVideos">0</b>/24 | RAM: <b id="mRam">--</b></div></div>
 
 <div style="position:fixed;bottom:12px;left:14px;z-index:100;font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-size:11px;color:#aaa;background:rgba(20,20,24,0.85);border:1px solid #222;padding:6px 10px;border-radius:8px;backdrop-filter:blur(4px);pointer-events:none;letter-spacing:0.2px">
 Nunca fui yo, siempre fue Dios. La gloria y la honra sean para Él…
@@ -607,73 +640,16 @@ Nunca fui yo, siempre fue Dios. La gloria y la honra sean para Él…
 
 </div><!-- /editorIcecreamPanel -->
 
-<section id="documentalFactoryPanel" aria-label="Documental Factory">
-  <iframe
-    id="documentalFactoryFrame"
-    title="Documental Factory"
-    data-src="documental_factory.html"
-    allow="autoplay; clipboard-write"
-  ></iframe>
-</section>
-
-<section id="youtubeFactoryPanel" aria-label="Factory YouTube">
-  <iframe
-    id="youtubeFactoryFrame"
-    title="Factory YouTube"
-    data-src="factory-youtube.html"
-    allow="autoplay; clipboard-write"
-  ></iframe>
-</section>
-
-<script id="ic-documental-tabs-script">
-(function(){
-  const editorPanel=document.getElementById('editorIcecreamPanel');
-  const documentalPanel=document.getElementById('documentalFactoryPanel');
-  const youtubePanel=document.getElementById('youtubeFactoryPanel');
-  const editorBtn=document.getElementById('tabEditorIcecream');
-  const documentalBtn=document.getElementById('tabDocumentalFactory');
-  const youtubeBtn=document.getElementById('tabYoutubeFactory');
-  const documentalFrame=document.getElementById('documentalFactoryFrame');
-  const youtubeFrame=document.getElementById('youtubeFactoryFrame');
-
-  function lazyLoad(frame){
-    if(frame && !frame.src) frame.src=frame.dataset.src;
-  }
-
-  function openTab(which){
-    const isEditor=which==='editor';
-    const isDocumental=which==='documental';
-    const isYoutube=which==='youtube';
-    editorPanel.style.display=isEditor?'block':'none';
-    documentalPanel.style.display=isDocumental?'block':'none';
-    youtubePanel.style.display=isYoutube?'block':'none';
-    editorBtn.classList.toggle('active',isEditor);
-    documentalBtn.classList.toggle('active',isDocumental);
-    youtubeBtn.classList.toggle('active',isYoutube);
-    if(isDocumental) lazyLoad(documentalFrame);
-    if(isYoutube) lazyLoad(youtubeFrame);
-    try{localStorage.setItem('icecream_active_tool',which)}catch(e){}
-    window.scrollTo({top:0,behavior:'instant'});
-  }
-
-  editorBtn.addEventListener('click',()=>openTab('editor'));
-  documentalBtn.addEventListener('click',()=>openTab('documental'));
-  youtubeBtn.addEventListener('click',()=>openTab('youtube'));
-
-  // Editor Icecream sigue siendo la pestaña inicial.
-  openTab('editor');
-  window.openIcecreamToolTab=openTab;
-})();
-</script>
-
 <script>
+// 8 grupos fijos de tres slots.
+window.ICE_GROUPS=['ives01','ives02','ives03','ives04','ives05','ivesshow','ivesfut','ives08'];
 // === CORE V50 CLEAN - SIN DUPLICADOS ===
 const $=s=>document.getElementById(s);
 const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c="";for(let x of w){const test=c?c+" "+x:x;if(test.length<=m)c=test;else{if(c)l.push(c);c=x.length>m?x.slice(0,m):x;}}if(c)l.push(c);return l;};
 const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;};
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
-const queue=Array.from({length:10},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-claude-high:0",voiceSpeed:1,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+const queue=Array.from({length:24},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-claude-high:0",voiceSpeed:1,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
 let activeId=1,lastCola=0,raf=null;
 window.queue=queue; window.activeId=1; window.getActiveId=()=>activeId;
 const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
@@ -692,13 +668,13 @@ window.updateVoiceProgressCorrecto = function(slotId, current, total){
   const listEl = document.getElementById('renderList');
   if(overlay) overlay.style.display='flex';
   if(textEl) textEl.textContent = `GENERANDO VOZ ${current}/${total} chunks`;
-  let suma = 0; for(let i=1;i<=10;i++){ suma += (window.voiceProgressBySlot[i] ? window.voiceProgressBySlot[i].pct : 0); }
-  const promedio = Math.round(suma / 10);
+  let suma = 0; for(let i=1;i<=24;i++){ suma += (window.voiceProgressBySlot[i] ? window.voiceProgressBySlot[i].pct : 0); }
+  const promedio = Math.round(suma / 24);
   if(pctEl) pctEl.textContent = promedio + '%';
   if(subEl) subEl.textContent = `GENERANDO VOZ ${current}/${total} chunks`;
   if(listEl){
     let h='';
-    for(let id=1; id<=10; id++){
+    for(let id=1; id<=24; id++){
       const d = window.voiceProgressBySlot[id];
       const q = window.queue ? window.queue.find(x=>x.id===id) : null;
       const dur = q && q.audioDur ? `${q.audioDur.toFixed(1)}s` : (d ? `${d.current}/${d.total}` : '');
@@ -747,6 +723,12 @@ function renderCola(f=false){
   if(!f&&performance.now()-lastCola<150)return;lastCola=performance.now();
   const c=$("cola");c.innerHTML="";const fr=document.createDocumentFragment();
   queue.forEach(q=>{
+    if((q.id-1)%3===0){
+      const gn=window.ICE_GROUPS[Math.floor((q.id-1)/3)];
+      const head=document.createElement('div');head.className='ice-group-header';
+      head.innerHTML=`<strong>📁 ${gn}</strong><span>Slots ${q.id}–${q.id+2} · ZIP ${gn}.zip</span>`;
+      fr.appendChild(head);
+    }
     const act=q.id===activeId,nm=sanitizar(q.fileNameBase)||`Video ${q.id}`;
     const el=document.createElement("div");
     el.className=`slot ${act?'active':''} ${q.status==='hecho'?'done':''} ${q.status==='renderizando'?'run':''}`;
@@ -756,7 +738,7 @@ function renderCola(f=false){
     fr.appendChild(el);
   });
   c.appendChild(fr);
-  $("colaInfo").textContent=`${queue.filter(q=>q.videoUrl).length}/10 listos`;
+  $("colaInfo").textContent=`${queue.filter(q=>q.videoUrl).length}/24 cargados`;
 }
 window.setActive=id=>{
   const p=getA();
@@ -838,75 +820,23 @@ function drawHtmlPreview(titleText, subText){
   if(!titleLayer || !subLayer) return;
   titleLayer.innerHTML=''; subLayer.innerHTML='';
 
-  // V75: look viral limpio inspirado en editores short-form:
-  // título blanco/amarillo, borde negro fuerte y tarjetas compactas.
-  const titleLines=(()=>{
-    let t=(titleText||'').trim().toUpperCase();
-    if(!t) return [];
-    let words=t.split(/\s+/);
-    if(words.length<=2) return [words.join(' ')];
-    let bestIdx=Math.ceil(words.length/2), bestDiff=Infinity;
-    for(let i=1;i<words.length;i++){
-      const d=Math.abs(words.slice(0,i).join(' ').length-words.slice(i).join(' ').length);
-      if(d<bestDiff){bestDiff=d;bestIdx=i;}
-    }
-    return [words.slice(0,bestIdx).join(' '),words.slice(bestIdx).join(' ')].slice(0,2);
-  })();
-
-  titleLines.forEach((line,idx)=>{
-    const el=document.createElement('div');
-    el.textContent=line;
-    const isAccent=idx===0;
-    el.style.cssText=[
-      'box-sizing:border-box',
-      'max-width:94%',
-      'width:max-content',
-      'padding:5px 11px 7px',
-      'border-radius:10px',
-      'background:rgba(8,8,10,.90)',
-      'border:1px solid rgba(255,255,255,.10)',
-      'color:'+(isAccent?'#FFEB00':'#FFFFFF'),
-      'text-align:center',
-      'white-space:nowrap',
-      'font-family:"Arial Black",Arial,sans-serif',
-      'font-weight:900',
-      'line-height:.98',
-      'letter-spacing:-.4px',
-      'text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 4px 9px rgba(0,0,0,.75)'
-    ].join(';');
+  const lines=splitWords((titleText||'').trim(),27).slice(0,3);
+  titleLayer.style.top='6%'; titleLayer.style.left='5%'; titleLayer.style.right='5%';
+  titleLayer.style.gap='0';
+  lines.forEach(line=>{
+    const el=document.createElement('div');el.textContent=line;
+    el.style.cssText='max-width:100%;color:#ffea00;font-family:Georgia,serif;font-weight:900;line-height:1.03;text-align:center;text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 3px 3px #000';
     titleLayer.appendChild(el);
-    requestAnimationFrame(()=>fitPreviewText(el,44,18,(titleLayer.clientWidth||320)*.94));
+    requestAnimationFrame(()=>fitPreviewText(el,32,15,(titleLayer.clientWidth||320)*.98));
   });
+  const sub=(subText||'').trim();
+  subLayer.style.top='auto'; subLayer.style.bottom='7%'; subLayer.style.background='rgba(0,0,0,.65)'; subLayer.style.borderRadius='10px'; subLayer.style.padding='9px 6px';
+  if(sub){splitWords(sub,32).slice(0,2).forEach(line=>{
+    const el=document.createElement('div');el.textContent=line;
+    el.style.cssText='color:white;font-family:Arial,sans-serif;font-weight:900;text-align:center;line-height:1.05;text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000';
+    subLayer.appendChild(el);requestAnimationFrame(()=>fitPreviewText(el,21,12,(subLayer.clientWidth||320)*.95));
+  });}
 
-  let sub=(subText||'').trim().toUpperCase();
-  if(sub){
-    const lines=splitWords(sub,30).slice(0,3);
-    lines.forEach((line,idx)=>{
-      const el=document.createElement('div');
-      el.textContent=line;
-      // Línea central en amarillo para dar golpe visual sin karaoke complejo.
-      const accent=(lines.length===1 || idx===Math.floor(lines.length/2));
-      el.style.cssText=[
-        'box-sizing:border-box',
-        'max-width:94%',
-        'width:max-content',
-        'padding:4px 9px 5px',
-        'border-radius:8px',
-        'background:rgba(5,5,7,.86)',
-        'border:1px solid rgba(255,255,255,.09)',
-        'color:'+(accent?'#FFEB00':'#FFFFFF'),
-        'text-align:center',
-        'white-space:nowrap',
-        'font-family:Arial,sans-serif',
-        'font-weight:900',
-        'line-height:1.03',
-        'letter-spacing:-.15px',
-        'text-shadow:-1.5px -1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px 1.5px 0 #000,0 3px 7px rgba(0,0,0,.8)'
-      ].join(';');
-      subLayer.appendChild(el);
-      requestAnimationFrame(()=>fitPreviewText(el,20,12,(subLayer.clientWidth||320)*.94));
-    });
-  }
 }
 function updSubs(){
   const it=getA(); if(!it) return;
@@ -1619,7 +1549,7 @@ window.getTTS = getTTS;
         if(need.length) await window.generateAllVoicesSimultaneous();
         await new Promise(r=>setTimeout(r,300));
         await window.renderAllVideosBlindado();
-      }catch(err){ alert(err.message); } finally{ btn.disabled=false; btn.textContent='⚡ RENDERIZAR TODO (10 VIDEOS 720p FB HD)'; window._batchGenerating=false; }
+      }catch(err){ alert(err.message); } finally{ btn.disabled=false; btn.textContent='⚡ RENDERIZAR 8 GRUPOS · 24 VIDEOS'; window._batchGenerating=false; }
     });
   }
   // V81: instalador legacy desactivado; el botón final FFmpeg es el único dueño.
@@ -1776,20 +1706,17 @@ window.getTTS = getTTS;
   function makeASS(item,total){
     const titleLines=titlePreviewLines(item.title||'');
     const parts=(typeof chunkSubs==='function'?chunkSubs(item.script||''):[]).filter(Boolean);
-    const head=`[Script Info]\nScriptType: v4.00+\nPlayResX: 720\nPlayResY: 1280\nWrapStyle: 2\nScaledBorderAndShadow: yes\nYCbCr Matrix: TV.709\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: TitleYellow,Arial,56,&H0000EBFF,&H0000EBFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: TitleWhite,Arial,56,&H00FFFFFF,&H00FFFFFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: SubWhite,Arial,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\nStyle: SubYellow,Arial,40,&H0000EBFF,&H0000EBFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n`;
+    const head=`[Script Info]\nScriptType: v4.00+\nPlayResX: 1080\nPlayResY: 1350\nWrapStyle: 2\nScaledBorderAndShadow: yes\nYCbCr Matrix: TV.709\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: TitleYellow,Georgia,68,&H0000EBFF,&H0000EBFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: TitleWhite,Georgia,68,&H00FFFFFF,&H00FFFFFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: SubWhite,Arial,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\nStyle: SubYellow,Arial,40,&H0000EBFF,&H0000EBFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n`;
     let ev='';
-    titleLines.forEach((line,i)=>{
-      const fs=fitAssFont(line,60,35,650),y=70+i*(fs+12);
-      ev+=`Dialogue: 2,0:00:00.00,${assTime(total)},${i===0?'TitleYellow':'TitleWhite'},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
-    });
+    // El título se dibuja con drawtext en FFmpeg, no con ASS.
     if(parts.length){
       const d=total/parts.length;
       parts.forEach((p,i)=>{
         const lines=(typeof splitWords==='function'?splitWords(String(p).toUpperCase(),30):[String(p).toUpperCase()]).slice(0,3);
         const mid=Math.floor(lines.length/2);
         lines.forEach((line,j)=>{
-          const fs=fitAssFont(line,40,28,650),y=896+j*(fs+10);
-          ev+=`Dialogue: 3,${assTime(i*d)},${assTime(Math.min(total,(i+1)*d))},${(lines.length===1||j===mid)?'SubYellow':'SubWhite'},,0,0,0,,{\\an8\\pos(360,${y})\\fs${fs}}${assEscape(line)}\n`;
+          const fs=fitAssFont(line,46,30,980),y=1110+j*60;
+          ev+=`Dialogue: 3,${assTime(i*d)},${assTime(Math.min(total,(i+1)*d))},${(lines.length===1||j===mid)?'SubYellow':'SubWhite'},,0,0,0,,{\\an8\\pos(540,${y})\\fs${fs}}${assEscape(line)}\n`;
         });
       });
     }
@@ -1937,8 +1864,9 @@ window.getTTS = getTTS;
       const inV=`${id}_INPUT_VIDEO.${extFromName(item.videoName,'mp4')}`;
       const inA=`${id}_INPUT_AUDIO_MIX.wav`;
       const ass=`${id}_OVERLAY.ass`;
+      const titleFiles=[`${id}_TITLE_1.txt`,`${id}_TITLE_2.txt`,`${id}_TITLE_3.txt`];
       const out=`${id}_FINAL_RENDER.mp4`;
-      files.push(inV,inA,ass,out);
+      files.push(inV,inA,ass,out,...titleFiles);
 
       onPhase?.('PREPARANDO AUDIO + DUCKING');
       const [vb,voiceBlob,fontb]=await Promise.all([
@@ -1965,13 +1893,23 @@ window.getTTS = getTTS;
       if(!assText || !assText.includes('[Events]')) throw new Error('No se pudo generar título/subtítulos');
       ffmpeg.FS('writeFile',ass,new TextEncoder().encode(assText));
       const useSubs=true;
+      // Título quemado directamente en los fotogramas: independiente del ASS.
+      const fixedTitleLines=splitWords(String(item.title||item.fileNameBase||'VIDEO').toUpperCase(),23).slice(0,3);
+      fixedTitleLines.forEach((line,i)=>ffmpeg.FS('writeFile',titleFiles[i],new TextEncoder().encode(line)));
 
       const args=[];
       if(info.useLoop)args.push('-stream_loop','-1');
       args.push('-i',inV,'-i',inA);
       const rate=Math.max(.05,Number(info.rate)||1);
       // V85: zoom 10% centrado para sacar marcas pegadas a bordes superior/inferior.
-      let vf=`setpts=PTS/${rate.toFixed(6)},scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,scale=792:1408,crop=720:1280:36:64,fps=30`;
+      let vf=`setpts=PTS/${rate.toFixed(6)},scale=1080:1350:force_original_aspect_ratio=increase,crop=1080:1350,fps=30,drawbox=x=14:y=18:w=1052:h=1314:color=0xf000a8@1:t=4`;
+      // Sombra negra translúcida superior para asegurar contraste del título.
+      vf+=`,drawbox=x=32:y=55:w=1016:h=285:color=black@0.48:t=fill`;
+      fixedTitleLines.forEach((line,i)=>{
+        const fs=fitAssFont(line,77,42,940);
+        vf+=`,drawtext=fontfile=arial.ttf:textfile=${titleFiles[i]}:fontsize=${fs}:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=${85+i*82}`;
+      });
+      vf+=`,drawbox=x=35:y=1080:w=1010:h=235:color=black@0.62:t=fill`;
       if(useSubs)vf+=`,subtitles=${ass}:fontsdir=.`;
       args.push('-filter_complex',`[0:v]${vf}[v];[1:a]aresample=48000,alimiter=limit=0.95[a]`,
         '-map','[v]','-map','[a]','-t',Number(total).toFixed(3),
@@ -2084,25 +2022,25 @@ window.getTTS = getTTS;
       completedFiles.sort((a,b)=>a.slot-b.slot);
 
       if(window.JSZip){
-        if(txt)txt.textContent=`CREANDO ZIP CON ${completedFiles.length} VIDEOS...`;
-        if(pct)pct.textContent='97%';
-        if(master)master.style.width='97%';
-        const zip=new JSZip();
-        completedFiles.forEach(f=>zip.file(f.name,f.blob,{compression:'STORE'}));
-        const zipBlob=await zip.generateAsync({type:'blob',compression:'STORE'},meta=>{
-          const p=97+Math.floor(meta.percent*.03);
-          if(pct)pct.textContent=Math.min(99,p)+'%';
-          if(master)master.style.width=Math.min(99,p)+'%';
-        });
-        const u=URL.createObjectURL(zipBlob);
-        window.safeDownload?.(u,`ICECREAM_DIGITAL_${completedFiles.length}_VIDEOS.zip`);
-        setTimeout(()=>{try{URL.revokeObjectURL(u);}catch{}},60000);
+        const groups=window.ICE_GROUPS;
+        for(let gi=0;gi<groups.length;gi++){
+          const gn=groups[gi], files=completedFiles.filter(f=>Math.floor((f.slot-1)/3)===gi);
+          if(!files.length)continue;
+          if(txt)txt.textContent=`EXPORTANDO ${gn.toUpperCase()} · ${files.length}/3 VIDEOS`;
+          const zip=new JSZip();const folder=zip.folder(gn);
+          files.forEach(f=>folder.file(f.name,f.blob,{compression:'STORE'}));
+          const zipBlob=await zip.generateAsync({type:'blob',compression:'STORE'});
+          const u=URL.createObjectURL(zipBlob);
+          window.safeDownload?.(u,gn+'.zip');
+          setTimeout(()=>{try{URL.revokeObjectURL(u);}catch{}},120000);
+          await new Promise(r=>setTimeout(r,450));
+        }
       }
 
       if(pct)pct.textContent='100%';
       if(master)master.style.width='100%';
       if(sub)sub.textContent=`${completedFiles.length} LISTOS${failed?` · ${failed} ERROR${failed===1?'':'ES'}`:''}`;
-      if(txt)txt.textContent=`COMPLETADO · ${completedFiles.length} MP4 EN ZIP`;
+      if(txt)txt.textContent=`COMPLETADO · ${completedFiles.length} MP4 · ZIP POR GRUPO`;
     }catch(e){
       console.error('[V85 LOTE]',e);
       if(txt)txt.textContent='ERROR: '+(e?.message||e);
@@ -2119,7 +2057,7 @@ window.getTTS = getTTS;
     const old=document.getElementById('btnRender'); if(!old) return;
     if(old._ffmpegWasm) return;
     const nb=old.cloneNode(true); old.parentNode.replaceChild(nb,old); nb._ffmpegWasm=true;
-    nb.textContent='⚡ RENDERIZAR TODO · FFMPEG 720p';
+    nb.textContent='⚡ RENDERIZAR 8 GRUPOS · 24 VIDEOS';
     nb.addEventListener('click',async e=>{
       e.preventDefault();
       e.stopPropagation();
@@ -2175,7 +2113,7 @@ window.getTTS = getTTS;
         alert(err.message||String(err));
       }finally{
         nb.disabled=false;
-        nb.textContent='⚡ RENDERIZAR TODO · FFMPEG 720p';
+        nb.textContent='⚡ RENDERIZAR 8 GRUPOS · 24 VIDEOS';
         window._batchGenerating=false;
       }
     });
