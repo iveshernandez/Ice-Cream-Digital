@@ -449,6 +449,15 @@ body > div[style*="Nunca fui yo"]{
  #editorIcecreamPanel > div:has(> .layout):has(#cola) > .layout{grid-column:1!important;grid-row:2!important}
 }
 </style>
+<style id="ic-footer-relocation">
+/* Panel y estados al pie del editor, sin cubrir campos ni grupos */
+#icecream-bottom-bar{max-width:100%;width:100%;margin:20px auto 0;padding:12px 20px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;background:#111115;border-top:1px solid #303036;position:relative;z-index:2}
+#icecream-bottom-bar #admin-fab,#icecream-bottom-bar #perfMon,#icecream-bottom-bar #user-session-bar,#icecream-bottom-bar #ic-footer-quote{position:static!important;top:auto!important;bottom:auto!important;left:auto!important;right:auto!important;transform:none!important;margin:0!important;z-index:auto!important;max-width:100%;box-shadow:none!important}
+#icecream-bottom-bar #user-session-bar{display:none;flex-wrap:wrap}
+#icecream-bottom-bar #ic-footer-quote{font-size:10px!important;white-space:normal;max-width:420px}
+#icecream-bottom-bar #perfMon{min-width:175px!important}
+@media(max-width:800px){#icecream-bottom-bar{justify-content:center;padding:12px}#icecream-bottom-bar>*{flex:0 1 auto}}
+</style>
 </head>
 <body>
 
@@ -672,7 +681,7 @@ body > div[style*="Nunca fui yo"]{
 
 <div id="perfMon" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:rgba(8,8,10,0.92);border:1px solid #222;border-radius:14px;padding:10px;min-width:200px;font-family:sans-serif"><div style="font-size:8px;color:#FFEB00;font-weight:900">⚡ V60 60FPS CLEAN</div><div style="font-size:9px;color:#999;margin-top:6px">Voces: <b id="mVoices">0</b>/24 | Videos: <b id="mVideos">0</b>/24 | RAM: <b id="mRam">--</b></div></div>
 
-<div style="position:fixed;bottom:12px;left:14px;z-index:100;font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-size:11px;color:#aaa;background:rgba(20,20,24,0.85);border:1px solid #222;padding:6px 10px;border-radius:8px;backdrop-filter:blur(4px);pointer-events:none;letter-spacing:0.2px">
+<div id="ic-footer-quote" style="position:fixed;bottom:12px;left:14px;z-index:100;font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-size:11px;color:#aaa;background:rgba(20,20,24,0.85);border:1px solid #222;padding:6px 10px;border-radius:8px;backdrop-filter:blur(4px);pointer-events:none;letter-spacing:0.2px">
 Nunca fui yo, siempre fue Dios. La gloria y la honra sean para Él…
 </div>
 
@@ -2473,5 +2482,22 @@ console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Wo
 <script>console.log('[ICE CREAM] V85 Render Todo usa exactamente handleGenerate manual por slot');</script>
 <script>console.log('[ICE CREAM] V86 Worker persistente: modelo se descarga una sola vez por lote');</script>
 <script>console.log('[ICE CREAM] V87 Piper Worker READY: un solo dueño del modelo durante Renderizar Todo');</script>
+<script id="ic-footer-relocation-script">
+(function(){
+  function placeFooter(){
+    const editor=document.getElementById('editorIcecreamPanel');
+    if(!editor)return;
+    let footer=document.getElementById('icecream-bottom-bar');
+    if(!footer){footer=document.createElement('footer');footer.id='icecream-bottom-bar';footer.setAttribute('aria-label','Estado y administración');editor.appendChild(footer);}
+    ['admin-fab','ic-footer-quote','perfMon','user-session-bar'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el&&el.parentElement!==footer)footer.appendChild(el);
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',placeFooter);else placeFooter();
+  const observer=new MutationObserver(()=>{const fab=document.getElementById('admin-fab');const footer=document.getElementById('icecream-bottom-bar');if(fab&&footer&&fab.parentElement!==footer)footer.insertBefore(fab,footer.firstChild);});
+  observer.observe(document.body,{childList:true});
+})();
+</script>
 </body>
 </html>
