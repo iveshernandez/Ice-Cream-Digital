@@ -598,8 +598,8 @@ body > div[style*="Nunca fui yo"]{
 <video id="previewVideo" playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#000;display:none"></video>
 <audio id="previewAudio" muted preload="auto" style="display:none"></audio>
 <div id="placeholder" style="position:absolute;inset:0;z-index:2;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#555"><div style="font-size:32px">🍦</div><div style="font-size:10px">Tu video 720p aquí</div></div>
-<div id="ecvtDots" style="position:absolute;inset:62% 0 0;z-index:2;pointer-events:none;background:radial-gradient(circle at 20% 75%,rgba(38,108,211,.55) 0 9px,transparent 10px),radial-gradient(circle at 68% 65%,rgba(38,108,211,.55) 0 13px,transparent 14px),radial-gradient(circle at 45% 85%,rgba(38,108,211,.45) 0 20px,transparent 21px),radial-gradient(circle at 80% 90%,rgba(38,108,211,.45) 0 10px,transparent 11px);background-size:95px 95px"></div><div style="position:absolute;inset:1.3%;border:2px solid #f000a8;z-index:5;pointer-events:none"></div><div id="previewHtmlOverlay" style="position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;font-synthesis:none">
-  <div id="previewTitleLayer" style="position:absolute;left:4%;right:4%;top:78%;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3"></div>
+<div style="position:absolute;inset:1.3%;border:2px solid #f000a8;z-index:5;pointer-events:none"></div><div id="previewHtmlOverlay" style="position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;font-synthesis:none">
+  <div id="previewTitleLayer" style="position:absolute;left:4%;right:4%;top:6%;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3"></div>
   <div id="previewSubtitleLayer" style="position:absolute;left:4%;right:4%;top:64%;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:3"></div>
 </div>
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:4;height:4px;background:rgba(255,255,255,.12)"><div id="progressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
@@ -886,7 +886,7 @@ function drawHtmlPreview(titleText, subText){
   titleLayer.innerHTML=''; subLayer.innerHTML='';
 
   const lines=splitWords((titleText||'').trim(),27).slice(0,3);
-  titleLayer.style.top='78%'; titleLayer.style.left='5%'; titleLayer.style.right='5%';
+  titleLayer.style.top='6%'; titleLayer.style.left='5%'; titleLayer.style.right='5%';
   titleLayer.style.gap='0';
   lines.forEach(line=>{
     const el=document.createElement('div');el.textContent=line;
@@ -895,7 +895,7 @@ function drawHtmlPreview(titleText, subText){
     requestAnimationFrame(()=>fitPreviewText(el,32,15,(titleLayer.clientWidth||320)*.98));
   });
   const sub=(subText||'').trim();
-  subLayer.style.top='64%';
+  subLayer.style.top='auto'; subLayer.style.bottom='7%'; subLayer.style.background='rgba(0,0,0,.65)'; subLayer.style.borderRadius='10px'; subLayer.style.padding='9px 6px';
   if(sub){splitWords(sub,32).slice(0,2).forEach(line=>{
     const el=document.createElement('div');el.textContent=line;
     el.style.cssText='color:white;font-family:Arial,sans-serif;font-weight:900;text-align:center;line-height:1.05;text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000';
@@ -1774,7 +1774,7 @@ window.getTTS = getTTS;
     const head=`[Script Info]\nScriptType: v4.00+\nPlayResX: 1080\nPlayResY: 1350\nWrapStyle: 2\nScaledBorderAndShadow: yes\nYCbCr Matrix: TV.709\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: TitleYellow,Georgia,68,&H0000EBFF,&H0000EBFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: TitleWhite,Georgia,68,&H00FFFFFF,&H00FFFFFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: SubWhite,Arial,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\nStyle: SubYellow,Arial,40,&H0000EBFF,&H0000EBFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n`;
     let ev='';
     titleLines.forEach((line,i)=>{
-      const fs=fitAssFont(line,74,38,980),y=1090+i*(fs+8);
+      const fs=fitAssFont(line,74,38,980),y=95+i*86;
       ev+=`Dialogue: 2,0:00:00.00,${assTime(total)},${'TitleYellow'},,0,0,0,,{\\an8\\pos(540,${y})\\fs${fs}}${assEscape(line)}\n`;
     });
     if(parts.length){
@@ -1783,7 +1783,7 @@ window.getTTS = getTTS;
         const lines=(typeof splitWords==='function'?splitWords(String(p).toUpperCase(),30):[String(p).toUpperCase()]).slice(0,3);
         const mid=Math.floor(lines.length/2);
         lines.forEach((line,j)=>{
-          const fs=fitAssFont(line,46,30,980),y=875+j*(fs+8);
+          const fs=fitAssFont(line,46,30,980),y=1110+j*60;
           ev+=`Dialogue: 3,${assTime(i*d)},${assTime(Math.min(total,(i+1)*d))},${(lines.length===1||j===mid)?'SubYellow':'SubWhite'},,0,0,0,,{\\an8\\pos(540,${y})\\fs${fs}}${assEscape(line)}\n`;
         });
       });
@@ -1967,7 +1967,7 @@ window.getTTS = getTTS;
       const rate=Math.max(.05,Number(info.rate)||1);
       // V85: zoom 10% centrado para sacar marcas pegadas a bordes superior/inferior.
       let vf=`setpts=PTS/${rate.toFixed(6)},scale=1080:1350:force_original_aspect_ratio=increase,crop=1080:1350,fps=30,drawbox=x=14:y=18:w=1052:h=1314:color=0xf000a8@1:t=4`;
-      vf+=`,drawbox=x=0:y=1070:w=1080:h=280:color=0x236cc2@0.12:t=fill`; if(useSubs)vf+=`,subtitles=${ass}:fontsdir=.`;
+      vf+=`,drawbox=x=35:y=1080:w=1010:h=235:color=black@0.62:t=fill`; if(useSubs)vf+=`,subtitles=${ass}:fontsdir=.`;
       args.push('-filter_complex',`[0:v]${vf}[v];[1:a]aresample=48000,alimiter=limit=0.95[a]`,
         '-map','[v]','-map','[a]','-t',Number(total).toFixed(3),
         '-c:v','libx264','-preset','ultrafast','-b:v','3200k','-maxrate','3800k','-bufsize','6400k',
