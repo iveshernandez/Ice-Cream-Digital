@@ -410,7 +410,46 @@ body > div[style*="Nunca fui yo"]{
  #editorIcecreamPanel > div:has(> .layout):has(#cola) > .layout{grid-column:1!important;grid-row:2!important}
 }
 </style>
-<style id="single-editor-layout">#editorIcecreamPanel > header{top:0!important}#editorIcecreamPanel .glass[style*="position:sticky"]{top:72px!important}</style></head>
+<style id="single-editor-layout">#editorIcecreamPanel > header{top:0!important}#editorIcecreamPanel .glass[style*="position:sticky"]{top:72px!important}</style><style id="ice-wide-three-columns">
+/* Pantalla ancha: grupos | edición | preview, sin huecos laterales */
+#editorIcecreamPanel > header{max-width:none!important;width:calc(100% - 36px)!important}
+#editorIcecreamPanel > div[style*="max-width:1280px"][style*="padding:10px"]{max-width:none!important;width:calc(100% - 36px)!important}
+#editorIcecreamPanel > div:has(> .layout):has(#cola){
+ max-width:none!important;width:100%!important;box-sizing:border-box!important;
+ grid-template-columns:minmax(310px, 0.92fr) minmax(0, 2.08fr)!important;
+ gap:16px!important;padding:12px 18px!important;
+}
+#editorIcecreamPanel > div:has(> .layout):has(#cola) > .glass:first-child{
+ grid-column:1!important;grid-row:1!important;top:82px!important;
+ max-height:calc(100vh - 98px)!important;overflow-y:auto!important;
+}
+#editorIcecreamPanel > div:has(> .layout):has(#cola) > .layout{
+ grid-column:2!important;grid-row:1!important;display:grid!important;
+ grid-template-columns:minmax(0,1.2fr) minmax(310px,.8fr)!important;
+ gap:16px!important;align-items:start!important;
+}
+#editorIcecreamPanel .layout > .glass:first-child{grid-column:1!important;align-self:start!important}
+#editorIcecreamPanel .layout > .glass:last-child{
+ grid-column:2!important;max-width:none!important;width:100%!important;
+ align-self:start!important;position:sticky!important;top:82px!important;
+}
+#editorIcecreamPanel .layout > .glass:last-child > div[style*="aspect-ratio"]{
+ max-width:480px!important;margin:0 auto!important;
+}
+#editorIcecreamPanel #cola{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+#editorIcecreamPanel #inputScript{height:240px!important;min-height:200px!important;max-height:480px!important}
+@media(max-width:1250px){
+ #editorIcecreamPanel > div:has(> .layout):has(#cola){grid-template-columns:minmax(280px,.8fr) minmax(0,1.2fr)!important}
+ #editorIcecreamPanel > div:has(> .layout):has(#cola) > .layout{grid-template-columns:1fr!important}
+ #editorIcecreamPanel .layout > .glass:last-child{grid-column:1!important;position:relative!important;top:auto!important;max-width:520px!important}
+}
+@media(max-width:800px){
+ #editorIcecreamPanel > div:has(> .layout):has(#cola){grid-template-columns:1fr!important;padding:10px!important}
+ #editorIcecreamPanel > div:has(> .layout):has(#cola) > .glass:first-child{position:relative!important;top:auto!important;max-height:none!important;overflow:visible!important}
+ #editorIcecreamPanel > div:has(> .layout):has(#cola) > .layout{grid-column:1!important;grid-row:2!important}
+}
+</style>
+</head>
 <body>
 
 <!-- LOGIN BETA + AUTH OVERLAY -->
