@@ -467,6 +467,13 @@ body > div[style*="Nunca fui yo"]{
 @media(max-width:1200px){#editorIcecreamPanel > div:has(> .layout):has(#cola) > .layout{grid-template-columns:1fr!important}}
 @media(max-width:850px){#editorIcecreamPanel > div:has(> .layout):has(#cola){grid-template-columns:1fr!important}#editorIcecreamPanel #ice-left-panel{grid-column:1!important;grid-row:1!important}#editorIcecreamPanel > div:has(> .layout):has(#cola) > .layout{grid-column:1!important;grid-row:2!important}}
 </style>
+<style id="slot-completeness-alerts">
+@keyframes slotRedPulse{0%,100%{box-shadow:0 0 5px rgba(255,35,45,.35);border-color:#b91c1c!important}50%{box-shadow:0 0 18px rgba(255,35,45,.95);border-color:#ff3333!important}}
+#cola .slot.slot-incomplete{animation:slotRedPulse 1.6s ease-in-out infinite;background:rgba(85,8,15,.2)!important}
+#cola .slot.slot-complete:not(.active):not(.done){border-color:#16803b!important}
+#cola .slot-check{font-size:9px;font-weight:900;color:#fff;letter-spacing:.2px}
+@media(prefers-reduced-motion:reduce){#cola .slot.slot-incomplete{animation:none;border:2px solid #ff3333!important}}
+</style>
 </head>
 <body>
 
@@ -605,6 +612,12 @@ body > div[style*="Nunca fui yo"]{
 
 <div style="max-width:1280px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:10px">
 <div id="ice-left-panel">
+<div class="glass" id="viralPanel" style="padding:13px;margin-bottom:10px;border:1px solid #51491c">
+<div style="display:flex;justify-content:space-between;align-items:center"><b style="color:#ffeb00;font-size:12px">✨ EDICIÓN VIRAL · DINÁMICO</b><span id="viralPct">55%</span></div>
+<div style="font-size:10px;color:#aaa;margin:6px 0">Ajustes aplicados al render de los 24 slots.</div>
+<div id="viralChecks" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px"></div>
+<label style="display:block;margin-top:10px;font-size:10px">Intensidad <input id="viralIntensity" type="range" min="0" max="100" value="55" style="width:100%;accent-color:#ffeb00"></label>
+</div>
 <div class="glass" id="bulkUploadBox" style="padding:15px;border:1px solid #665d21;background:#17160e;margin-bottom:12px">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
     <div><b style="color:#FFEB00;font-size:13px">📥 CARGA ÚNICA · 24 VIDEOS + 24 GUIONES</b><div style="color:#aaa;font-size:10px;margin-top:5px">Selecciona juntos los archivos 01.mp4, 01.txt ... 24.mp4, 24.txt. Cada pareja irá a su slot automáticamente.</div></div>
@@ -626,8 +639,8 @@ body > div[style*="Nunca fui yo"]{
     <div style="display:flex;gap:6px">
       <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="es_MX-ald-medium:0">Ald · Español (México) · Medium</option>
-        <option value="es_MX-claude-high:0" selected>Claude · Español (México) · High</option>
-        <option value="es_ES-sharvard-medium:0">Sharvard · Speaker 0 · Español (España) · Medium</option>
+        <option value="es_MX-claude-high:0">Claude · Español (México) · High</option>
+        <option value="es_ES-sharvard-medium:0" selected>Sharvard · Speaker 0 · Español (España) · Medium</option>
         <option value="es_ES-davefx-medium:0">Davefx · Español (España) · Medium</option>
         <option value="es_ES-carlfm-x_low:0">Carlfm · Español (España) · X-Low</option>
         <option value="es_ES-mls_10246-low:0">MLS 10246 · Español (España) · Low</option>
@@ -641,7 +654,7 @@ body > div[style*="Nunca fui yo"]{
     <audio id="voicePreviewPlayer" preload="auto" style="display:none"></audio>
     <!-- MUSICA ELIMINADA V61 -->
     <button id="btnKokoroGen" style="width:100%;background:#FFEB00;color:#000;border:2px solid #000;border-radius:8px;padding:9px;font-size:11px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #000">🔊 GENERAR AUDIO ESPAÑOL</button>
-    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Motor Piper listo · Claude predeterminada</div>
+    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Motor Piper listo · Sharvard predeterminada</div>
     <div id="kokoroProgress" style="height:4px;background:#1a1a1e;border-radius:10px;overflow:hidden;display:none"><div id="kokoroProgressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
     <div id="audioName" style="font-size:9.5px;color:#4ade80;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);padding:5px 7px;border-radius:6px;word-break:break-all;min-height:18px;display:flex;align-items:center;gap:4px"><span style="color:#666">Sin audio - se guardará aquí</span></div>
     <input type="file" id="inputAudio" accept="audio/*" style="display:none">
@@ -716,7 +729,7 @@ const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c
 const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;};
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
-const queue=Array.from({length:24},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_MX-claude-high:0",voiceSpeed:1,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+const queue=Array.from({length:24},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_ES-sharvard-medium:0",voiceSpeed:1,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
 let activeId=1,lastCola=0,raf=null;
 window.queue=queue; window.activeId=1; window.getActiveId=()=>activeId;
 const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
@@ -798,14 +811,15 @@ function renderCola(f=false){
     }
     const act=q.id===activeId,nm=sanitizar(q.fileNameBase)||`Video ${q.id}`;
     const el=document.createElement("div");
-    el.className=`slot ${act?'active':''} ${q.status==='hecho'?'done':''} ${q.status==='renderizando'?'run':''}`;
+    const missingVideo=!q.videoUrl, missingTxt=!q.txtName || !(q.script||q.txtContent||" ").trim();
+    el.className=`slot ${missingVideo||missingTxt?"slot-incomplete":"slot-complete"} ${act?'active':''} ${q.status==='hecho'?'done':''} ${q.status==='renderizando'?'run':''}`;
     el.onclick=()=>setActive(q.id);
     const displayName = (nm||'').slice(0,45);
-    el.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;padding:4px;box-sizing:border-box"><b style="font-size:12px;color:${act?'#FFEB00':'#fff'};font-weight:900;letter-spacing:0.5px">SLOT ${q.id}</b><div title="${nm}" style="font-size:10px;color:${act?'#fff':'#aaa'};font-weight:600;line-height:1.2;text-align:center;width:100%;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;word-break:break-word;white-space:normal;min-height:32px">${displayName||'<span style="color:#555">Vacío</span>'}</div>${q.videoUrl?`<div style="width:24px;height:3px;background:${q.status==='hecho'?'#22c55e':'#FFEB00'};border-radius:10px;opacity:${act?1:0.6}"></div>`:''}</div>`;
+    el.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;padding:4px;box-sizing:border-box"><b style="font-size:12px;color:${act?'#FFEB00':'#fff'};font-weight:900;letter-spacing:0.5px">SLOT ${q.id}</b><div title="${nm}" style="font-size:10px;color:${act?'#fff':'#aaa'};font-weight:600;line-height:1.2;text-align:center;width:100%;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;word-break:break-word;white-space:normal;min-height:32px">${displayName||'<span style="color:#555">Vacío</span>'}</div><div class="slot-check">${missingVideo?'🔴 VIDEO':'✓ VIDEO'} · ${missingTxt?'🔴 TXT':'✓ TXT'}</div>${q.videoUrl?`<div style="width:24px;height:3px;background:${q.status==='hecho'?'#22c55e':'#FFEB00'};border-radius:10px;opacity:${act?1:0.6}"></div>`:''}</div>`;
     fr.appendChild(el);
   });
   c.appendChild(fr);
-  $("colaInfo").textContent=`${queue.filter(q=>q.videoUrl).length}/24 cargados`;
+  $("colaInfo").textContent=`${queue.filter(q=>q.videoUrl&&q.txtName&&(q.script||q.txtContent||" ").trim()).length}/24 completos`;
 }
 window.setActive=id=>{
   const p=getA();
@@ -834,7 +848,7 @@ window.setActive=id=>{
   $("inputFileName").value=it.fileNameBase;
   try{
     const vSel=document.getElementById('kokoroVoice');
-    if(vSel) vSel.value = it.voiceId || 'es_MX-claude-high:0';
+    if(vSel) vSel.value = it.voiceId || 'es_ES-sharvard-medium:0';
     const st=document.getElementById('kokoroStatus');
     if(st){
       if(it.audioUrl){
@@ -984,6 +998,8 @@ bulkInput?.addEventListener('change',async e=>{
       videos++;
     }
   }
+  // Evita que setActive guarde los campos antiguos encima del TXT recién importado.
+  activeId=0; window.activeId=0;
   window.setActive?.(1);
   renderCola(true);
   const pairs=queue.filter(q=>q.videoUrl&&q.txtName).length;
@@ -1460,7 +1476,7 @@ async function previewSelectedPiperVoice(){
   const player=document.getElementById('voicePreviewPlayer');
   const sel=document.getElementById('kokoroVoice');
   if(!btn||!player||!sel)return;
-  const fullVoiceId=sel.value||'es_MX-claude-high:0';
+  const fullVoiceId=sel.value||'es_ES-sharvard-medium:0';
   const parts=fullVoiceId.split(':');
   const voiceId=parts[0], speakerId=parseInt(parts[1]||'0',10)||0;
   const slot=window.queue?.find(q=>q.id===(window.activeId||1));
@@ -1832,7 +1848,22 @@ window.getTTS = getTTS;
     return Math.max(minSize,Math.min(maxSize,Math.floor(maxWidth/(chars*.58))));
   }
 
-  function makeASS(item,total){
+  const VIRAL_FEATURES=[['captions','Subtítulos animados'],['zoom','Zoom inteligente'],['color','Color cinematográfico'],['sfx','Efectos de sonido'],['hook','Gancho visual inicial'],['cta','CTA animado']];
+const viralSettings={intensity:55,captions:true,zoom:true,color:true,sfx:true,hook:true,cta:true};
+(function initViral(){
+ const box=document.getElementById('viralChecks');if(!box)return;
+ VIRAL_FEATURES.forEach(([key,label])=>{const l=document.createElement('label');l.style.cssText='display:flex;gap:5px;align-items:center;cursor:pointer';const c=document.createElement('input');c.type='checkbox';c.checked=true;c.addEventListener('change',()=>viralSettings[key]=c.checked);l.append(c,document.createTextNode(label));box.append(l)});
+ document.getElementById('viralIntensity').addEventListener('input',e=>{viralSettings.intensity=Number(e.target.value);document.getElementById('viralPct').textContent=e.target.value+'%';});
+})();
+function viralCTA(item){return 'SÍGUENOS PARA APRENDER MÁS';}
+function viralVideoFilters(total){
+ const power=viralSettings.intensity/100;
+ let filters=[];
+ if(viralSettings.zoom){const z=(1+power*.065).toFixed(4);filters.push(`scale=ceil(iw*${z}/2)*2:ceil(ih*${z}/2)*2,crop=1080:1350:(in_w-out_w)/2+(in_w-out_w)*0.25*sin(t*0.75):(in_h-out_h)/2+(in_h-out_h)*0.20*cos(t*0.65)`);}
+ if(viralSettings.color){filters.push(`eq=contrast=${(1+power*.12).toFixed(3)}:saturation=${(1+power*.14).toFixed(3)}:brightness=${(power*.012).toFixed(4)}`);}
+ return filters.join(',');
+}
+function makeASS(item,total){
     const titleLines=titlePreviewLines(item.title||'');
     const parts=(typeof chunkSubs==='function'?chunkSubs(item.script||''):[]).filter(Boolean);
     const head=`[Script Info]\nScriptType: v4.00+\nPlayResX: 1080\nPlayResY: 1350\nWrapStyle: 2\nScaledBorderAndShadow: yes\nYCbCr Matrix: TV.709\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: TitleYellow,Georgia,68,&H0000EBFF,&H0000EBFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: TitleWhite,Georgia,68,&H00FFFFFF,&H00FFFFFF,&H00000000,&H12000000,-1,0,0,0,100,100,-1,0,3,4,0,8,24,24,0,1\nStyle: SubWhite,Arial,40,&H00FFFFFF,&H00FFFFFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\nStyle: SubYellow,Arial,40,&H0000EBFF,&H0000EBFF,&H00000000,&H16000000,-1,0,0,0,100,100,0,0,3,3,0,8,24,24,0,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n`;
@@ -1845,7 +1876,7 @@ window.getTTS = getTTS;
         const mid=Math.floor(lines.length/2);
         lines.forEach((line,j)=>{
           const fs=fitAssFont(line,46,30,980),y=1110+j*60;
-          ev+=`Dialogue: 3,${assTime(i*d)},${assTime(Math.min(total,(i+1)*d))},${(lines.length===1||j===mid)?'SubYellow':'SubWhite'},,0,0,0,,{\\an8\\pos(540,${y})\\fs${fs}}${assEscape(line)}\n`;
+          ev+=`Dialogue: 3,${assTime(i*d)},${assTime(Math.min(total,(i+1)*d))},${(lines.length===1||j===mid)?'SubYellow':'SubWhite'},,0,0,0,,{\\an8\\pos(540,${y})\\fs${fs}}${viralSettings.captions?'{\\fad(90,80)\\fscx105\\fscy105\\t(0,180,\\fscx100\\fscy100)}':''}${assEscape(line)}\n`;
         });
       });
     }
@@ -1954,7 +1985,9 @@ window.getTTS = getTTS;
       if(sec<fadeIn)mg*=sec/fadeIn;
       if(sec>total-fadeOut)mg*=Math.max(0,(total-sec)/fadeOut);
       const ml=sampleLinear(mL,mp,true)*mg,mr=sampleLinear(mR,mp,true)*mg;
-      let l=Math.tanh((vl+ml)*1.035),r=Math.tanh((vr+mr)*1.035);
+      let accent=0;
+      if(viralSettings.sfx){const strength=viralSettings.intensity/100;for(const at of [0.12,Math.min(total*.34,15),Math.max(0,total-3.2)]){const dt=sec-at;if(dt>=0&&dt<.14)accent+=Math.sin(2*Math.PI*(620-210*dt)*dt)*Math.exp(-dt*32)*.055*strength;}}
+      let l=Math.tanh((vl+ml+accent)*1.035),r=Math.tanh((vr+mr+accent)*1.035);
       left[i]=l;right[i]=r;
       voiceEnergy+=(vl*vl+vr*vr)*0.5;musicEnergy+=(ml*ml+mr*mr)*0.5;
       mixedEnergy+=(l*l+r*r)*0.5;peak=Math.max(peak,Math.abs(l),Math.abs(r));
@@ -2031,7 +2064,11 @@ window.getTTS = getTTS;
       args.push('-i',inV,'-i',inA);
       const rate=Math.max(.05,Number(info.rate)||1);
       // V85: zoom 10% centrado para sacar marcas pegadas a bordes superior/inferior.
-      let vf=`setpts=PTS/${rate.toFixed(6)},scale=1080:1350:force_original_aspect_ratio=increase,crop=1080:1350,fps=30,drawbox=x=14:y=18:w=1052:h=1314:color=0xf000a8@1:t=4`;
+      let vf=`setpts=PTS/${rate.toFixed(6)},scale=1080:1350:force_original_aspect_ratio=increase,crop=1080:1350,fps=30`;
+      const viralVF=viralVideoFilters(total);if(viralVF)vf+=','+viralVF;
+      vf+=`,drawbox=x=14:y=18:w=1052:h=1314:color=0xf000a8@1:t=4`;
+      if(viralSettings.hook){const hookEnd=Math.min(2.5,total*.12);vf+=`,drawbox=x=36:y=350:w=1008:h=110:color=black@0.45:t=fill:enable='between(t,0,${hookEnd.toFixed(2)})'`;}
+
       // Título sin caja de fondo: amarillo / blanco / amarillo, contorno negro.
       // El título permanece dentro del encuadre y ocupa menos altura.
       fixedTitleLines.forEach((line,i)=>{
@@ -2042,6 +2079,8 @@ window.getTTS = getTTS;
         vf+=`,drawtext=fontfile=arial.ttf:textfile=${titleFiles[i]}:fontsize=${fs}:fontcolor=${color}:borderw=5:bordercolor=black:shadowx=2:shadowy=3:shadowcolor=black@0.8:x=(w-text_w)/2:y=${ypos}`;
       });
       vf+=`,drawbox=x=35:y=1080:w=1010:h=235:color=black@0.62:t=fill`;
+      if(viralSettings.cta && total>8){const ctaFile=`${id}_CTA.txt`;files.push(ctaFile);ffmpeg.FS('writeFile',ctaFile,new TextEncoder().encode(viralCTA(item)));const ctaStart=Math.max(0,total-3.2).toFixed(2);vf+=`,drawbox=x=135:y=925:w=810:h=94:color=black@0.72:t=fill:enable='gte(t,${ctaStart})',drawtext=fontfile=arial.ttf:textfile=${ctaFile}:fontsize=39:fontcolor=0xFFEB00:borderw=3:bordercolor=black:x=(w-text_w)/2:y=951:enable='gte(t,${ctaStart})'`;}
+
       if(useSubs)vf+=`,subtitles=${ass}:fontsdir=.`;
       args.push('-filter_complex',`[0:v]${vf}[v];[1:a]aresample=48000,alimiter=limit=0.95[a]`,
         '-map','[v]','-map','[a]','-t',Number(total).toFixed(3),
