@@ -638,14 +638,10 @@ body > div[style*="Nunca fui yo"]{
   <div style="background:#0f0f12;border:1.5px solid #222;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px">
     <div style="display:flex;gap:6px">
       <select id="kokoroVoice" style="flex:1;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
-        <option value="es_MX-ald-medium:0">Ald · Español (México) · Medium</option>
-        <option value="es_MX-claude-high:0">Claude · Español (México) · High</option>
-        <option value="es_ES-sharvard-medium:0" selected>Sharvard · Speaker 0 · Español (España) · Medium</option>
-        <option value="es_ES-davefx-medium:0">Davefx · Español (España) · Medium</option>
-        <option value="es_ES-carlfm-x_low:0">Carlfm · Español (España) · X-Low</option>
-        <option value="es_ES-mls_10246-low:0">MLS 10246 · Español (España) · Low</option>
-        <option value="es_ES-mls_9972-low:0">MLS 9972 · Español (España) · Low</option>
-      </select>
+<option value="em_alex" selected>Alex · Kokoro</option>
+<option value="em_santa">Santa · Kokoro</option>
+<option value="ef_dora">Dora · Kokoro</option>
+</select>
       <select id="kokoroSpeed" style="width:70px;background:#070709;border:1px solid #333;color:#fff;border-radius:8px;padding:7px;font-size:10px;font-weight:800">
         <option value="1" selected>1x</option>
       </select>
@@ -654,7 +650,7 @@ body > div[style*="Nunca fui yo"]{
     <audio id="voicePreviewPlayer" preload="auto" style="display:none"></audio>
     <!-- MUSICA ELIMINADA V61 -->
     <button id="btnKokoroGen" style="width:100%;background:#FFEB00;color:#000;border:2px solid #000;border-radius:8px;padding:9px;font-size:11px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #000">🔊 GENERAR AUDIO ESPAÑOL</button>
-    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Motor Piper listo · Sharvard predeterminada</div>
+    <div id="kokoroStatus" style="font-size:8px;color:#888;font-weight:700;min-height:12px">Motor Kokoro listo · Alex predeterminada</div>
     <div id="kokoroProgress" style="height:4px;background:#1a1a1e;border-radius:10px;overflow:hidden;display:none"><div id="kokoroProgressBar" style="height:100%;width:0%;background:#FFEB00"></div></div>
     <div id="audioName" style="font-size:9.5px;color:#4ade80;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);padding:5px 7px;border-radius:6px;word-break:break-all;min-height:18px;display:flex;align-items:center;gap:4px"><span style="color:#666">Sin audio - se guardará aquí</span></div>
     <input type="file" id="inputAudio" accept="audio/*" style="display:none">
@@ -727,7 +723,7 @@ const splitWords=(t,m)=>{if(!t)return[];const w=t.trim().split(/\s+/);let l=[],c
 const chunkSubs=t=>{if(!t||!t.trim())return[];const w=t.trim().split(/\s+/);const a=[];for(let i=0;i<w.length;i+=12)a.push(w.slice(i,i+12).join(" "));return a;};
 const limpiar=s=>s.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]+/g,"").replace(/[-_]+/g," ").replace(/\s+/g," ").slice(0,60).trim();
 const sanitizar=n=>{let s=limpiar(n);return s?s.split(' ').map(w=>w?w[0].toUpperCase()+w.slice(1).toLowerCase():'').join(' '):"";};
-const queue=Array.from({length:21},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"es_ES-sharvard-medium:0",voiceSpeed:1,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
+const queue=Array.from({length:21},(_,i)=>({id:i+1,title:"",script:"",fileNameBase:`Video ${i+1}`,videoUrl:null,videoName:"",videoDur:0,audioUrl:null,audioName:"",audioDur:0,voiceId:"em_alex",voiceSpeed:1,audioBlob:null,audioVoiceId:null,txtName:"",txtContent:"",status:"vacio",progress:0,finalUrl:null,finalExt:"mp4"}));
 let activeId=1,lastCola=0,raf=null;
 window.queue=queue; window.activeId=1; window.getActiveId=()=>activeId;
 const vEl=$("previewVideo"),aEl=$("previewAudio"),ph=$("placeholder");
@@ -840,7 +836,7 @@ window.setActive=id=>{
   $("inputFileName").value=it.fileNameBase;
   try{
     const vSel=document.getElementById('kokoroVoice');
-    if(vSel) vSel.value = it.voiceId || 'es_ES-sharvard-medium:0';
+    if(vSel) vSel.value = it.voiceId || 'em_alex';
     const st=document.getElementById('kokoroStatus');
     if(st){
       if(it.audioUrl){
@@ -1084,7 +1080,7 @@ setActive(1);renderCola(true);log('V3 COMPACT UI · AUDIO + DUCKING · FUNCIONAL
 // === V72: PREVIEW HTML/CSS POR CAPAS; RENDER FFMPEG V70 CONSERVADO ===
 </script>
 
-<!-- TTS PIPER MODULE - ULTIMA VERSION V50 CLEAN -->
+<!-- TTS KOKORO MODULE - ULTIMA VERSION V50 CLEAN -->
 <!-- V27 FIX DEFINITIVO - VOZ POR SLOT + SYNC SUBS - FIXED V14 -->
 <script type="module">
 const $id = (id)=>document.getElementById(id);
@@ -1102,7 +1098,7 @@ function getActiveSlot(){
 function setKStatus(t, isError=false){
   const el=$id('kokoroStatus');
   if(el){ el.textContent=t; el.style.color=isError?'#ef4444':'#4ade80'; }
-  console.log('[Piper V14]', t);
+  console.log('[Kokoro V14]', t);
 }
 function setKProg(p){
   const bar=$id('kokoroProgress'); const fill=$id('kokoroProgressBar');
@@ -1110,121 +1106,47 @@ function setKProg(p){
   if(p==null){bar.style.display='none'; return;}
   bar.style.display='block'; fill.style.width=p+'%';
 }
-let ttsLib = null;
-async function getTTS(){
-  if(ttsLib) return ttsLib;
-  setKStatus('Cargando motor Piper...'); setKProg(20);
-  const cdns=[
-    'https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm',
-    'https://esm.run/@mintplex-labs/piper-tts-web@1.0.4',
-    'https://cdn.skypack.dev/@mintplex-labs/piper-tts-web@1.0.4'
-  ];
-  for(let url of cdns){
-    try{
-      console.log('[V14] intentando CDN', url);
-      ttsLib = await import(url);
-      setKProg(50); setKStatus('Motor listo - '+url.split('/')[2]);
-      return ttsLib;
-    }catch(e){ console.warn('CDN fallo', url, e.message); }
-  }
-  throw new Error('No se pudo cargar Piper - revisa internet');
+const KOKORO_BASE='https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/';
+let kokoroPromise;
+const voiceCache=new Map();
+async function getKokoro(){
+ if(!kokoroPromise) kokoroPromise=(async()=>{
+ const ort=await import('https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.wasm.min.mjs');
+ ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';
+ ort.env.wasm.numThreads=1;
+ const ep=await import('https://cdn.jsdelivr.net/npm/ephone/+esm');
+ const ph=await ep.default(ep.roa);
+ if(!ph.getVoices().some(v=>v.name==='es'))throw Error('No se cargó el paquete español de eSpeak');
+ ph.setVoice('es');
+ if(!ph.textToIpa('Hola, buenos días.'))throw Error('Prueba fonética española fallida');
+ const r=await fetch(KOKORO_BASE+'tokenizer.json');if(!r.ok)throw Error('No se pudo cargar el vocabulario: '+r.status);
+ const cfg=await r.json();const vocab=cfg.model.vocab;
+ const session=await ort.InferenceSession.create(KOKORO_BASE+'onnx/model_quantized.onnx',{executionProviders:['wasm']});
+ return {ort,ph,vocab,session};
+ })().catch(e=>{kokoroPromise=null;throw e});
+ return kokoroPromise;
+}
+async function spanishVoice(text,voice,speed){
+ if(!['em_alex','em_santa','ef_dora'].includes(voice))throw Error('Selecciona una voz española');
+ const {ort,ph,vocab,session}=await getKokoro();
+ if(!voiceCache.has(voice))voiceCache.set(voice,fetch(KOKORO_BASE+'voices/'+voice+'.bin').then(async r=>{if(!r.ok)throw Error('Descarga de voz: '+r.status);return new Float32Array(await r.arrayBuffer());}).catch(e=>{voiceCache.delete(voice);throw e}));
+ const styles=await voiceCache.get(voice);
+ const chunks=[];let current='';for(const w of text.trim().split(/\s+/)){if(current.length+w.length>180&&current){chunks.push(current);current='';}current+=(current?' ':'')+w;}if(current)chunks.push(current);
+ const samples=[];
+ for(const chunk of chunks){
+ const raw=[ph.textToIpa(chunk)];
+ const phonemes=raw.join(' ').replace(/t͡ʃ|tʃ/g,'ʧ').replace(/d͡ʒ|dʒ/g,'ʤ').replace(/ɡ/g,Object.hasOwn(vocab,'ɡ')?'ɡ':'g').replace(/[\u0361\u200d]/g,'').replace(/\s+/g,' ').trim();
+ const ids=Array.from(phonemes).filter(c=>Object.hasOwn(vocab,c)).map(c=>vocab[c]);
+ if(!ids.length||ids.length>510)throw Error('Longitud fonética inválida: '+ids.length);
+ const offset=Math.max(0,ids.length-1)*256;if(offset+256>styles.length)throw Error('Vector de voz incompleto');
+ const output=await session.run({input_ids:new ort.Tensor('int64',BigInt64Array.from([0,...ids,0],BigInt),[1,ids.length+2]),style:new ort.Tensor('float32',styles.slice(offset,offset+256),[1,256]),speed:new ort.Tensor('float32',Float32Array.of(speed),[1])});
+ samples.push(output[session.outputNames[0]].data);
+ }
+ const n=samples.reduce((a,b)=>a+b.length,0);if(!n)throw Error('Audio vacío');const buffer=new ArrayBuffer(44+n*2),v=new DataView(buffer);const ascii=(o,t)=>Array.from(t).forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));ascii(0,'RIFF');v.setUint32(4,36+n*2,true);ascii(8,'WAVE');ascii(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,24000,true);v.setUint32(28,48000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);ascii(36,'data');v.setUint32(40,n*2,true);let pos=44;for(const part of samples)for(const x of part){v.setInt16(pos,Math.round(Math.max(-1,Math.min(1,x))*32767),true);pos+=2;}return new Blob([buffer],{type:'audio/wav'});
 }
 
-// === PIPER AISLADO POR VOZ ===
-// Cada modelo vive en su propio Web Worker para impedir que una sesion ONNX
-// reutilice accidentalmente el modelo de otra voz.
-const _piperVoiceWorkers = new Map();
-let _piperReqSeq = 0;
-
-function getPiperVoiceWorker(voiceId){
-  if(_piperVoiceWorkers.has(voiceId)) return _piperVoiceWorkers.get(voiceId);
-  const workerCode = `
-    let tts=null, loadedVoice=null, loading=null;
-    async function lib(){
-      if(tts) return tts;
-      const urls=[
-        'https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.4/+esm',
-        'https://esm.run/@mintplex-labs/piper-tts-web@1.0.4'
-      ];
-      let last;
-      for(const u of urls){try{tts=await import(u);return tts;}catch(e){last=e;}}
-      throw last||new Error('No se pudo cargar Piper');
-    }
-    async function ensureVoice(voiceId){
-      if(loadedVoice===voiceId) return true;
-      if(loading) return loading;
-      loading=(async()=>{
-        const t=await lib();
-        await t.download(voiceId,()=>{});
-        loadedVoice=voiceId;
-        return true;
-      })();
-      try{return await loading;}finally{loading=null;}
-    }
-    self.onmessage=async(ev)=>{
-      const m=ev.data||{}, id=m.id;
-      try{
-        if(m.cmd==='init'){
-          await ensureVoice(m.voiceId);
-          self.postMessage({id,ok:true,ready:true,voiceId:m.voiceId});
-          return;
-        }
-        if(m.cmd==='predict'){
-          await ensureVoice(m.voiceId);
-          const t=await lib();
-          const blob=await t.predict({text:m.text,voiceId:m.voiceId,speakerId:m.speakerId||0},()=>{});
-          if(!blob || blob.size<500) throw new Error('Piper devolvio WAV vacio');
-          const ab=await blob.arrayBuffer();
-          self.postMessage({id,ok:true,buffer:ab,type:blob.type||'audio/wav',size:blob.size},[ab]);
-          return;
-        }
-        throw new Error('Comando Worker desconocido');
-      }catch(e){self.postMessage({id,ok:false,error:e?.message||String(e)});}
-    };
-  `;
-  const url=URL.createObjectURL(new Blob([workerCode],{type:'text/javascript'}));
-  const worker=new Worker(url);
-  URL.revokeObjectURL(url);
-  const state={worker,pending:new Map(),voiceId,ready:false};
-  worker.onmessage=(ev)=>{
-    const m=ev.data||{}; const q=state.pending.get(m.id); if(!q)return;
-    state.pending.delete(m.id);
-    if(m.ok){
-      if(m.ready) state.ready=true;
-      q.resolve(m.buffer ? new Blob([m.buffer],{type:m.type||'audio/wav'}) : m);
-    } else q.reject(new Error(m.error||'Error Piper Worker'));
-  };
-  worker.onerror=(e)=>{
-    state.ready=false;
-    for(const q of state.pending.values()) q.reject(new Error(e.message||'Error Worker'));
-    state.pending.clear();
-  };
-  _piperVoiceWorkers.set(voiceId,state);
-  return state;
-}
-function workerRequest(state,msg){
-  const id=++_piperReqSeq;
-  return new Promise((resolve,reject)=>{
-    state.pending.set(id,{resolve,reject});
-    state.worker.postMessage({...msg,id});
-  });
-}
-async function ensurePiperVoiceReady(voiceId){
-  const state=getPiperVoiceWorker(voiceId);
-  if(state.ready) return state;
-  await workerRequest(state,{cmd:'init',voiceId});
-  state.ready=true;
-  return state;
-}
-async function predictPiperIsolated({text,voiceId,speakerId=0}){
-  const state=await ensurePiperVoiceReady(voiceId);
-  return await workerRequest(state,{cmd:'predict',text,voiceId,speakerId});
-}
-function resetPiperVoiceWorker(voiceId){
-  const st=_piperVoiceWorkers.get(voiceId);
-  if(st){try{st.worker.terminate()}catch{} _piperVoiceWorkers.delete(voiceId);}
-}
-
+async function getTTS(){return getKokoro();}
+async function predictKokoro({text,voiceId}){return spanishVoice(text,voiceId,1);}
 function splitIntoChunks(txt, maxLen){
   maxLen = maxLen || 380;
   const sentences = txt.replace(/\r/g,'').split(/(?<=[.!?\n])\s+/);
@@ -1279,7 +1201,7 @@ async function handleGenerate(){
   const speedSelectEl = document.getElementById('kokoroSpeed');
   if(voiceSelectEl) slot.voiceId = voiceSelectEl.value;
   if(speedSelectEl) slot.voiceSpeed = parseFloat(speedSelectEl.value)||1;
-  let voiceId = slot.voiceId || 'es_MX-claude-high';
+  let voiceId = slot.voiceId || 'em_alex';
   let speakerId = 0;
   if(voiceId.includes(':')){ const parts = voiceId.split(':'); voiceId = parts[0]; speakerId = parseInt(parts[1]||0); }
   const speed = slot.voiceSpeed||1;
@@ -1291,31 +1213,8 @@ async function handleGenerate(){
   if(btn){ btn.disabled=true; btn.textContent='SLOT '+slot.id+' 0/'+chunks.length; btn.style.background='#fff'; }
 
   try{
-    const tts = await getTTS();
-    setKStatus('[SLOT '+slot.id+'] Descargando modelo voz '+voiceId+'...');
-    const onProgress = (prog)=>{
-      if(prog && prog.loaded && prog.total){
-        const pct = Math.round(prog.loaded*100/prog.total);
-        const bar=document.getElementById('kokoroProgressBar');
-        const barWrap=document.getElementById('kokoroProgress');
-        if(barWrap) barWrap.style.display='block';
-        if(bar) bar.style.width=(20 + Math.round(pct*0.3))+'%';
-      }
-    };
-    // En lote, el Worker es el ÚNICO dueño del modelo. No duplicamos download en main thread.
-    if(window._voiceGenerating){
-      setKStatus('[SLOT '+slot.id+'] Inicializando '+voiceId+' una sola vez...');
-      await ensurePiperVoiceReady(voiceId);
-      setKStatus('[SLOT '+slot.id+'] Modelo '+voiceId+' READY');
-    }else{
-      // Generación manual conserva el comportamiento probado.
-      let downloaded=false;
-      for(let attempt=1; attempt<=3 && !downloaded; attempt++){
-        try{ await tts.download(voiceId,onProgress); downloaded=true; }
-        catch(e){ console.warn('download intento '+attempt+' fallo',e); if(attempt<3) await new Promise(r=>setTimeout(r,1500)); else throw e; }
-      }
-    }
-
+    setKStatus('[SLOT '+slot.id+'] Cargando Kokoro · '+voiceId+'...');
+    await getKokoro();
     // AudioContext con resume obligatorio
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if(audioCtx.state==='suspended') await audioCtx.resume();
@@ -1333,7 +1232,7 @@ async function handleGenerate(){
       let wavBlob=null;
       for(let retry=1; retry<=2; retry++){
         try{
-          wavBlob = await predictPiperIsolated({ text: chunk, voiceId: voiceId, speakerId: speakerId });
+          wavBlob = await predictKokoro({ text: chunk, voiceId: voiceId, speakerId: speakerId });
           if(wavBlob && wavBlob.size>=500) break;
           console.warn('Chunk '+i+' vacio intento '+retry, wavBlob?.size);
         }catch(e){ console.warn('predict fail chunk '+i+' intento '+retry, e); }
@@ -1348,10 +1247,10 @@ async function handleGenerate(){
     }
 
     if(!buffers.length) {
-      console.error('Piper buffers vacios - modelo onnx posiblemente no descargado');
+      console.error('Kokoro buffers vacios - modelo onnx posiblemente no descargado');
       // Intentar diagnosticar
       const cacheInfo = await caches?.keys?.() ? await caches.keys() : [];
-      throw new Error('Piper no devolvió audio válido para ningún fragmento del SLOT '+slot.id+'. Modelo: '+voiceId+'. El Worker estaba READY pero predict() devolvió WAV vacío.');
+      throw new Error('Kokoro no devolvió audio válido para ningún fragmento del SLOT '+slot.id+'. Modelo: '+voiceId+'. El Worker estaba READY pero predict() devolvió WAV vacío.');
     }
 
     let totalLength = 0; for(let b of buffers) totalLength+=b.length;
@@ -1463,12 +1362,12 @@ window.generateVoiceForSlotIdLocked = async function(slotId){
 
 // === VISTA PREVIA DE VOZ: no altera el audio guardado del slot ===
 let voicePreviewObjectUrl=null;
-async function previewSelectedPiperVoice(){
+async function previewSelectedKokoroVoice(){
   const btn=document.getElementById('btnVoicePreview');
   const player=document.getElementById('voicePreviewPlayer');
   const sel=document.getElementById('kokoroVoice');
   if(!btn||!player||!sel)return;
-  const fullVoiceId=sel.value||'es_ES-sharvard-medium:0';
+  const fullVoiceId=sel.value||'em_alex';
   const parts=fullVoiceId.split(':');
   const voiceId=parts[0], speakerId=parseInt(parts[1]||'0',10)||0;
   const slot=window.queue?.find(q=>q.id===(window.activeId||1));
@@ -1482,10 +1381,10 @@ async function previewSelectedPiperVoice(){
   btn.disabled=true; btn.textContent='⏳ PREPARANDO '+sel.options[sel.selectedIndex].text+'...';
   try{
     player.pause();
-    const tts=await getTTS();
+    await getTTS();
     setKStatus('Vista previa · cargando '+sel.options[sel.selectedIndex].text+'...');
-    await tts.download(voiceId,()=>{});
-    const blob=await predictPiperIsolated({text:sample,voiceId,speakerId});
+
+    const blob=await predictKokoro({text:sample,voiceId,speakerId});
     if(!blob||blob.size<500)throw new Error('La voz no devolvió audio.');
     if(voicePreviewObjectUrl)try{URL.revokeObjectURL(voicePreviewObjectUrl)}catch(e){}
     voicePreviewObjectUrl=URL.createObjectURL(blob);
@@ -1495,7 +1394,7 @@ async function previewSelectedPiperVoice(){
     await player.play();
     btn.textContent='⏹ DETENER VISTA PREVIA';
     setKStatus('▶ Vista previa · '+sel.options[sel.selectedIndex].text+' · ID REAL: '+voiceId);
-    player.onended=()=>{btn.textContent='▶ ESCUCHAR VISTA PREVIA DE ESTA VOZ';btn.disabled=false;setKStatus('Motor Piper listo · voz '+sel.options[sel.selectedIndex].text);};
+    player.onended=()=>{btn.textContent='▶ ESCUCHAR VISTA PREVIA DE ESTA VOZ';btn.disabled=false;setKStatus('Motor Kokoro listo · voz '+sel.options[sel.selectedIndex].text);};
   }catch(e){
     console.error('preview voz',e);
     setKStatus('❌ Vista previa: '+e.message);
@@ -1507,7 +1406,7 @@ document.getElementById('btnVoicePreview')?.addEventListener('click',()=>{
   const p=document.getElementById('voicePreviewPlayer');
   const b=document.getElementById('btnVoicePreview');
   if(p && !p.paused){p.pause();p.currentTime=0;b.textContent='▶ ESCUCHAR VISTA PREVIA DE ESTA VOZ';b.disabled=false;setKStatus('Vista previa detenida');return;}
-  previewSelectedPiperVoice();
+  previewSelectedKokoroVoice();
 });
 
 $id('btnKokoroGen')?.addEventListener('click', handleGenerate);
@@ -1617,7 +1516,7 @@ window.getTTS = getTTS;
 
         // Reafirmar la voz PROPIA del slot después de setActive.
         const sel=document.getElementById('kokoroVoice');
-        if(sel) sel.value=slot.voiceId||'es_MX-claude-high:0';
+        if(sel) sel.value=slot.voiceId||'em_alex';
         window.activeId=slot.id;
 
         if(state) state.textContent='GENERANDO';
@@ -1632,7 +1531,7 @@ window.getTTS = getTTS;
           // Solo esperamos y repetimos la ruta manual; no redescargamos Claude.
           await new Promise(r=>setTimeout(r,1000));
           window.activeId=slot.id;
-          if(sel) sel.value=slot.voiceId||'es_MX-claude-high:0';
+          if(sel) sel.value=slot.voiceId||'em_alex';
           await window.handleGenerate();
         }
 
@@ -1755,30 +1654,14 @@ window.getTTS = getTTS;
 </script>
 
 <script>
-// PREHEAT SIMPLE ORIGINAL - no mensajes raros, solo deja motor listo
-(function(){
-  console.log('[ORIGINAL PREHEAT] Precalentando motor voces...');
-  window._ttsCache = null;
-  window._voicesDownloaded = new Set();
-  window._ttsReady = false;
-  async function preheatOriginal(){
-    try{
-      if(!window.getTTS) { setTimeout(preheatOriginal,1000); return; }
-      const tts = await window.getTTS();
-      window._ttsCache = tts;
-      // Descargar voz principal 150MB en background como original
-      try{ await tts.download('es_MX-claude-high', ()=>{}); window._voicesDownloaded.add('es_MX-claude-high'); console.log('[ORIGINAL] Claude precargada'); const st=document.getElementById('kokoroStatus'); if(st) st.textContent='✅ Claude listo · Piper TTS'; }catch(e){}
-    }catch(e){}
-  }
-  setTimeout(preheatOriginal, 1200);
-})();
+// Kokoro se carga bajo demanda con la primera generación o vista previa.
 </script>
 
 <script>
 
 // === V78 FFMPEG.WASM + 3 EN PARALELO + REINICIO POR SLOT ===
 // Render final 100% en el navegador con FFmpeg WebAssembly (single-thread).
-// La interfaz, Piper, Supabase, preview y cola se conservan. El render final NO usa
+// La interfaz, Kokoro, Supabase, preview y cola se conservan. El render final NO usa
 // VideoEncoder, MediaRecorder, MP4Box ni mp4-muxer.
 (function(){
   const ICW = window.ICECREAM_WASM = {
@@ -2589,7 +2472,7 @@ console.log('[ICE CREAM TTS] Batch fix V84: secuencial + timeout 180s + reset Wo
 </script>
 <script>console.log('[ICE CREAM] V85 Render Todo usa exactamente handleGenerate manual por slot');</script>
 <script>console.log('[ICE CREAM] V86 Worker persistente: modelo se descarga una sola vez por lote');</script>
-<script>console.log('[ICE CREAM] V87 Piper Worker READY: un solo dueño del modelo durante Renderizar Todo');</script>
+<script>console.log('[ICE CREAM] V87 Kokoro Worker READY: un solo dueño del modelo durante Renderizar Todo');</script>
 <script id="ic-footer-relocation-script">
 (function(){
   function placeFooter(){
