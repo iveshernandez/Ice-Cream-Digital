@@ -1113,7 +1113,7 @@ async function getKokoro(){
  if(!kokoroPromise) kokoroPromise=(async()=>{
  const ort=await import('https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.wasm.min.mjs');
  ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';
- ort.env.wasm.numThreads=1;
+ ort.env.wasm.numThreads=globalThis.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 2) : 1;
  const ep=await import('https://cdn.jsdelivr.net/npm/ephone/+esm');
  const ph=await ep.default(ep.roa);
  if(!ph.getVoices().some(v=>v.name==='es'))throw Error('No se cargó el paquete español de eSpeak');
@@ -1126,11 +1126,14 @@ async function getKokoro(){
  })().catch(e=>{kokoroPromise=null;throw e});
  return kokoroPromise;
 }
-async function spanishVoice(text,voice,speed){
+async function loadVoice(voice){
+ if(!voiceCache.has(voice))voiceCache.set(voice,fetch(KOKORO_BASE+'voices/'+voice+'.bin').then(async r=>{if(!r.ok)throw Error('Descarga de voz: '+r.status);return new Float32Array(await r.arrayBuffer());}).catch(e=>{voiceCache.delete(voice);throw e}));
+ return voiceCache.get(voice);
+}
+async function spanishVoice(text,voice,speed,rawOnly=false){
  if(!['em_alex','em_santa','ef_dora'].includes(voice))throw Error('Selecciona una voz española');
  const {ort,ph,vocab,session}=await getKokoro();
- if(!voiceCache.has(voice))voiceCache.set(voice,fetch(KOKORO_BASE+'voices/'+voice+'.bin').then(async r=>{if(!r.ok)throw Error('Descarga de voz: '+r.status);return new Float32Array(await r.arrayBuffer());}).catch(e=>{voiceCache.delete(voice);throw e}));
- const styles=await voiceCache.get(voice);
+ const styles=await loadVoice(voice);
  const chunks=[];let current='';for(const w of text.trim().split(/\s+/)){if(current.length+w.length>180&&current){chunks.push(current);current='';}current+=(current?' ':'')+w;}if(current)chunks.push(current);
  const samples=[];
  for(const chunk of chunks){
@@ -1142,6 +1145,10 @@ async function spanishVoice(text,voice,speed){
  const output=await session.run({input_ids:new ort.Tensor('int64',BigInt64Array.from([0,...ids,0],BigInt),[1,ids.length+2]),style:new ort.Tensor('float32',styles.slice(offset,offset+256),[1,256]),speed:new ort.Tensor('float32',Float32Array.of(speed),[1])});
  samples.push(output[session.outputNames[0]].data);
  }
+ if(rawOnly)return samples;
+ return samplesToWav(samples);
+}
+function samplesToWav(samples){
  const n=samples.reduce((a,b)=>a+b.length,0);if(!n)throw Error('Audio vacío');const buffer=new ArrayBuffer(44+n*2),v=new DataView(buffer);const ascii=(o,t)=>Array.from(t).forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));ascii(0,'RIFF');v.setUint32(4,36+n*2,true);ascii(8,'WAVE');ascii(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,24000,true);v.setUint32(28,48000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);ascii(36,'data');v.setUint32(40,n*2,true);let pos=44;for(const part of samples)for(const x of part){v.setInt16(pos,Math.round(Math.max(-1,Math.min(1,x))*32767),true);pos+=2;}return new Blob([buffer],{type:'audio/wav'});
 }
 
@@ -1206,70 +1213,27 @@ async function handleGenerate(){
   if(voiceId.includes(':')){ const parts = voiceId.split(':'); voiceId = parts[0]; speakerId = parseInt(parts[1]||0); }
   const speed = slot.voiceSpeed||1;
 
-  const chunks = splitIntoChunks(text, 380);
+  const chunks = splitIntoChunks(text, 180);
   console.log('[V14] SLOT '+slot.id+' TXT '+text.length+' chars -> '+chunks.length+' chunks');
 
   const btn=document.getElementById('btnKokoroGen');
   if(btn){ btn.disabled=true; btn.textContent='SLOT '+slot.id+' 0/'+chunks.length; btn.style.background='#fff'; }
 
   try{
-    setKStatus('[SLOT '+slot.id+'] Cargando Kokoro · '+voiceId+'...');
-    await getKokoro();
-    // AudioContext con resume obligatorio
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state==='suspended') await audioCtx.resume();
-    const buffers = [];
-
+    setKStatus('[SLOT '+slot.id+'] Preparando Kokoro · '+voiceId+'...');
+    await Promise.all([getKokoro(),loadVoice(voiceId)]);
+    const samples=[];
     for(let i=0;i<chunks.length;i++){
-      // FIX BUG1: antes era slotId undefined, ahora slot.id correcto
-      try{ if(window.updateVoiceProgressCorrecto) window.updateVoiceProgressCorrecto(slot.id, i+1, chunks.length); }catch(e){ console.warn('progress fail', e); }
-
-      const chunk = chunks[i];
-      if(btn) btn.textContent='SLOT '+slot.id+' GENERANDO '+(i+1)+'/'+chunks.length;
-      setKStatus('[SLOT '+slot.id+'] Parte '+(i+1)+'/'+chunks.length+' ('+chunk.length+' chars)');
-      setKProg(50 + Math.round((i/chunks.length)*40));
-
-      let wavBlob=null;
-      for(let retry=1; retry<=2; retry++){
-        try{
-          wavBlob = await predictKokoro({ text: chunk, voiceId: voiceId, speakerId: speakerId });
-          if(wavBlob && wavBlob.size>=500) break;
-          console.warn('Chunk '+i+' vacio intento '+retry, wavBlob?.size);
-        }catch(e){ console.warn('predict fail chunk '+i+' intento '+retry, e); }
-        await new Promise(r=>setTimeout(r,400));
-      }
-      if(!wavBlob || wavBlob.size<800){ console.warn('Chunk '+i+' descartado vacio size='+ (wavBlob?.size||0)); continue; }
-      try{
-        const audioBuf = await blobToAudioBuffer(wavBlob, audioCtx);
-        buffers.push(audioBuf);
-      }catch(e){ console.warn('decode fail chunk '+i, e); }
-      await new Promise(r=>setTimeout(r, 30));
+      try{window.updateVoiceProgressCorrecto?.(slot.id,i+1,chunks.length)}catch(e){}
+      setKStatus('[SLOT '+slot.id+'] Generando '+(i+1)+'/'+chunks.length);
+      setKProg(Math.round(i/chunks.length*95));
+      const parts=await spanishVoice(chunks[i],voiceId,1,true);
+      if(!parts.length || !parts.some(p=>p.length))throw Error('Audio vacío en parte '+(i+1));
+      samples.push(...parts);
     }
-
-    if(!buffers.length) {
-      console.error('Kokoro buffers vacios - modelo onnx posiblemente no descargado');
-      // Intentar diagnosticar
-      const cacheInfo = await caches?.keys?.() ? await caches.keys() : [];
-      throw new Error('Kokoro no devolvió audio válido para ningún fragmento del SLOT '+slot.id+'. Modelo: '+voiceId+'. El Worker estaba READY pero predict() devolvió WAV vacío.');
-    }
-
-    let totalLength = 0; for(let b of buffers) totalLength+=b.length;
-    let numberOfChannels = buffers[0].numberOfChannels;
-    let sampleRate = buffers[0].sampleRate;
-    const concatBuffer = audioCtx.createBuffer(numberOfChannels, totalLength, sampleRate);
-    let offset=0;
-    for(let buf of buffers){
-      for(let ch=0; ch<numberOfChannels; ch++){
-        concatBuffer.getChannelData(ch).set(buf.getChannelData(ch), offset);
-      }
-      offset+=buf.length;
-    }
-    await audioCtx.close();
-
-    const finalWavBlob = audioBufferToWavBlob(concatBuffer);
-    console.log('[V14] final blob size', finalWavBlob.size, 'dur', concatBuffer.length/sampleRate);
-    if(finalWavBlob.size<1000) throw new Error('WAV final muy pequeño: '+finalWavBlob.size);
-
+    const finalWavBlob=samplesToWav(samples);
+    const audioDuration=samples.reduce((n,p)=>n+p.length,0)/24000;
+    if(finalWavBlob.size<1000)throw Error('WAV final demasiado pequeño');
     const url=URL.createObjectURL(finalWavBlob);
     if(slot.audioUrl) try{ URL.revokeObjectURL(slot.audioUrl); }catch{}
     slot.audioUrl=url;
@@ -1277,16 +1241,7 @@ async function handleGenerate(){
     slot.audioBlob=finalWavBlob;
     slot.audioVoiceId=slot.voiceId; // voz exacta que genero este WAV
 
-    const tempAudio = new Audio(); tempAudio.src = url;
-    await new Promise((res)=>{
-      tempAudio.onloadedmetadata=()=>{
-        slot.audioDur = tempAudio.duration;
-        console.log('[V14] SLOT '+slot.id+' duracion REAL:', slot.audioDur);
-        res();
-      };
-      tempAudio.onerror=()=>{ slot.audioDur=concatBuffer.length/concatBuffer.sampleRate; res(); };
-      tempAudio.load();
-    });
+    slot.audioDur=audioDuration;
 
     // Guardar y actualizar UI
     slot.status='con audio';
@@ -1441,7 +1396,8 @@ document.getElementById('kokoroSpeed')?.addEventListener('change', e=>{
   if(it) it.voiceSpeed = parseFloat(e.target.value)||1;
 });
 
-setKStatus('✅ V14 FIX - Voz por SLOT corregida - lista');
+setKStatus('Kokoro · precargando motor y voces...');
+Promise.all([getKokoro(),loadVoice('em_alex'),loadVoice('em_santa'),loadVoice('ef_dora')]).then(()=>{if(!window._voiceGenerating)setKStatus('Kokoro listo · Alex, Santa y Dora en memoria');}).catch(e=>{console.warn('Precarga Kokoro',e);if(!window._voiceGenerating)setKStatus('Precarga pendiente; se reintentará al generar');});
 window.handleGenerate = handleGenerate;
 window.getTTS = getTTS;
 </script>
